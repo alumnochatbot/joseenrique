@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Predators: Serpientes de Escritura</title>
+    <title>Word Predators & Torre de Lava</title>
     <style>
         :root {
             --neon-green: #39ff14;
             --neon-blue: #00f0ff;
             --neon-pink: #ff007f;
             --neon-red: #ff3131;
-            --bg-dark: #0a0a12;
-            --panel-bg: rgba(16, 16, 32, 0.85);
+            --neon-yellow: #ffff00;
+            --neon-purple: #b026ff;
+            --bg-dark: #070710;
+            --panel-bg: rgba(16, 16, 32, 0.88);
             --font-family: 'Courier New', Courier, monospace;
         }
 
@@ -41,11 +43,10 @@
             background: #05050a;
             border: 4px solid #1a1a3a;
             border-radius: 12px;
-            box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+            box-shadow: 0 0 35px rgba(0, 240, 255, 0.2);
             overflow: hidden;
         }
 
-        /* CANVAS */
         canvas {
             display: block;
             width: 100%;
@@ -62,11 +63,11 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(5, 5, 10, 0.95);
+            background: rgba(5, 5, 10, 0.94);
             z-index: 10;
             transition: opacity 0.3s ease;
             text-align: center;
-            padding: 20px;
+            padding: 25px;
         }
 
         .hidden {
@@ -75,56 +76,93 @@
             pointer-events: none;
         }
 
-        /* PANTALLA DE INICIO */
-        #start-screen {
-            background: radial-gradient(circle, #15152a 0%, #05050a 100%);
-        }
-
+        /* ESTILOS DE TÍTULOS Y TEXTOS */
         h1 {
-            font-size: 3.5rem;
+            font-size: 2.8rem;
             color: var(--neon-blue);
             text-shadow: 0 0 15px var(--neon-blue), 0 0 30px rgba(0, 240, 255, 0.5);
-            margin-bottom: 10px;
-            letter-spacing: 4px;
+            margin-bottom: 8px;
+            letter-spacing: 3px;
             text-transform: uppercase;
         }
 
         .subtitle {
-            font-size: 1.1rem;
-            color: #8888b0;
-            margin-bottom: 25px;
-            max-width: 650px;
-            line-height: 1.5;
+            font-size: 0.95rem;
+            color: #9999c0;
+            margin-bottom: 20px;
+            max-width: 700px;
+            line-height: 1.4;
         }
 
-        /* SELECTOR DE DIFICULTAD INICIAL */
-        .difficulty-title {
-            font-size: 1.1rem;
-            color: #aaaaee;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        #start-difficulty-selector {
+        /* SELECTOR DE MODOS DE JUEGO */
+        #mode-selector {
             display: flex;
             gap: 15px;
-            margin-bottom: 35px;
+            margin-bottom: 20px;
+        }
+
+        .mode-card {
+            background: rgba(20, 20, 40, 0.7);
+            border: 2px solid #333366;
+            padding: 12px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 250px;
+            text-align: center;
+        }
+
+        .mode-card:hover {
+            border-color: #6666bb;
+            transform: translateY(-2px);
+        }
+
+        .mode-card.active {
+            border-color: var(--neon-blue);
+            background: rgba(0, 240, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+        }
+
+        .mode-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .mode-desc {
+            font-size: 0.75rem;
+            color: #8888aa;
+            line-height: 1.2;
+        }
+
+        .section-title {
+            font-size: 0.95rem;
+            color: #aaaaee;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .diff-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
         }
 
         .diff-opt {
             background: rgba(16, 16, 32, 0.6);
             color: #8888b0;
             border: 2px solid #333355;
-            padding: 12px 30px;
-            font-size: 1rem;
+            padding: 10px 24px;
+            font-size: 0.9rem;
             font-family: var(--font-family);
             font-weight: bold;
             cursor: pointer;
             border-radius: 6px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            transition: all 0.25s ease;
+            transition: all 0.2s ease;
             outline: none;
         }
 
@@ -133,34 +171,34 @@
             border-color: #555588;
         }
 
-        /* Estados activos para el selector de dificultad */
         .diff-opt[data-diff="EASY"].active {
             border-color: var(--neon-green);
             color: var(--neon-green);
-            box-shadow: 0 0 15px rgba(57, 255, 20, 0.4);
+            box-shadow: 0 0 12px rgba(57, 255, 20, 0.4);
             background: rgba(57, 255, 20, 0.08);
         }
 
         .diff-opt[data-diff="MEDIUM"].active {
-            border-color: var(--neon-blue);
-            color: var(--neon-blue);
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
-            background: rgba(0, 240, 255, 0.08);
+            border-color: var(--neon-yellow);
+            color: var(--neon-yellow);
+            box-shadow: 0 0 12px rgba(255, 255, 0, 0.4);
+            background: rgba(255, 255, 0, 0.08);
         }
 
         .diff-opt[data-diff="HARD"].active {
-            border-color: var(--neon-red);
-            color: var(--neon-red);
-            box-shadow: 0 0 15px rgba(255, 49, 49, 0.4);
-            background: rgba(255, 49, 49, 0.08);
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            box-shadow: 0 0 12px rgba(255, 0, 127, 0.4);
+            background: rgba(255, 0, 127, 0.08);
         }
 
+        /* BOTONES PRINCIPALES */
         .btn {
             background: transparent;
             color: #ffffff;
             border: 2px solid var(--neon-green);
-            padding: 15px 45px;
-            font-size: 1.25rem;
+            padding: 12px 35px;
+            font-size: 1.15rem;
             font-family: var(--font-family);
             font-weight: bold;
             cursor: pointer;
@@ -176,49 +214,7 @@
             background: var(--neon-green);
             color: #000000;
             box-shadow: 0 0 25px var(--neon-green);
-            transform: scale(1.05);
-        }
-
-        /* PANTALLA GAME OVER */
-        #gameover-screen {
-            background: rgba(15, 5, 5, 0.95);
-        }
-
-        #gameover-screen h2 {
-            font-size: 3.5rem;
-            color: var(--neon-red);
-            text-shadow: 0 0 15px var(--neon-red);
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-        }
-
-        .stats-panel {
-            background: var(--panel-bg);
-            border: 1px solid #333355;
-            padding: 25px 50px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            min-width: 350px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .stat-line {
-            display: flex;
-            justify-content: space-between;
-            font-size: 1.2rem;
-            margin: 12px 0;
-            color: #ccc;
-        }
-
-        .stat-value {
-            font-weight: bold;
-            color: #ffffff;
-        }
-
-        .stat-value.highlight {
-            color: var(--neon-blue);
-            text-shadow: 0 0 8px var(--neon-blue);
+            transform: scale(1.04);
         }
 
         .btn-restart {
@@ -232,38 +228,13 @@
             box-shadow: 0 0 25px var(--neon-pink);
         }
 
-        /* PANTALLA VICTORIA */
-        #victory-screen {
-            background: rgba(5, 15, 5, 0.95);
-        }
-
-        #victory-screen h2 {
-            font-size: 3.5rem;
-            color: var(--neon-green);
-            text-shadow: 0 0 15px var(--neon-green);
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-        }
-        
-        .btn-victory {
-            border-color: var(--neon-green);
-            box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
-            color: var(--neon-green);
-        }
-
-        .btn-victory:hover {
-            background: var(--neon-green);
-            color: #000000;
-            box-shadow: 0 0 25px var(--neon-green);
-        }
-
-        #hud {
+        /* HUD SUPERIOR */
+        #hud-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            padding: 15px 25px;
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -271,244 +242,687 @@
             z-index: 5;
         }
 
+        .hud-group {
+            display: flex;
+            gap: 10px;
+        }
+
         .hud-item {
             background: var(--panel-bg);
-            padding: 10px 18px;
+            padding: 8px 14px;
             border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             letter-spacing: 1px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
         }
 
         .hud-label {
             color: #8888b0;
             text-transform: uppercase;
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             margin-bottom: 2px;
         }
 
         .hud-value {
-            font-size: 1.3rem;
+            font-size: 1.15rem;
             font-weight: bold;
             color: #ffffff;
         }
 
-        #hud-score .hud-value {
-            color: var(--neon-green);
-            text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
-        }
-
-        #hud-bombs .hud-value {
-            color: #ffff00;
-            text-shadow: 0 0 5px rgba(255, 255, 0, 0.5);
-        }
-
-        #hud-lives .hud-value {
-            color: var(--neon-red);
-            text-shadow: 0 0 10px rgba(255, 49, 49, 0.6);
-            font-size: 1.15rem;
-        }
-
-        #hud-difficulty .hud-value {
-            color: var(--neon-blue);
-            text-shadow: 0 0 5px rgba(0, 240, 255, 0.5);
-        }
-
-        #hud-combo .hud-value {
-            color: var(--neon-pink);
-            text-shadow: 0 0 5px rgba(255, 0, 127, 0.5);
-        }
-
-        /* AVISO DE SUBIDA DE NIVEL / DIFICULTAD */
-        #level-up-banner {
+        #tower-theme-panel {
             position: absolute;
-            top: 30%;
+            top: 72px;
             left: 50%;
-            transform: translate(-50%, -50%) scale(0.8);
-            background: rgba(0, 0, 0, 0.85);
+            transform: translateX(-50%);
+            background: rgba(10, 10, 24, 0.92);
+            border: 2px solid var(--neon-yellow);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.25);
+            padding: 8px 24px;
+            border-radius: 8px;
+            text-align: center;
+            z-index: 6;
+            pointer-events: none;
+        }
+
+        #tower-theme-label {
+            font-size: 0.75rem;
+            color: #aaaaee;
+            letter-spacing: 2px;
+        }
+
+        #tower-theme-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--neon-yellow);
+            text-shadow: 0 0 10px rgba(255, 255, 0, 0.6);
+            letter-spacing: 2px;
+        }
+
+        #tower-input-container {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            background: rgba(10, 10, 24, 0.95);
+            padding: 8px 12px;
+            border-radius: 8px;
             border: 2px solid var(--neon-blue);
-            padding: 15px 30px;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+            z-index: 7;
+        }
+
+        #tower-word-input {
+            background: #000000;
+            border: 1px solid #444477;
+            color: #ffffff;
+            font-family: var(--font-family);
+            font-size: 1.1rem;
+            padding: 8px 14px;
+            border-radius: 4px;
+            width: 440px;
+            text-transform: uppercase;
+            outline: none;
+        }
+
+        #tower-word-input:disabled {
+            background: #111122;
+            color: #8888aa;
+            border-color: #333355;
+            cursor: not-allowed;
+        }
+
+        #tower-btn-submit {
+            background: var(--neon-blue);
+            color: #000000;
+            border: none;
+            font-family: var(--font-family);
+            font-size: 0.95rem;
+            font-weight: bold;
+            padding: 8px 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+
+        #tower-btn-submit:hover:not(:disabled) {
+            background: #ffffff;
+            box-shadow: 0 0 12px var(--neon-blue);
+        }
+
+        #tower-btn-submit:disabled {
+            background: #444466;
+            color: #888899;
+            cursor: not-allowed;
+        }
+
+        /* TOAST DE MENSAJES */
+        #toast-msg {
+            position: absolute;
+            top: 135px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 49, 49, 0.92);
+            color: #ffffff;
+            border: 1px solid #ffffff;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(255, 49, 49, 0.6);
+            z-index: 8;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+        }
+
+        #toast-msg.show {
+            opacity: 1;
+        }
+
+        /* AVISO DE SUBIDA DE NIVEL / ALERTA */
+        #banner-alert {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.85);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--neon-blue);
+            padding: 12px 28px;
             border-radius: 8px;
             color: var(--neon-blue);
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             text-transform: uppercase;
             box-shadow: 0 0 25px var(--neon-blue);
             pointer-events: none;
-            z-index: 8;
+            z-index: 9;
             opacity: 0;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        #level-up-banner.show {
+        #banner-alert.show {
             opacity: 1;
             transform: translate(-50%, -50%) scale(1);
         }
 
-        /* SONIDO MUTED INDICATOR */
+        /* BOTÓN DE AUDIO */
         #sound-toggle {
             position: absolute;
-            bottom: 15px;
-            right: 15px;
-            background: rgba(16, 16, 32, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            bottom: 12px;
+            right: 14px;
+            background: rgba(16, 16, 32, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             color: #aaa;
-            padding: 8px 12px;
+            padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
             z-index: 12;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             transition: all 0.2s ease;
         }
 
         #sound-toggle:hover {
-            background: rgba(16, 16, 32, 0.9);
+            background: rgba(16, 16, 32, 0.95);
             color: #fff;
             border-color: var(--neon-blue);
+        }
+
+        /* PANELES DE ESTADÍSTICAS */
+        .stats-panel {
+            background: var(--panel-bg);
+            border: 1px solid #333355;
+            padding: 20px 40px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            min-width: 380px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1rem;
+            margin: 10px 0;
+            color: #ccc;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .stat-value.highlight {
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
         }
     </style>
 </head>
 <body>
 
     <div id="game-container">
-        <!-- HUD principal de juego -->
-        <div id="hud">
-            <div class="hud-item" id="hud-score">
-                <div class="hud-label">Puntos</div>
-                <div class="hud-value" id="score-val">0000</div>
+        <!-- CONTENEDOR GENERAL DE HUD -->
+        <div id="hud-container">
+            <!-- HUD MODO SERPIENTES -->
+            <div id="snakes-hud" class="hud-group">
+                <div class="hud-item">
+                    <div class="hud-label">Puntos</div>
+                    <div class="hud-value" id="score-val" style="color: var(--neon-green);">0000</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Bombas [ESPACIO]</div>
+                    <div class="hud-value" id="bombs-val" style="color: #ffff00;">0</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Vidas</div>
+                    <div class="hud-value" id="lives-val" style="color: var(--neon-red);">❤️❤️❤️</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Dificultad</div>
+                    <div class="hud-value" id="snakes-diff-val" style="color: var(--neon-blue);">FÁCIL</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Racha</div>
+                    <div class="hud-value" id="combo-val" style="color: var(--neon-pink);">x0</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Eliminadas</div>
+                    <div class="hud-value" id="defeated-val">0 / 50</div>
+                </div>
             </div>
-            <div class="hud-item" id="hud-bombs">
-                <div class="hud-label">Bombas</div>
-                <div class="hud-value" id="bombs-val">0</div>
+
+            <!-- HUD MODO TORRE CLÁSICA -->
+            <div id="tower-hud" class="hud-group hidden">
+                <div class="hud-item">
+                    <div class="hud-label">Altura Torre</div>
+                    <div class="hud-value" id="tower-height-val" style="color: var(--neon-blue);">0 Blqs</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Nivel Lava</div>
+                    <div class="hud-value" id="tower-lava-val" style="color: var(--neon-red);">0 Blqs</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Tiempo Ronda</div>
+                    <div class="hud-value" id="tower-timer-val" style="color: var(--neon-yellow);">15s</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Regla</div>
+                    <div class="hud-value" style="color: var(--neon-green); font-size: 0.9rem;">1 Palabra / Ronda</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Ronda</div>
+                    <div class="hud-value" id="tower-round-val">1 / 6</div>
+                </div>
             </div>
-            <div class="hud-item" id="hud-lives">
-                <div class="hud-label">Vidas</div>
-                <div class="hud-value" id="lives-val">❤️❤️❤️</div>
-            </div>
-            <div class="hud-item" id="hud-difficulty">
-                <div class="hud-label">Dificultad</div>
-                <div class="hud-value" id="diff-val">FÁCIL</div>
-            </div>
-            <div class="hud-item" id="hud-combo">
-                <div class="hud-label">Racha Combo</div>
-                <div class="hud-value" id="combo-val">x0</div>
-            </div>
-            <div class="hud-item" id="hud-defeated">
-                <div class="hud-label">Eliminadas</div>
-                <div class="hud-value" id="defeated-val">0</div>
+
+            <!-- HUD MODO TORNEO PVE -->
+            <div id="pve-hud" class="hud-group hidden">
+                <div class="hud-item">
+                    <div class="hud-label">Tu Altura</div>
+                    <div class="hud-value" id="pve-player-height-val" style="color: var(--neon-blue);">0 Blqs</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Nivel Lava</div>
+                    <div class="hud-value" id="pve-lava-val" style="color: var(--neon-red);">0 Blqs</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Tiempo Ronda</div>
+                    <div class="hud-value" id="pve-timer-val" style="color: var(--neon-yellow);">15s</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Dificultad Bots</div>
+                    <div class="hud-value" id="pve-hud-diff-val" style="color: var(--neon-yellow); font-size: 0.9rem;">MEDIO</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Bots Vivos</div>
+                    <div class="hud-value" id="pve-bots-alive-val" style="color: #ff9900;">3 / 3</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Listos</div>
+                    <div class="hud-value" id="pve-ready-val" style="color: var(--neon-yellow); font-size: 0.9rem;">0 / 4</div>
+                </div>
             </div>
         </div>
 
-        <!-- Banner de alerta cambio de nivel -->
-        <div id="level-up-banner">¡DIFICULTAD MEDIA!</div>
+        <!-- PANEL DE CAMPO LÉXICO (TORRE Y PVE) -->
+        <div id="tower-theme-panel" class="hidden">
+            <div id="tower-theme-label">CAMPO LÉXICO (1 PALABRA POR RONDA):</div>
+            <div id="tower-theme-value">ESCUELA</div>
+            <div style="font-size: 0.72rem; color: #ffcc00; margin-top: 2px;">
+                ⚠️ 1 palabra por ronda. ¡Elige la más larga para ganar más bloques!
+            </div>
+        </div>
 
-        <!-- Pantalla de inicio -->
+        <!-- INPUT PARA MODO TORRE Y PVE -->
+        <div id="tower-input-container" class="hidden">
+            <input type="text" id="tower-word-input" placeholder="Escribe 1 palabra del tema y presiona ENTER..." autocomplete="off">
+            <button id="tower-btn-submit">Construir</button>
+        </div>
+
+        <!-- NOTIFICACIONES TOAST Y BANNER -->
+        <div id="toast-msg">¡Palabra incorrecta!</div>
+        <div id="banner-alert">¡DIFICULTAD MEDIA!</div>
+
+        <!-- PANTALLA DE INICIO -->
         <div id="start-screen" class="screen">
             <h1>WORD PREDATORS</h1>
             <p class="subtitle">
-                Serpientes cibernéticas están emergiendo de los conductos de ventilación. ¡Escribe las palabras flotantes con tu teclado antes de que colapsen tu núcleo!<br>
-                <strong style="color: var(--neon-blue);">[MISIÓN]:</strong> ¡Elimina 50 serpientes para asegurar el sistema!<br>
-                <strong style="color: #ffff00;">[BOMBA DE EMERGENCIA]:</strong> Presiona la tecla <strong style="color: var(--neon-green);">ESPACIO</strong> para detonar instantáneamente la serpiente más cercana a tu base.
+                Escribe a toda velocidad para sobrevivir al asedio subterráneo o escala las torres léxicas antes de que el magma te consuma.
             </p>
 
-            <!-- Selector interactivo de dificultad inicial -->
-            <div class="difficulty-title">Dificultad Inicial</div>
-            <div id="start-difficulty-selector">
-                <button class="diff-opt active" data-diff="EASY">Fácil</button>
-                <button class="diff-opt" data-diff="MEDIUM">Medio</button>
-                <button class="diff-opt" data-diff="HARD">Difícil</button>
+            <!-- SELECCIÓN DE MODO -->
+            <div class="section-title">Selecciona Modo de Juego</div>
+            <div id="mode-selector">
+                <div class="mode-card active" data-mode="SNAKES">
+                    <div class="mode-title">🐍 Serpientes</div>
+                    <div class="mode-desc">Defiende la base. Tipea palabras, usa bombas y resiste 50 serpientes.</div>
+                </div>
+                <div class="mode-card" data-mode="TOWER">
+                    <div class="mode-title">🌋 Torre Clásica</div>
+                    <div class="mode-desc">1 palabra por ronda. 1 bloque por letra. ¡La lava sube de golpe!</div>
+                </div>
+                <div class="mode-card" data-mode="PVE">
+                    <div class="mode-title">🤖 Torneo PvE</div>
+                    <div class="mode-desc">10 rondas contra 3 bots. 1 palabra por ronda. ¡Sobrevive al magma!</div>
+                </div>
             </div>
 
-            <button class="btn" id="btn-start">Iniciar Defensa</button>
+            <!-- SELECTOR DIFICULTAD SERPIENTES -->
+            <div id="snakes-diff-section">
+                <div class="section-title">Dificultad Inicial</div>
+                <div class="diff-container" id="snakes-diff-selector">
+                    <button class="diff-opt active" data-diff="EASY">Fácil</button>
+                    <button class="diff-opt" data-diff="MEDIUM">Medio</button>
+                    <button class="diff-opt" data-diff="HARD">Difícil</button>
+                </div>
+            </div>
+
+            <!-- SELECTOR DIFICULTAD BOTS PVE -->
+            <div id="pve-diff-section" class="hidden">
+                <div class="section-title">Dificultad de los Bots Rival</div>
+                <div class="diff-container" id="pve-diff-selector">
+                    <button class="diff-opt" data-diff="EASY">Fácil (Lentos)</button>
+                    <button class="diff-opt active" data-diff="MEDIUM">Medio (Equilibrado)</button>
+                    <button class="diff-opt" data-diff="HARD">Difícil (Maestros)</button>
+                </div>
+            </div>
+
+            <button class="btn" id="btn-start">Comenzar Desafío</button>
         </div>
 
-        <!-- Pantalla de Game Over -->
+        <!-- PANTALLA GAME OVER -->
         <div id="gameover-screen" class="screen hidden">
-            <h2>NÚCLEO DESTRUIDO</h2>
+            <h2 id="gameover-title" style="font-size: 3rem; color: var(--neon-red); margin-bottom: 15px;">NÚCLEO DESTRUIDO</h2>
             <div class="stats-panel">
                 <div class="stat-line">
                     <span>Puntaje Final:</span>
                     <span class="stat-value highlight" id="go-score">0</span>
                 </div>
                 <div class="stat-line">
-                    <span>Nivel Alcanzado:</span>
-                    <span class="stat-value" id="go-level">Fácil</span>
+                    <span>Modo de Juego:</span>
+                    <span class="stat-value" id="go-mode">Serpientes</span>
                 </div>
                 <div class="stat-line">
-                    <span>Serpientes Eliminadas:</span>
-                    <span class="stat-value" id="go-defeated">0</span>
+                    <span>Progreso / Eliminadas:</span>
+                    <span class="stat-value" id="go-progress">0</span>
                 </div>
                 <div class="stat-line">
                     <span>Racha Máxima:</span>
                     <span class="stat-value" id="go-max-combo">0</span>
                 </div>
             </div>
-            <button class="btn btn-restart" id="btn-restart">Intentar de Nuevo</button>
+            <button class="btn btn-restart" id="btn-restart">Reintentar</button>
         </div>
 
-        <!-- Pantalla de Victoria -->
+        <!-- PANTALLA DE VICTORIA -->
         <div id="victory-screen" class="screen hidden">
-            <h2>¡SISTEMA ASEGURADO!</h2>
+            <h2 style="font-size: 3rem; color: var(--neon-green); text-shadow: 0 0 15px var(--neon-green); margin-bottom: 15px;">¡VICTORIA TOTAL!</h2>
+            <p class="subtitle" id="vic-desc" style="color: #ffffff; font-size: 1.1rem; margin-bottom: 20px;">
+                ¡Has completado el desafío con un rendimiento sobrehumano!
+            </p>
             <div class="stats-panel">
                 <div class="stat-line">
                     <span>Puntaje Final:</span>
                     <span class="stat-value highlight" id="vic-score">0</span>
                 </div>
                 <div class="stat-line">
-                    <span>Dificultad Base:</span>
-                    <span class="stat-value" id="vic-level">Fácil</span>
+                    <span>Modo Completado:</span>
+                    <span class="stat-value" id="vic-mode">Torneo PvE</span>
                 </div>
                 <div class="stat-line">
                     <span>Racha Máxima:</span>
                     <span class="stat-value" id="vic-max-combo">0</span>
                 </div>
-                <div class="stat-line">
-                    <span>Vidas Restantes:</span>
-                    <span class="stat-value" id="vic-lives">0</span>
-                </div>
             </div>
-            <button class="btn btn-victory" id="btn-victory-restart">Jugar de Nuevo</button>
+            <button class="btn" id="btn-vic-restart" style="border-color: var(--neon-green);">Jugar de Nuevo</button>
         </div>
 
-        <!-- Pantalla de Pausa -->
+        <!-- PANTALLA DE PAUSA -->
         <div id="pause-screen" class="screen hidden">
             <h1 style="color: var(--neon-pink); text-shadow: 0 0 15px var(--neon-pink);">SISTEMA EN PAUSA</h1>
             <p class="subtitle" style="margin-top: 15px; margin-bottom: 30px;">
-                La simulación de defensa ha sido suspendida temporalmente. Presiona la tecla <strong style="color: var(--neon-blue);">ESC</strong> para reanudar.
+                Simulación suspendida. Presiona la tecla <strong style="color: var(--neon-blue);">ESC</strong> para reanudar.
             </p>
-            <button class="btn btn-restart" id="btn-resume">Reanudar Simulación</button>
+            <button class="btn btn-restart" id="btn-resume">Reanudar</button>
         </div>
 
-        <!-- Canvas de renderizado -->
+        <!-- CANVAS -->
         <canvas id="gameCanvas" width="1024" height="600"></canvas>
 
-        <!-- Botón de sonido -->
         <button id="sound-toggle">Sonido: Activado</button>
     </div>
 
     <script>
-        // --- BASE DE DATOS DE PALABRAS ---
-        const PALABRAS_FACIL = [
-            "sol", "luna", "gato", "perro", "casa", "mesa", "flor", "nube", "roca", "hoja",
-            "mar", "rio", "lago", "taza", "boca", "ojo", "pelo", "mano", "azul", "rojo",
-            "vida", "paz", "luz", "aire", "pino", "tren", "nave", "isla", "mapa", "llave"
-        ];
+        const CAMPOS_LEXICOS = {
+            "ESCUELA": [
+                "lapiz", "cuaderno", "profesor", "maestro", "escritorio", "pizarra", "mochila", "regla", "tijeras", "borrador",
+                "examen", "tarea", "alumno", "estudiante", "aula", "libro", "biblioteca", "geometria", "diccionario", "recreo",
+                "cartuchera", "sacapuntas", "compas", "transportador", "boligrafo", "marcador", "cartulina", "pegamento", "pupitre",
+                "tiza", "libreta", "cartapacio", "directora", "rector", "pedagogia", "asignatura", "casillero", "calificacion",
+                "diploma", "preescolar", "bachillerato", "universidad", "graduacion", "grapadora", "archivador", "borrador", "pizarron"
+            ],
+            "ANIMALES": [
+                "perro", "gato", "elefante", "jirafa", "leopardo", "delfin", "ballena", "serpiente", "cocodrilo", "rinoceronte",
+                "flamenco", "gorila", "canguro", "camaleon", "tortuga", "pantera", "murcielago", "ardilla", "caballo", "conejo",
+                "lobo", "tigre", "chimpance", "hipopotamo", "ornitorrinco", "armadillo", "zarigueya", "jaguar", "guepardo",
+                "salamandra", "escorpion", "lemur", "hiena", "dromedario", "camello", "mapache", "comadreja", "koala", "castor",
+                "nutria", "erizo", "antilope", "gacela", "jabali", "suricata", "oso", "tapir", "ciervo", "huron", "perezozo"
+            ],
+            "COCINA": [
+                "sarten", "cuchillo", "tenedor", "cuchara", "licuadora", "horno", "microondas", "refrigerador", "cafetera", "batidora",
+                "cazuela", "tetera", "espatula", "colador", "olla", "tabla", "plato", "vaso", "tostadora", "rallador",
+                "fregadero", "vajilla", "cucharon", "sacacorchos", "pelapapas", "vaporera", "abrelatas", "exprimidor", "molinillo",
+                "cazo", "freidora", "despensa", "cubierto", "bandeja", "mortero", "mandolina", "jarra", "azucarero", "salero",
+                "pimentero", "delantal", "agarradera", "wok", "cucharilla", "recetario", "lavavajillas", "horquilla", "pocillo"
+            ],
+            "DEPORTES": [
+                "futbol", "baloncesto", "voleibol", "natacion", "atletismo", "ciclismo", "tenis", "boxeo", "gimnasia", "esgrima",
+                "beisbol", "rugby", "patinaje", "golf", "triatlon", "remo", "senderismo", "maraton", "escalada", "badminton",
+                "karate", "judo", "taekwondo", "paracaidismo", "halterofilia", "motociclismo", "automovilismo", "balonmano", "waterpolo",
+                "esqui", "snowboard", "surf", "piraguismo", "equitacion", "tiro", "arqueria", "alpinismo", "submarinismo",
+                "canotaje", "crossfit", "pentatlon", "skateboard", "billar", "ajedrez", "fronton", "softbol", "vela"
+            ],
+            "ESPACIO": [
+                "estrella", "planeta", "galaxia", "asteroide", "cometa", "meteorito", "satelite", "astronauta", "telescopio", "nebulosa",
+                "cohete", "orbita", "constelacion", "universo", "luna", "cosmos", "gravedad", "atmosfera", "supernova", "espacionave",
+                "venus", "marte", "jupiter", "saturno", "urano", "neptuno", "mercurio", "pluton", "exoplaneta", "radiotelescopio",
+                "cosmonauta", "astrofisica", "intergalactico", "interestelar", "cuasar", "pulsar", "magnetosfera", "planetario",
+                "estratosfera", "espacio", "heliosfera", "parsec", "meteoro", "crater", "astrolabio", "propulsor", "aurora"
+            ],
+            "CUERPO HUMANO": [
+                "cabeza", "cerebro", "corazon", "pulmones", "estomago", "esqueleto", "musculo", "clavicula", "hombro", "espalda",
+                "pecho", "higado", "rinones", "arteria", "garganta", "pestanas", "cejas", "dientes", "rodilla", "tobillo",
+                "antebrazo", "lengua", "esternocleidomastoideo", "ventriculo", "cerebelo", "mandibula", "femur", "omoplato",
+                "humero", "radio", "cubito", "falange", "esofago", "pancreas", "intestino", "traquea", "bronquios", "articulacion",
+                "tendon", "ligamento", "extremidad", "craneo", "pelvis", "vertebra", "clavicula", "laringe", "tibia", "perone"
+            ],
+            "CIUDAD": [
+                "avenida", "edificio", "rascacielos", "semaforo", "parque", "hospital", "aeropuerto", "metro", "peaton", "autobus",
+                "puente", "monumento", "estacion", "plaza", "banco", "comisaria", "alameda", "bulevar", "farmacia", "calzada",
+                "callejon", "acera", "ayuntamiento", "alcantarillado", "rotonda", "estacionamiento", "paradero", "distrito",
+                "suburbio", "metropoli", "callejuela", "adoquin", "farola", "fuente", "museo", "teatro", "mercado", "pasarela",
+                "viaducto", "intercambiador", "guarderia", "biblioteca", "estadio", "catedral", "jardin", "gasolinera", "alcaldia"
+            ],
+            "TECNOLOGÍA": [
+                "computadora", "procesador", "teclado", "monitor", "pantalla", "servidor", "algoritmo", "memoria", "software", "hardware",
+                "internet", "aplicacion", "navegador", "conexion", "bateria", "microchip", "inalambrico", "auriculares", "disco", "robot",
+                "placa", "antena", "ciberseguridad", "inteligencia", "criptografia", "programacion", "telecomunicacion", "microprocesador",
+                "nanotecnologia", "enrutador", "cortafuegos", "periferico", "transistor", "semiconductor", "biometria", "satelite",
+                "plataforma", "automatizacion", "fibra", "bluetooth", "interfaz", "almacenamiento", "sensor", "dron", "holograma"
+            ],
+            "ROPA Y MODA": [
+                "camisa", "pantalon", "chaqueta", "vestido", "falda", "abrigo", "calcetines", "zapatos", "botas", "sombrero",
+                "bufanda", "guantes", "corbata", "cinturon", "chaleco", "blusa", "campera", "pijama", "sandalias", "gorra",
+                "impermeable", "guardapolvo", "sudadera", "pasamontanas", "zapatillas", "boina", "smoking", "gabardina",
+                "tirantes", "mocasin", "tacones", "calzado", "bermudas", "sueter", "cardigan", "tapado", "babuchas", "mono",
+                "delantal", "chal", "rebozo", "poncho", "pamela", "pajarita", "gemelos", "anorak", "overol", "medias"
+            ],
+            "FRUTAS": [
+                "manzana", "platano", "naranja", "fresa", "sandia", "melon", "uva", "cereza", "pina", "limon",
+                "mango", "papaya", "kiwi", "durazno", "frambuesa", "mora", "granada", "higo", "mandarina", "ciruela",
+                "maracuya", "zarzamora", "grosella", "arandano", "granadilla", "chirimoya", "guayaba", "carambola", "tamarindo",
+                "pomelo", "lima", "albaricoque", "nectarina", "aguacate", "membrillo", "datil", "coco", "acerola", "grosella",
+                "nispero", "pitahaya", "litchi", "kumquat", "zapote", "toronja", "higo", "castana", "cacahuate"
+            ],
+            "VERDURAS": [
+                "zanahoria", "lechuga", "tomate", "cebolla", "patata", "espinaca", "brocoli", "calabaza", "pepino", "pimiento",
+                "ajo", "berenjena", "coliflor", "alcachofa", "apio", "rabano", "puerro", "esparrago", "remolacha", "acelga",
+                "champinon", "calabacin", "nabo", "col", "lombarda", "cardo", "judia", "guisante", "haba", "endivia",
+                "escarola", "berro", "rucula", "chalota", "hinojo", "yuca", "boniato", "batata", "alcaucil", "okra",
+                "jengibre", "chirivia", "calabacita", "maiz", "soja", "lenteja", "garbanzo", "alubia"
+            ],
+            "PROFESIONES": [
+                "medico", "abogado", "ingeniero", "arquitecto", "bombero", "policia", "enfermero", "carpintero", "electricista", "fontanero",
+                "panadero", "cocinero", "periodista", "veterinario", "piloto", "astronauta", "cientifico", "dentista", "mecanico", "juez",
+                "fisioterapeuta", "desarrollador", "arqueologo", "odontologo", "anestesiologo", "psicologo", "farmaceutico", "agronomo",
+                "sociologo", "disenador", "traductor", "fotografo", "escultor", "astronomo", "geologo", "biologo", "marinero",
+                "profesor", "antropologo", "economista", "cirujano", "optometrista", "paramedico", "locutor", "bibliotecario"
+            ],
+            "TRANSPORTE": [
+                "automovil", "bicicleta", "motocicleta", "autobus", "camion", "tren", "avion", "helicoptero", "barco", "submarino",
+                "tranvia", "crucero", "cohete", "ferrocarril", "furgoneta", "velero", "tractor", "patineta", "yate", "globo",
+                "transatlantico", "hidroavion", "locomotora", "transbordador", "teleferico", "funicular", "monorriel", "dirigible",
+                "motoneta", "patinete", "carreta", "canoa", "kayak", "gondola", "lancha", "aerodeslizador", "caravana", "remolque",
+                "trineo", "patin", "sidecar", "cisterna", "volquete", "ambulancia", "autocar", "limusina"
+            ],
+            "HERRAMIENTAS": [
+                "martillo", "destornillador", "alicates", "sierra", "taladro", "llave", "tornillo", "clavo", "cincel", "metro",
+                "nivel", "lija", "cepillo", "soplete", "pinzas", "remache", "escuadra", "formon", "broca", "tuerca",
+                "motosierra", "taladradora", "cortafierro", "remachadora", "desarmador", "tenazas", "yunque", "lima", "gubia",
+                "soldador", "serrucho", "segueta", "calibre", "mordaza", "gato", "paleta", "llana", "punzon", "espatula",
+                "barrena", "hacha", "machete", "pico", "pala", "rastrillo", "podadora", "cizalla", "tornillo"
+            ],
+            "AVES": [
+                "aguila", "halcon", "colibri", "paloma", "gaviota", "loro", "buho", "cuervo", "pinguino", "cisne",
+                "pelicano", "gorrion", "canario", "avestruz", "condor", "tucan", "pavo", "cigueña", "golondrina", "cotorra",
+                "quebrantahuesos", "carpintero", "guacamayo", "flamenco", "albatros", "lechuza", "petirrojo", "mirlo", "estornino",
+                "cacatua", "periquito", "aguilucho", "alondra", "cernicalo", "codorniz", "perdiz", "faisan", "garza", "cormoran",
+                "gavilan", "buitre", "grulla", "martinica", "zorzal", "avoceta", "jilguero", "canastera", "bienteveo"
+            ],
+            "INSECTOS": [
+                "hormiga", "abeja", "avispa", "mariposa", "escarabajo", "mosca", "mosquito", "grillo", "saltamontes", "cucaracha",
+                "libelula", "mariquita", "termes", "polilla", "mantis", "oruga", "cigarra", "pulga", "garrapata", "cienpies",
+                "milpies", "luciernaga", "chinche", "tabano", "escorpion", "arana", "tarantula", "abejorro", "jejen", "gorgojo",
+                "zancudo", "crisopa", "efimera", "lepisma", "tijereta", "termes", "larva", "ninfa", "pulgon", "cochinilla",
+                "agasceles", "bostrico", "chiche", "carcoma", "escarabajo", "polilla", "alacran"
+            ],
+            "VIDA MARINA": [
+                "tiburon", "pulpo", "calamar", "medusa", "coral", "estrella", "langosta", "cangrejo", "caballito", "raya",
+                "almeja", "ostra", "mejillon", "anemona", "orca", "foca", "morsa", "erizo", "atun", "salmon",
+                "mantarraya", "barracuda", "pezdorado", "pezespada", "narval", "beluga", "manati", "esponja", "caracol",
+                "percebe", "calamar", "lenguado", "merluza", "bacalao", "morena", "mero", "dorada", "lubina", "bonito",
+                "sardina", "anchoa", "cachalote", "krill", "plancton", "centollo", "quisquilla", "langostino", "camaron"
+            ],
+            "EMOCIONES": [
+                "alegria", "tristeza", "miedo", "sorpresa", "ira", "calma", "esperanza", "nostalgia", "orgullo", "ansiedad",
+                "pasion", "empatia", "gratitud", "ternura", "deseo", "verguenza", "enfado", "asombro", "euforia", "envidia",
+                "desasosiego", "melancolia", "tranquilidad", "entusiasmo", "desesperacion", "serenidad", "satisfaccion", "soledad",
+                "compasion", "devocion", "optimismo", "pesimismo", "culpabilidad", "admiracion", "rencor", "desprecio", "afecto",
+                "estupor", "simpatia", "angustia", "desconsuelo", "ternura", "jovialidad", "plenitud", "sosiego", "temor"
+            ],
+            "COLORES": [
+                "amarillo", "azul", "rojo", "verde", "morado", "naranja", "blanco", "negro", "violeta", "turquesa",
+                "marron", "dorado", "plateado", "magenta", "celeste", "ocre", "esmeralda", "carmesi", "indigo", "ambar",
+                "aguamarina", "bermellon", "azabache", "escarlata", "granate", "lavanda", "lila", "coral", "mostaza", "salmon",
+                "marfil", "zafiro", "rubi", "gris", "cian", "beige", "purpura", "caoba", "sepia", "bronce",
+                "malva", "turqui", "carmin", "perla", "oliva", "platino", "terracota", "fucsia"
+            ],
+            "DULCES": [
+                "chocolate", "caramelo", "pastel", "tarta", "galleta", "helado", "bombon", "chupetin", "malvavisco", "turron",
+                "flan", "chicle", "gofre", "crepe", "mazapan", "trufa", "budin", "bunuelo", "dulce", "magdalena",
+                "alfajor", "polvoron", "mantecado", "bizcochuelo", "palmera", "merengue", "profiterol", "donut", "croissant",
+                "churro", "natillas", "arrozconleche", "gelatina", "panacota", "tiramisu", "macaron", "milhojas", "barquillo",
+                "golosina", "piruleta", "toffee", "fondue", "turroncillo", "fondant", "crema", "panettone"
+            ],
+            "BEBIDAS": [
+                "agua", "leche", "jugo", "refresco", "cafe", "te", "infusion", "chocolate", "batido", "limonada",
+                "sidra", "horchata", "malteada", "nectar", "soda", "tonica", "zumo", "champan", "mate", "jarabe",
+                "capuchino", "manzanilla", "mosto", "gaseosa", "tisana", "espresso", "frappe", "licuado", "cerveza", "vino",
+                "coctel", "sangria", "vermut", "mojito", "aperitivo", "oporto", "kombucha", "granizado", "ponche", "hidromiel",
+                "tisana", "limoncello", "amargo", "sidra", "malta", "kefir", "tequila", "ron"
+            ],
+            "PLAYA": [
+                "arena", "ola", "sombrilla", "toalla", "flotador", "concha", "cangrejo", "castillo", "marea", "orilla",
+                "palmera", "brisa", "duna", "gaviotas", "bronceador", "red", "tabla", "boya", "pescador", "arrecife",
+                "socorrista", "rompeolas", "salvavidas", "banyista", "escollera", "chiringuito", "acantilado", "marejada", "litoral",
+                "costa", "resaca", "moll", "espigon", "hamaca", "esterilla", "verano", "parasol", "bahia", "ensenada",
+                "cala", "marisco", "espuma", "alga", "pesca", "caracola", "farallon", "borde"
+            ],
+            "INVIERNO": [
+                "nieve", "hielo", "escarcha", "trineo", "esqui", "bufanda", "frio", "ventisca", "glaciar", "iglu",
+                "copo", "guantes", "chaleco", "gorro", "congelador", "chimenea", "invierno", "polar", "helada", "carambano",
+                "quitanieves", "termometro", "congelacion", "estalactita", "borrasca", "nevada", "abrigos", "calefaccion", "radiador",
+                "leña", "pasamontañas", "manoplas", "pata", "anorak", "ventisquero", "tundra", "patinaje", "manta", "frescor",
+                "frescura", "parca", "calefactor", "esquiador", "refugio", "estacion", "alud", "avalanche"
+            ],
+            "CAMPAMENTO": [
+                "tienda", "fogata", "brujula", "linterna", "mochila", "cantimplora", "cuchillo", "mapa", "cuerda", "hamaca",
+                "bosque", "sendero", "mosquitero", "termos", "senderismo", "saco", "madera", "carpa", "tronco", "hacha",
+                "mosqueton", "vivac", "impermeable", "hornillo", "navaja", "pedernal", "estaca", "tirolina", "baston",
+                "guia", "naturaleza", "refugio", "paravientos", "polainas", "albergue", "linterna", "aislante", "vivac", "fogar",
+                "rastro", "brujula", "bivouac", "cantimplora", "pedernal", "hornalla", "cordaje", "campista"
+            ],
+            "CINE": [
+                "pelicula", "director", "actor", "actriz", "guion", "camara", "pantalla", "palomitas", "butaca", "claqueta",
+                "estreno", "cortometraje", "sonido", "escena", "productor", "animacion", "taquilla", "proyector", "premio", "rodaje",
+                "largometraje", "cinematografia", "guionista", "secuencia", "fotografia", "montaje", "iluminacion", "doblaje",
+                "subtitulos", "cartelera", "plano", "decorado", "cameo", "reparto", "casting", "fotograma", "festival", "efectos",
+                "bandasonora", "cinefilo", "ambientacion", "trailer", "sinopsis", "critica", "maquillaje", "vestuario", "microfono"
+            ],
+            "LITERATURA": [
+                "novela", "poesia", "cuento", "autor", "escritor", "capitulo", "personaje", "editorial", "verso", "prosa",
+                "lectura", "libreria", "narrador", "antologia", "ensayo", "metafora", "trama", "epilogo", "prologo", "pagina",
+                "protagonista", "desenlace", "caligrama", "aliteracion", "fabulista", "antagonista", "parabola", "alegoria", "soneto",
+                "estrofa", "rima", "parrafo", "volumen", "manuscrito", "edicion", "poemario", "cronica", "biografia", "dialogo",
+                "dramaturgia", "tratado", "monologo", "soliloquio", "proemio", "epigrafe", "comedia", "tragedia"
+            ],
+            "ARTE": [
+                "pintura", "escultura", "lienzo", "pincel", "oleo", "acuarela", "galeria", "museo", "artista", "caballete",
+                "boceto", "paleta", "fresco", "retrato", "mural", "grabado", "ceramica", "espatula", "composicion", "estatua",
+                "claroscuro", "aguafuerte", "bodegon", "impresionismo", "cubismo", "surrealismo", "pigmento", "barniz", "perspectiva",
+                "vitral", "mosaico", "altorrelieve", "bajorrelieve", "carboncillo", "gouache", "temple", "yeso", "arcilla", "monotipo",
+                "cinetismo", "collage", "litografia", "serigrafia", "obra", "exposicion", "curador", "retablo"
+            ],
+            "ASTRONOMÍA": [
+                "telescopio", "observatorio", "constelacion", "galaxia", "planeta", "orbita", "satelite", "eclipse", "zenit", "cosmos",
+                "gravedad", "nebulosa", "astronomo", "pulsar", "quasar", "cometa", "solsticio", "equinoccio", "espectro", "luz",
+                "planetario", "declinacion", "heliosfera", "espectroscopio", "radiacion", "astrometria", "paralaje", "luminosidad",
+                "supergigante", "enana", "binaria", "acrecion", "sideral", "perihelio", "afelio", "nadir", "apogeo", "perigeo",
+                "astrolabio", "coronografo", "fotometria", "fotometria", "interferometria", "cosmologia", "ocultacion"
+            ],
+            "QUÍMICA": [
+                "atomo", "molecula", "reaccion", "elemento", "compuesto", "acido", "base", "laboratorio", "probeta", "matraz",
+                "pipeta", "tabla", "enlace", "solucion", "gas", "solido", "liquido", "mezcla", "valencia", "catalizador",
+                "electronegatividad", "disolucion", "precipitacion", "densidad", "soluto", "disolvente", "alcalino", "oxidacion", "reduccion",
+                "ion", "cation", "anion", "isotopo", "cristalizacion", "destilacion", "reactivo", "bureta", "termo", "reactivo",
+                "ph", "entalpia", "entropia", "orbital", "periodo", "molecula", "sustancia", "compuesto", "aleacion"
+            ],
+            "FÍSICA": [
+                "energia", "fuerza", "velocidad", "aceleracion", "masa", "peso", "trabajo", "potencia", "presion", "calor",
+                "temperatura", "onda", "frecuencia", "luz", "sonido", "magnetismo", "voltaje", "corriente", "resistencia", "campo",
+                "electromagnetismo", "termodinamica", "relatividad", "cuantica", "inercia", "friccion", "impulso", "momento", "cinetica",
+                "densidad", "gravedad", "vector", "amplitud", "difraccion", "refraccion", "polarizacion", "entrelazamiento", "boson",
+                "fermion", "hadron", "quark", "electron", "proton", "neutron", "fotón", "dinamica", "estatica"
+            ],
+            "MATEMÁTICAS": [
+                "numero", "suma", "resta", "multiplicacion", "division", "fraccion", "algebra", "geometria", "ecuacion", "teorema",
+                "angulo", "triangulo", "circulo", "cuadrado", "calculo", "matriz", "raiz", "poligono", "vector", "limite",
+                "trigonometria", "hipotenusa", "logaritmo", "poliedro", "derivada", "integral", "probabilidad", "estadistica", "perimetro",
+                "volumen", "cateto", "parabola", "asintota", "secante", "tangente", "coseno", "seno", "infinito", "exponente",
+                "polinomio", "variable", "constante", "logica", "conjunto", "subconjunto", "diagonal", "arista", "vertice"
+            ],
+            "GEOGRAFÍA": [
+                "continente", "oceano", "montana", "volcan", "valle", "meseta", "llanura", "peninsula", "isla", "archipielago",
+                "desierto", "selva", "tundra", "sabana", "rio", "golfo", "bahia", "estrecho", "frontera", "capital",
+                "desembocadura", "cordillera", "acantilado", "glaciar", "depresion", "fiordo", "estuario", "canyon", "meandro",
+                "afluente", "cuenca", "delta", "istmo", "cabo", "atol", "duna", "catarata", "pantano", "marisma", "altiplano",
+                "orografia", "hidrografia", "latitud", "longitud", "meridiano", "paralelo", "ecuador", "tropico"
+            ],
+            "HISTORIA": [
+                "imperio", "revolucion", "guerra", "tratado", "monarca", "castillo", "civilizacion", "arqueologia", "reliquia", "antiguedad",
+                "dinastia", "caballero", "soldado", "escudo", "espada", "conquista", "siglo", "reino", "colonia", "corona",
+                "renacimiento", "ilustracion", "feudalismo", "prehistoria", "republica", "dictadura", "armisticio", "emancipacion", "monarquia",
+                "faraon", "gladiador", "jeroglifico", "muralla", "fortaleza", "cruzada", "barroco", "medieval", "legion", "bastilla",
+                "soberano", "linaje", "rebelion", "acuerdo", "pacto", "paleolitico", "neolitico", "senado", "estandarte"
+            ]
+        };
 
-        const PALABRAS_MEDIO = [
-            "ventana", "escuela", "montaña", "teclado", "serpiente", "planeta", "cuaderno", "naranja",
-            "energia", "pantalla", "botella", "camino", "silencio", "universo", "guitarra", "trabajo",
-            "historia", "bosque", "castillo", "desierto", "tormenta", "camara", "pintura", "libreria"
-        ];
+        const availableThemes = Object.keys(CAMPOS_LEXICOS);
 
-        const PALABRAS_DIFICIL = [
-            "computadora", "electricidad", "programacion", "extraordinario", "murcielago", "laboratorio",
-            "arquitectura", "apocalipsis", "inteligencia", "cibernetico", "biodiversidad", "ecosistema",
-            "espectacular", "transferencia", "infraestructura", "microscopio", "desarrollador"
-        ];
+        // NORMALIZACIÓN DE PALABRAS (TILDES Y MAYÚSCULAS)
+        function normalizeWord(word) {
+            if (!word) return '';
+            return word.toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .trim();
+        }
 
-        // --- SISTEMA DE SONIDO SINTÉTICO (WEB AUDIO API) ---
         let audioMuted = false;
         let audioCtx = null;
 
@@ -540,14 +954,22 @@
                 osc.stop(now + 0.08);
             } else if (type === 'kill') {
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(200, now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.35);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
                 osc.start(now);
-                osc.stop(now + 0.35);
-            } else if (type === 'error') {
+                osc.stop(now + 0.3);
+            } else if (type === 'block') {
                 osc.type = 'sine';
+                osc.frequency.setValueAtTime(320, now);
+                osc.frequency.exponentialRampToValueAtTime(650, now + 0.12);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            } else if (type === 'error') {
+                osc.type = 'square';
                 osc.frequency.setValueAtTime(120, now);
                 gain.gain.setValueAtTime(0.15, now);
                 gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
@@ -556,40 +978,50 @@
             } else if (type === 'gameover') {
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(300, now);
-                osc.frequency.linearRampToValueAtTime(80, now + 0.8);
-                gain.gain.setValueAtTime(0.2, now);
+                osc.frequency.linearRampToValueAtTime(70, now + 0.8);
+                gain.gain.setValueAtTime(0.25, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
                 osc.start(now);
                 osc.stop(now + 0.8);
             } else if (type === 'level') {
                 osc.type = 'square';
-                osc.frequency.setValueAtTime(300, now);
-                osc.frequency.setValueAtTime(450, now + 0.1);
-                osc.frequency.setValueAtTime(600, now + 0.2);
+                osc.frequency.setValueAtTime(280, now);
+                osc.frequency.setValueAtTime(420, now + 0.1);
+                osc.frequency.setValueAtTime(580, now + 0.2);
                 gain.gain.setValueAtTime(0.15, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
                 osc.start(now);
                 osc.stop(now + 0.4);
-            } else if (type === 'victory') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.setValueAtTime(500, now + 0.15);
-                osc.frequency.setValueAtTime(600, now + 0.3);
-                osc.frequency.setValueAtTime(800, now + 0.45);
-                osc.frequency.setValueAtTime(1200, now + 0.6);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
-                osc.start(now);
-                osc.stop(now + 1.2);
             }
         }
 
-        // --- ENTORNO GRÁFICO (CANVAS) ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
         const VIEW_WIDTH = 1024;
         const VIEW_HEIGHT = 600;
+
+        let gameState = 'START'; // 'START' | 'PLAYING' | 'GAMEOVER' | 'VICTORY' | 'PAUSED'
+        let currentMode = 'SNAKES'; // 'SNAKES' | 'TOWER' | 'PVE'
+
+        // VARIABLES COMUNES
+        let score = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let defeatedCount = 0;
+        let lastFrameTime = 0;
+        let screenShake = 0;
+        let flashOpacity = 0;
+
+        // VARIABLES MODO SERPIENTES
+        let snakes = [];
+        let particles = [];
+        let activeSnakeId = null;
+        let lastSpawnTime = 0;
+        let spawnInterval = 3200;
+        let snakeDifficulty = 'EASY';
+        let lives = 3;
+        let bombsSpent = 0;
 
         const tubes = [
             { x: 40, y: 120, radius: 25 },
@@ -604,88 +1036,62 @@
             height: VIEW_HEIGHT
         };
 
-        const MAX_SNAKES_TO_WIN = 50;
+        // VARIABLES MODO TORRE CLÁSICA
+        const BLOCK_HEIGHT = 28;
+        const BLOCK_WIDTH = 220;
+        const ROUND_TIME_LIMIT = 15;
+        let currentThemeKey = "ESCUELA";
+        let towerBlocks = [];
+        let currentLavaBlocks = 0;
+        let towerRound = 1;
+        let towerPlayerSubmitted = false;
+        let roundTimeRemaining = ROUND_TIME_LIMIT;
+        let cameraOffsetY = 0;
 
-        // --- ESTADO GLOBAL DEL JUEGO ---
-        let gameState = 'START'; // START, PLAYING, GAMEOVER, PAUSED, VICTORY
-        let score = 0;
-        let selectedStartDifficulty = 'EASY'; 
-        let difficulty = 'EASY'; 
-        let combo = 0;
-        let maxCombo = 0;
-        let defeatedCount = 0;
-        let lives = 3;
-        let bombsSpent = 0;
+        // VARIABLES MODO TORNEO PVE
+        const PVE_BOT_DEFS = [
+            { id: 'alfa', name: 'Bot Alfa', icon: '🤖', color: '#ff3366', x: 60, speedMin: 2900, speedMax: 4100 },
+            { id: 'beta', name: 'Bot Beta', icon: '🦾', color: '#b026ff', x: 280, speedMin: 2400, speedMax: 3600 },
+            { id: 'gamma', name: 'Bot Gamma', icon: '⚡', color: '#ffbb00', x: 790, speedMin: 3200, speedMax: 4600 }
+        ];
 
-        let snakes = [];
-        let particles = [];
-        let activeSnakeId = null; 
-        let lastSpawnTime = 0;
-        let spawnInterval = 3200; 
-        let backgroundGridOffset = 0;
-        let lastFrameTime = 0;
+        const PVE_PLAYER_X = 530;
+        const PVE_BLOCK_WIDTH = 180;
+        let pveBotDifficulty = 'MEDIUM';
+        let pveBots = [];
+        let pvePlayerBlocks = [];
+        let pveLavaBlocks = 0;
+        let pveRound = 1;
+        let pvePlayerSubmitted = false;
+        let pveRoundTimeRemaining = ROUND_TIME_LIMIT;
 
-        // --- FUNCIÓN DE CONTROL DE PAUSA ---
-        function togglePause() {
-            if (gameState !== 'PLAYING' && gameState !== 'PAUSED') return;
-
-            if (gameState === 'PLAYING') {
-                gameState = 'PAUSED';
-                document.getElementById('pause-screen').classList.remove('hidden');
-                playSynthSound('error');
-            } else if (gameState === 'PAUSED') {
-                gameState = 'PLAYING';
-                document.getElementById('pause-screen').classList.add('hidden');
-                lastFrameTime = performance.now(); 
-                playSynthSound('hit');
-            }
-        }
-
-        // --- CLASE ENEMIGO SERPIENTE ---
         class Snake {
             constructor(id, word, tubeIndex, speed) {
                 this.id = id;
                 this.word = word;
                 this.tubeIndex = tubeIndex;
                 this.speed = speed;
-                this.typedIndex = 0; 
-                
+                this.typedIndex = 0;
                 this.x = tubes[tubeIndex].x + 10;
                 this.y = tubes[tubeIndex].y;
-                
-                this.width = 45;
-                this.height = 15;
-                this.size = 14; 
-                this.color = this.getRandomNeonColor();
-                
+                this.size = 14;
+                this.color = this.getRandomColor();
                 this.history = [];
-                this.historyLimit = word.length * 6; 
-                
+                this.historyLimit = word.length * 6;
                 this.waveSpeed = 0.15;
                 this.waveAmp = 10;
                 this.angle = Math.random() * Math.PI * 2;
-                
-                this.isDead = false;
             }
 
-            getRandomNeonColor() {
-                const colors = [
-                    '#ff007f', // Pink
-                    '#00f0ff', // Blue
-                    '#ff9f00', // Orange
-                    '#b026ff', // Purple
-                    '#ffff00'  // Yellow
-                ];
+            getRandomColor() {
+                const colors = ['#ff007f', '#00f0ff', '#ff9f00', '#b026ff', '#ffff00', '#39ff14'];
                 return colors[Math.floor(Math.random() * colors.length)];
             }
 
             update(dt) {
-                this.x += this.speed * (dt / 16.666); 
-                
+                this.x += this.speed * (dt / 16.666);
                 this.angle += this.waveSpeed;
-                const currentY = tubes[this.tubeIndex].y + Math.sin(this.angle) * this.waveAmp;
-                this.y = currentY;
-
+                this.y = tubes[this.tubeIndex].y + Math.sin(this.angle) * this.waveAmp;
                 this.history.push({ x: this.x, y: this.y });
                 if (this.history.length > this.historyLimit) {
                     this.history.shift();
@@ -697,18 +1103,15 @@
                 const historyStep = Math.max(1, Math.floor(this.history.length / segmentsCount));
 
                 ctx.save();
-                
                 for (let i = 0; i < segmentsCount; i++) {
                     const histIndex = Math.min(this.history.length - 1, i * historyStep);
                     if (histIndex < 0 || !this.history[histIndex]) continue;
-                    
                     const pos = this.history[histIndex];
-                    const progress = i / segmentsCount; 
-                    const segmentSize = this.size * (0.4 + progress * 0.6); 
+                    const progress = i / segmentsCount;
+                    const segmentSize = this.size * (0.4 + progress * 0.6);
 
                     ctx.beginPath();
                     ctx.arc(pos.x, pos.y, segmentSize, 0, Math.PI * 2);
-                    
                     if (i < this.typedIndex) {
                         ctx.fillStyle = '#39ff14';
                         ctx.shadowBlur = 10;
@@ -721,27 +1124,22 @@
                     ctx.closePath();
                 }
 
+                // Cabeza
                 const headX = this.x;
                 const headY = this.y;
 
                 ctx.beginPath();
                 ctx.arc(headX, headY, this.size * 1.2, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
-                if (activeSnakeId === this.id) {
-                    ctx.strokeStyle = '#39ff14';
-                    ctx.lineWidth = 3;
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = '#39ff14';
-                } else {
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 1;
-                    ctx.shadowBlur = 5;
-                    ctx.shadowColor = this.color;
-                }
+                ctx.strokeStyle = (activeSnakeId === this.id) ? '#39ff14' : '#ffffff';
+                ctx.lineWidth = (activeSnakeId === this.id) ? 3 : 1;
+                ctx.shadowBlur = (activeSnakeId === this.id) ? 15 : 5;
+                ctx.shadowColor = (activeSnakeId === this.id) ? '#39ff14' : this.color;
                 ctx.fill();
                 ctx.stroke();
                 ctx.closePath();
 
+                // Ojos
                 ctx.fillStyle = '#000000';
                 ctx.beginPath();
                 ctx.arc(headX + 4, headY - 4, 2.5, 0, Math.PI * 2);
@@ -749,6 +1147,7 @@
                 ctx.fill();
                 ctx.closePath();
 
+                // Lengua bífida
                 ctx.strokeStyle = '#ff3131';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -759,47 +1158,32 @@
                 ctx.lineTo(headX + this.size * 1.7, headY + 3);
                 ctx.stroke();
                 ctx.closePath();
-
                 ctx.restore();
 
-                // --- DIBUJAR PALABRA ---
+                // Palabra
                 ctx.save();
-                ctx.font = "bold 16px " + varFont();
+                ctx.font = "bold 15px 'Courier New', monospace";
                 ctx.textAlign = "center";
-                
                 const textWidth = ctx.measureText(this.word).width;
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-                ctx.fillRect(headX - (textWidth/2) - 8, headY - 38, textWidth + 16, 24);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
+                ctx.fillRect(headX - (textWidth / 2) - 8, headY - 38, textWidth + 16, 24);
                 ctx.strokeStyle = (activeSnakeId === this.id) ? '#39ff14' : 'rgba(255, 255, 255, 0.2)';
                 ctx.lineWidth = 1;
-                ctx.strokeRect(headX - (textWidth/2) - 8, headY - 38, textWidth + 16, 24);
+                ctx.strokeRect(headX - (textWidth / 2) - 8, headY - 38, textWidth + 16, 24);
 
                 let currentXOffset = headX - (textWidth / 2);
                 for (let j = 0; j < this.word.length; j++) {
                     const char = this.word[j];
                     const isTyped = j < this.typedIndex;
-
-                    if (isTyped) {
-                        ctx.fillStyle = '#39ff14'; 
-                        ctx.shadowBlur = 8;
-                        ctx.shadowColor = '#39ff14';
-                    } else {
-                        ctx.fillStyle = '#ffffff'; 
-                        ctx.shadowBlur = 0;
-                    }
-
+                    ctx.fillStyle = isTyped ? '#39ff14' : '#ffffff';
+                    ctx.shadowBlur = isTyped ? 8 : 0;
+                    ctx.shadowColor = '#39ff14';
                     ctx.fillText(char, currentXOffset + ctx.measureText(this.word.substring(0, j)).width + (ctx.measureText(char).width / 2), headY - 21);
                 }
-
                 ctx.restore();
             }
         }
 
-        function varFont() {
-            return getComputedStyle(document.documentElement).getPropertyValue('--font-family').trim();
-        }
-
-        // --- SISTEMA DE PARTÍCULAS ---
         class Particle {
             constructor(x, y, color, speedX, speedY, life) {
                 this.x = x;
@@ -807,7 +1191,7 @@
                 this.color = color;
                 this.speedX = speedX;
                 this.speedY = speedY;
-                this.life = life; 
+                this.life = life;
                 this.maxLife = life;
             }
 
@@ -840,80 +1224,381 @@
             }
         }
 
-        function createHitSpark(x, y) {
-            createExplosion(x, y, '#39ff14', 6);
+        function showToast(msg) {
+            const toast = document.getElementById('toast-msg');
+            if (toast) {
+                toast.textContent = msg;
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2000);
+            }
         }
 
-        // --- GENERADOR DE SERPIENTES (SPAWN) ---
-        let snakeIdCounter = 0;
-        function spawnSnake() {
-            let list = PALABRAS_FACIL;
-            let speed = 0.8;
+        function initPvEBots() {
+            pveBots = PVE_BOT_DEFS.map(def => {
+                let sMin = def.speedMin;
+                let sMax = def.speedMax;
 
-            if (difficulty === 'MEDIUM') {
-                list = PALABRAS_MEDIO;
-                speed = 1.3;
-            } else if (difficulty === 'HARD') {
-                list = PALABRAS_DIFICIL;
-                speed = 1.8;
+                if (pveBotDifficulty === 'EASY') {
+                    sMin = Math.floor(def.speedMin * 1.5) + 1200;
+                    sMax = Math.floor(def.speedMax * 1.7) + 2000;
+                } else if (pveBotDifficulty === 'HARD') {
+                    sMin = Math.max(900, Math.floor(def.speedMin * 0.45));
+                    sMax = Math.max(1600, Math.floor(def.speedMax * 0.5));
+                }
+
+                return {
+                    ...def,
+                    speedMin: sMin,
+                    speedMax: sMax,
+                    alive: true,
+                    blocks: [],
+                    nextActionTime: 0,
+                    hasSubmittedThisRound: false
+                };
+            });
+        }
+
+        function updatePvEBots(dt, timestamp) {
+            const validWords = CAMPOS_LEXICOS[currentThemeKey] || [];
+            if (validWords.length === 0) return;
+
+            pveBots.forEach(bot => {
+                if (!bot.alive || bot.hasSubmittedThisRound) return;
+
+                if (timestamp >= bot.nextActionTime) {
+                    let chosen = null;
+
+                    if (pveBotDifficulty === 'EASY') {
+                        const shortWords = validWords.filter(w => w.length <= 5);
+                        const pool = shortWords.length > 0 ? shortWords : validWords;
+                        chosen = pool[Math.floor(Math.random() * pool.length)];
+                    } else if (pveBotDifficulty === 'HARD') {
+                        const sorted = [...validWords].sort((a, b) => b.length - a.length);
+                        const topLongest = sorted.slice(0, Math.min(5, sorted.length));
+                        chosen = topLongest[Math.floor(Math.random() * topLongest.length)];
+                    } else {
+                        const mediumWords = validWords.filter(w => w.length >= 5 && w.length <= 8);
+                        const pool = mediumWords.length > 0 ? mediumWords : validWords;
+                        chosen = pool[Math.floor(Math.random() * pool.length)];
+                    }
+
+                    if (chosen) {
+                        bot.hasSubmittedThisRound = true;
+                        const letters = chosen.toUpperCase().split('');
+                        letters.forEach((char, idx) => {
+                            const blockIndex = bot.blocks.length;
+                            const targetY = (VIEW_HEIGHT - 70) - ((blockIndex + 1) * BLOCK_HEIGHT);
+
+                            bot.blocks.push({
+                                letter: char,
+                                word: chosen.toUpperCase(),
+                                isFirstOfWord: idx === 0,
+                                x: bot.x,
+                                y: targetY,
+                                currentY: targetY - 100 - (idx * 20),
+                                color: bot.color
+                            });
+
+                            createExplosion(bot.x + PVE_BLOCK_WIDTH / 2, targetY + BLOCK_HEIGHT / 2, bot.color, 4);
+                        });
+                    }
+
+                    checkPvERoundAllReady();
+                }
+            });
+        }
+
+        function checkPvERoundAllReady() {
+            const livingBots = pveBots.filter(b => b.alive);
+            const allBotsReady = livingBots.every(b => b.hasSubmittedThisRound);
+            if (pvePlayerSubmitted && allBotsReady) {
+                if (pveRoundTimeRemaining > 1.8) {
+                    pveRoundTimeRemaining = 1.8;
+                }
             }
+        }
 
-            const word = list[Math.floor(Math.random() * list.length)];
-            const tubeIndex = Math.floor(Math.random() * tubes.length);
-            
-            const activeWords = snakes.map(s => s.word);
-            if (activeWords.includes(word) && list.length > 5) {
-                setTimeout(spawnSnake, 100);
+        function submitTowerWord(inputWord) {
+            if (gameState !== 'PLAYING' || currentMode !== 'TOWER') return;
+
+            if (towerPlayerSubmitted) {
+                showToast('¡Ya enviaste tu única palabra de esta ronda!');
+                playSynthSound('error');
                 return;
             }
 
-            snakeIdCounter++;
-            const newSnake = new Snake(snakeIdCounter, word, tubeIndex, speed);
-            snakes.push(newSnake);
+            const normalized = normalizeWord(inputWord);
+            const inputEl = document.getElementById('tower-word-input');
+            const submitBtn = document.getElementById('tower-btn-submit');
+            if (inputEl) inputEl.value = '';
+
+            if (!normalized) return;
+
+            const validWords = (CAMPOS_LEXICOS[currentThemeKey] || []).map(normalizeWord);
+
+            if (!validWords.includes(normalized)) {
+                showToast(`¡Palabra incorrecta! No pertenece a "${currentThemeKey}"`);
+                playSynthSound('error');
+                combo = 0;
+                flashOpacity = 0.3;
+                updateHUD();
+                return;
+            }
+
+            towerPlayerSubmitted = true;
+            combo++;
+            if (combo > maxCombo) maxCombo = combo;
+
+            const letters = inputWord.toUpperCase().split('');
+            const basePts = 10 * letters.length;
+            score += basePts * combo;
+
+            const neonColors = ['#ff6600', '#00f0ff', '#39ff14', '#ff007f', '#ffff00', '#b026ff', '#00e5ff'];
+            const wordColor = neonColors[towerRound % neonColors.length];
+            const baseX = VIEW_WIDTH / 2 - BLOCK_WIDTH / 2;
+
+            letters.forEach((char, letterIdx) => {
+                const blockIndex = towerBlocks.length;
+                const targetY = (VIEW_HEIGHT - 70) - ((blockIndex + 1) * BLOCK_HEIGHT);
+
+                towerBlocks.push({
+                    letter: char,
+                    word: inputWord.toUpperCase(),
+                    isFirstOfWord: letterIdx === 0,
+                    x: baseX,
+                    y: targetY,
+                    currentY: targetY - 120 - (letterIdx * 25),
+                    color: wordColor
+                });
+
+                createExplosion(VIEW_WIDTH / 2, targetY + BLOCK_HEIGHT / 2, wordColor, 8);
+            });
+
+            playSynthSound('block');
+            showToast(`+${letters.length} BLOQUES (1 por ronda fijada)`);
+
+            if (inputEl) {
+                inputEl.disabled = true;
+                inputEl.placeholder = `✓ Palabra fijada (+${letters.length} bloques). Esperando la lava...`;
+            }
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Listo ✓';
+            }
+
+            if (roundTimeRemaining > 3.0) {
+                roundTimeRemaining = 3.0;
+            }
+
+            updateHUD();
         }
 
-        // --- MANEJO DE CONTROL DE DIFICULTAD ---
-        function checkDifficultyProgression() {
-            const lastDiff = difficulty;
-            let targetDifficulty = selectedStartDifficulty;
+        function submitPvEWord(inputWord) {
+            if (gameState !== 'PLAYING' || currentMode !== 'PVE') return;
 
-            if (defeatedCount >= 25) {
-                targetDifficulty = 'HARD';
-            } else if (defeatedCount >= 10) {
-                if (selectedStartDifficulty !== 'HARD') {
-                    targetDifficulty = 'MEDIUM';
-                }
+            if (pvePlayerSubmitted) {
+                showToast('¡Ya enviaste tu única palabra de esta ronda!');
+                playSynthSound('error');
+                return;
             }
 
-            difficulty = targetDifficulty;
+            const normalized = normalizeWord(inputWord);
+            const inputEl = document.getElementById('tower-word-input');
+            const submitBtn = document.getElementById('tower-btn-submit');
+            if (inputEl) inputEl.value = '';
 
-            if (difficulty === 'HARD') {
-                spawnInterval = 1800;
-            } else if (difficulty === 'MEDIUM') {
-                spawnInterval = 2400;
-            } else {
-                spawnInterval = 3200;
+            if (!normalized) return;
+
+            const validWords = (CAMPOS_LEXICOS[currentThemeKey] || []).map(normalizeWord);
+
+            if (!validWords.includes(normalized)) {
+                showToast(`¡Palabra incorrecta! No pertenece a "${currentThemeKey}"`);
+                playSynthSound('error');
+                combo = 0;
+                flashOpacity = 0.3;
+                updateHUD();
+                return;
             }
 
-            if (lastDiff !== difficulty) {
-                const banner = document.getElementById('level-up-banner');
-                let diffText = 'FÁCIL';
-                if (difficulty === 'MEDIUM') diffText = 'MEDIA';
-                if (difficulty === 'HARD') diffText = 'DIFÍCIL';
-                
-                banner.textContent = `¡DIFICULTAD ${diffText}!`;
-                banner.classList.add('show');
-                playSynthSound('level');
-                
+            pvePlayerSubmitted = true;
+            combo++;
+            if (combo > maxCombo) maxCombo = combo;
+
+            const letters = inputWord.toUpperCase().split('');
+            const basePts = 10 * letters.length;
+            score += basePts * combo;
+
+            const wordColor = '#00f0ff';
+            const baseX = PVE_PLAYER_X;
+
+            letters.forEach((char, letterIdx) => {
+                const blockIndex = pvePlayerBlocks.length;
+                const targetY = (VIEW_HEIGHT - 70) - ((blockIndex + 1) * BLOCK_HEIGHT);
+
+                pvePlayerBlocks.push({
+                    letter: char,
+                    word: inputWord.toUpperCase(),
+                    isFirstOfWord: letterIdx === 0,
+                    x: baseX,
+                    y: targetY,
+                    currentY: targetY - 120 - (letterIdx * 25),
+                    color: wordColor
+                });
+
+                createExplosion(baseX + PVE_BLOCK_WIDTH / 2, targetY + BLOCK_HEIGHT / 2, wordColor, 8);
+            });
+
+            playSynthSound('block');
+            showToast(`+${letters.length} BLOQUES (Esperando a los rivales)`);
+
+            if (inputEl) {
+                inputEl.disabled = true;
+                inputEl.placeholder = `✓ Enviada (+${letters.length} bloques). Esperando a los rivales...`;
+            }
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Listo ✓';
+            }
+
+            checkPvERoundAllReady();
+            updateHUD();
+        }
+
+        function triggerLavaSurgeAndNextRound() {
+            screenShake = 22;
+            flashOpacity = 0.45;
+            playSynthSound('gameover');
+
+            const lavaRiseAmount = 2 + towerRound;
+            currentLavaBlocks += lavaRiseAmount;
+
+            for (let i = 0; i < 45; i++) {
+                const rx = Math.random() * VIEW_WIDTH;
+                const ry = VIEW_HEIGHT - (currentLavaBlocks * BLOCK_HEIGHT) + (Math.random() * 40 - 20);
+                createExplosion(rx, ry, '#ff3300', 3);
+            }
+
+            updateHUD();
+
+            if (towerBlocks.length <= currentLavaBlocks) {
                 setTimeout(() => {
-                    banner.classList.remove('show');
-                }, 2500);
+                    triggerGameOver();
+                }, 800);
+                return;
             }
+
+            if (towerRound >= 6) {
+                setTimeout(() => {
+                    triggerVictory();
+                }, 1000);
+                return;
+            }
+
+            towerRound++;
+            roundTimeRemaining = ROUND_TIME_LIMIT;
+            towerPlayerSubmitted = false;
+
+            currentThemeKey = availableThemes[Math.floor(Math.random() * availableThemes.length)] || "COCINA";
+            const themeValEl = document.getElementById('tower-theme-value');
+            if (themeValEl) themeValEl.textContent = currentThemeKey;
+
+            const inputEl = document.getElementById('tower-word-input');
+            const submitBtn = document.getElementById('tower-btn-submit');
+            if (inputEl) {
+                inputEl.disabled = false;
+                inputEl.value = '';
+                inputEl.placeholder = `Ronda ${towerRound}: Escribe 1 palabra de "${currentThemeKey}"...`;
+                inputEl.focus();
+            }
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Construir';
+            }
+
+            showToast(`¡RONDA ${towerRound}! Tema: ${currentThemeKey}`);
+            playSynthSound('level');
+            updateHUD();
         }
 
-        // --- MECÁNICA DE DETONACIÓN DE BOMBA DE EMERGENCIA ---
+        function triggerPvELavaSurgeAndNextRound() {
+            screenShake = 24;
+            flashOpacity = 0.5;
+            playSynthSound('gameover');
+
+            const lavaRiseAmount = 2 + pveRound;
+            pveLavaBlocks += lavaRiseAmount;
+
+            for (let i = 0; i < 50; i++) {
+                const rx = Math.random() * VIEW_WIDTH;
+                const ry = VIEW_HEIGHT - (pveLavaBlocks * BLOCK_HEIGHT) + (Math.random() * 40 - 20);
+                createExplosion(rx, ry, '#ff3300', 4);
+            }
+
+            // Comprobar supervivencia de los bots
+            pveBots.forEach(bot => {
+                if (bot.alive && bot.blocks.length <= pveLavaBlocks) {
+                    bot.alive = false;
+                    createExplosion(bot.x + PVE_BLOCK_WIDTH / 2, VIEW_HEIGHT - (pveLavaBlocks * BLOCK_HEIGHT), bot.color, 35);
+                }
+            });
+
+            updateHUD();
+
+            // Comprobar supervivencia del jugador
+            if (pvePlayerBlocks.length <= pveLavaBlocks) {
+                setTimeout(() => {
+                    triggerGameOver();
+                }, 900);
+                return;
+            }
+
+            // Si sobrevive las 10 rondas -> Victoria
+            if (pveRound >= 10) {
+                setTimeout(() => {
+                    triggerVictory();
+                }, 1100);
+                return;
+            }
+
+            pveRound++;
+            pveRoundTimeRemaining = ROUND_TIME_LIMIT;
+            pvePlayerSubmitted = false;
+
+            currentThemeKey = availableThemes[Math.floor(Math.random() * availableThemes.length)] || "DEPORTES";
+            const themeValEl = document.getElementById('tower-theme-value');
+            if (themeValEl) themeValEl.textContent = currentThemeKey;
+
+            const now = performance.now();
+            pveBots.forEach(bot => {
+                bot.hasSubmittedThisRound = false;
+                if (bot.alive) {
+                    const delay = bot.speedMin + Math.random() * (bot.speedMax - bot.speedMin);
+                    bot.nextActionTime = now + delay;
+                }
+            });
+
+            const inputEl = document.getElementById('tower-word-input');
+            const submitBtn = document.getElementById('tower-btn-submit');
+            if (inputEl) {
+                inputEl.disabled = false;
+                inputEl.value = '';
+                inputEl.placeholder = `Ronda ${pveRound}/10: Escribe 1 palabra de "${currentThemeKey}"...`;
+                inputEl.focus();
+            }
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Construir';
+            }
+
+            showToast(`¡RONDA ${pveRound}/10! Tema: ${currentThemeKey}`);
+            playSynthSound('level');
+            updateHUD();
+        }
+
         function triggerEmergencyBomb() {
-            if (gameState !== 'PLAYING') return;
+            if (gameState !== 'PLAYING' || currentMode !== 'SNAKES') return;
 
             const totalBombsEarned = Math.floor(score / 50);
             const currentBombs = Math.max(0, totalBombsEarned - bombsSpent);
@@ -923,7 +1608,6 @@
                 let maxDistX = -1;
                 let closestIndex = -1;
 
-                // Encontrar la serpiente con la coordenada X más alta (más cercana a la base del jugador)
                 for (let i = 0; i < snakes.length; i++) {
                     const snake = snakes[i];
                     if (snake.x > maxDistX) {
@@ -935,7 +1619,7 @@
 
                 if (closestSnake) {
                     bombsSpent++;
-                    createExplosion(closestSnake.x, closestSnake.y, '#ffff00', 50); 
+                    createExplosion(closestSnake.x, closestSnake.y, '#ffff00', 50);
                     playSynthSound('kill');
 
                     if (activeSnakeId === closestSnake.id) {
@@ -944,100 +1628,120 @@
 
                     snakes.splice(closestIndex, 1);
                     defeatedCount++;
+
+                    if (defeatedCount >= 50) {
+                        triggerVictory();
+                        return;
+                    }
+
+                    checkSnakesDifficulty();
                     updateHUD();
-                    checkWinCondition();
                 }
             } else {
                 playSynthSound('error');
             }
         }
 
-        // --- DETECTOR DE ENTRADA DE TECLADO ---
+        function togglePause() {
+            if (gameState !== 'PLAYING' && gameState !== 'PAUSED') return;
+
+            if (gameState === 'PLAYING') {
+                gameState = 'PAUSED';
+                document.getElementById('pause-screen').classList.remove('hidden');
+                playSynthSound('error');
+            } else if (gameState === 'PAUSED') {
+                gameState = 'PLAYING';
+                document.getElementById('pause-screen').classList.add('hidden');
+                lastFrameTime = performance.now();
+                playSynthSound('hit');
+            }
+        }
+
         window.addEventListener('keydown', (e) => {
-            // DETECTAR PAUSA CON LA TECLA ESCAPE (ESC)
             if (e.key === 'Escape') {
                 togglePause();
                 return;
             }
 
-            // DETECTAR ACTIVACIÓN DE BOMBA CON LA TECLA ESPACIO (SPACEBAR)
+            // En modos Torre y PvE, el tipeo se gestiona en el input HTML
+            if (currentMode === 'TOWER' || currentMode === 'PVE') {
+                if (e.key === 'Enter') {
+                    const inputEl = document.getElementById('tower-word-input');
+                    if (inputEl && !inputEl.disabled && inputEl.value.trim().length > 0) {
+                        if (currentMode === 'TOWER') submitTowerWord(inputEl.value.trim());
+                        else if (currentMode === 'PVE') submitPvEWord(inputEl.value.trim());
+                    }
+                }
+                return;
+            }
+
+            // Modo Serpientes
+            if (gameState !== 'PLAYING' || currentMode !== 'SNAKES') return;
+
             if (e.key === ' ' || e.code === 'Space') {
-                e.preventDefault(); // Evita que la página haga scroll con la barra espaciadora
+                e.preventDefault();
                 triggerEmergencyBomb();
                 return;
             }
 
-            if (gameState !== 'PLAYING') return;
-
             const charPressed = e.key.toLowerCase();
-            
-            // Ignorar teclas que no sean letras estándar (a-z o eñe)
-            if (charPressed.length !== 1 || !/[a-zñ]/.test(charPressed)) {
-                return;
-            }
+            if (charPressed.length !== 1 || !/[a-zñ]/.test(charPressed)) return;
 
-            // CASO 1: No hay ninguna serpiente activa / seleccionada
             if (activeSnakeId === null) {
                 let targetSnake = null;
                 let maxDistX = -1;
 
                 for (let snake of snakes) {
-                    if (snake.word[0] === charPressed) {
-                        if (snake.x > maxDistX) {
-                            maxDistX = snake.x;
-                            targetSnake = snake;
-                        }
+                    if (snake.word[0] === charPressed && snake.x > maxDistX) {
+                        maxDistX = snake.x;
+                        targetSnake = snake;
                     }
                 }
 
                 if (targetSnake) {
                     activeSnakeId = targetSnake.id;
                     targetSnake.typedIndex = 1;
-                    createHitSpark(targetSnake.x, targetSnake.y);
+                    createExplosion(targetSnake.x, targetSnake.y, '#39ff14', 6);
                     playSynthSound('hit');
                 } else {
                     playSynthSound('error');
-                    flashScreenRed();
+                    flashOpacity = 0.3;
                 }
-            } 
-            // CASO 2: Ya hay una serpiente en foco
-            else {
+            } else {
                 const activeSnake = snakes.find(s => s.id === activeSnakeId);
-                
                 if (activeSnake) {
                     const expectedChar = activeSnake.word[activeSnake.typedIndex];
-                    
                     if (charPressed === expectedChar) {
                         activeSnake.typedIndex++;
-                        createHitSpark(activeSnake.x, activeSnake.y);
+                        createExplosion(activeSnake.x, activeSnake.y, '#39ff14', 6);
                         playSynthSound('hit');
 
                         if (activeSnake.typedIndex >= activeSnake.word.length) {
                             createExplosion(activeSnake.x, activeSnake.y, activeSnake.color, 35);
                             playSynthSound('kill');
 
-                            let basePoints = 10;
-                            if (difficulty === 'MEDIUM') basePoints = 20;
-                            if (difficulty === 'HARD') basePoints = 35;
-                            
+                            let basePoints = (snakeDifficulty === 'HARD') ? 35 : (snakeDifficulty === 'MEDIUM') ? 20 : 10;
                             combo++;
                             if (combo > maxCombo) maxCombo = combo;
-
                             score += basePoints * (1 + Math.floor(combo / 5));
                             defeatedCount++;
 
                             snakes = snakes.filter(s => s.id !== activeSnakeId);
-                            activeSnakeId = null; 
+                            activeSnakeId = null;
 
-                            checkDifficultyProgression();
+                            if (defeatedCount >= 50) {
+                                triggerVictory();
+                                return;
+                            }
+
+                            checkSnakesDifficulty();
                             updateHUD();
-                            checkWinCondition();
                         }
                     } else {
                         combo = 0;
                         updateHUD();
                         playSynthSound('error');
-                        flashScreenRed();
+                        flashOpacity = 0.3;
                     }
                 } else {
                     activeSnakeId = null;
@@ -1045,74 +1749,94 @@
             }
         });
 
-        let flashOpacity = 0;
-        function flashScreenRed() {
-            flashOpacity = 0.3; 
+        function checkSnakesDifficulty() {
+            const lastDiff = snakeDifficulty;
+            if (defeatedCount >= 25) {
+                snakeDifficulty = 'HARD';
+                spawnInterval = 1800;
+            } else if (defeatedCount >= 10) {
+                snakeDifficulty = 'MEDIUM';
+                spawnInterval = 2400;
+            }
+
+            if (lastDiff !== snakeDifficulty) {
+                const banner = document.getElementById('banner-alert');
+                banner.textContent = `¡DIFICULTAD ${snakeDifficulty === 'MEDIUM' ? 'MEDIA' : 'DIFÍCIL'}!`;
+                banner.classList.add('show');
+                playSynthSound('level');
+                setTimeout(() => banner.classList.remove('show'), 2400);
+            }
+        }
+
+        function spawnSnake() {
+            const list = (snakeDifficulty === 'HARD')
+                ? ["computadora", "electricidad", "programacion", "extraordinario", "murcielago", "laboratorio", "arquitectura", "cibernetico"]
+                : (snakeDifficulty === 'MEDIUM')
+                ? ["ventana", "escuela", "montana", "teclado", "serpiente", "planeta", "cuaderno", "naranja", "energia"]
+                : ["sol", "luna", "gato", "perro", "casa", "mesa", "flor", "nube", "roca", "mar", "rio", "lago"];
+
+            const speed = (snakeDifficulty === 'HARD') ? 1.8 : (snakeDifficulty === 'MEDIUM') ? 1.3 : 0.8;
+            const word = list[Math.floor(Math.random() * list.length)];
+            const tubeIndex = Math.floor(Math.random() * tubes.length);
+
+            const activeWords = snakes.map(s => s.word);
+            if (activeWords.includes(word) && list.length > 5) {
+                setTimeout(spawnSnake, 100);
+                return;
+            }
+
+            snakes.push(new Snake(Date.now() + Math.random(), word, tubeIndex, speed));
         }
 
         function updateHUD() {
-            document.getElementById('score-val').textContent = String(score).padStart(4, '0');
-            
-            const totalBombsEarned = Math.floor(score / 50);
-            const currentBombs = Math.max(0, totalBombsEarned - bombsSpent);
-            document.getElementById('bombs-val').textContent = currentBombs;
+            if (currentMode === 'SNAKES') {
+                document.getElementById('score-val').textContent = String(score).padStart(4, '0');
+                const totalBombs = Math.floor(score / 50);
+                document.getElementById('bombs-val').textContent = Math.max(0, totalBombs - bombsSpent);
+                document.getElementById('lives-val').textContent = (lives > 0) ? '❤️'.repeat(lives) : '💀';
+                document.getElementById('snakes-diff-val').textContent = snakeDifficulty;
+                document.getElementById('combo-val').textContent = `x${combo}`;
+                document.getElementById('defeated-val').textContent = `${defeatedCount} / 50`;
+            } else if (currentMode === 'TOWER') {
+                document.getElementById('tower-height-val').textContent = `${towerBlocks.length} Blqs`;
+                document.getElementById('tower-lava-val').textContent = `${currentLavaBlocks} Blqs`;
+                document.getElementById('tower-timer-val').textContent = `${Math.ceil(roundTimeRemaining)}s`;
+                document.getElementById('tower-round-val').textContent = `${towerRound} / 6`;
+            } else if (currentMode === 'PVE') {
+                document.getElementById('pve-player-height-val').textContent = `${pvePlayerBlocks.length} Blqs`;
+                document.getElementById('pve-lava-val').textContent = `${pveLavaBlocks} Blqs`;
+                document.getElementById('pve-timer-val').textContent = `${Math.ceil(pveRoundTimeRemaining)}s`;
 
-            let hearts = '';
-            if (lives > 0) {
-                for (let i = 0; i < lives; i++) {
-                    hearts += '❤️';
-                }
-            } else {
-                hearts = '💀';
-            }
-            document.getElementById('lives-val').textContent = hearts;
-            
-            let diffDisplay = 'FÁCIL';
-            if (difficulty === 'MEDIUM') diffDisplay = 'MEDIO';
-            if (difficulty === 'HARD') diffDisplay = 'DIFÍCIL';
-            document.getElementById('diff-val').textContent = diffDisplay;
-            
-            document.getElementById('combo-val').textContent = `x${combo}`;
-            document.getElementById('defeated-val').textContent = `${defeatedCount} / ${MAX_SNAKES_TO_WIN}`;
+                const livingBots = pveBots.filter(b => b.alive);
+                document.getElementById('pve-bots-alive-val').textContent = `${livingBots.length} / 3`;
 
-            const comboValueEl = document.getElementById('combo-val');
-            if (combo >= 15) {
-                comboValueEl.style.color = 'var(--neon-pink)';
-            } else if (combo >= 5) {
-                comboValueEl.style.color = '#ff9f00';
-            } else {
-                comboValueEl.style.color = '#ffffff';
+                const readyCount = (pvePlayerSubmitted ? 1 : 0) + livingBots.filter(b => b.hasSubmittedThisRound).length;
+                const totalActive = 1 + livingBots.length;
+                document.getElementById('pve-ready-val').textContent = `${readyCount} / ${totalActive}`;
+
+                const diffLabelMap = { 'EASY': 'FÁCIL', 'MEDIUM': 'MEDIO', 'HARD': 'DIFÍCIL' };
+                const diffBadge = document.getElementById('pve-hud-diff-val');
+                if (diffBadge) diffBadge.textContent = diffLabelMap[pveBotDifficulty] || pveBotDifficulty;
             }
         }
 
-        // --- SISTEMA DE RENDERIZADO DEL ENTORNO ---
-        function drawEnvironment() {
+        function drawSnakesEnvironment() {
             ctx.fillStyle = '#05050a';
             ctx.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
 
             ctx.strokeStyle = '#101025';
             ctx.lineWidth = 1;
-            const gridSize = 40;
-            backgroundGridOffset = (backgroundGridOffset + 0.3) % gridSize;
-
-            for (let x = backgroundGridOffset; x < VIEW_WIDTH; x += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, VIEW_HEIGHT);
-                ctx.stroke();
+            for (let x = 0; x < VIEW_WIDTH; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, VIEW_HEIGHT); ctx.stroke();
             }
-            for (let y = 0; y < VIEW_HEIGHT; y += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(VIEW_WIDTH, y);
-                ctx.stroke();
+            for (let y = 0; y < VIEW_HEIGHT; y += 40) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(VIEW_WIDTH, y); ctx.stroke();
             }
 
-            tubes.forEach((tube, index) => {
+            tubes.forEach(tube => {
                 ctx.save();
                 ctx.shadowBlur = 15;
                 ctx.shadowColor = 'rgba(0, 240, 255, 0.4)';
-                
                 const grad = ctx.createLinearGradient(0, tube.y - 30, 0, tube.y + 30);
                 grad.addColorStop(0, '#111122');
                 grad.addColorStop(0.5, '#333355');
@@ -1120,23 +1844,19 @@
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, tube.y - 30, tube.x, 60);
 
-                ctx.strokeStyle = varColor('--neon-blue');
+                ctx.strokeStyle = '#00f0ff';
                 ctx.lineWidth = 3;
                 ctx.strokeRect(0, tube.y - 30, tube.x, 60);
 
                 ctx.beginPath();
-                ctx.arc(tube.x, tube.y, tube.radius, -Math.PI/2, Math.PI/2);
+                ctx.arc(tube.x, tube.y, tube.radius, -Math.PI / 2, Math.PI / 2);
                 ctx.fillStyle = 'rgba(0, 240, 255, 0.2)';
                 ctx.fill();
                 ctx.stroke();
-                ctx.closePath();
-
-                ctx.fillStyle = '#00f0ff';
-                ctx.fillRect(tube.x - 12, tube.y - 8, 4, 16);
-
                 ctx.restore();
             });
 
+            // Base del Jugador
             ctx.save();
             const baseGrad = ctx.createLinearGradient(playerBase.x, 0, VIEW_WIDTH, 0);
             baseGrad.addColorStop(0, 'rgba(255, 0, 127, 0.15)');
@@ -1145,32 +1865,238 @@
             ctx.fillStyle = baseGrad;
             ctx.fillRect(playerBase.x, playerBase.y, playerBase.width, playerBase.height);
 
-            ctx.strokeStyle = 'var(--neon-pink)';
+            ctx.strokeStyle = '#ff007f';
             ctx.lineWidth = 5;
             ctx.shadowBlur = 20;
-            ctx.shadowColor = 'var(--neon-pink)';
+            ctx.shadowColor = '#ff007f';
             ctx.beginPath();
             ctx.moveTo(playerBase.x, 0);
             ctx.lineTo(playerBase.x, VIEW_HEIGHT);
             ctx.stroke();
-            ctx.closePath();
-
-            ctx.strokeStyle = '#33112a';
-            ctx.lineWidth = 1;
-            for (let i = 0; i < VIEW_HEIGHT; i += 30) {
-                ctx.beginPath();
-                ctx.moveTo(playerBase.x, i);
-                ctx.lineTo(VIEW_WIDTH, i + 15);
-                ctx.stroke();
-            }
             ctx.restore();
         }
 
-        function varColor(cssVar) {
-            return getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim();
+        function drawClassicTowerAndLava() {
+            // Fondo volcánico
+            const grad = ctx.createLinearGradient(0, 0, 0, VIEW_HEIGHT);
+            grad.addColorStop(0, '#0a050f');
+            grad.addColorStop(0.6, '#180a14');
+            grad.addColorStop(1, '#2a0a0a');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
+
+            ctx.save();
+            ctx.translate(0, cameraOffsetY);
+
+            // Suelo base
+            ctx.fillStyle = '#222233';
+            ctx.fillRect(VIEW_WIDTH / 2 - BLOCK_WIDTH / 2 - 20, VIEW_HEIGHT - 70, BLOCK_WIDTH + 40, 70);
+            ctx.strokeStyle = '#444466';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(VIEW_WIDTH / 2 - BLOCK_WIDTH / 2 - 20, VIEW_HEIGHT - 70, BLOCK_WIDTH + 40, 70);
+
+            // Bloques de la torre
+            towerBlocks.forEach((b, idx) => {
+                if (b.currentY < b.y) {
+                    b.currentY += 14;
+                    if (b.currentY > b.y) b.currentY = b.y;
+                }
+
+                ctx.save();
+                ctx.fillStyle = 'rgba(20, 20, 35, 0.9)';
+                ctx.fillRect(b.x, b.currentY, BLOCK_WIDTH, BLOCK_HEIGHT);
+
+                ctx.strokeStyle = b.color;
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = b.color;
+                ctx.strokeRect(b.x, b.currentY, BLOCK_WIDTH, BLOCK_HEIGHT);
+
+                // Letra central
+                ctx.fillStyle = '#ffffff';
+                ctx.font = "bold 17px 'Courier New', monospace";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(b.letter, b.x + BLOCK_WIDTH / 2, b.currentY + BLOCK_HEIGHT / 2);
+
+                // Número de piso
+                ctx.font = "10px 'Courier New', monospace";
+                ctx.fillStyle = '#8888aa';
+                ctx.fillText(`#${idx + 1}`, b.x + 20, b.currentY + BLOCK_HEIGHT / 2);
+                ctx.restore();
+            });
+
+            // Lava
+            const lavaH = currentLavaBlocks * BLOCK_HEIGHT;
+            const lavaY = (VIEW_HEIGHT - 70) - lavaH;
+
+            const lavaGrad = ctx.createLinearGradient(0, lavaY, 0, VIEW_HEIGHT);
+            lavaGrad.addColorStop(0, '#ff3300');
+            lavaGrad.addColorStop(0.3, '#ff6600');
+            lavaGrad.addColorStop(1, '#990000');
+            ctx.fillStyle = lavaGrad;
+            ctx.fillRect(0, lavaY, VIEW_WIDTH, lavaH + 70);
+
+            // Borde superior de lava burbujeante
+            ctx.strokeStyle = '#ffff00';
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#ff6600';
+            ctx.beginPath();
+            ctx.moveTo(0, lavaY);
+            for (let x = 0; x <= VIEW_WIDTH; x += 30) {
+                const wave = Math.sin((x * 0.05) + (performance.now() * 0.005)) * 6;
+                ctx.lineTo(x, lavaY + wave);
+            }
+            ctx.stroke();
+            ctx.restore();
         }
 
-        // --- SISTEMA DEL BUCLE PRINCIPAL DE JUEGO ---
+        function drawPvETowersAndLava() {
+            const grad = ctx.createLinearGradient(0, 0, 0, VIEW_HEIGHT);
+            grad.addColorStop(0, '#06060c');
+            grad.addColorStop(0.5, '#120815');
+            grad.addColorStop(1, '#250707');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
+
+            ctx.save();
+            ctx.translate(0, cameraOffsetY);
+
+            // Suelos
+            pveBots.forEach(bot => {
+                ctx.fillStyle = '#1c1c2a';
+                ctx.fillRect(bot.x - 10, VIEW_HEIGHT - 70, PVE_BLOCK_WIDTH + 20, 70);
+                ctx.strokeStyle = '#33334c';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(bot.x - 10, VIEW_HEIGHT - 70, PVE_BLOCK_WIDTH + 20, 70);
+            });
+
+            ctx.fillStyle = '#1a2233';
+            ctx.fillRect(PVE_PLAYER_X - 10, VIEW_HEIGHT - 70, PVE_BLOCK_WIDTH + 20, 70);
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#00f0ff';
+            ctx.strokeRect(PVE_PLAYER_X - 10, VIEW_HEIGHT - 70, PVE_BLOCK_WIDTH + 20, 70);
+
+            // Dibujar bloques de bots
+            pveBots.forEach(bot => {
+                if (!bot.alive) return;
+                bot.blocks.forEach((b, idx) => {
+                    if (b.currentY < b.y) {
+                        b.currentY += 14;
+                        if (b.currentY > b.y) b.currentY = b.y;
+                    }
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(18, 18, 30, 0.9)';
+                    ctx.fillRect(b.x, b.currentY, PVE_BLOCK_WIDTH, BLOCK_HEIGHT);
+                    ctx.strokeStyle = b.color;
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(b.x, b.currentY, PVE_BLOCK_WIDTH, BLOCK_HEIGHT);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = "bold 15px 'Courier New', monospace";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(b.letter, b.x + PVE_BLOCK_WIDTH / 2, b.currentY + BLOCK_HEIGHT / 2);
+
+                    ctx.font = "9px 'Courier New', monospace";
+                    ctx.fillStyle = '#8888aa';
+                    ctx.fillText(`#${idx + 1}`, b.x + 15, b.currentY + BLOCK_HEIGHT / 2);
+                    ctx.restore();
+                });
+            });
+
+            // Dibujar bloques del jugador
+            pvePlayerBlocks.forEach((b, idx) => {
+                if (b.currentY < b.y) {
+                    b.currentY += 14;
+                    if (b.currentY > b.y) b.currentY = b.y;
+                }
+                ctx.save();
+                ctx.fillStyle = 'rgba(20, 30, 45, 0.95)';
+                ctx.fillRect(b.x, b.currentY, PVE_BLOCK_WIDTH, BLOCK_HEIGHT);
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#00f0ff';
+                ctx.strokeRect(b.x, b.currentY, PVE_BLOCK_WIDTH, BLOCK_HEIGHT);
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = "bold 16px 'Courier New', monospace";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(b.letter, b.x + PVE_BLOCK_WIDTH / 2, b.currentY + BLOCK_HEIGHT / 2);
+
+                ctx.font = "10px 'Courier New', monospace";
+                ctx.fillStyle = '#00f0ff';
+                ctx.fillText(`#${idx + 1}`, b.x + 15, b.currentY + BLOCK_HEIGHT / 2);
+                ctx.restore();
+            });
+
+            // Etiquetas y avatares
+            pveBots.forEach(bot => {
+                const botTopY = (bot.blocks.length > 0)
+                    ? (VIEW_HEIGHT - 70) - (bot.blocks.length * BLOCK_HEIGHT) - 35
+                    : VIEW_HEIGHT - 105;
+
+                ctx.save();
+                ctx.font = "bold 13px 'Courier New', monospace";
+                ctx.textAlign = "center";
+                ctx.fillStyle = bot.alive ? bot.color : '#666666';
+                ctx.fillText(`${bot.icon} ${bot.name} ${bot.alive ? '' : '[ELIMINADO]'}`, bot.x + PVE_BLOCK_WIDTH / 2, botTopY);
+
+                if (bot.alive) {
+                    ctx.font = "bold 10px 'Courier New', monospace";
+                    ctx.fillStyle = bot.hasSubmittedThisRound ? '#39ff14' : '#ffcc00';
+                    ctx.fillText(bot.hasSubmittedThisRound ? '✓ LISTO' : '⏳ ESPERANDO', bot.x + PVE_BLOCK_WIDTH / 2, botTopY + 14);
+                }
+                ctx.restore();
+            });
+
+            const playerTopY = (pvePlayerBlocks.length > 0)
+                ? (VIEW_HEIGHT - 70) - (pvePlayerBlocks.length * BLOCK_HEIGHT) - 35
+                : VIEW_HEIGHT - 105;
+
+            ctx.save();
+            ctx.font = "bold 14px 'Courier New', monospace";
+            ctx.textAlign = "center";
+            ctx.fillStyle = '#00f0ff';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#00f0ff';
+            ctx.fillText(`👑 TÚ (${pvePlayerBlocks.length} Blqs)`, PVE_PLAYER_X + PVE_BLOCK_WIDTH / 2, playerTopY);
+
+            ctx.font = "bold 10px 'Courier New', monospace";
+            ctx.fillStyle = pvePlayerSubmitted ? '#39ff14' : '#ffff00';
+            ctx.fillText(pvePlayerSubmitted ? '✓ LISTO' : '⏳ TU TURNO', PVE_PLAYER_X + PVE_BLOCK_WIDTH / 2, playerTopY + 14);
+            ctx.restore();
+
+            // Lava PvE
+            const lavaH = pveLavaBlocks * BLOCK_HEIGHT;
+            const lavaY = (VIEW_HEIGHT - 70) - lavaH;
+
+            const lavaGrad = ctx.createLinearGradient(0, lavaY, 0, VIEW_HEIGHT);
+            lavaGrad.addColorStop(0, '#ff3300');
+            lavaGrad.addColorStop(0.3, '#ff6600');
+            lavaGrad.addColorStop(1, '#990000');
+            ctx.fillStyle = lavaGrad;
+            ctx.fillRect(0, lavaY, VIEW_WIDTH, lavaH + 70);
+
+            ctx.strokeStyle = '#ffff00';
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#ff6600';
+            ctx.beginPath();
+            ctx.moveTo(0, lavaY);
+            for (let x = 0; x <= VIEW_WIDTH; x += 30) {
+                const wave = Math.sin((x * 0.05) + (performance.now() * 0.005)) * 6;
+                ctx.lineTo(x, lavaY + wave);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
         function gameLoop(timestamp) {
             if (!lastFrameTime) lastFrameTime = timestamp;
             const dt = timestamp - lastFrameTime;
@@ -1187,141 +2113,277 @@
         }
 
         function updateGame(dt, timestamp) {
-            if (timestamp - lastSpawnTime > spawnInterval) {
-                spawnSnake();
-                lastSpawnTime = timestamp;
-            }
+            if (currentMode === 'SNAKES') {
+                if (timestamp - lastSpawnTime > spawnInterval) {
+                    spawnSnake();
+                    lastSpawnTime = timestamp;
+                }
 
-            for (let i = snakes.length - 1; i >= 0; i--) {
-                const snake = snakes[i];
-                snake.update(dt);
+                for (let i = snakes.length - 1; i >= 0; i--) {
+                    const snake = snakes[i];
+                    snake.update(dt);
 
-                if (snake.x >= playerBase.x - 10) {
-                    lives--; 
-                    createExplosion(snake.x, snake.y, '#ff3131', 40); 
-                    playSynthSound('error');
-                    flashScreenRed();
+                    if (snake.x >= playerBase.x - 10) {
+                        lives--;
+                        createExplosion(snake.x, snake.y, '#ff3131', 40);
+                        playSynthSound('error');
+                        flashOpacity = 0.35;
 
-                    if (activeSnakeId === snake.id) {
-                        activeSnakeId = null;
-                    }
+                        if (activeSnakeId === snake.id) activeSnakeId = null;
+                        snakes.splice(i, 1);
+                        updateHUD();
 
-                    snakes.splice(i, 1);
-                    updateHUD();
-
-                    if (lives <= 0) {
-                        triggerGameOver();
-                        return;
+                        if (lives <= 0) {
+                            triggerGameOver();
+                            return;
+                        }
                     }
                 }
+            } else if (currentMode === 'TOWER') {
+                roundTimeRemaining -= dt / 1000;
+                if (roundTimeRemaining <= 0) {
+                    roundTimeRemaining = 0;
+                    triggerLavaSurgeAndNextRound();
+                }
+
+                const playerH = towerBlocks.length * BLOCK_HEIGHT;
+                const targetCameraY = (playerH > 350) ? (playerH - 350) : 0;
+                cameraOffsetY += (targetCameraY - cameraOffsetY) * 0.08;
+                updateHUD();
+            } else if (currentMode === 'PVE') {
+                pveRoundTimeRemaining -= dt / 1000;
+                if (pveRoundTimeRemaining <= 0) {
+                    pveRoundTimeRemaining = 0;
+                    triggerPvELavaSurgeAndNextRound();
+                }
+
+                updatePvEBots(dt, timestamp);
+
+                const playerH = pvePlayerBlocks.length * BLOCK_HEIGHT;
+                const targetCameraY = (playerH > 350) ? (playerH - 350) : 0;
+                cameraOffsetY += (targetCameraY - cameraOffsetY) * 0.08;
+                updateHUD();
             }
 
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
                 p.update();
-                if (p.life <= 0) {
-                    particles.splice(i, 1);
-                }
+                if (p.life <= 0) particles.splice(i, 1);
             }
 
-            if (flashOpacity > 0) {
-                flashOpacity -= 0.015;
-            }
+            if (flashOpacity > 0) flashOpacity -= 0.015;
+            if (screenShake > 0) screenShake *= 0.9;
         }
 
         function renderGame() {
-            drawEnvironment();
-            snakes.forEach(snake => snake.draw());
+            ctx.save();
+            if (screenShake > 0.5) {
+                const rx = (Math.random() - 0.5) * screenShake;
+                const ry = (Math.random() - 0.5) * screenShake;
+                ctx.translate(rx, ry);
+            }
+
+            if (currentMode === 'SNAKES') {
+                drawSnakesEnvironment();
+                snakes.forEach(s => s.draw());
+            } else if (currentMode === 'TOWER') {
+                drawClassicTowerAndLava();
+            } else if (currentMode === 'PVE') {
+                drawPvETowersAndLava();
+            }
+
             particles.forEach(p => p.draw());
 
             if (flashOpacity > 0) {
                 ctx.fillStyle = `rgba(255, 49, 49, ${flashOpacity})`;
                 ctx.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
             }
+            ctx.restore();
         }
 
-        // --- MANEJO DE GAME OVER ---
         function triggerGameOver() {
             gameState = 'GAMEOVER';
             playSynthSound('gameover');
 
-            document.getElementById('go-score').textContent = score;
-            
-            let levelLabel = 'Fácil';
-            if (difficulty === 'MEDIUM') levelLabel = 'Medio';
-            if (difficulty === 'HARD') levelLabel = 'Difícil';
-            document.getElementById('go-level').textContent = levelLabel;
-            
-            document.getElementById('go-defeated').textContent = defeatedCount;
-            document.getElementById('go-max-combo').textContent = maxCombo;
+            const goTitle = document.getElementById('gameover-title');
+            if (goTitle) {
+                goTitle.textContent = (currentMode === 'SNAKES') ? "NÚCLEO DESTRUIDO" : "¡SUMERGIDO EN LA LAVA!";
+            }
+
+            const goScore = document.getElementById('go-score');
+            if (goScore) goScore.textContent = score;
+
+            const goMode = document.getElementById('go-mode');
+            if (goMode) {
+                goMode.textContent = (currentMode === 'SNAKES') ? 'Serpientes' : (currentMode === 'TOWER') ? 'Torre Clásica' : 'Torneo PvE';
+            }
+
+            const goProg = document.getElementById('go-progress');
+            if (goProg) {
+                goProg.textContent = (currentMode === 'SNAKES')
+                    ? `${defeatedCount} eliminadas`
+                    : (currentMode === 'TOWER')
+                    ? `Ronda ${towerRound}/6 (${towerBlocks.length} bloques)`
+                    : `Ronda ${pveRound}/10 (${pvePlayerBlocks.length} bloques)`;
+            }
+
+            const goMax = document.getElementById('go-max-combo');
+            if (goMax) goMax.textContent = maxCombo;
 
             document.getElementById('gameover-screen').classList.remove('hidden');
         }
 
-        // --- MANEJO DE VICTORIA ---
         function triggerVictory() {
             gameState = 'VICTORY';
-            playSynthSound('victory');
+            playSynthSound('level');
 
-            document.getElementById('vic-score').textContent = score;
-            
-            let levelLabel = 'Fácil';
-            if (selectedStartDifficulty === 'MEDIUM') levelLabel = 'Medio';
-            if (selectedStartDifficulty === 'HARD') levelLabel = 'Difícil';
-            document.getElementById('vic-level').textContent = levelLabel;
-            
-            document.getElementById('vic-max-combo').textContent = maxCombo;
-            document.getElementById('vic-lives').textContent = lives;
+            const vicDesc = document.getElementById('vic-desc');
+            if (vicDesc) {
+                if (currentMode === 'SNAKES') {
+                    vicDesc.textContent = "¡Has aniquilado a las 50 serpientes y salvado el núcleo defensivo!";
+                } else if (currentMode === 'TOWER') {
+                    vicDesc.textContent = "¡Has superado las 6 erupciones de magma y conquistado la cima volcánica!";
+                } else if (currentMode === 'PVE') {
+                    vicDesc.textContent = "¡Has derrotado a los 3 bots y sobrevivido a las 10 rondas de lava! ¡CAMPEÓN SUPREMO!";
+                }
+            }
+
+            const vicScore = document.getElementById('vic-score');
+            if (vicScore) vicScore.textContent = score;
+
+            const vicMode = document.getElementById('vic-mode');
+            if (vicMode) {
+                vicMode.textContent = (currentMode === 'SNAKES') ? 'Serpientes de Escritura' : (currentMode === 'TOWER') ? 'Torre de Lava' : 'Torneo PvE (10 Rondas)';
+            }
+
+            const vicMaxCombo = document.getElementById('vic-max-combo');
+            if (vicMaxCombo) vicMaxCombo.textContent = maxCombo;
 
             document.getElementById('victory-screen').classList.remove('hidden');
         }
 
-        function checkWinCondition() {
-            if (defeatedCount >= MAX_SNAKES_TO_WIN && gameState === 'PLAYING') {
-                triggerVictory();
-            }
-        }
-
-        // --- SISTEMA DE INICIO Y REINICIO DE PARTIDA ---
         function startNewGame() {
             score = 0;
-            lives = 3;
-            bombsSpent = 0;
-            difficulty = selectedStartDifficulty;
             combo = 0;
             maxCombo = 0;
             defeatedCount = 0;
-            snakes = [];
             particles = [];
-            activeSnakeId = null;
-            
-            if (difficulty === 'EASY') {
-                spawnInterval = 3200;
-            } else if (difficulty === 'MEDIUM') {
-                spawnInterval = 2400;
-            } else if (difficulty === 'HARD') {
-                spawnInterval = 1800;
-            }
-            
+            screenShake = 0;
+            flashOpacity = 0;
+
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('gameover-screen').classList.add('hidden');
             document.getElementById('victory-screen').classList.add('hidden');
             document.getElementById('pause-screen').classList.add('hidden');
-            
-            updateHUD();
 
+            document.getElementById('snakes-hud').classList.toggle('hidden', currentMode !== 'SNAKES');
+            document.getElementById('tower-hud').classList.toggle('hidden', currentMode !== 'TOWER');
+            document.getElementById('pve-hud').classList.toggle('hidden', currentMode !== 'PVE');
+
+            const isTowerOrPvE = (currentMode === 'TOWER' || currentMode === 'PVE');
+            document.getElementById('tower-theme-panel').classList.toggle('hidden', !isTowerOrPvE);
+            document.getElementById('tower-input-container').classList.toggle('hidden', !isTowerOrPvE);
+
+            if (currentMode === 'SNAKES') {
+                lives = 3;
+                bombsSpent = 0;
+                snakes = [];
+                activeSnakeId = null;
+                spawnInterval = (snakeDifficulty === 'HARD') ? 1800 : (snakeDifficulty === 'MEDIUM') ? 2400 : 3200;
+            } else if (currentMode === 'TOWER') {
+                towerBlocks = [];
+                currentLavaBlocks = 0;
+                towerRound = 1;
+                towerPlayerSubmitted = false;
+                roundTimeRemaining = ROUND_TIME_LIMIT;
+                cameraOffsetY = 0;
+
+                currentThemeKey = availableThemes[Math.floor(Math.random() * availableThemes.length)] || "ESCUELA";
+                const themeValEl = document.getElementById('tower-theme-value');
+                if (themeValEl) themeValEl.textContent = currentThemeKey;
+
+                const inputEl = document.getElementById('tower-word-input');
+                const submitBtn = document.getElementById('tower-btn-submit');
+                if (inputEl) {
+                    inputEl.disabled = false;
+                    inputEl.value = '';
+                    inputEl.placeholder = `Ronda 1: Escribe 1 palabra de "${currentThemeKey}"...`;
+                    inputEl.focus();
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Construir';
+                }
+            } else if (currentMode === 'PVE') {
+                pvePlayerBlocks = [];
+                pveLavaBlocks = 0;
+                pveRound = 1;
+                pvePlayerSubmitted = false;
+                pveRoundTimeRemaining = ROUND_TIME_LIMIT;
+                cameraOffsetY = 0;
+                initPvEBots();
+
+                currentThemeKey = availableThemes[Math.floor(Math.random() * availableThemes.length)] || "ESCUELA";
+                const themeValEl = document.getElementById('tower-theme-value');
+                if (themeValEl) themeValEl.textContent = currentThemeKey;
+
+                const now = performance.now();
+                pveBots.forEach(b => {
+                    const delay = b.speedMin + Math.random() * (b.speedMax - b.speedMin);
+                    b.nextActionTime = now + delay;
+                });
+
+                const inputEl = document.getElementById('tower-word-input');
+                const submitBtn = document.getElementById('tower-btn-submit');
+                if (inputEl) {
+                    inputEl.disabled = false;
+                    inputEl.value = '';
+                    inputEl.placeholder = `Ronda 1/10: Escribe 1 palabra de "${currentThemeKey}"...`;
+                    inputEl.focus();
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Construir';
+                }
+            }
+
+            updateHUD();
             lastSpawnTime = performance.now();
             gameState = 'PLAYING';
             playSynthSound('level');
         }
 
-        // --- MANEJADORES DE ELEMENTOS DEL DOM / EVENTOS ---
-        const diffOptions = document.querySelectorAll('.diff-opt');
-        diffOptions.forEach(opt => {
+        // EVENT LISTENERS DOM
+        const modeCards = document.querySelectorAll('.mode-card');
+        modeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                modeCards.forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                currentMode = card.dataset.mode;
+
+                document.getElementById('snakes-diff-section').classList.toggle('hidden', currentMode !== 'SNAKES');
+                document.getElementById('pve-diff-section').classList.toggle('hidden', currentMode !== 'PVE');
+
+                playSynthSound('hit');
+            });
+        });
+
+        const snakesDiffOpts = document.querySelectorAll('#snakes-diff-selector .diff-opt');
+        snakesDiffOpts.forEach(opt => {
             opt.addEventListener('click', () => {
-                diffOptions.forEach(b => b.classList.remove('active'));
+                snakesDiffOpts.forEach(b => b.classList.remove('active'));
                 opt.classList.add('active');
-                selectedStartDifficulty = opt.dataset.diff;
+                snakeDifficulty = opt.dataset.diff;
+                playSynthSound('hit');
+            });
+        });
+
+        const pveDiffOpts = document.querySelectorAll('#pve-diff-selector .diff-opt');
+        pveDiffOpts.forEach(opt => {
+            opt.addEventListener('click', () => {
+                pveDiffOpts.forEach(b => b.classList.remove('active'));
+                opt.classList.add('active');
+                pveBotDifficulty = opt.dataset.diff;
                 playSynthSound('hit');
             });
         });
@@ -1335,12 +2397,20 @@
             startNewGame();
         });
 
-        document.getElementById('btn-victory-restart').addEventListener('click', () => {
+        document.getElementById('btn-vic-restart').addEventListener('click', () => {
             startNewGame();
         });
 
         document.getElementById('btn-resume').addEventListener('click', () => {
             togglePause();
+        });
+
+        document.getElementById('tower-btn-submit').addEventListener('click', () => {
+            const inputEl = document.getElementById('tower-word-input');
+            if (inputEl && !inputEl.disabled && inputEl.value.trim().length > 0) {
+                if (currentMode === 'TOWER') submitTowerWord(inputEl.value.trim());
+                else if (currentMode === 'PVE') submitPvEWord(inputEl.value.trim());
+            }
         });
 
         document.getElementById('sound-toggle').addEventListener('click', () => {
@@ -1350,7 +2420,7 @@
         });
 
         requestAnimationFrame(gameLoop);
-        drawEnvironment();
+        drawSnakesEnvironment();
     </script>
 </body>
 </html>
