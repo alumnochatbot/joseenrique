@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monster Brawl - Elección de Poder Inicial</title>
+    <title>Monster Brawl - 18 Habilidades y Jefes</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #0f172a; color: white; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
         canvas { display: block; width: 100%; height: 100%; }
         .hidden { display: none !important; }
-        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; }
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; z-index: 20; }
         .interactive { pointer-events: auto; }
-        .glass-panel { background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.12); }
+        .glass-panel { background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.15); }
         .custom-scrollbar::-webkit-scrollbar { width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 8px; }
@@ -65,39 +65,39 @@
     </div>
 
     <!-- UI: Menú Principal -->
-    <div id="main-menu" class="ui-layer interactive items-center justify-center bg-slate-950/80">
+    <div id="main-menu" class="ui-layer interactive items-center justify-center bg-slate-950/85">
         <div class="glass-panel p-8 rounded-3xl text-center max-w-lg w-full mx-4 shadow-2xl border border-slate-700/50">
             <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-amber-400 to-yellow-500 mb-3 tracking-tight">MONSTER BRAWL</h1>
-            <p class="text-gray-300 mb-6 text-sm font-medium leading-relaxed">Sobrevive a la horda y destruye al Jefe Supremo. Usa WASD o Flechas para moverte. El ataque es automático.</p>
+            <p class="text-gray-300 mb-6 text-sm font-medium leading-relaxed">Sobrevive a la horda y destruye al Yeti en el Nivel 60. Usa WASD o Flechas para moverte. El ataque es automático.</p>
             
             <div class="text-gray-400 text-xs mb-3 font-bold uppercase tracking-wider">Dificultad de Partida</div>
             <div class="flex flex-col gap-3 w-full mb-6">
-                <button id="btn-start-normal" class="w-full px-5 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold rounded-2xl text-base transition-all transform hover:-translate-y-0.5 shadow-lg shadow-emerald-950/40 text-left pl-5 border border-emerald-400/20">
+                <button id="btn-start-normal" type="button" onclick="initGame('normal')" class="cursor-pointer w-full px-5 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold rounded-2xl text-base transition-all transform hover:-translate-y-0.5 shadow-lg shadow-emerald-950/40 text-left pl-5 border border-emerald-400/20 active:scale-98">
                     🟢 Modo Normal
                     <span class="block text-xs font-normal opacity-85 mt-0.5">Experiencia equilibrada de supervivencia.</span>
                 </button>
-                <button id="btn-start-dificil" class="w-full px-5 py-3.5 bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 text-white font-bold rounded-2xl text-base transition-all transform hover:-translate-y-0.5 shadow-lg shadow-amber-950/40 text-left pl-5 border border-amber-400/20">
+                <button id="btn-start-dificil" type="button" onclick="initGame('dificil')" class="cursor-pointer w-full px-5 py-3.5 bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 text-white font-bold rounded-2xl text-base transition-all transform hover:-translate-y-0.5 shadow-lg shadow-amber-950/40 text-left pl-5 border border-amber-400/20 active:scale-98">
                     🟠 Modo Difícil (x1.5 Pts)
                     <span class="block text-xs font-normal opacity-85 mt-0.5">Enemigos disparan proyectiles de plasma.</span>
                 </button>
-                <button id="btn-start-experto" class="w-full px-5 py-3.5 bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white font-bold rounded-2xl text-base transition-all transform hover:-translate-y-0.5 shadow-lg shadow-red-950/40 text-left pl-5 border border-red-400/20">
+                <button id="btn-start-experto" type="button" onclick="initGame('experto')" class="cursor-pointer w-full px-5 py-3.5 bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white font-bold rounded-2xl text-base transition-all transform hover:-translate-y-0.5 shadow-lg shadow-red-950/40 text-left pl-5 border border-red-400/20 active:scale-98">
                     🔴 Modo Experto (x2.0 Pts)
                     <span class="block text-xs font-normal opacity-85 mt-0.5">Enemigos disparan y ejecutan embestidas letales.</span>
                 </button>
             </div>
 
-            <button id="btn-shop" class="w-full px-6 py-3.5 bg-slate-800/90 hover:bg-slate-700 text-white font-bold rounded-2xl text-md transition-all border border-slate-600 flex items-center justify-center gap-2 shadow-lg">
+            <button id="btn-shop" type="button" onclick="openShop()" class="cursor-pointer w-full px-6 py-3.5 bg-slate-800/90 hover:bg-slate-700 text-white font-bold rounded-2xl text-md transition-all border border-slate-600 flex items-center justify-center gap-2 shadow-lg">
                 <svg class="w-5 h-5 fill-current text-amber-400" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1010 10A10 10 0 0012 2zm1 14h-2v-2h2zm0-4h-2V7h2z"/></svg>
                 Tienda de Skins
             </button>
         </div>
     </div>
 
-    <!-- UI: Subir de Nivel / Selección Inicial (Drafting) -->
+    <!-- UI: Subir de Nivel / Elección Inicial -->
     <div id="level-up-screen" class="ui-layer interactive items-center justify-center bg-black/85 hidden">
         <div class="text-center w-full max-w-5xl px-4 h-[90vh] overflow-y-auto py-8 custom-scrollbar">
-            <h2 id="draft-title" class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500 mb-2">¡ELIGE TU PODER INICIAL!</h2>
-            <p id="draft-subtitle" class="text-gray-300 mb-8 font-medium">Selecciona la habilidad con la que comenzarás la batalla</p>
+            <h2 id="draft-title" class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500 mb-2">¡ELIGE TU PODER!</h2>
+            <p id="draft-subtitle" class="text-gray-300 mb-8 font-medium">Selecciona una mejora estratégica para tu arsenal</p>
             <div id="draft-options" class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
                 <!-- Inyectado por JS -->
             </div>
@@ -113,13 +113,13 @@
             <p class="text-lg text-gray-300 mb-4">Nivel Alcanzado: <span id="go-level" class="font-bold text-white"></span></p>
             <div id="go-points" class="text-2xl text-amber-400 mb-8 font-black">Puntos Obtenidos: +0</div>
             <div class="flex flex-col gap-3">
-                <button id="btn-restart" class="px-6 py-3.5 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white font-bold rounded-2xl text-lg transition-transform transform hover:scale-102 shadow-lg">
+                <button id="btn-restart" type="button" onclick="initGame(currentDifficulty)" class="cursor-pointer px-6 py-3.5 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 text-white font-bold rounded-2xl text-lg transition-transform transform hover:scale-102 shadow-lg">
                     Reintentar
                 </button>
-                <button id="btn-to-shop-from-go" class="px-6 py-3.5 bg-blue-600 text-white hover:bg-blue-500 font-bold rounded-2xl text-lg transition-transform transform hover:scale-102 shadow-lg">
+                <button id="btn-to-shop-from-go" type="button" onclick="openShop()" class="cursor-pointer px-6 py-3.5 bg-blue-600 text-white hover:bg-blue-500 font-bold rounded-2xl text-lg transition-transform transform hover:scale-102 shadow-lg">
                     Tienda
                 </button>
-                <button id="btn-to-menu" class="px-6 py-3.5 bg-slate-800 text-white hover:bg-slate-700 border border-slate-600 font-bold rounded-2xl text-lg transition-transform transform hover:scale-102">
+                <button id="btn-to-menu" type="button" onclick="toMenu()" class="cursor-pointer px-6 py-3.5 bg-slate-800 text-white hover:bg-slate-700 border border-slate-600 font-bold rounded-2xl text-lg transition-transform transform hover:scale-102">
                     Menú Principal
                 </button>
             </div>
@@ -134,14 +134,13 @@
             <div id="shop-items" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
                 <!-- Inyectado por JS -->
             </div>
-            <button id="btn-close-shop" class="px-8 py-3.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-2xl text-lg transition-transform transform hover:scale-105 shadow-xl">
+            <button id="btn-close-shop" type="button" onclick="closeShop()" class="cursor-pointer px-8 py-3.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-2xl text-lg transition-transform transform hover:scale-105 shadow-xl">
                 Volver al Menú
             </button>
         </div>
     </div>
 
 <script>
-
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -160,10 +159,7 @@ const MAP_LIMIT = 1800;
 function getGDriveDirectUrl(url) {
     if (!url) return '';
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-    if (match && match[1]) {
-        return `https://lh3.googleusercontent.com/d/${match[1]}`;
-    }
-    return url;
+    return match && match[1] ? `https://lh3.googleusercontent.com/d/${match[1]}` : url;
 }
 
 const imgBgMap = new Image();
@@ -172,20 +168,12 @@ imgBgMap.src = getGDriveDirectUrl('https://drive.google.com/file/d/1LQDREWq3feyt
 imgBgMap.isLoaded = false;
 imgBgMap.onload = () => { imgBgMap.isLoaded = true; generateSeamlessTexture(); };
 
-const imgEnemy = new Image();
-imgEnemy.crossOrigin = "anonymous";
-imgEnemy.src = getGDriveDirectUrl('https://drive.google.com/file/d/1VY9z_aixpddyWJHKyfZkEsO9zI_m8-3Z/view?usp=sharing');
-imgEnemy.isLoaded = false;
-imgEnemy.onload = () => { imgEnemy.isLoaded = true; };
-
 let bgPattern = null;
 function generateSeamlessTexture() {
     if (!imgBgMap.isLoaded) return;
     const offCanvas = document.createElement('canvas');
-    const w = imgBgMap.width;
-    const h = imgBgMap.height;
-    offCanvas.width = w * 2;
-    offCanvas.height = h * 2;
+    const w = imgBgMap.width, h = imgBgMap.height;
+    offCanvas.width = w * 2; offCanvas.height = h * 2;
     const offCtx = offCanvas.getContext('2d');
 
     offCtx.drawImage(imgBgMap, 0, 0, w, h);
@@ -231,12 +219,42 @@ const skinsDB = [
 ];
 
 function getXpForLevel(lvl) {
-    const table = {
-        2: 1, 3: 4, 4: 8, 5: 13, 6: 19, 7: 26, 8: 34, 9: 43, 10: 53,
-        11: 64, 12: 76, 13: 89, 14: 103, 15: 118, 16: 134, 17: 151, 18: 169, 19: 188, 20: 208
-    };
-    if (lvl in table) return table[lvl];
-    return Math.floor(208 + (lvl - 20) * 25);
+    if (lvl <= 2) return 1;
+    if (lvl <= 5) return 5;
+    if (lvl <= 10) return 10;
+    if (lvl <= 20) return 20;
+    if (lvl <= 30) return 30;
+    if (lvl <= 40) return 40;
+    if (lvl <= 50) return 50;
+    return 100;
+}
+
+const WEAPON_DAMAGE_TABLES = {
+    lasers:          [0, 2, 3, 4, 5, 6, 8, 10, 12, 14, 26],
+    syrup:           [0, 10, 12, 15, 18, 22, 25, 28, 32, 35, 40],
+    jugglingspheres: [0, 8, 10, 13, 16, 20, 24, 28, 32, 36, 40],
+    darkenergy:      [0, 5, 7, 9, 12, 15, 18, 22, 26, 30, 35],
+    bubbles:         [0, 2, 3, 5, 7, 10, 12, 14, 16, 18, 22],
+    cards:           [0, 3, 4, 6, 8, 10, 11, 13, 14, 16, 18],
+    slimyballs:      [0, 4, 5, 7, 9, 12, 14, 16, 18, 20, 22],
+    arrows:          [0, 5, 7, 9, 11, 14, 16, 18, 20, 22, 25],
+    rapideggs:       [0, 2, 3, 4, 5, 7, 8, 10, 11, 13, 15],
+    feathers:        [0, 2, 3, 4, 5, 6, 8, 9, 11, 12, 15],
+    shell:           [0, 5, 8, 11, 14, 17, 20, 22, 25, 27, 30],
+    acorns:          [0, 6, 8, 11, 14, 17, 20, 22, 24, 26, 28],
+    horseshoe:       [0, 6, 8, 11, 14, 17, 20, 22, 25, 27, 30],
+    pizza:           [0, 4, 6, 8, 11, 14, 16, 18, 20, 22, 24],
+    banana:          [0, 3, 5, 7, 9, 11, 13, 15, 17, 19, 20],
+    bees:            [0, 4, 6, 8, 10, 14, 18, 22, 26, 30, 35],
+    bones:           [0, 5, 7, 10, 13, 16, 20, 24, 28, 32, 38],
+    peacock:         [0, 6, 9, 12, 16, 20, 25, 30, 35, 42, 50]
+};
+
+function getWeaponDamage(id, lvl) {
+    const table = WEAPON_DAMAGE_TABLES[id];
+    if (!table) return 10;
+    const clampedLvl = Math.max(1, Math.min(10, lvl));
+    return table[clampedLvl];
 }
 
 const keys = { w: false, a: false, s: false, d: false, arrowup: false, arrowdown: false, arrowleft: false, arrowright: false };
@@ -255,14 +273,22 @@ window.addEventListener('touchend', () => { touchActive = false; }, { passive: t
 function distSq(x1, y1, x2, y2) { return (x2-x1)**2 + (y2-y1)**2; }
 function randRange(min, max) { return Math.random() * (max - min) + min; }
 
+function drawRoundedRect(c, x, y, w, h, r) {
+    if (c.roundRect) { c.beginPath(); c.roundRect(x, y, w, h, r); return; }
+    c.beginPath();
+    c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r);
+    c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r);
+    c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath();
+}
+
 const environmentProps = [];
 function initEnvironmentProps() {
     environmentProps.length = 0;
-    const count = 150;
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < 140; i++) {
         let px = Math.random() * (MAP_LIMIT * 2 - 200) - (MAP_LIMIT - 100);
         let py = Math.random() * (MAP_LIMIT * 2 - 200) - (MAP_LIMIT - 100);
-        if (distSq(px, py, width/2, height/2) < 300*300) continue;
+        if (distSq(px, py, 0, 0) < 250*250) continue;
         const isRock = Math.random() < 0.5;
         environmentProps.push({
             x: px, y: py,
@@ -276,8 +302,7 @@ initEnvironmentProps();
 
 function drawSnowyRock(ctxCanvas, size) {
     const s = size;
-    ctxCanvas.save();
-    ctxCanvas.scale(s / 64, s / 64);
+    ctxCanvas.save(); ctxCanvas.scale(s / 64, s / 64);
     ctxCanvas.fillStyle = 'rgba(0, 0, 0, 0.25)';
     ctxCanvas.beginPath(); ctxCanvas.ellipse(0, 24, 28, 8, 0, 0, Math.PI * 2); ctxCanvas.fill();
     ctxCanvas.fillStyle = '#2b3848';
@@ -297,10 +322,10 @@ function drawSnowyRock(ctxCanvas, size) {
 
 function resolveObstacleCollisions(entity) {
     for (let prop of environmentProps) {
-        let dx = entity.x - prop.x;
-        let dy = entity.y - prop.y;
-        let d2 = dx * dx + dy * dy;
+        let dx = entity.x - prop.x, dy = entity.y - prop.y;
         let minDist = entity.radius + prop.size * 0.42;
+        if (Math.abs(dx) > minDist || Math.abs(dy) > minDist) continue;
+        let d2 = dx * dx + dy * dy;
         if (d2 < minDist * minDist) {
             let dist = Math.sqrt(d2) || 0.001;
             let overlap = minDist - dist;
@@ -313,11 +338,16 @@ function resolveObstacleCollisions(entity) {
 class SpatialGrid {
     constructor(cellSize) { this.cellSize = cellSize; this.cells = new Map(); }
     clear() { this.cells.clear(); }
-    hash(x, y) { return `${Math.floor(x / this.cellSize)},${Math.floor(y / this.cellSize)}`; }
+    hash(x, y) {
+        const cx = Math.floor(x / this.cellSize);
+        const cy = Math.floor(y / this.cellSize);
+        return (cx << 16) ^ (cy & 0xffff);
+    }
     insert(entity) {
         const key = this.hash(entity.x, entity.y);
-        if (!this.cells.has(key)) this.cells.set(key, []);
-        this.cells.get(key).push(entity);
+        let cell = this.cells.get(key);
+        if (!cell) { cell = []; this.cells.set(key, cell); }
+        cell.push(entity);
     }
     getNearby(x, y, radius) {
         const result = [];
@@ -325,8 +355,11 @@ class SpatialGrid {
         const minY = Math.floor((y - radius) / this.cellSize), maxY = Math.floor((y + radius) / this.cellSize);
         for (let cx = minX; cx <= maxX; cx++) {
             for (let cy = minY; cy <= maxY; cy++) {
-                const cell = this.cells.get(`${cx},${cy}`);
-                if (cell) result.push(...cell);
+                const key = (cx << 16) ^ (cy & 0xffff);
+                const cell = this.cells.get(key);
+                if (cell) {
+                    for (let i = 0; i < cell.length; i++) result.push(cell[i]);
+                }
             }
         }
         return result;
@@ -359,8 +392,8 @@ class Player {
         this.baseDamageMult = 1.0; this.critChance = 0.05; this.critMult = 1.5;
         this.hitFlash = 0;
         this.facingAngle = 0;
-        this.lastDirX = 1; this.lastDirY = 0;
-        this.weapons = []; // Se inicia sin habilidades y se selecciona 1 de 3 al arrancar
+        this.weapons = [];
+        this.pendingLevels = 0;
     }
     update(dt) {
         let dx = 0, dy = 0;
@@ -378,8 +411,6 @@ class Player {
 
         if (dx !== 0 || dy !== 0) {
             this.facingAngle = Math.atan2(dy, dx);
-            this.lastDirX = dx;
-            this.lastDirY = dy;
         }
 
         this.x += dx * this.speed * dt; this.y += dy * this.speed * dt;
@@ -432,859 +463,20 @@ class Player {
     }
     addXp(amount) {
         this.xp += amount;
-        if (this.xp >= this.maxXp) { this.xp -= this.maxXp; this.levelUp(); }
+        let leveled = false;
+        while (this.xp >= this.maxXp) {
+            this.xp -= this.maxXp;
+            this.level++;
+            this.maxXp = getXpForLevel(this.level + 1);
+            this.hp = Math.min(this.maxHp, this.hp + 20);
+            this.pendingLevels = (this.pendingLevels || 0) + 1;
+            leveled = true;
+        }
+        if (leveled && currentState === GAME_STATE.PLAYING) {
+            this.pendingLevels--;
+            triggerDraft();
+        }
         updateHUD();
-    }
-    levelUp() {
-        this.level++; this.maxXp = getXpForLevel(this.level + 1);
-        this.hp = Math.min(this.maxHp, this.hp + 20);
-        triggerDraft();
-    }
-}
-
-
-// 1. Rapid-Fire Lasers (Láseres)
-class RapidFireLasersWeapon {
-    constructor(p) { this.player = p; this.id = 'lasers'; this.name = "Rapid-Fire Lasers"; this.level = 1; this.cooldown = 0.25; this.timer = 0; this.baseDamage = 8; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.08, 0.25 - lvl * 0.018); this.baseDamage = 8 + lvl * 3; }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let ang = this.player.facingAngle;
-            let vx = Math.cos(ang), vy = Math.sin(ang);
-            let proj = projectilePool.get();
-            proj.spawn(this.player.x, this.player.y, vx, vy, 900, this.baseDamage * this.player.baseDamageMult, 3, '#ef4444', Math.random()<this.player.critChance, 2);
-            proj.customDraw = (c, cx, cy) => {
-                c.save(); c.translate(proj.x - cx, proj.y - cy);
-                c.strokeStyle = '#ff2255'; c.lineWidth = 4; c.shadowColor = '#ff0033'; c.shadowBlur = 10;
-                c.beginPath(); c.moveTo(-vx*35, -vy*35); c.lineTo(0,0); c.stroke();
-                c.restore();
-            };
-            projectiles.push(proj);
-        }
-    }
-}
-
-// 2. Slicing Cards (Cartas)
-class SlicingCardsWeapon {
-    constructor(p) { this.player = p; this.id = 'cards'; this.name = "Slicing Cards"; this.level = 1; this.cooldown = 0.9; this.timer = 0; this.count = 3; }
-    applyUpgrade(lvl) { this.level = lvl; this.count = 3 + Math.floor(lvl / 2); this.cooldown = Math.max(0.4, 0.9 - lvl * 0.04); }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let baseAng = this.player.facingAngle;
-            let spread = 0.5;
-            for (let i = 0; i < this.count; i++) {
-                let ang = baseAng - spread/2 + (spread / Math.max(1, this.count - 1)) * i;
-                let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 500, (12 + this.level*2) * this.player.baseDamageMult, 10, '#ffffff', Math.random()<this.player.critChance, 2);
-                proj.rot = ang;
-                proj.customDraw = (c, cx, cy) => {
-                    c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(proj.rot + animationTime * 10);
-                    c.fillStyle = '#ffffff'; c.fillRect(-8, -12, 16, 24);
-                    c.strokeStyle = '#dc2626'; c.lineWidth = 1.5; c.strokeRect(-8, -12, 16, 24);
-                    c.fillStyle = '#dc2626'; c.beginPath(); c.arc(0,0,3,0,Math.PI*2); c.fill();
-                    c.restore();
-                };
-                projectiles.push(proj);
-            }
-        }
-    }
-}
-
-// 3. Dark Energy (Energía oscura)
-class DarkEnergyWeapon {
-    constructor(p) { this.player = p; this.id = 'darkenergy'; this.name = "Dark Energy"; this.level = 1; this.count = 2; }
-    applyUpgrade(lvl) { this.level = lvl; this.count = 2 + Math.floor(lvl / 2); }
-    update(dt) {
-        let orbitRadius = 65;
-        let speed = 3.5;
-        for (let i = 0; i < this.count; i++) {
-            let ang = animationTime * speed + (i / this.count) * Math.PI * 2;
-            let ox = this.player.x + Math.cos(ang) * orbitRadius;
-            let oy = this.player.y + Math.sin(ang) * orbitRadius;
-            
-            let nearby = enemyGrid.getNearby(ox, oy, 25);
-            for (let e of nearby) {
-                if (e.active && distSq(ox, oy, e.x, e.y) < (20 + e.radius)**2) {
-                    e.takeDamage((10 + this.level * 3) * this.player.baseDamageMult * dt * 4, false, Math.cos(ang), Math.sin(ang));
-                }
-            }
-        }
-    }
-    drawOrbital(c, cx, cy) {
-        let orbitRadius = 65;
-        let speed = 3.5;
-        for (let i = 0; i < this.count; i++) {
-            let ang = animationTime * speed + (i / this.count) * Math.PI * 2;
-            let ox = this.player.x + Math.cos(ang) * orbitRadius - cx;
-            let oy = this.player.y + Math.sin(ang) * orbitRadius - cy;
-
-            c.save(); c.translate(ox, oy);
-            let grad = c.createRadialGradient(0,0,2, 0,0,16);
-            grad.addColorStop(0, '#c084fc'); grad.addColorStop(0.5, '#581c87'); grad.addColorStop(1, 'rgba(0,0,0,0)');
-            c.fillStyle = grad; c.beginPath(); c.arc(0,0,16,0,Math.PI*2); c.fill();
-            c.fillStyle = '#3b0764'; c.beginPath(); c.arc(0,0,6,0,Math.PI*2); c.fill();
-            c.restore();
-        }
-    }
-}
-
-// 4. Booming Bubbles (Burbujas)
-class BoomingBubblesWeapon {
-    constructor(p) { this.player = p; this.id = 'bubbles'; this.name = "Booming Bubbles"; this.level = 1; this.cooldown = 1.2; this.timer = 0; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.6, 1.2 - lvl * 0.05); }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let target = getClosestEnemy(this.player, 500);
-            let vx = target ? (target.x - this.player.x) : Math.cos(this.player.facingAngle);
-            let vy = target ? (target.y - this.player.y) : Math.sin(this.player.facingAngle);
-            let dist = Math.sqrt(vx*vx + vy*vy) || 1; vx /= dist; vy /= dist;
-
-            let proj = projectilePool.get();
-            proj.spawn(this.player.x, this.player.y, vx, vy, 180, (25 + this.level*5) * this.player.baseDamageMult, 14, '#38bdf8', false, 1);
-            proj.life = 2.2;
-            proj.customDraw = (c, cx, cy) => {
-                c.save(); c.translate(proj.x - cx, proj.y - cy);
-                c.fillStyle = 'rgba(186, 230, 253, 0.5)'; c.beginPath(); c.arc(0,0,proj.radius,0,Math.PI*2); c.fill();
-                c.strokeStyle = '#7dd3fc'; c.lineWidth = 2; c.stroke();
-                c.fillStyle = '#ffffff'; c.beginPath(); c.arc(-proj.radius*0.3, -proj.radius*0.3, 3, 0, Math.PI*2); c.fill();
-                c.restore();
-            };
-            proj.onExpire = () => {
-                aoeExplosions.push({ x: proj.x, y: proj.y, radius: 0, maxRadius: 60 + this.level*5, damage: proj.damage, color: 'rgba(56, 189, 248, 0.6)' });
-            };
-            projectiles.push(proj);
-        }
-    }
-}
-
-// 5. Rapid Eggs (Huevos rápidos)
-class RapidEggsWeapon {
-    constructor(p) { this.player = p; this.id = 'rapideggs'; this.name = "Rapid Eggs"; this.level = 1; this.cooldown = 0.5; this.timer = 0; this.baseDamage = 6; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.12, 0.5 - lvl * 0.038); this.baseDamage = 6 + lvl * 2.5; }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let closest = getClosestEnemy(this.player, 550);
-            let vx = closest ? (closest.x - this.player.x) : Math.cos(this.player.facingAngle);
-            let vy = closest ? (closest.y - this.player.y) : Math.sin(this.player.facingAngle);
-            let d = Math.sqrt(vx*vx + vy*vy) || 1; vx /= d; vy /= d;
-
-            let proj = projectilePool.get();
-            proj.spawn(this.player.x, this.player.y, vx, vy, 520, this.baseDamage * this.player.baseDamageMult, 7, '#fef08a', Math.random()<this.player.critChance, 1);
-            proj.customDraw = (c, cx, cy) => {
-                c.save(); c.translate(proj.x - cx, proj.y - cy);
-                c.rotate(Math.atan2(vy, vx));
-                c.fillStyle = '#fef08a'; c.beginPath(); c.ellipse(0,0, 8, 5, 0, 0, Math.PI*2); c.fill();
-                c.restore();
-            };
-            projectiles.push(proj);
-        }
-    }
-}
-
-// 6. Flying Feathers (Plumas)
-class FlyingFeathersWeapon {
-    constructor(p) { this.player = p; this.id = 'feathers'; this.name = "Flying Feathers"; this.level = 1; this.cooldown = 0.8; this.timer = 0; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.3, 0.8 - lvl * 0.05); }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let count = 4 + Math.floor(this.level / 2);
-            let baseAng = this.player.facingAngle;
-            for (let i = 0; i < count; i++) {
-                let ang = baseAng - 0.6 + (1.2 / count) * i;
-                let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 420, (10 + this.level*2) * this.player.baseDamageMult, 6, '#ffffff', false, 1);
-                proj.customDraw = (c, cx, cy) => {
-                    c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
-                    c.fillStyle = '#f8fafc'; c.beginPath(); c.moveTo(0,-10); c.quadraticCurveTo(5,0,0,10); c.quadraticCurveTo(-5,0,0,-10); c.fill();
-                    c.restore();
-                };
-                projectiles.push(proj);
-            }
-        }
-    }
-}
-
-// 7. Sticky Syrup (Jarabe pegajoso)
-class StickySyrupWeapon {
-    constructor(p) { this.player = p; this.id = 'syrup'; this.name = "Sticky Syrup"; this.level = 1; this.cooldown = 2.0; this.timer = 0; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.8, 2.0 - lvl * 0.1); }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let px = this.player.x + randRange(-100, 100);
-            let py = this.player.y + randRange(-100, 100);
-            groundPuddles.push({
-                x: px, y: py, radius: 45 + this.level * 4, duration: 5.0, maxDuration: 5.0,
-                dps: (15 + this.level * 4) * this.player.baseDamageMult, color: 'rgba(217, 119, 6, 0.55)'
-            });
-        }
-    }
-}
-
-// 8. Buzzing Bees (Abejas)
-class BuzzingBeesWeapon {
-    constructor(p) { this.player = p; this.id = 'bees'; this.name = "Buzzing Bees"; this.level = 1; this.cooldown = 1.0; this.timer = 0; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.3, 1.0 - lvl * 0.07); }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let proj = projectilePool.get();
-            proj.spawn(this.player.x, this.player.y, 0, 0, 380, (14 + this.level*3) * this.player.baseDamageMult, 6, '#facc15', false, 1);
-            proj.target = getClosestEnemy(this.player, 650);
-            proj.customUpdate = (dtSec) => {
-                if (!proj.target || !proj.target.active) proj.target = getClosestEnemy(proj, 600);
-                let tx = proj.target ? proj.target.x : proj.x + Math.cos(animationTime*5)*50;
-                let ty = proj.target ? proj.target.y : proj.y + Math.sin(animationTime*5)*50;
-                let dx = tx - proj.x, dy = ty - proj.y, dist = Math.sqrt(dx*dx + dy*dy) || 1;
-                proj.vx = dx/dist + Math.sin(animationTime*15)*0.3;
-                proj.vy = dy/dist + Math.cos(animationTime*15)*0.3;
-                proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
-                proj.life -= dtSec; if (proj.life <= 0) proj.active = false;
-            };
-            proj.customDraw = (c, cx, cy) => {
-                c.save(); c.translate(proj.x - cx, proj.y - cy);
-                c.fillStyle = '#facc15'; c.beginPath(); c.ellipse(0,0, 6, 4, 0, 0, Math.PI*2); c.fill();
-                c.fillStyle = '#000000'; c.fillRect(-2, -4, 2, 8);
-                c.fillStyle = 'rgba(255,255,255,0.7)'; c.beginPath(); c.arc(-2, -5, 3, 0, Math.PI*2); c.fill();
-                c.restore();
-            };
-            projectiles.push(proj);
-        }
-    }
-}
-
-// 9. Slimy Balls (Bolas de slime)
-class SlimyBallsWeapon {
-    constructor(p) { this.player = p; this.id = 'slimyballs'; this.name = "Slimy Balls"; this.level = 1; this.cooldown = 1.1; this.timer = 0; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.4, 1.1 - lvl * 0.07); }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let ang = Math.random() * Math.PI * 2;
-            let proj = projectilePool.get();
-            proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 450, (18 + this.level*3) * this.player.baseDamageMult, 12, '#22c55e', false, 5);
-            proj.life = 4.0;
-            proj.customUpdate = (dtSec) => {
-                proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
-                if (Math.abs(proj.x) >= MAP_LIMIT - 20) proj.vx *= -1;
-                if (Math.abs(proj.y) >= MAP_LIMIT - 20) proj.vy *= -1;
-                proj.life -= dtSec; if (proj.life <= 0) proj.active = false;
-            };
-            proj.customDraw = (c, cx, cy) => {
-                c.save(); c.translate(proj.x - cx, proj.y - cy);
-                c.fillStyle = '#22c55e'; c.beginPath(); c.arc(0,0, proj.radius, 0, Math.PI*2); c.fill();
-                c.fillStyle = '#86efac'; c.beginPath(); c.arc(-3,-3, 3, 0, Math.PI*2); c.fill();
-                c.restore();
-            };
-            projectiles.push(proj);
-        }
-    }
-}
-
-// 10. Speeding Arrows (Flechas veloces)
-class SpeedingArrowsWeapon {
-    constructor(p) { this.player = p; this.id = 'arrows'; this.name = "Speeding Arrows"; this.level = 1; this.cooldown = 0.7; this.timer = 0; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.2, 0.7 - lvl * 0.05); }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let ang = this.player.facingAngle;
-            let proj = projectilePool.get();
-            proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 750, (22 + this.level*4) * this.player.baseDamageMult, 5, '#a16207', false, 4 + this.level);
-            proj.customDraw = (c, cx, cy) => {
-                c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
-                c.strokeStyle = '#78350f'; c.lineWidth = 2; c.beginPath(); c.moveTo(-12,0); c.lineTo(8,0); c.stroke();
-                c.fillStyle = '#94a3b8'; c.beginPath(); c.moveTo(8,-4); c.lineTo(14,0); c.lineTo(8,4); c.fill();
-                c.restore();
-            };
-            projectiles.push(proj);
-        }
-    }
-}
-
-// 11. Rebounding Shell (Caparazón de rebote)
-class ReboundingShellWeapon {
-    constructor(p) { this.player = p; this.id = 'shell'; this.name = "Rebounding Shell"; this.level = 1; this.cooldown = 1.4; this.timer = 0; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.6, 1.4 - lvl * 0.08); }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let target = getClosestEnemy(this.player, 500);
-            let vx = target ? (target.x - this.player.x) : 1, vy = target ? (target.y - this.player.y) : 0;
-            let d = Math.sqrt(vx*vx + vy*vy) || 1; vx /= d; vy /= d;
-
-            let proj = projectilePool.get();
-            proj.spawn(this.player.x, this.player.y, vx, vy, 400, (20 + this.level*4) * this.player.baseDamageMult, 12, '#16a34a', false, 6 + Math.floor(this.level/2));
-            proj.customDraw = (c, cx, cy) => {
-                c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(animationTime * 8);
-                c.fillStyle = '#16a34a'; c.beginPath(); c.arc(0,0, proj.radius, 0, Math.PI*2); c.fill();
-                c.strokeStyle = '#14532d'; c.lineWidth = 3; c.stroke();
-                c.restore();
-            };
-            projectiles.push(proj);
-        }
-    }
-}
-
-// 12. Crazy Acorns (Bellotas locas)
-class CrazyAcornsWeapon {
-    constructor(p) { this.player = p; this.id = 'acorns'; this.name = "Crazy Acorns"; this.level = 1; this.cooldown = 1.2; this.timer = 0; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.4, 1.2 - lvl * 0.07); }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let dropX = this.player.x + randRange(-120, 120);
-            let dropY = this.player.y + randRange(-120, 120);
-            
-            let proj = projectilePool.get();
-            proj.spawn(dropX, dropY, 0, 0, 0, (30 + this.level*6) * this.player.baseDamageMult, 8, '#a16207', false, 1);
-            proj.fuse = 0.8;
-            proj.customUpdate = (dtSec) => {
-                proj.fuse -= dtSec;
-                if (proj.fuse <= 0) {
-                    proj.active = false;
-                    aoeExplosions.push({ x: proj.x, y: proj.y, radius: 0, maxRadius: 55 + this.level*4, damage: proj.damage, color: 'rgba(217, 119, 6, 0.7)' });
-                }
-            };
-            proj.customDraw = (c, cx, cy) => {
-                c.save(); c.translate(proj.x - cx, proj.y - cy);
-                c.fillStyle = '#a16207'; c.beginPath(); c.arc(0,2,6,0,Math.PI*2); c.fill();
-                c.fillStyle = '#451a03'; c.fillRect(-5,-4,10,4);
-                c.restore();
-            };
-            projectiles.push(proj);
-        }
-    }
-}
-
-// 13. Revolving Horseshoe (Herradura giratoria)
-class RevolvingHorseshoeWeapon {
-    constructor(p) { this.player = p; this.id = 'horseshoe'; this.name = "Revolving Horseshoe"; this.level = 1; this.count = 2; }
-    applyUpgrade(lvl) { this.level = lvl; this.count = 2 + Math.floor(lvl / 2); }
-    update(dt) {
-        let radius = 45;
-        for (let i = 0; i < this.count; i++) {
-            let ang = animationTime * 6 + (i / this.count) * Math.PI * 2;
-            let hx = this.player.x + Math.cos(ang) * radius;
-            let hy = this.player.y + Math.sin(ang) * radius;
-
-            let nearby = enemyGrid.getNearby(hx, hy, 20);
-            for (let e of nearby) {
-                if (e.active && distSq(hx, hy, e.x, e.y) < (15 + e.radius)**2) {
-                    e.takeDamage((12 + this.level * 3) * this.player.baseDamageMult * dt * 5, false, Math.cos(ang), Math.sin(ang));
-                }
-            }
-        }
-    }
-    drawOrbital(c, cx, cy) {
-        let radius = 45;
-        for (let i = 0; i < this.count; i++) {
-            let ang = animationTime * 6 + (i / this.count) * Math.PI * 2;
-            let hx = this.player.x + Math.cos(ang) * radius - cx;
-            let hy = this.player.y + Math.sin(ang) * radius - cy;
-
-            c.save(); c.translate(hx, hy); c.rotate(ang + Math.PI/2);
-            c.strokeStyle = '#94a3b8'; c.lineWidth = 4;
-            c.beginPath(); c.arc(0,0,8, Math.PI*0.2, Math.PI*1.8); c.stroke();
-            c.restore();
-        }
-    }
-}
-
-// 14. Boomerang Pizza (Pizza bumerán)
-class BoomerangPizzaWeapon {
-    constructor(p) { this.player = p; this.id = 'pizza'; this.name = "Boomerang Pizza"; this.level = 1; this.cooldown = 1.3; this.timer = 0; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.5, 1.3 - lvl * 0.08); }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let ang = this.player.facingAngle;
-            let proj = projectilePool.get();
-            proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 420, (18 + this.level*4) * this.player.baseDamageMult, 12, '#eab308', false, 8);
-            proj.state = 'out'; proj.distTraveled = 0;
-            proj.customUpdate = (dtSec) => {
-                if (proj.state === 'out') {
-                    proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
-                    proj.distTraveled += proj.speed * dtSec;
-                    if (proj.distTraveled > 320) proj.state = 'back';
-                } else {
-                    let dx = this.player.x - proj.x, dy = this.player.y - proj.y, d = Math.sqrt(dx*dx + dy*dy) || 1;
-                    proj.x += (dx/d) * proj.speed * dtSec; proj.y += (dy/d) * proj.speed * dtSec;
-                    if (d < 20) proj.active = false;
-                }
-            };
-            proj.customDraw = (c, cx, cy) => {
-                c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(animationTime * 12);
-                c.fillStyle = '#facc15'; c.beginPath(); c.moveTo(0,-12); c.lineTo(10,10); c.lineTo(-10,10); c.closePath(); c.fill();
-                c.fillStyle = '#dc2626'; c.beginPath(); c.arc(0,2,3,0,Math.PI*2); c.fill();
-                c.restore();
-            };
-            projectiles.push(proj);
-        }
-    }
-}
-
-// 15. Curving Banana (Banana curva)
-class CurvingBananaWeapon {
-    constructor(p) { this.player = p; this.id = 'banana'; this.name = "Curving Banana"; this.level = 1; this.cooldown = 0.8; this.timer = 0; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.3, 0.8 - lvl * 0.05); }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let ang = this.player.facingAngle;
-            let proj = projectilePool.get();
-            proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 380, (16 + this.level*3) * this.player.baseDamageMult, 9, '#facc15', false, 2);
-            proj.curveAng = ang;
-            proj.customUpdate = (dtSec) => {
-                proj.curveAng += dtSec * 3.5;
-                proj.vx = Math.cos(proj.curveAng); proj.vy = Math.sin(proj.curveAng);
-                proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
-                proj.life -= dtSec; if (proj.life <= 0) proj.active = false;
-            };
-            proj.customDraw = (c, cx, cy) => {
-                c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(proj.curveAng);
-                c.fillStyle = '#facc15'; c.beginPath(); c.arc(0,0,8,0.2,Math.PI*0.9); c.fill();
-                c.restore();
-            };
-            projectiles.push(proj);
-        }
-    }
-}
-
-// 16. Juggling Spheres (Esferas malabares)
-class JugglingSpheresWeapon {
-    constructor(p) { this.player = p; this.id = 'jugglingspheres'; this.name = "Juggling Spheres"; this.level = 1; this.count = 3; }
-    applyUpgrade(lvl) { this.level = lvl; this.count = 3 + Math.floor(lvl / 2); }
-    update(dt) {
-        for (let i = 0; i < this.count; i++) {
-            let t = animationTime * 4 + i * 1.2;
-            let ox = this.player.x + Math.cos(this.player.facingAngle) * 50 + Math.sin(t) * 25;
-            let oy = this.player.y + Math.sin(this.player.facingAngle) * 50 + Math.cos(t * 1.5) * 20;
-
-            let nearby = enemyGrid.getNearby(ox, oy, 15);
-            for (let e of nearby) {
-                if (e.active && distSq(ox, oy, e.x, e.y) < (12 + e.radius)**2) {
-                    e.takeDamage((10 + this.level * 2.5) * this.player.baseDamageMult * dt * 4, false, Math.cos(this.player.facingAngle), Math.sin(this.player.facingAngle));
-                }
-            }
-        }
-    }
-    drawOrbital(c, cx, cy) {
-        let colors = ['#f43f5e', '#3b82f6', '#eab308', '#22c55e', '#a855f7'];
-        for (let i = 0; i < this.count; i++) {
-            let t = animationTime * 4 + i * 1.2;
-            let ox = this.player.x + Math.cos(this.player.facingAngle) * 50 + Math.sin(t) * 25 - cx;
-            let oy = this.player.y + Math.sin(this.player.facingAngle) * 50 + Math.cos(t * 1.5) * 20 - cy;
-
-            c.save(); c.translate(ox, oy);
-            c.fillStyle = colors[i % colors.length];
-            c.beginPath(); c.arc(0,0, 7, 0, Math.PI*2); c.fill();
-            c.restore();
-        }
-    }
-}
-
-// 17. Whirling Bones (Huesos giratorios)
-class WhirlingBonesWeapon {
-    constructor(p) { this.player = p; this.id = 'bones'; this.name = "Whirling Bones"; this.level = 1; this.cooldown = 1.0; this.timer = 0; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.4, 1.0 - lvl * 0.06); }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let count = 6 + Math.floor(this.level / 2);
-            for (let i = 0; i < count; i++) {
-                let ang = (i / count) * Math.PI * 2;
-                let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 320, (14 + this.level*3) * this.player.baseDamageMult, 6, '#f8fafc', false, 2);
-                proj.growScale = 1;
-                proj.customUpdate = (dtSec) => {
-                    proj.growScale += dtSec * 1.2;
-                    proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
-                    proj.life -= dtSec; if (proj.life <= 0) proj.active = false;
-                };
-                proj.customDraw = (c, cx, cy) => {
-                    c.save(); c.translate(proj.x - cx, proj.y - cy);
-                    c.scale(proj.growScale, proj.growScale); c.rotate(animationTime * 8);
-                    c.fillStyle = '#f8fafc'; c.fillRect(-6,-2,12,4);
-                    c.beginPath(); c.arc(-6,-2,3,0,Math.PI*2); c.arc(-6,2,3,0,Math.PI*2); c.arc(6,-2,3,0,Math.PI*2); c.arc(6,2,3,0,Math.PI*2); c.fill();
-                    c.restore();
-                };
-                projectiles.push(proj);
-            }
-        }
-    }
-}
-
-// 18. Peacock Feathers (Plumas de pavo real)
-class PeacockFeathersWeapon {
-    constructor(p) { this.player = p; this.id = 'peacock'; this.name = "Peacock Feathers"; this.level = 1; this.cooldown = 1.5; this.timer = 0; }
-    applyUpgrade(lvl) { this.level = lvl; this.cooldown = Math.max(0.6, 1.5 - lvl * 0.09); }
-    update(dt) {
-        this.timer -= dt;
-        if (this.timer <= 0) {
-            this.timer = this.cooldown;
-            let baseAng = this.player.facingAngle;
-            let count = 5 + Math.floor(this.level / 2);
-            for (let i = 0; i < count; i++) {
-                let ang = baseAng - 0.7 + (1.4 / count) * i;
-                let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 400, (25 + this.level*5) * this.player.baseDamageMult, 10, '#0284c7', false, 3);
-                proj.customDraw = (c, cx, cy) => {
-                    c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
-                    c.fillStyle = '#0284c7'; c.beginPath(); c.ellipse(0,0, 12, 5, 0, 0, Math.PI*2); c.fill();
-                    c.fillStyle = '#facc15'; c.beginPath(); c.arc(4, 0, 3, 0, Math.PI*2); c.fill();
-                    c.fillStyle = '#38bdf8'; c.beginPath(); c.arc(4, 0, 1.5, 0, Math.PI*2); c.fill();
-                    c.restore();
-                };
-                projectiles.push(proj);
-            }
-        }
-    }
-}
-
-const WEAPONS_CATALOG = [
-    RapidEggsWeapon, RapidFireLasersWeapon, SlicingCardsWeapon, DarkEnergyWeapon, BoomingBubblesWeapon,
-    FlyingFeathersWeapon, StickySyrupWeapon, BuzzingBeesWeapon, SlimyBallsWeapon, SpeedingArrowsWeapon,
-    ReboundingShellWeapon, CrazyAcornsWeapon, RevolvingHorseshoeWeapon, BoomerangPizzaWeapon,
-    CurvingBananaWeapon, JugglingSpheresWeapon, WhirlingBonesWeapon, PeacockFeathersWeapon
-];
-
-function getWeaponDescription(id) {
-    const descriptions = {
-        'lasers': 'Dispara proyectiles lineales neón rojos a máxima velocidad.',
-        'cards': 'Arroja naipes afilados en abanico que cubren gran alcance.',
-        'darkenergy': 'Orbes oscuros giran pegados a ti como un escudo orbital.',
-        'bubbles': 'Crea burbujas translúcidas que detonan en potentes explosiones.',
-        'rapideggs': 'Dispara ráfagas continuas de huevos rápidos ovalados.',
-        'feathers': 'Invocación frontal de plumas ligeras que atraviesan enemigos.',
-        'syrup': 'Deja charcos de miel pegajosa que ralentizan y queman.',
-        'bees': 'Abejas teledirigidas que persiguen solas al monstruo más cercano.',
-        'slimyballs': 'Esferas verdes saltarinas que rebotan por todo el mapa.',
-        'arrows': 'Flechas perforantes de largo alcance que atraviesan hordas.',
-        'shell': 'Un caparazón pesado que persigue y rebota entre monstruos.',
-        'acorns': 'Suelta bellotas explosivas por el escenario.',
-        'horseshoe': 'Herraduras metálicas giratorias cortantes de rango corto.',
-        'pizza': 'Porciones de pizza que van cortando y regresan como bumerán.',
-        'banana': 'Lanza bananas amarillas en trayectorias impredecibles.',
-        'jugglingspheres': 'Esferas malabares de colores con barrera protectora.',
-        'bones': 'Dispara huesos en espiral que van creciendo de tamaño.',
-        'peacock': 'Abanico exótico de plumas protectoras de alto impacto.'
-    };
-    return descriptions[id] || 'Una poderosa habilidad para tu combate.';
-}
-
-const ENEMY_CATALOG = [
-    { key: 'slime', name: 'Ice Slime', hp: 5, baseSpeed: 15, radius: 12, color: '#93c5fd', minLevel: 1, drawType: 'slime' },
-    { key: 'bat', name: 'Ice Bat', hp: 20, baseSpeed: 15, radius: 13, color: '#38bdf8', minLevel: 3, drawType: 'bat' },
-    { key: 'fossil', name: 'Frozen Fossil', hp: 40, baseSpeed: 35, radius: 15, color: '#94a3b8', minLevel: 7, drawType: 'fossil' },
-    { key: 'bush', name: 'Snowy Bush Monster', hp: 50, baseSpeed: 55, radius: 17, color: '#16a34a', minLevel: 12, drawType: 'bush' },
-    { key: 'bug', name: 'Ice Bug', hp: 100, baseSpeed: 100, radius: 18, color: '#0284c7', minLevel: 16, drawType: 'bug' },
-    { key: 'crab', name: 'Ice Crab', hp: 120, baseSpeed: 100, radius: 20, color: '#0369a1', minLevel: 22, drawType: 'crab', diagonalMove: true },
-    { key: 'ding', name: 'Ding', hp: 175, baseSpeed: 200, radius: 14, color: '#c084fc', minLevel: 28, drawType: 'ding' },
-    { key: 'donk', name: 'Donk', hp: 200, baseSpeed: 250, radius: 16, color: '#9333ea', minLevel: 32, drawType: 'donk' },
-    { key: 'elemental', name: 'Ice Elemental', hp: 250, baseSpeed: 300, radius: 22, color: '#38bdf8', minLevel: 38, drawType: 'elemental', isShooter: true },
-    { key: 'rock', name: 'Rock Monster', hp: 500, baseSpeed: 250, radius: 28, color: '#475569', minLevel: 48, drawType: 'rock' }
-];
-
-const BOSS_CATALOG = {
-    10: { name: 'Red Slime Monster', hp: 400, speed: 45, radius: 42, color: '#ef4444', drawType: 'red_slime_boss', damage: 18 },
-    20: { name: 'Giant Ice Crab', hp: 750, speed: 65, radius: 50, color: '#0284c7', drawType: 'crab', damage: 22, diagonalMove: true },
-    30: { name: 'Giant Donk', hp: 1000, speed: 110, radius: 55, color: '#9333ea', drawType: 'donk', damage: 28 },
-    45: { name: 'Giant Rock Monster', hp: 1580, speed: 85, radius: 65, color: '#475569', drawType: 'rock', damage: 35 },
-    60: { name: 'Yeti (Jefe Final)', hp: 4000, speed: 95, radius: 75, color: '#f0f9ff', drawType: 'yeti', damage: 50, isFinalBoss: true }
-};
-
-let activeBoss = null;
-let spawnedBosses = new Set();
-
-class Enemy {
-    constructor() { this.active = false; }
-    spawn(x, y, hp, speed, damage, radius, color, isShooter, canDash, isBoss = false, drawType = 'generic', diagonalMove = false, name = '') {
-        this.x = x; this.y = y; this.maxHp = hp; this.hp = hp;
-        this.baseSpeed = speed; this.speed = speed; this.damage = damage;
-        this.radius = radius; this.color = color; this.active = true;
-        this.knockbackX = 0; this.knockbackY = 0;
-        this.isShooter = isShooter; this.canDash = canDash;
-        this.isBoss = isBoss; this.drawType = drawType;
-        this.diagonalMove = diagonalMove; this.name = name;
-        this.shootTimer = randRange(1.5, 3.0);
-        this.dashTimer = randRange(2.0, 4.0);
-        this.bossSkillTimer = 2.5;
-        this.isDashing = false; this.dashWarn = false; this.dashChargeTime = 0;
-        this.animPhase = Math.random() * Math.PI * 2;
-    }
-    update(dt, px, py) {
-        let dx = px - this.x, dy = py - this.y;
-        let dist = Math.sqrt(dx*dx + dy*dy) || 1;
-
-        let moveX = dx / dist;
-        let moveY = dy / dist;
-
-        if (this.diagonalMove) {
-            let perpX = -moveY;
-            let perpY = moveX;
-            let zig = Math.sin(animationTime * 5 + this.animPhase) * 0.75;
-            moveX = moveX * 0.7 + perpX * zig;
-            moveY = moveY * 0.7 + perpY * zig;
-            let mLen = Math.sqrt(moveX * moveX + moveY * moveY) || 1;
-            moveX /= mLen; moveY /= mLen;
-        }
-
-        if (this.isBoss) {
-            this.bossSkillTimer -= dt;
-            if (this.bossSkillTimer <= 0) {
-                this.bossSkillTimer = 3.0;
-                let count = this.drawType === 'yeti' ? 16 : 10;
-                for (let i = 0; i < count; i++) {
-                    let ang = (i / count) * Math.PI * 2;
-                    const bProj = enemyProjPool.get();
-                    bProj.spawn(this.x, this.y, Math.cos(ang), Math.sin(ang), 260, 15, 8, this.drawType === 'yeti' ? '#38bdf8' : '#f43f5e');
-                    enemyProjectiles.push(bProj);
-                }
-                spawnFloatingText(this.x, this.y, `💥 ¡ATAQUE DE ${this.name.toUpperCase()}!`, true);
-            }
-        } else if (this.isShooter) {
-            this.shootTimer -= dt;
-            if (this.shootTimer <= 0) {
-                this.shootTimer = 2.2;
-                const eProj = enemyProjPool.get();
-                let projColor = this.drawType === 'elemental' ? '#38bdf8' : '#f43f5e';
-                eProj.spawn(this.x, this.y, dx/dist, dy/dist, 280, 10, 6, projColor);
-                enemyProjectiles.push(eProj);
-            }
-        }
-
-        if (this.canDash && !this.isBoss) {
-            this.dashTimer -= dt;
-            if (this.dashTimer <= 0 && !this.isDashing) {
-                this.dashWarn = true; this.dashChargeTime += dt;
-                if (this.dashChargeTime > 0.4) {
-                    this.isDashing = true; this.dashWarn = false; this.dashChargeTime = 0;
-                    this.dashTimer = 3.5;
-                }
-            }
-        }
-
-        let speedMult = this.isDashing ? 3.2 : 1.0;
-        if (this.isDashing) {
-            this.dashChargeTime += dt;
-            if (this.dashChargeTime > 0.5) { this.isDashing = false; this.dashChargeTime = 0; }
-        }
-
-        this.x += moveX * this.speed * speedMult * dt;
-        this.y += moveY * this.speed * speedMult * dt;
-
-        this.x = Math.max(-MAP_LIMIT + this.radius, Math.min(MAP_LIMIT - this.radius, this.x));
-        this.y = Math.max(-MAP_LIMIT + this.radius, Math.min(MAP_LIMIT - this.radius, this.y));
-
-        let kbMult = this.isBoss ? 0.05 : (this.drawType === 'rock' ? 0.2 : 1.0);
-        this.x += this.knockbackX * kbMult * dt; this.y += this.knockbackY * kbMult * dt;
-        this.knockbackX *= 0.9; this.knockbackY *= 0.9;
-        resolveObstacleCollisions(this);
-    }
-    draw(ctxCanvas, camX, camY) {
-        ctxCanvas.save();
-        ctxCanvas.translate(this.x - camX, this.y - camY);
-
-        if (this.dashWarn) {
-            ctxCanvas.strokeStyle = '#ef4444'; ctxCanvas.lineWidth = 3;
-            ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, this.radius + 6, 0, Math.PI * 2); ctxCanvas.stroke();
-        }
-
-        const r = this.radius;
-
-        switch (this.drawType) {
-            case 'slime': {
-                let bounce = 1 + Math.sin(animationTime * 10 + this.animPhase) * 0.08;
-                ctxCanvas.scale(1 / bounce, bounce);
-                ctxCanvas.fillStyle = '#60a5fa';
-                ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, r, Math.PI, 0);
-                ctxCanvas.bezierCurveTo(r, r*0.8, -r, r*0.8, -r, 0); ctxCanvas.fill();
-                ctxCanvas.fillStyle = 'white';
-                ctxCanvas.beginPath(); ctxCanvas.arc(-r*0.35, -r*0.1, 3, 0, Math.PI*2); ctxCanvas.arc(r*0.35, -r*0.1, 3, 0, Math.PI*2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = 'black';
-                ctxCanvas.beginPath(); ctxCanvas.arc(-r*0.35, -r*0.1, 1.5, 0, Math.PI*2); ctxCanvas.arc(r*0.35, -r*0.1, 1.5, 0, Math.PI*2); ctxCanvas.fill();
-                break;
-            }
-            case 'red_slime_boss': {
-                let glow = ctxCanvas.createRadialGradient(0, 0, r*0.2, 0, 0, r*1.5);
-                glow.addColorStop(0, 'rgba(239, 68, 68, 0.9)'); glow.addColorStop(1, 'rgba(239, 68, 68, 0)');
-                ctxCanvas.fillStyle = glow;
-                ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, r*1.5, 0, Math.PI*2); ctxCanvas.fill();
-
-                ctxCanvas.fillStyle = '#dc2626';
-                ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, r, 0, Math.PI * 2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#fef08a';
-                ctxCanvas.beginPath(); ctxCanvas.arc(-r*0.35, -r*0.2, 6, 0, Math.PI*2); ctxCanvas.arc(r*0.35, -r*0.2, 6, 0, Math.PI*2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#7f1d1d';
-                ctxCanvas.beginPath(); ctxCanvas.arc(-r*0.35, -r*0.2, 3, 0, Math.PI*2); ctxCanvas.arc(r*0.35, -r*0.2, 3, 0, Math.PI*2); ctxCanvas.fill();
-                break;
-            }
-            case 'yeti': {
-                let aura = ctxCanvas.createRadialGradient(0, 0, r*0.4, 0, 0, r*1.6);
-                aura.addColorStop(0, 'rgba(56, 189, 248, 0.8)'); aura.addColorStop(1, 'rgba(56, 189, 248, 0)');
-                ctxCanvas.fillStyle = aura;
-                ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, r*1.6, 0, Math.PI*2); ctxCanvas.fill();
-
-                ctxCanvas.fillStyle = '#f8fafc';
-                ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, r, 0, Math.PI*2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#94a3b8';
-                ctxCanvas.beginPath(); ctxCanvas.arc(-r*0.4, -r*0.3, r*0.25, 0, Math.PI*2); ctxCanvas.arc(r*0.4, -r*0.3, r*0.25, 0, Math.PI*2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#38bdf8';
-                ctxCanvas.beginPath(); ctxCanvas.arc(-r*0.4, -r*0.3, r*0.12, 0, Math.PI*2); ctxCanvas.arc(r*0.4, -r*0.3, r*0.12, 0, Math.PI*2); ctxCanvas.fill();
-                
-                ctxCanvas.fillStyle = '#cbd5e1';
-                ctxCanvas.beginPath(); ctxCanvas.moveTo(-r*0.6, -r*0.7); ctxCanvas.lineTo(-r*1.1, -r*1.2); ctxCanvas.lineTo(-r*0.3, -r*0.9); ctxCanvas.fill();
-                ctxCanvas.beginPath(); ctxCanvas.moveTo(r*0.6, -r*0.7); ctxCanvas.lineTo(r*1.1, -r*1.2); ctxCanvas.lineTo(r*0.3, -r*0.9); ctxCanvas.fill();
-                break;
-            }
-            case 'bat': {
-                let wingFlap = Math.sin(animationTime * 18 + this.animPhase) * 12;
-                ctxCanvas.fillStyle = '#0284c7';
-                ctxCanvas.beginPath();
-                ctxCanvas.moveTo(0, 0); ctxCanvas.quadraticCurveTo(-r * 1.5, -r + wingFlap, -r * 2.2, 0); ctxCanvas.quadraticCurveTo(-r * 1.2, r, 0, 0);
-                ctxCanvas.moveTo(0, 0); ctxCanvas.quadraticCurveTo(r * 1.5, -r + wingFlap, r * 2.2, 0); ctxCanvas.quadraticCurveTo(r * 1.2, r, 0, 0); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#38bdf8'; ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, r * 0.7, 0, Math.PI * 2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#e0f2fe'; ctxCanvas.beginPath(); ctxCanvas.arc(-3, -2, 2, 0, Math.PI * 2); ctxCanvas.arc(3, -2, 2, 0, Math.PI * 2); ctxCanvas.fill();
-                break;
-            }
-            case 'fossil': {
-                ctxCanvas.fillStyle = 'rgba(186, 230, 253, 0.6)'; ctxCanvas.fillRect(-r, -r, r * 2, r * 2);
-                ctxCanvas.strokeStyle = '#7dd3fc'; ctxCanvas.lineWidth = 2; ctxCanvas.strokeRect(-r, -r, r * 2, r * 2);
-                ctxCanvas.fillStyle = '#94a3b8'; ctxCanvas.beginPath(); ctxCanvas.arc(0, -2, r * 0.55, 0, Math.PI * 2); ctxCanvas.fill();
-                ctxCanvas.fillRect(-r * 0.3, 2, r * 0.6, r * 0.4);
-                ctxCanvas.fillStyle = '#0f172a'; ctxCanvas.beginPath(); ctxCanvas.arc(-3, -3, 2.5, 0, Math.PI * 2); ctxCanvas.arc(3, -3, 2.5, 0, Math.PI * 2); ctxCanvas.fill();
-                break;
-            }
-            case 'bush': {
-                ctxCanvas.fillStyle = '#15803d';
-                ctxCanvas.beginPath(); ctxCanvas.arc(0, 2, r, 0, Math.PI * 2); ctxCanvas.fill();
-                ctxCanvas.beginPath(); ctxCanvas.arc(-r*0.5, 0, r*0.7, 0, Math.PI * 2); ctxCanvas.fill();
-                ctxCanvas.beginPath(); ctxCanvas.arc(r*0.5, 0, r*0.7, 0, Math.PI * 2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#f8fafc'; ctxCanvas.beginPath(); ctxCanvas.arc(0, -r*0.4, r*0.8, Math.PI, Math.PI*2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#facc15'; ctxCanvas.beginPath(); ctxCanvas.arc(-4, 2, 2.5, 0, Math.PI * 2); ctxCanvas.arc(4, 2, 2.5, 0, Math.PI * 2); ctxCanvas.fill();
-                break;
-            }
-            case 'bug': {
-                ctxCanvas.fillStyle = '#0284c7'; ctxCanvas.beginPath(); ctxCanvas.ellipse(0, 0, r, r * 0.8, 0, 0, Math.PI * 2); ctxCanvas.fill();
-                ctxCanvas.strokeStyle = '#38bdf8'; ctxCanvas.lineWidth = 2; ctxCanvas.beginPath(); ctxCanvas.moveTo(0, -r * 0.8); ctxCanvas.lineTo(0, r * 0.8); ctxCanvas.stroke();
-                ctxCanvas.fillStyle = '#e0f2fe'; ctxCanvas.beginPath(); ctxCanvas.arc(-3, -r * 0.5, 2, 0, Math.PI * 2); ctxCanvas.arc(3, -r * 0.5, 2, 0, Math.PI * 2); ctxCanvas.fill();
-                break;
-            }
-            case 'crab': {
-                let clawMove = Math.sin(animationTime * 8 + this.animPhase) * 4;
-                ctxCanvas.strokeStyle = '#0284c7'; ctxCanvas.lineWidth = 3;
-                for (let side of [-1, 1]) {
-                    ctxCanvas.beginPath(); ctxCanvas.moveTo(side * r * 0.6, 0); ctxCanvas.lineTo(side * (r + 6), 6);
-                    ctxCanvas.moveTo(side * r * 0.6, -4); ctxCanvas.lineTo(side * (r + 8), -6); ctxCanvas.stroke();
-                }
-                ctxCanvas.fillStyle = '#0369a1'; ctxCanvas.beginPath(); ctxCanvas.ellipse(0, 0, r, r * 0.7, 0, 0, Math.PI * 2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#38bdf8'; ctxCanvas.beginPath(); ctxCanvas.arc(-r - 2, -r * 0.4 + clawMove, 5, 0, Math.PI * 2); ctxCanvas.fill();
-                ctxCanvas.beginPath(); ctxCanvas.arc(r + 2, -r * 0.4 - clawMove, 5, 0, Math.PI * 2); ctxCanvas.fill();
-                break;
-            }
-            case 'ding': {
-                ctxCanvas.fillStyle = '#c084fc'; ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, r, 0, Math.PI * 2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#a855f7';
-                ctxCanvas.beginPath(); ctxCanvas.moveTo(-5, -r); ctxCanvas.lineTo(-9, -r - 7); ctxCanvas.lineTo(-1, -r + 2); ctxCanvas.fill();
-                ctxCanvas.beginPath(); ctxCanvas.moveTo(5, -r); ctxCanvas.lineTo(9, -r - 7); ctxCanvas.lineTo(1, -r + 2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#fef08a'; ctxCanvas.beginPath(); ctxCanvas.arc(-3, -2, 3, 0, Math.PI * 2); ctxCanvas.arc(3, -2, 3, 0, Math.PI * 2); ctxCanvas.fill();
-                break;
-            }
-            case 'donk': {
-                let aura = ctxCanvas.createRadialGradient(0, 0, r*0.5, 0, 0, r*1.4);
-                aura.addColorStop(0, 'rgba(147, 51, 234, 0.6)'); aura.addColorStop(1, 'rgba(147, 51, 234, 0)');
-                ctxCanvas.fillStyle = aura; ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, r*1.4, 0, Math.PI*2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#7e22ce'; ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, r, 0, Math.PI * 2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#581c87';
-                ctxCanvas.beginPath(); ctxCanvas.moveTo(-6, -r); ctxCanvas.lineTo(-12, -r - 10); ctxCanvas.lineTo(-1, -r + 2); ctxCanvas.fill();
-                ctxCanvas.beginPath(); ctxCanvas.moveTo(6, -r); ctxCanvas.lineTo(12, -r - 10); ctxCanvas.lineTo(1, -r + 2); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#ef4444'; ctxCanvas.beginPath(); ctxCanvas.arc(-4, -2, 3.5, 0, Math.PI * 2); ctxCanvas.arc(4, -2, 3.5, 0, Math.PI * 2); ctxCanvas.fill();
-                break;
-            }
-            case 'elemental': {
-                let spin = animationTime * 3 + this.animPhase; ctxCanvas.rotate(spin);
-                ctxCanvas.fillStyle = '#38bdf8'; ctxCanvas.beginPath(); ctxCanvas.moveTo(0, -r); ctxCanvas.lineTo(r * 0.8, 0); ctxCanvas.lineTo(0, r); ctxCanvas.lineTo(-r * 0.8, 0); ctxCanvas.closePath(); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#e0f2fe';
-                for (let i = 0; i < 4; i++) {
-                    let a = (i / 4) * Math.PI * 2;
-                    let ox = Math.cos(a) * (r + 8), oy = Math.sin(a) * (r + 8); ctxCanvas.fillRect(ox - 3, oy - 3, 6, 6);
-                }
-                break;
-            }
-            case 'rock': {
-                ctxCanvas.fillStyle = '#475569'; ctxCanvas.beginPath();
-                for (let i = 0; i < 8; i++) {
-                    let ang = (i / 8) * Math.PI * 2;
-                    let rad = r * (0.8 + Math.sin(i * 3) * 0.2);
-                    let rx = Math.cos(ang) * rad, ry = Math.sin(ang) * rad;
-                    if (i === 0) ctxCanvas.moveTo(rx, ry); else ctxCanvas.lineTo(rx, ry);
-                }
-                ctxCanvas.closePath(); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#38bdf8'; ctxCanvas.beginPath(); ctxCanvas.moveTo(-10, -r*0.5); ctxCanvas.lineTo(-4, -r*1.1); ctxCanvas.lineTo(2, -r*0.4); ctxCanvas.fill();
-                ctxCanvas.beginPath(); ctxCanvas.moveTo(4, -r*0.2); ctxCanvas.lineTo(12, -r*0.9); ctxCanvas.lineTo(14, 0); ctxCanvas.fill();
-                ctxCanvas.fillStyle = '#f97316'; ctxCanvas.beginPath(); ctxCanvas.arc(-6, -4, 4, 0, Math.PI * 2); ctxCanvas.arc(6, -4, 4, 0, Math.PI * 2); ctxCanvas.fill();
-                break;
-            }
-            default: {
-                if (imgEnemy.isLoaded) {
-                    try { ctxCanvas.drawImage(imgEnemy, -this.radius, -this.radius, this.radius * 2, this.radius * 2); }
-                    catch(e) { ctxCanvas.fillStyle = this.color; ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, this.radius, 0, Math.PI*2); ctxCanvas.fill(); }
-                } else {
-                    ctxCanvas.fillStyle = this.color; ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, this.radius, 0, Math.PI*2); ctxCanvas.fill();
-                }
-                break;
-            }
-        }
-        ctxCanvas.restore();
-    }
-    takeDamage(amount, isCrit, kx, ky) {
-        this.hp -= amount;
-        this.knockbackX = kx * 250; this.knockbackY = ky * 250;
-        spawnFloatingText(this.x, this.y, Math.floor(amount), isCrit);
-        
-        if (this.isBoss) {
-            updateBossHUD();
-        }
-
-        if (this.hp <= 0) {
-            this.active = false;
-            if (this.isBoss) {
-                let wasFinalBoss = this.drawType === 'yeti';
-                activeBoss = null;
-                document.getElementById('boss-hud').classList.add('hidden');
-                spawnFloatingText(this.x, this.y, `🏆 ¡${this.name.toUpperCase()} ELIMINADO!`, true);
-                for (let i = 0; i < 30; i++) {
-                    spawnXpOrb(this.x + randRange(-60, 60), this.y + randRange(-60, 60), 5);
-                }
-                if (wasFinalBoss) {
-                    gameWin();
-                }
-            } else {
-                spawnXpOrb(this.x, this.y, 1);
-            }
-            return true;
-        }
-        return false;
     }
 }
 
@@ -1352,6 +544,1468 @@ class FloatingText {
     }
 }
 
+// 1. Rapid-Fire Lasers
+class RapidFireLasersWeapon {
+    constructor(p) { this.player = p; this.id = 'lasers'; this.name = "Rapid-Fire Lasers"; this.level = 1; this.cooldown = 0.25; this.timer = 0; this.baseDamage = getWeaponDamage('lasers', 1); }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        this.baseDamage = getWeaponDamage('lasers', lvl);
+        if (lvl >= 10) { this.cooldown = 0.10; }
+        else if (lvl >= 5) { this.cooldown = 0.16; }
+        else { this.cooldown = Math.max(0.18, 0.25 - lvl * 0.015); }
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let ang = this.player.facingAngle, vx = Math.cos(ang), vy = Math.sin(ang), perpX = -vy, perpY = vx;
+            let lvl = this.level;
+            if (lvl >= 10) {
+                let proj = projectilePool.get();
+                proj.spawn(this.player.x, this.player.y, vx, vy, 1100, this.baseDamage * this.player.baseDamageMult, 25, '#ef4444', Math.random()<this.player.critChance, 999);
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy);
+                    c.strokeStyle = 'rgba(255, 34, 85, 0.4)'; c.lineWidth = 44;
+                    c.beginPath(); c.moveTo(-vx*90, -vy*90); c.lineTo(0,0); c.stroke();
+                    c.strokeStyle = '#ff0055'; c.lineWidth = 26; c.shadowColor = '#ff0033'; c.shadowBlur = 24;
+                    c.beginPath(); c.moveTo(-vx*90, -vy*90); c.lineTo(0,0); c.stroke();
+                    c.strokeStyle = '#ffffff'; c.lineWidth = 12;
+                    c.beginPath(); c.moveTo(-vx*90, -vy*90); c.lineTo(0,0); c.stroke();
+                    c.restore();
+                };
+                projectiles.push(proj);
+            } else if (lvl >= 5) {
+                for (let off of [-14, 0, 14]) {
+                    let proj = projectilePool.get();
+                    proj.spawn(this.player.x + perpX * off, this.player.y + perpY * off, vx, vy, 950, this.baseDamage * this.player.baseDamageMult, 7, '#ef4444', Math.random()<this.player.critChance, 3);
+                    proj.customDraw = (c, cx, cy) => {
+                        c.save(); c.translate(proj.x - cx, proj.y - cy);
+                        c.strokeStyle = '#ff0055'; c.lineWidth = 9; c.shadowColor = '#ff0044'; c.shadowBlur = 14;
+                        c.beginPath(); c.moveTo(-vx*45, -vy*45); c.lineTo(0,0); c.stroke();
+                        c.strokeStyle = '#ffffff'; c.lineWidth = 3;
+                        c.beginPath(); c.moveTo(-vx*45, -vy*45); c.lineTo(0,0); c.stroke();
+                        c.restore();
+                    };
+                    projectiles.push(proj);
+                }
+            } else {
+                let proj = projectilePool.get();
+                proj.spawn(this.player.x, this.player.y, vx, vy, 900, this.baseDamage * this.player.baseDamageMult, 4, '#ef4444', Math.random()<this.player.critChance, 2);
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy);
+                    c.strokeStyle = '#ff2255'; c.lineWidth = 5; c.shadowColor = '#ff0033'; c.shadowBlur = 10;
+                    c.beginPath(); c.moveTo(-vx*35, -vy*35); c.lineTo(0,0); c.stroke();
+                    c.restore();
+                };
+                projectiles.push(proj);
+            }
+        }
+    }
+}
+
+// 2. Slicing Cards
+class SlicingCardsWeapon {
+    constructor(p) { this.player = p; this.id = 'cards'; this.name = "Slicing Cards"; this.level = 1; this.cooldown = 0.9; this.timer = 0; this.count = 3; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) { this.count = 7; this.cooldown = 0.45; }
+        else if (lvl >= 5) { this.count = 4; this.cooldown = 0.65; }
+        else { this.count = 3 + Math.floor(lvl / 3); this.cooldown = Math.max(0.7, 0.9 - lvl * 0.04); }
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let baseAng = this.player.facingAngle, lvl = this.level;
+            let spread = lvl >= 10 ? Math.PI : (lvl >= 5 ? 1.0 : 0.55);
+            let count = this.count;
+            let cardW = lvl >= 10 ? 24 : (lvl >= 5 ? 18 : 14);
+            let cardH = lvl >= 10 ? 36 : (lvl >= 5 ? 26 : 20);
+            let pierceCount = lvl >= 10 ? 15 : (lvl >= 5 ? 5 : 2);
+            let dmg = getWeaponDamage('cards', lvl) * this.player.baseDamageMult;
+
+            for (let i = 0; i < count; i++) {
+                let ang = count === 1 ? baseAng : baseAng - spread/2 + (spread / (count - 1)) * i;
+                let proj = projectilePool.get();
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), lvl >= 10 ? 650 : 520, dmg, cardH / 2, '#ffffff', Math.random()<this.player.critChance, pierceCount);
+                proj.rot = ang;
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(proj.rot + animationTime * 12);
+                    c.fillStyle = '#ffffff'; c.fillRect(-cardW/2, -cardH/2, cardW, cardH);
+                    c.strokeStyle = '#dc2626'; c.lineWidth = 2; c.strokeRect(-cardW/2, -cardH/2, cardW, cardH);
+                    c.fillStyle = '#dc2626'; c.beginPath(); c.arc(0,0, 3, 0, Math.PI*2); c.fill();
+                    c.restore();
+                };
+                projectiles.push(proj);
+            }
+        }
+    }
+}
+
+// 3. Dark Energy
+class DarkEnergyWeapon {
+    constructor(p) { this.player = p; this.id = 'darkenergy'; this.name = "Dark Energy"; this.level = 1; this.radius = 70; this.dps = getWeaponDamage('darkenergy', 1); this.orbCount = 2; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        this.dps = getWeaponDamage('darkenergy', lvl);
+        if (lvl >= 10) { this.radius = 135; this.orbCount = 6; }
+        else if (lvl >= 5) { this.radius = 95; this.orbCount = 4; }
+        else { this.radius = 70 + lvl * 5; this.orbCount = 2 + Math.floor(lvl / 2); }
+    }
+    update(dt) {
+        let currentRadius = this.radius;
+        let nearby = enemyGrid.getNearby(this.player.x, this.player.y, currentRadius + 35);
+        let dmgThisFrame = this.dps * this.player.baseDamageMult * dt;
+        for (let e of nearby) {
+            if (e.active && distSq(this.player.x, this.player.y, e.x, e.y) < (currentRadius + e.radius)**2) {
+                e.takeDamage(dmgThisFrame, false, 0, 0, false);
+            }
+        }
+    }
+    drawOrbital(c, cx, cy) {
+        let px = this.player.x - cx, py = this.player.y - cy;
+        let r = this.radius, lvl = this.level;
+        let pulse = Math.sin(animationTime * (lvl >= 10 ? 10 : 6)) * (lvl >= 10 ? 6 : 3);
+        let activeR = r + pulse;
+
+        c.save(); c.translate(px, py);
+        let grad = c.createRadialGradient(0, 0, activeR * 0.2, 0, 0, activeR);
+        grad.addColorStop(0, 'rgba(88, 28, 135, 0.1)');
+        grad.addColorStop(0.7, 'rgba(147, 51, 234, 0.35)');
+        grad.addColorStop(1, 'rgba(192, 132, 252, 0.8)');
+        c.fillStyle = grad; c.beginPath(); c.arc(0, 0, activeR, 0, Math.PI * 2); c.fill();
+
+        c.strokeStyle = lvl >= 10 ? '#e9d5ff' : '#c084fc';
+        c.lineWidth = lvl >= 10 ? 5 : 3; c.shadowColor = '#a855f7'; c.shadowBlur = 16;
+        c.beginPath(); c.arc(0, 0, activeR, 0, Math.PI * 2); c.stroke();
+
+        let orbsCount = this.orbCount;
+        let orbSize = lvl >= 10 ? 12 : (lvl >= 5 ? 7 : 4.5);
+        for (let i = 0; i < orbsCount; i++) {
+            let angle = animationTime * 4 + (i / orbsCount) * Math.PI * 2;
+            let ox = Math.cos(angle) * (activeR * 0.88), oy = Math.sin(angle) * (activeR * 0.88);
+            c.fillStyle = '#f3e8ff'; c.beginPath(); c.arc(ox, oy, orbSize, 0, Math.PI * 2); c.fill();
+            c.fillStyle = '#581c87'; c.beginPath(); c.arc(ox, oy, orbSize * 0.5, 0, Math.PI * 2); c.fill();
+        }
+        c.restore();
+    }
+}
+
+// 4. Booming Bubbles
+class BoomingBubblesWeapon {
+    constructor(p) { this.player = p; this.id = 'bubbles'; this.name = "Booming Bubbles"; this.level = 1; this.cooldown = 1.2; this.timer = 0; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.cooldown = 0.4;
+        else if (lvl >= 5) this.cooldown = 0.75;
+        else this.cooldown = Math.max(0.85, 1.2 - lvl * 0.05);
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let lvl = this.level, spawnCount = lvl >= 10 ? 5 : (lvl >= 5 ? 3 : 1);
+            let bSize = lvl >= 10 ? 24 : (lvl >= 5 ? 18 : 14);
+            let maxAoe = lvl >= 10 ? 170 : (lvl >= 5 ? 100 : 60 + lvl*5);
+            let dmg = getWeaponDamage('bubbles', lvl) * this.player.baseDamageMult;
+
+            for (let i = 0; i < spawnCount; i++) {
+                let ang = Math.random() * Math.PI * 2;
+                let proj = projectilePool.get();
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 190, dmg, bSize, '#38bdf8', false, 1);
+                proj.life = 2.0;
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy);
+                    c.fillStyle = 'rgba(186, 230, 253, 0.55)'; c.beginPath(); c.arc(0,0,proj.radius,0,Math.PI*2); c.fill();
+                    c.strokeStyle = '#7dd3fc'; c.lineWidth = 2.5; c.stroke();
+                    c.fillStyle = '#ffffff'; c.beginPath(); c.arc(-proj.radius*0.35, -proj.radius*0.35, proj.radius*0.25, 0, Math.PI*2); c.fill();
+                    c.restore();
+                };
+                proj.onExpire = () => {
+                    aoeExplosions.push({ x: proj.x, y: proj.y, radius: 0, maxRadius: maxAoe, damage: proj.damage, color: 'rgba(56, 189, 248, 0.7)' });
+                };
+                projectiles.push(proj);
+            }
+        }
+    }
+}
+
+// 5. Rapid Eggs
+class RapidEggsWeapon {
+    constructor(p) { this.player = p; this.id = 'rapideggs'; this.name = "Rapid Eggs"; this.level = 1; this.cooldown = 0.5; this.timer = 0; this.baseDamage = getWeaponDamage('rapideggs', 1); }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        this.baseDamage = getWeaponDamage('rapideggs', lvl);
+        if (lvl >= 10) { this.cooldown = 0.07; }
+        else if (lvl >= 5) { this.cooldown = 0.16; }
+        else { this.cooldown = Math.max(0.25, 0.5 - lvl * 0.04); }
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let closest = getClosestEnemy(this.player, 600);
+            let vx = closest ? (closest.x - this.player.x) : Math.cos(this.player.facingAngle);
+            let vy = closest ? (closest.y - this.player.y) : Math.sin(this.player.facingAngle);
+            let d = Math.sqrt(vx*vx + vy*vy) || 1; vx /= d; vy /= d;
+            let perpX = -vy, perpY = vx, lvl = this.level;
+            let offsets = lvl >= 10 ? [-10, 0, 10] : (lvl >= 5 ? [-7, 7] : [0]);
+
+            for (let off of offsets) {
+                let proj = projectilePool.get();
+                proj.spawn(this.player.x + perpX * off, this.player.y + perpY * off, vx, vy, 600, this.baseDamage * this.player.baseDamageMult, 8, '#fef08a', Math.random()<this.player.critChance, lvl >= 10 ? 3 : 1);
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(Math.atan2(vy, vx));
+                    c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(0,0, 9, 6, 0, 0, Math.PI*2); c.fill();
+                    c.strokeStyle = '#fef08a'; c.lineWidth = 1.5; c.stroke();
+                    c.restore();
+                };
+                projectiles.push(proj);
+            }
+        }
+    }
+}
+
+// 6. Flying Feathers
+class FlyingFeathersWeapon {
+    constructor(p) { this.player = p; this.id = 'feathers'; this.name = "Flying Feathers"; this.level = 1; this.cooldown = 0.8; this.timer = 0; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.cooldown = 0.28;
+        else if (lvl >= 5) this.cooldown = 0.45;
+        else this.cooldown = Math.max(0.55, 0.8 - lvl * 0.05);
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let lvl = this.level, count = lvl >= 10 ? 12 : (lvl >= 5 ? 7 : 4 + Math.floor(lvl / 2));
+            let spread = lvl >= 10 ? 1.4 : (lvl >= 5 ? 0.9 : 0.6);
+            let fLength = lvl >= 10 ? 24 : (lvl >= 5 ? 16 : 10);
+            let dmg = getWeaponDamage('feathers', lvl) * this.player.baseDamageMult;
+
+            for (let i = 0; i < count; i++) {
+                let ang = this.player.facingAngle - spread/2 + (spread / count) * i;
+                let proj = projectilePool.get();
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), lvl >= 10 ? 580 : 440, dmg, fLength/2, '#ffffff', false, lvl >= 10 ? 4 : 2);
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
+                    c.fillStyle = '#f8fafc'; c.beginPath();
+                    c.moveTo(0, -fLength); c.quadraticCurveTo(fLength*0.4, 0, 0, fLength);
+                    c.quadraticCurveTo(-fLength*0.4, 0, 0, -fLength); c.fill();
+                    c.restore();
+                };
+                projectiles.push(proj);
+            }
+        }
+    }
+}
+
+// 7. Sticky Syrup
+class StickySyrupWeapon {
+    constructor(p) { this.player = p; this.id = 'syrup'; this.name = "Sticky Syrup"; this.level = 1; this.cooldown = 2.0; this.timer = 0; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.cooldown = 0.7;
+        else if (lvl >= 5) this.cooldown = 1.2;
+        else this.cooldown = Math.max(1.4, 2.0 - lvl * 0.1);
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let lvl = this.level, puddleCount = lvl >= 10 ? 4 : (lvl >= 5 ? 3 : 1);
+            let pRadius = lvl >= 10 ? 110 : (lvl >= 5 ? 68 : 45 + lvl * 4);
+            let dpsVal = getWeaponDamage('syrup', lvl) * this.player.baseDamageMult;
+
+            for (let i = 0; i < puddleCount; i++) {
+                let target = getClosestEnemy(this.player, 450);
+                let px = (target && Math.random()<0.7) ? target.x + randRange(-30,30) : this.player.x + randRange(-120, 120);
+                let py = (target && Math.random()<0.7) ? target.y + randRange(-30,30) : this.player.y + randRange(-120, 120);
+                groundPuddles.push({
+                    x: px, y: py, radius: pRadius, duration: 6.0, maxDuration: 6.0,
+                    dps: dpsVal, color: lvl >= 10 ? 'rgba(217, 119, 6, 0.75)' : 'rgba(217, 119, 6, 0.55)'
+                });
+            }
+        }
+    }
+}
+
+// 8. Buzzing Bees
+class BuzzingBeesWeapon {
+    constructor(p) { this.player = p; this.id = 'bees'; this.name = "Buzzing Bees"; this.level = 1; this.cooldown = 1.0; this.timer = 0; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.cooldown = 0.22;
+        else if (lvl >= 5) this.cooldown = 0.5;
+        else this.cooldown = Math.max(0.6, 1.0 - lvl * 0.07);
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let lvl = this.level, beeCount = lvl >= 10 ? 4 : (lvl >= 5 ? 2 : 1);
+            let dmg = getWeaponDamage('bees', lvl) * this.player.baseDamageMult;
+
+            for (let b = 0; b < beeCount; b++) {
+                let proj = projectilePool.get();
+                proj.spawn(this.player.x, this.player.y, 0, 0, lvl >= 10 ? 520 : 400, dmg, 8, '#facc15', false, 1);
+                proj.target = getClosestEnemy(this.player, 700);
+                proj.customUpdate = (dtSec) => {
+                    if (!proj.target || !proj.target.active) proj.target = getClosestEnemy(proj, 700);
+                    let tx = proj.target ? proj.target.x : proj.x + Math.cos(animationTime*6)*60;
+                    let ty = proj.target ? proj.target.y : proj.y + Math.sin(animationTime*6)*60;
+                    let dx = tx - proj.x, dy = ty - proj.y, dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                    proj.vx = dx/dist + Math.sin(animationTime*20)*0.35;
+                    proj.vy = dy/dist + Math.cos(animationTime*20)*0.35;
+                    proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
+                    proj.life -= dtSec; if (proj.life <= 0) proj.active = false;
+                };
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy);
+                    c.fillStyle = '#facc15'; c.beginPath(); c.ellipse(0,0, 8, 5, 0, 0, Math.PI*2); c.fill();
+                    c.fillStyle = '#000000'; c.fillRect(-2, -5, 3, 10);
+                    c.fillStyle = 'rgba(255,255,255,0.8)'; c.beginPath(); c.arc(-3, -6, 4, 0, Math.PI*2); c.fill();
+                    c.restore();
+                };
+                projectiles.push(proj);
+            }
+        }
+    }
+}
+
+// 9. Slimy Balls
+class SlimyBallsWeapon {
+    constructor(p) { this.player = p; this.id = 'slimyballs'; this.name = "Slimy Balls"; this.level = 1; this.cooldown = 1.1; this.timer = 0; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.cooldown = 0.45;
+        else if (lvl >= 5) this.cooldown = 0.75;
+        else this.cooldown = Math.max(0.8, 1.1 - lvl * 0.07);
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let lvl = this.level, count = lvl >= 10 ? 4 : (lvl >= 5 ? 2 : 1);
+            let sRadius = lvl >= 10 ? 28 : (lvl >= 5 ? 18 : 12);
+            let maxBounces = lvl >= 10 ? 99 : (lvl >= 5 ? 8 : 5);
+            let dmg = getWeaponDamage('slimyballs', lvl) * this.player.baseDamageMult;
+
+            for (let i = 0; i < count; i++) {
+                let ang = Math.random() * Math.PI * 2;
+                let proj = projectilePool.get();
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 480, dmg, sRadius, '#22c55e', false, maxBounces);
+                proj.life = lvl >= 10 ? 8.0 : 4.5;
+                proj.customUpdate = (dtSec) => {
+                    proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
+                    if (Math.abs(proj.x) >= MAP_LIMIT - 30) proj.vx *= -1;
+                    if (Math.abs(proj.y) >= MAP_LIMIT - 30) proj.vy *= -1;
+                    proj.life -= dtSec; if (proj.life <= 0) proj.active = false;
+                };
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy);
+                    c.fillStyle = '#22c55e'; c.beginPath(); c.arc(0,0, proj.radius, 0, Math.PI*2); c.fill();
+                    c.fillStyle = '#86efac'; c.beginPath(); c.arc(-proj.radius*0.3,-proj.radius*0.3, proj.radius*0.35, 0, Math.PI*2); c.fill();
+                    c.restore();
+                };
+                projectiles.push(proj);
+            }
+        }
+    }
+}
+
+// 10. Speeding Arrows
+class SpeedingArrowsWeapon {
+    constructor(p) { this.player = p; this.id = 'arrows'; this.name = "Speeding Arrows"; this.level = 1; this.cooldown = 0.7; this.timer = 0; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.cooldown = 0.35;
+        else if (lvl >= 5) this.cooldown = 0.5;
+        else this.cooldown = Math.max(0.55, 0.7 - lvl * 0.05);
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let ang = this.player.facingAngle, lvl = this.level;
+            let perpX = -Math.sin(ang), perpY = Math.cos(ang);
+            let dmg = getWeaponDamage('arrows', lvl) * this.player.baseDamageMult;
+
+            if (lvl >= 10) {
+                let proj = projectilePool.get();
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 950, dmg, 12, '#a16207', true, 999);
+                proj.life = 3.0;
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
+                    c.strokeStyle = '#451a03'; c.lineWidth = 6; c.beginPath(); c.moveTo(-35,0); c.lineTo(25,0); c.stroke();
+                    c.fillStyle = '#64748b'; c.beginPath(); c.moveTo(25,-10); c.lineTo(40,0); c.lineTo(25,10); c.fill();
+                    c.restore();
+                };
+                projectiles.push(proj);
+            } else if (lvl >= 5) {
+                for (let off of [-12, 0, 12]) {
+                    let proj = projectilePool.get();
+                    proj.spawn(this.player.x + perpX*off, this.player.y + perpY*off, Math.cos(ang), Math.sin(ang), 800, dmg, 7, '#a16207', false, 6);
+                    proj.customDraw = (c, cx, cy) => {
+                        c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
+                        c.strokeStyle = '#78350f'; c.lineWidth = 3; c.beginPath(); c.moveTo(-18,0); c.lineTo(12,0); c.stroke();
+                        c.fillStyle = '#94a3b8'; c.beginPath(); c.moveTo(12,-6); c.lineTo(20,0); c.lineTo(12,6); c.fill();
+                        c.restore();
+                    };
+                    projectiles.push(proj);
+                }
+            } else {
+                let proj = projectilePool.get();
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 750, dmg, 5, '#a16207', false, 4 + lvl);
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
+                    c.strokeStyle = '#78350f'; c.lineWidth = 2; c.beginPath(); c.moveTo(-12,0); c.lineTo(8,0); c.stroke();
+                    c.fillStyle = '#94a3b8'; c.beginPath(); c.moveTo(8,-4); c.lineTo(14,0); c.lineTo(8,4); c.fill();
+                    c.restore();
+                };
+                projectiles.push(proj);
+            }
+        }
+    }
+}
+
+// 11. Rebounding Shell
+class ReboundingShellWeapon {
+    constructor(p) { this.player = p; this.id = 'shell'; this.name = "Rebounding Shell"; this.level = 1; this.cooldown = 1.4; this.timer = 0; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.cooldown = 0.55;
+        else if (lvl >= 5) this.cooldown = 0.95;
+        else this.cooldown = Math.max(1.0, 1.4 - lvl * 0.08);
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let lvl = this.level, target = getClosestEnemy(this.player, 600);
+            let vx = target ? (target.x - this.player.x) : 1, vy = target ? (target.y - this.player.y) : 0;
+            let d = Math.sqrt(vx*vx + vy*vy) || 1; vx /= d; vy /= d;
+            let sRadius = lvl >= 10 ? 24 : (lvl >= 5 ? 16 : 12);
+            let bounces = lvl >= 10 ? 40 : (lvl >= 5 ? 10 : 6 + Math.floor(lvl/2));
+            let dmg = getWeaponDamage('shell', lvl) * this.player.baseDamageMult;
+
+            let proj = projectilePool.get();
+            proj.spawn(this.player.x, this.player.y, vx, vy, lvl >= 10 ? 600 : 450, dmg, sRadius, '#16a34a', false, bounces);
+            proj.customDraw = (c, cx, cy) => {
+                c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(animationTime * (lvl >= 10 ? 16 : 8));
+                c.fillStyle = lvl >= 10 ? '#4ade80' : '#16a34a'; c.beginPath(); c.arc(0,0, proj.radius, 0, Math.PI*2); c.fill();
+                c.strokeStyle = '#14532d'; c.lineWidth = 3; c.stroke();
+                c.restore();
+            };
+            projectiles.push(proj);
+        }
+    }
+}
+
+// 12. Crazy Acorns
+class CrazyAcornsWeapon {
+    constructor(p) { this.player = p; this.id = 'acorns'; this.name = "Crazy Acorns"; this.level = 1; this.cooldown = 1.2; this.timer = 0; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.cooldown = 0.35;
+        else if (lvl >= 5) this.cooldown = 0.75;
+        else this.cooldown = Math.max(0.8, 1.2 - lvl * 0.07);
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let lvl = this.level, dropCount = lvl >= 10 ? 5 : (lvl >= 5 ? 3 : 1);
+            let aoeSize = lvl >= 10 ? 140 : (lvl >= 5 ? 85 : 55 + lvl*4);
+            let dmg = getWeaponDamage('acorns', lvl) * this.player.baseDamageMult;
+
+            for (let i = 0; i < dropCount; i++) {
+                let dropX = this.player.x + randRange(-160, 160);
+                let dropY = this.player.y + randRange(-160, 160);
+                let proj = projectilePool.get();
+                proj.spawn(dropX, dropY, 0, 0, 0, dmg, 12, '#a16207', false, 1);
+                proj.fuse = 0.6;
+                proj.customUpdate = (dtSec) => {
+                    proj.fuse -= dtSec;
+                    if (proj.fuse <= 0) {
+                        proj.active = false;
+                        aoeExplosions.push({ x: proj.x, y: proj.y, radius: 0, maxRadius: aoeSize, damage: proj.damage, color: 'rgba(234, 88, 12, 0.85)' });
+                    }
+                };
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy);
+                    c.fillStyle = '#a16207'; c.beginPath(); c.arc(0,2,6,0,Math.PI*2); c.fill();
+                    c.fillStyle = '#451a03'; c.fillRect(-5,-4,10,4);
+                    c.restore();
+                };
+                projectiles.push(proj);
+            }
+        }
+    }
+}
+
+// 13. Revolving Horseshoe
+class RevolvingHorseshoeWeapon {
+    constructor(p) { this.player = p; this.id = 'horseshoe'; this.name = "Revolving Horseshoe"; this.level = 1; this.count = 2; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.count = 5;
+        else if (lvl >= 5) this.count = 3;
+        else this.count = 2 + Math.floor(lvl / 3);
+    }
+    update(dt) {
+        let lvl = this.level, radius = lvl >= 10 ? 65 : 48;
+        let speed = lvl >= 10 ? 12 : 7;
+        let dmg = getWeaponDamage('horseshoe', lvl) * this.player.baseDamageMult;
+
+        for (let i = 0; i < this.count; i++) {
+            let ang = animationTime * speed + (i / this.count) * Math.PI * 2;
+            let hx = this.player.x + Math.cos(ang) * radius;
+            let hy = this.player.y + Math.sin(ang) * radius;
+            let nearby = enemyGrid.getNearby(hx, hy, 28);
+            for (let e of nearby) {
+                if (e.active && distSq(hx, hy, e.x, e.y) < (22 + e.radius)**2) {
+                    e.takeDamage(dmg * dt * 5, false, Math.cos(ang), Math.sin(ang), false);
+                }
+            }
+        }
+    }
+    drawOrbital(c, cx, cy) {
+        let lvl = this.level, radius = lvl >= 10 ? 65 : 48, speed = lvl >= 10 ? 12 : 7;
+        let hSize = lvl >= 10 ? 14 : 9;
+        for (let i = 0; i < this.count; i++) {
+            let ang = animationTime * speed + (i / this.count) * Math.PI * 2;
+            let hx = this.player.x + Math.cos(ang) * radius - cx;
+            let hy = this.player.y + Math.sin(ang) * radius - cy;
+            c.save(); c.translate(hx, hy); c.rotate(ang + Math.PI/2);
+            c.strokeStyle = lvl >= 10 ? '#1e1b4b' : '#94a3b8'; c.lineWidth = lvl >= 10 ? 6 : 4;
+            c.beginPath(); c.arc(0,0, hSize, Math.PI*0.2, Math.PI*1.8); c.stroke();
+            c.restore();
+        }
+    }
+}
+
+// 14. Boomerang Pizza
+class BoomerangPizzaWeapon {
+    constructor(p) { this.player = p; this.id = 'pizza'; this.name = "Boomerang Pizza"; this.level = 1; this.cooldown = 1.3; this.timer = 0; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.cooldown = 0.55;
+        else if (lvl >= 5) this.cooldown = 0.9;
+        else this.cooldown = Math.max(0.95, 1.3 - lvl * 0.08);
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let ang = this.player.facingAngle, lvl = this.level;
+            let scale = lvl >= 10 ? 2.5 : (lvl >= 5 ? 1.8 : 1.0);
+            let maxDist = lvl >= 10 ? 550 : 380;
+            let dmg = getWeaponDamage('pizza', lvl) * this.player.baseDamageMult;
+
+            let proj = projectilePool.get();
+            proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 450, dmg, 14 * scale, '#eab308', false, 99);
+            proj.state = 'out'; proj.distTraveled = 0;
+            proj.customUpdate = (dtSec) => {
+                if (proj.state === 'out') {
+                    proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
+                    proj.distTraveled += proj.speed * dtSec;
+                    if (proj.distTraveled > maxDist) proj.state = 'back';
+                } else {
+                    let dx = this.player.x - proj.x, dy = this.player.y - proj.y, d = Math.sqrt(dx*dx + dy*dy) || 1;
+                    proj.x += (dx/d) * proj.speed * dtSec; proj.y += (dy/d) * proj.speed * dtSec;
+                    if (d < 25) proj.active = false;
+                }
+            };
+            proj.customDraw = (c, cx, cy) => {
+                c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(animationTime * 14); c.scale(scale, scale);
+                c.fillStyle = '#facc15'; c.beginPath(); c.moveTo(0,-14); c.lineTo(12,12); c.lineTo(-12,12); c.closePath(); c.fill();
+                c.fillStyle = '#dc2626'; c.beginPath(); c.arc(0,3,3.5,0,Math.PI*2); c.fill();
+                c.restore();
+            };
+            projectiles.push(proj);
+        }
+    }
+}
+
+// 15. Curving Banana
+class CurvingBananaWeapon {
+    constructor(p) { this.player = p; this.id = 'banana'; this.name = "Curving Banana"; this.level = 1; this.cooldown = 0.8; this.timer = 0; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.cooldown = 0.25;
+        else if (lvl >= 5) this.cooldown = 0.45;
+        else this.cooldown = Math.max(0.55, 0.8 - lvl * 0.05);
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let lvl = this.level, bananaCount = lvl >= 10 ? 6 : (lvl >= 5 ? 3 : 1);
+            let bScale = lvl >= 10 ? 2.0 : (lvl >= 5 ? 1.4 : 1.0);
+            let dmg = getWeaponDamage('banana', lvl) * this.player.baseDamageMult;
+
+            for (let i = 0; i < bananaCount; i++) {
+                let ang = this.player.facingAngle + (i * (Math.PI * 2 / bananaCount));
+                let proj = projectilePool.get();
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 400, dmg, 10 * bScale, '#facc15', false, lvl >= 10 ? 6 : 3);
+                proj.curveAng = ang; proj.curveDir = i % 2 === 0 ? 1 : -1;
+                proj.customUpdate = (dtSec) => {
+                    proj.curveAng += dtSec * (lvl >= 10 ? 5.5 : 3.8) * proj.curveDir;
+                    proj.vx = Math.cos(proj.curveAng); proj.vy = Math.sin(proj.curveAng);
+                    proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
+                    proj.life -= dtSec; if (proj.life <= 0) proj.active = false;
+                };
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(proj.curveAng); c.scale(bScale, bScale);
+                    c.fillStyle = '#facc15'; c.beginPath(); c.arc(0,0,10,0.2,Math.PI*0.9); c.fill();
+                    c.restore();
+                };
+                projectiles.push(proj);
+            }
+        }
+    }
+}
+
+// 16. Juggling Spheres
+class JugglingSpheresWeapon {
+    constructor(p) {
+        this.player = p; this.id = 'jugglingspheres'; this.name = "Juggling Spheres";
+        this.level = 1; this.cooldown = 0.58; this.timer = 0;
+        this.colors = ['#f43f5e', '#3b82f6', '#eab308', '#22c55e', '#a855f7', '#06b6d4'];
+        this.colorCounter = 0;
+    }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.cooldown = 0.20;
+        else if (lvl >= 5) this.cooldown = 0.35;
+        else this.cooldown = Math.max(0.40, 0.58 - lvl * 0.04);
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let lvl = this.level, baseAng = this.player.facingAngle;
+            let count = lvl >= 10 ? 6 : (lvl >= 5 ? 3 : 2);
+            let sRadius = lvl >= 10 ? 18 : (lvl >= 5 ? 12 : 9);
+            let dmg = getWeaponDamage('jugglingspheres', lvl) * this.player.baseDamageMult;
+            let speed = lvl >= 10 ? 560 : 460;
+            let pierceCount = lvl >= 10 ? 12 : (lvl >= 5 ? 5 : 3);
+
+            for (let i = 0; i < count; i++) {
+                let ballColor = this.colors[(this.colorCounter + i) % this.colors.length];
+                let proj = projectilePool.get();
+                let waveDir = (i % 2 === 0) ? 1 : -1;
+                let spread = (i - (count - 1) / 2) * (lvl >= 10 ? 0.22 : 0.16);
+                let fireAng = baseAng + spread;
+                let vx = Math.cos(fireAng), vy = Math.sin(fireAng);
+                let perpX = -vy, perpY = vx;
+
+                proj.spawn(this.player.x, this.player.y, vx, vy, speed, dmg, sRadius, ballColor, Math.random() < this.player.critChance, pierceCount);
+                proj.life = lvl >= 10 ? 2.5 : 1.8;
+                proj.travelDist = 0; proj.startX = this.player.x; proj.startY = this.player.y;
+                proj.wavePhase = i * 1.4;
+
+                proj.customUpdate = (dtSec) => {
+                    proj.travelDist += proj.speed * dtSec;
+                    let fwdX = Math.cos(fireAng) * proj.travelDist, fwdY = Math.sin(fireAng) * proj.travelDist;
+                    let waveAmp = (lvl >= 10 ? 34 : 22) * Math.sin(proj.travelDist * 0.05 + proj.wavePhase) * waveDir;
+                    proj.x = proj.startX + fwdX + perpX * waveAmp;
+                    proj.y = proj.startY + fwdY + perpY * waveAmp;
+                    proj.life -= dtSec; if (proj.life <= 0) proj.active = false;
+                };
+
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy);
+                    if (lvl >= 10) { c.shadowColor = ballColor; c.shadowBlur = 16; }
+                    c.fillStyle = ballColor; c.beginPath(); c.arc(0, 0, proj.radius, 0, Math.PI * 2); c.fill();
+                    c.fillStyle = 'rgba(255, 255, 255, 0.7)'; c.beginPath(); c.arc(-proj.radius * 0.35, -proj.radius * 0.35, proj.radius * 0.32, 0, Math.PI * 2); c.fill();
+                    c.strokeStyle = 'rgba(0, 0, 0, 0.2)'; c.lineWidth = 1.5; c.stroke();
+                    c.restore();
+                };
+                projectiles.push(proj);
+            }
+            this.colorCounter = (this.colorCounter + count) % this.colors.length;
+        }
+    }
+}
+
+// 17. Whirling Bones
+class WhirlingBonesWeapon {
+    constructor(p) { this.player = p; this.id = 'bones'; this.name = "Whirling Bones"; this.level = 1; this.cooldown = 1.0; this.timer = 0; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.cooldown = 0.45;
+        else if (lvl >= 5) this.cooldown = 0.7;
+        else this.cooldown = Math.max(0.75, 1.0 - lvl * 0.06);
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let lvl = this.level, count = lvl >= 10 ? 16 : (lvl >= 5 ? 9 : 6);
+            let dmg = getWeaponDamage('bones', lvl) * this.player.baseDamageMult;
+
+            for (let i = 0; i < count; i++) {
+                let ang = (i / count) * Math.PI * 2;
+                let proj = projectilePool.get();
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), lvl >= 10 ? 380 : 320, dmg, 8, '#f8fafc', false, lvl >= 10 ? 5 : 2);
+                proj.growScale = lvl >= 10 ? 1.5 : 1.0;
+                proj.customUpdate = (dtSec) => {
+                    proj.growScale += dtSec * 1.5;
+                    proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
+                    proj.life -= dtSec; if (proj.life <= 0) proj.active = false;
+                };
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy);
+                    c.scale(proj.growScale, proj.growScale); c.rotate(animationTime * 10);
+                    c.fillStyle = '#f8fafc'; c.fillRect(-8,-3,16,6);
+                    c.beginPath(); c.arc(-8,-3,4,0,Math.PI*2); c.arc(-8,3,4,0,Math.PI*2); c.arc(8,-3,4,0,Math.PI*2); c.arc(8,3,4,0,Math.PI*2); c.fill();
+                    c.restore();
+                };
+                projectiles.push(proj);
+            }
+        }
+    }
+}
+
+// 18. Peacock Feathers
+class PeacockFeathersWeapon {
+    constructor(p) { this.player = p; this.id = 'peacock'; this.name = "Peacock Feathers"; this.level = 1; this.cooldown = 1.5; this.timer = 0; }
+    applyUpgrade(lvl) {
+        this.level = lvl;
+        if (lvl >= 10) this.cooldown = 0.55;
+        else if (lvl >= 5) this.cooldown = 0.95;
+        else this.cooldown = Math.max(1.0, 1.5 - lvl * 0.09);
+    }
+    update(dt) {
+        this.timer -= dt;
+        if (this.timer <= 0) {
+            this.timer = this.cooldown;
+            let baseAng = this.player.facingAngle, lvl = this.level;
+            let count = lvl >= 10 ? 13 : (lvl >= 5 ? 8 : 5);
+            let spread = lvl >= 10 ? 2.4 : (lvl >= 5 ? 1.5 : 0.8);
+            let fLength = lvl >= 10 ? 26 : (lvl >= 5 ? 18 : 12);
+            let dmg = getWeaponDamage('peacock', lvl) * this.player.baseDamageMult;
+
+            for (let i = 0; i < count; i++) {
+                let ang = baseAng - spread/2 + (spread / count) * i;
+                let proj = projectilePool.get();
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), lvl >= 10 ? 550 : 420, dmg, fLength, '#0284c7', false, lvl >= 10 ? 8 : 4);
+                proj.customDraw = (c, cx, cy) => {
+                    c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
+                    c.fillStyle = '#0284c7'; c.beginPath(); c.ellipse(0,0, fLength, fLength*0.4, 0, 0, Math.PI*2); c.fill();
+                    c.fillStyle = '#facc15'; c.beginPath(); c.arc(fLength*0.35, 0, fLength*0.25, 0, Math.PI*2); c.fill();
+                    c.fillStyle = '#38bdf8'; c.beginPath(); c.arc(fLength*0.35, 0, fLength*0.12, 0, Math.PI*2); c.fill();
+                    c.restore();
+                };
+                projectiles.push(proj);
+            }
+        }
+    }
+}
+
+const WEAPONS_CATALOG = [
+    RapidEggsWeapon, RapidFireLasersWeapon, SlicingCardsWeapon, DarkEnergyWeapon, BoomingBubblesWeapon,
+    FlyingFeathersWeapon, StickySyrupWeapon, BuzzingBeesWeapon, SlimyBallsWeapon, SpeedingArrowsWeapon,
+    ReboundingShellWeapon, CrazyAcornsWeapon, RevolvingHorseshoeWeapon, BoomerangPizzaWeapon,
+    CurvingBananaWeapon, JugglingSpheresWeapon, WhirlingBonesWeapon, PeacockFeathersWeapon
+];
+
+function getWeaponDescription(id) {
+    const descriptions = {
+        'lasers': 'Dispara proyectiles lineales continuos neón rojos a máxima velocidad.',
+        'cards': 'Arroja naipes afilados en abanico que cortan a gran distancia.',
+        'darkenergy': 'Genera un vórtice cósmico circular continuo que daña sin empujar.',
+        'bubbles': 'Crea burbujas translúcidas que detonan en potentes explosiones de área.',
+        'rapideggs': 'Dispara ráfagas continuas de huevos rápidos ovalados.',
+        'feathers': 'Invocación frontal de plumas ligeras que atraviesan enemigos.',
+        'syrup': 'Deja charcos de miel pegajosa que ralentizan y queman.',
+        'bees': 'Abejas teledirigidas que persiguen solas al monstruo más cercano.',
+        'slimyballs': 'Esferas verdes saltarinas que rebotan por todo el mapa.',
+        'arrows': 'Flechas perforantes de largo alcance que atraviesan hordas.',
+        'shell': 'Un caparazón pesado que persigue y rebota entre monstruos.',
+        'acorns': 'Suelta bellotas explosivas por el escenario.',
+        'horseshoe': 'Herraduras metálicas giratorias cortantes de rango corto.',
+        'pizza': 'Porciones de pizza que van cortando y regresan como bumerán.',
+        'banana': 'Lanza bananas amarillas en trayectorias curvas impredecibles.',
+        'jugglingspheres': 'Lanza ráfagas de esferas malabares de colores que salen disparadas desde el jugador en ondas.',
+        'bones': 'Dispara huesos en espiral que crecen de tamaño hacia afuera.',
+        'peacock': 'Abanico exótico de plumas protectoras de alto impacto.'
+    };
+    return descriptions[id] || 'Poderosa habilidad para tu arsenal.';
+}
+
+const ENEMY_CATALOG = [
+    { key: 'slime', name: 'Ice Slime', hp: 5, baseSpeed: 15, radius: 14, color: '#93c5fd', minLevel: 1, drawType: 'slime', xp: 0.5 },
+    { key: 'bat', name: 'Ice Bat', hp: 20, baseSpeed: 15, radius: 14, color: '#38bdf8', minLevel: 3, drawType: 'bat', xp: 0.75 },
+    { key: 'fossil', name: 'Frozen Fossil', hp: 40, baseSpeed: 35, radius: 16, color: '#94a3b8', minLevel: 7, drawType: 'fossil', xp: 1.25 },
+    { key: 'bush', name: 'Snowy Bush Monster', hp: 50, baseSpeed: 55, radius: 18, color: '#16a34a', minLevel: 12, drawType: 'bush', xp: 1.0 },
+    { key: 'bug', name: 'Ice Bug', hp: 100, baseSpeed: 100, radius: 19, color: '#0284c7', minLevel: 16, drawType: 'bug', xp: 2.5 },
+    { key: 'crab', name: 'Ice Crab', hp: 120, baseSpeed: 100, radius: 21, color: '#0369a1', minLevel: 22, drawType: 'crab', diagonalMove: true, xp: 3.75 },
+    { key: 'ding', name: 'Ding', hp: 175, baseSpeed: 200, radius: 15, color: '#c084fc', minLevel: 28, drawType: 'ding', xp: 5.0 },
+    { key: 'donk', name: 'Donk', hp: 200, baseSpeed: 250, radius: 17, color: '#9333ea', minLevel: 32, drawType: 'donk', xp: 6.5 },
+    { key: 'elemental', name: 'Ice Elemental', hp: 250, baseSpeed: 300, radius: 23, color: '#38bdf8', minLevel: 38, drawType: 'elemental', isShooter: true, xp: 7.5 },
+    { key: 'rock', name: 'Rock Monster', hp: 500, baseSpeed: 250, radius: 28, color: '#475569', minLevel: 48, drawType: 'rock', xp: 9.0 }
+];
+
+const BOSS_CATALOG = {
+    10: { name: 'Red Slime Monster', hp: 400, speed: 45, radius: 42, color: '#ef4444', drawType: 'red_slime_boss', damage: 18, xp: 3.0 },
+    20: { name: 'Giant Ice Crab', hp: 750, speed: 65, radius: 50, color: '#0284c7', drawType: 'crab', damage: 22, diagonalMove: true, xp: 4.0 },
+    30: { name: 'Giant Donk', hp: 1000, speed: 110, radius: 55, color: '#9333ea', drawType: 'donk', damage: 28, xp: 4.5 },
+    45: { name: 'Giant Rock Monster', hp: 1580, speed: 85, radius: 65, color: '#475569', drawType: 'rock', damage: 35, xp: 5.0 },
+    60: { name: 'Yeti (Jefe Final)', hp: 4000, speed: 95, radius: 75, color: '#f0f9ff', drawType: 'yeti', damage: 50, isFinalBoss: true, xp: 10.0 }
+};
+
+let activeBoss = null;
+let spawnedBosses = new Set();
+
+class Enemy {
+    constructor() { this.active = false; }
+    spawn(x, y, hp, speed, damage, radius, color, isShooter, canDash, isBoss = false, drawType = 'generic', diagonalMove = false, name = '', xp = 1.0) {
+        this.x = x; this.y = y; this.maxHp = hp; this.hp = hp;
+        this.baseSpeed = speed; this.speed = speed; this.damage = damage;
+        this.radius = radius; this.color = color; this.active = true;
+        this.knockbackX = 0; this.knockbackY = 0;
+        this.isShooter = isShooter; this.canDash = canDash;
+        this.isBoss = isBoss; this.drawType = drawType;
+        this.diagonalMove = diagonalMove; this.name = name;
+        this.xpValue = xp;
+        this.shootTimer = randRange(1.5, 3.0);
+        this.dashTimer = randRange(2.0, 4.0);
+        this.bossSkillTimer = 2.5;
+        this.isDashing = false; this.dashWarn = false; this.dashChargeTime = 0;
+        this.animPhase = Math.random() * Math.PI * 2;
+    }
+    update(dt, px, py) {
+        let dx = px - this.x, dy = py - this.y;
+        let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+        let moveX = dx / dist, moveY = dy / dist;
+
+        if (this.diagonalMove) {
+            let perpX = -moveY, perpY = moveX;
+            let zig = Math.sin(animationTime * 5 + this.animPhase) * 0.75;
+            moveX = moveX * 0.7 + perpX * zig; moveY = moveY * 0.7 + perpY * zig;
+            let mLen = Math.sqrt(moveX * moveX + moveY * moveY) || 1;
+            moveX /= mLen; moveY /= mLen;
+        }
+
+        if (this.isBoss) {
+            this.bossSkillTimer -= dt;
+            if (this.bossSkillTimer <= 0) {
+                this.bossSkillTimer = 3.0;
+                let count = this.drawType === 'yeti' ? 16 : 10;
+                for (let i = 0; i < count; i++) {
+                    let ang = (i / count) * Math.PI * 2;
+                    const bProj = enemyProjPool.get();
+                    bProj.spawn(this.x, this.y, Math.cos(ang), Math.sin(ang), 260, 15, 8, this.drawType === 'yeti' ? '#38bdf8' : '#f43f5e');
+                    enemyProjectiles.push(bProj);
+                }
+                spawnFloatingText(this.x, this.y, `💥 ¡ATAQUE DE ${this.name.toUpperCase()}!`, true);
+            }
+        } else if (this.isShooter) {
+            this.shootTimer -= dt;
+            if (this.shootTimer <= 0) {
+                this.shootTimer = 2.2;
+                const eProj = enemyProjPool.get();
+                eProj.spawn(this.x, this.y, dx/dist, dy/dist, 280, 10, 6, '#38bdf8');
+                enemyProjectiles.push(eProj);
+            }
+        }
+
+        if (this.canDash && !this.isBoss) {
+            this.dashTimer -= dt;
+            if (this.dashTimer <= 0 && !this.isDashing) {
+                this.dashWarn = true; this.dashChargeTime += dt;
+                if (this.dashChargeTime > 0.4) {
+                    this.isDashing = true; this.dashWarn = false; this.dashChargeTime = 0;
+                    this.dashTimer = 3.5;
+                }
+            }
+        }
+
+        let speedMult = this.isDashing ? 3.2 : 1.0;
+        if (this.isDashing) {
+            this.dashChargeTime += dt;
+            if (this.dashChargeTime > 0.5) { this.isDashing = false; this.dashChargeTime = 0; }
+        }
+
+        this.x += moveX * this.speed * speedMult * dt;
+        this.y += moveY * this.speed * speedMult * dt;
+        this.x = Math.max(-MAP_LIMIT + this.radius, Math.min(MAP_LIMIT - this.radius, this.x));
+        this.y = Math.max(-MAP_LIMIT + this.radius, Math.min(MAP_LIMIT - this.radius, this.y));
+
+        let kbMult = this.isBoss ? 0.05 : (this.drawType === 'rock' ? 0.2 : 1.0);
+        this.x += this.knockbackX * kbMult * dt; this.y += this.knockbackY * kbMult * dt;
+        this.knockbackX *= 0.9; this.knockbackY *= 0.9;
+        resolveObstacleCollisions(this);
+
+        // Despawn de enemigos comunes lejanos para evitar saturación y mantener 60 FPS
+        if (!this.isBoss && distSq(this.x, this.y, px, py) > 1500 * 1500) {
+            this.active = false;
+        }
+    }
+    takeDamage(amount, isCrit, kx, ky, canEmpujar = true) {
+        this.hp -= amount;
+        if (canEmpujar) {
+            this.knockbackX = (kx || 0) * 220;
+            this.knockbackY = (ky || 0) * 220;
+        }
+        if (amount >= 1) {
+            spawnFloatingText(this.x, this.y, Math.floor(amount), isCrit);
+        }
+        if (this.isBoss) {
+            updateBossHUD();
+        }
+        if (this.hp <= 0) {
+            this.active = false;
+            if (this.isBoss) {
+                let wasFinalBoss = (this.drawType === 'yeti');
+                activeBoss = null;
+                document.getElementById('boss-hud').classList.add('hidden');
+                spawnFloatingText(this.x, this.y, `🏆 ¡${this.name.toUpperCase()} DERROTADO!`, true);
+                for (let i = 0; i < 8; i++) {
+                    spawnXpOrb(this.x + randRange(-30, 30), this.y + randRange(-30, 30), this.xpValue / 8);
+                }
+                if (wasFinalBoss) gameWin();
+            } else {
+                spawnXpOrb(this.x, this.y, this.xpValue);
+            }
+            return true;
+        }
+        return false;
+    }
+    draw(ctxCanvas, camX, camY) {
+        ctxCanvas.save();
+        ctxCanvas.translate(this.x - camX, this.y - camY);
+
+        if (this.dashWarn) {
+            ctxCanvas.strokeStyle = '#ef4444'; ctxCanvas.lineWidth = 3;
+            ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, this.radius + 6, 0, Math.PI * 2); ctxCanvas.stroke();
+        }
+
+        const r = this.radius;
+        const c = ctxCanvas;
+
+        switch (this.drawType) {
+            case 'slime': {
+                // Blook cuadrado redondeado de hielo
+                c.fillStyle = '#29a8e2';
+                drawRoundedRect(c, -r, -r, r * 2, r * 2, r * 0.28); c.fill();
+
+                // Faceta superior clara
+                c.fillStyle = '#6fd5fc';
+                drawRoundedRect(c, -r * 0.78, -r * 0.78, r * 1.56, r * 0.65, r * 0.2); c.fill();
+
+                // Burbujas de brillo
+                c.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                c.beginPath(); c.arc(-r * 0.45, -r * 0.48, r * 0.2, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.arc(-r * 0.15, -r * 0.65, r * 0.1, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.arc(r * 0.62, r * 0.45, r * 0.09, 0, Math.PI * 2); c.fill();
+
+                // Borde inferior / labio redondeado
+                c.fillStyle = '#1c82be';
+                drawRoundedRect(c, -r * 0.88, r * 0.22, r * 1.76, r * 0.58, r * 0.25); c.fill();
+
+                // Cejas oscuras e inclinadas
+                c.fillStyle = '#004b87';
+                c.beginPath(); c.moveTo(-r * 0.65, -r * 0.26); c.lineTo(-r * 0.24, -r * 0.12); c.lineTo(-r * 0.28, -r * 0.36); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.65, -r * 0.26); c.lineTo(r * 0.24, -r * 0.12); c.lineTo(r * 0.28, -r * 0.36); c.closePath(); c.fill();
+
+                // Ojos negros rasgados
+                c.fillStyle = '#0b192c';
+                c.beginPath(); c.ellipse(-r * 0.46, -r * 0.08, r * 0.22, r*0.25, -0.22, 0, Math.PI*2); c.fill();
+                c.beginPath(); c.ellipse(r * 0.46, -r * 0.08, r * 0.22, r*0.25, 0.22, 0, Math.PI*2); c.fill();
+
+                // Puntos blancos de brillo en ojos
+                c.fillStyle = '#ffffff';
+                c.beginPath(); c.arc(-r * 0.4, -r * 0.1, r * 0.075, 0, Math.PI*2); c.fill();
+                c.beginPath(); c.arc(r * 0.52, -r * 0.1, r * 0.075, 0, Math.PI*2); c.fill();
+
+                // Boca oscura con dientes triangulares
+                c.fillStyle = '#0b192c';
+                c.beginPath(); c.arc(0, r * 0.48, r * 0.26, Math.PI, 0); c.closePath(); c.fill();
+                c.fillStyle = '#ffffff';
+                c.beginPath();
+                c.moveTo(-r * 0.26, r * 0.48); c.lineTo(-r * 0.19, r * 0.32); c.lineTo(-r * 0.13, r * 0.48);
+                c.lineTo(-r * 0.06, r * 0.32); c.lineTo(0, r * 0.48);
+                c.lineTo(r * 0.06, r * 0.32); c.lineTo(r * 0.13, r * 0.48);
+                c.lineTo(r * 0.19, r * 0.32); c.lineTo(r * 0.26, r * 0.48);
+                c.closePath(); c.fill();
+                break;
+            }
+            case 'red_slime_boss': {
+                let glow = c.createRadialGradient(0, 0, r * 0.3, 0, 0, r * 1.6);
+                glow.addColorStop(0, 'rgba(239, 68, 68, 0.85)'); glow.addColorStop(1, 'rgba(239, 68, 68, 0)');
+                c.fillStyle = glow; c.beginPath(); c.arc(0, 0, r * 1.6, 0, Math.PI * 2); c.fill();
+
+                c.fillStyle = '#dc2626'; drawRoundedRect(c, -r, -r, r * 2, r * 2, r * 0.28); c.fill();
+                c.fillStyle = '#ef4444'; drawRoundedRect(c, -r * 0.78, -r * 0.78, r * 1.56, r * 0.65, r * 0.2); c.fill();
+
+                c.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                c.beginPath(); c.arc(-r * 0.45, -r * 0.48, r * 0.2, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.arc(r * 0.62, r * 0.45, r * 0.09, 0, Math.PI * 2); c.fill();
+
+                c.fillStyle = '#991b1b'; drawRoundedRect(c, -r * 0.88, r * 0.22, r * 1.76, r * 0.58, r * 0.25); c.fill();
+
+                c.fillStyle = '#7f1d1d';
+                c.beginPath(); c.moveTo(-r * 0.65, -r * 0.26); c.lineTo(-r * 0.24, -r * 0.12); c.lineTo(-r * 0.28, -r * 0.36); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.65, -r * 0.26); c.lineTo(r * 0.24, -r * 0.12); c.lineTo(r * 0.28, -r * 0.36); c.closePath(); c.fill();
+
+                c.fillStyle = '#0b192c';
+                c.beginPath(); c.ellipse(-r * 0.46, -r * 0.08, r * 0.22, r*0.25, -0.22, 0, Math.PI*2); c.fill();
+                c.beginPath(); c.ellipse(r * 0.46, -r * 0.08, r * 0.22, r*0.25, 0.22, 0, Math.PI*2); c.fill();
+
+                c.fillStyle = '#fef08a';
+                c.beginPath(); c.arc(-r * 0.4, -r * 0.1, r * 0.08, 0, Math.PI*2); c.fill();
+                c.beginPath(); c.arc(r * 0.52, -r * 0.1, r * 0.08, 0, Math.PI*2); c.fill();
+
+                c.fillStyle = '#0b192c';
+                c.beginPath(); c.arc(0, r * 0.48, r * 0.26, Math.PI, 0); c.closePath(); c.fill();
+                c.fillStyle = '#ffffff';
+                c.beginPath();
+                c.moveTo(-r * 0.26, r * 0.48); c.lineTo(-r * 0.19, r * 0.32); c.lineTo(-r * 0.13, r * 0.48);
+                c.lineTo(-r * 0.06, r * 0.32); c.lineTo(0, r * 0.48);
+                c.lineTo(r * 0.06, r * 0.32); c.lineTo(r * 0.13, r * 0.48);
+                c.lineTo(r * 0.19, r * 0.32); c.lineTo(r * 0.26, r * 0.48);
+                c.closePath(); c.fill();
+                break;
+            }
+            case 'bat': {
+                let flap = Math.sin(animationTime * 14 + this.animPhase) * (r * 0.18);
+                
+                // Alas exteriores azules oscuras
+                c.fillStyle = '#1e40af';
+                c.beginPath(); c.moveTo(-r * 0.35, 0); c.quadraticCurveTo(-r * 1.35, -r * 1.1 + flap, -r * 1.85, -r * 0.25 + flap); c.quadraticCurveTo(-r * 1.35, r * 0.8, -r * 0.35, r * 0.6); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.35, 0); c.quadraticCurveTo(r * 1.35, -r * 1.1 + flap, r * 1.85, -r * 0.25 + flap); c.quadraticCurveTo(r * 1.35, r * 0.8, r * 0.35, r * 0.6); c.closePath(); c.fill();
+
+                // Membrana interior de las alas
+                c.fillStyle = '#60a5fa';
+                c.beginPath(); c.moveTo(-r * 0.45, 0); c.quadraticCurveTo(-r * 1.15, -r * 0.8 + flap, -r * 1.55, -r * 0.2 + flap); c.quadraticCurveTo(-r * 1.1, r * 0.55, -r * 0.45, r * 0.4); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.45, 0); c.quadraticCurveTo(r * 1.15, -r * 0.8 + flap, r * 1.55, -r * 0.2 + flap); c.quadraticCurveTo(r * 1.1, r * 0.55, r * 0.45, r * 0.4); c.closePath(); c.fill();
+
+                // Orejas puntiagudas
+                c.fillStyle = '#1e3a8a';
+                c.beginPath(); c.moveTo(-r * 0.65, -r * 0.35); c.lineTo(-r * 0.85, -r * 1.15); c.lineTo(-r * 0.25, -r * 0.65); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.65, -r * 0.35); c.lineTo(r * 0.85, -r * 1.15); c.lineTo(r * 0.25, -r * 0.65); c.closePath(); c.fill();
+                c.fillStyle = '#93c5fd';
+                c.beginPath(); c.moveTo(-r * 0.6, -r * 0.42); c.lineTo(-r * 0.78, -r * 1.0); c.lineTo(-r * 0.32, -r * 0.65); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.6, -r * 0.42); c.lineTo(r * 0.78, -r * 1.0); c.lineTo(r * 0.32, -r * 0.65); c.closePath(); c.fill();
+
+                // Cuerpo central
+                c.fillStyle = '#2563eb'; drawRoundedRect(c, -r * 0.75, -r * 0.75, r * 1.5, r * 1.5, r * 0.25); c.fill();
+                c.fillStyle = '#3b82f6'; c.beginPath(); c.arc(0, r * 0.05, r * 0.55, 0, Math.PI * 2); c.fill();
+
+                // Ojos
+                c.fillStyle = '#0f172a';
+                c.beginPath(); c.arc(-r * 0.3, -r * 0.14, r * 0.14, 0, Math.PI * 2); c.arc(r * 0.3, -r * 0.14, r * 0.14, 0, Math.PI * 2); c.fill();
+                c.fillStyle = '#ffffff';
+                c.beginPath(); c.arc(-r * 0.26, -r * 0.18, r * 0.05, 0, Math.PI * 2); c.arc(r * 0.34, -r * 0.18, r * 0.05, 0, Math.PI * 2); c.fill();
+
+                // Hocico con fosas nasales
+                c.fillStyle = '#93c5fd';
+                c.beginPath(); c.ellipse(0, r * 0.2, r * 0.32, r * 0.22, 0, 0, Math.PI * 2); c.fill();
+                c.fillStyle = '#1e293b';
+                c.beginPath(); c.ellipse(-r * 0.1, r * 0.2, r * 0.065, r * 0.1, 0, 0, Math.PI * 2); c.ellipse(r * 0.1, r * 0.2, r * 0.065, r * 0.1, 0, 0, Math.PI * 2); c.fill();
+
+                // Colmillos de vampiro
+                c.fillStyle = '#ffffff';
+                c.beginPath(); c.moveTo(-r * 0.18, r * 0.38); c.lineTo(-r * 0.12, r * 0.54); c.lineTo(-r * 0.06, r * 0.38); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.06, r * 0.38); c.lineTo(r * 0.12, r * 0.54); c.lineTo(r * 0.18, r * 0.38); c.closePath(); c.fill();
+                break;
+            }
+            case 'fossil': {
+                // Bloque de hielo translúcido
+                c.fillStyle = '#7dd3fc'; drawRoundedRect(c, -r, -r, r * 2, r * 2, r * 0.22); c.fill();
+                c.strokeStyle = '#bae6fd'; c.lineWidth = 2; drawRoundedRect(c, -r, -r, r * 2, r * 2, r * 0.22); c.stroke();
+
+                // Capa de nieve superior
+                c.fillStyle = '#ffffff';
+                c.beginPath();
+                c.arc(-r * 0.65, -r * 0.85, r * 0.3, 0, Math.PI * 2);
+                c.arc(-r * 0.15, -r * 0.92, r * 0.38, 0, Math.PI * 2);
+                c.arc(r * 0.4, -r * 0.88, r * 0.34, 0, Math.PI * 2);
+                c.arc(r * 0.75, -r * 0.82, r * 0.25, 0, Math.PI * 2);
+                c.fill();
+                c.fillRect(-r, -r, r * 2, r * 0.24);
+
+                // Cráneo fósil de dinosaurio dentro del hielo
+                c.save(); c.rotate(-0.25);
+                c.fillStyle = '#64748b';
+                c.beginPath();
+                c.moveTo(-r * 0.5, -r * 0.2);
+                c.quadraticCurveTo(-r * 0.4, -r * 0.6, r * 0.1, -r * 0.45);
+                c.quadraticCurveTo(r * 0.8, -r * 0.2, r * 0.85, 0);
+                c.lineTo(r * 0.4, r * 0.15);
+                c.lineTo(-r * 0.3, r * 0.2);
+                c.closePath(); c.fill();
+
+                // Cuenca ocular vacía
+                c.fillStyle = '#1e293b'; c.beginPath(); c.arc(-r * 0.05, -r * 0.25, r * 0.18, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.arc(r * 0.65, -r * 0.1, r * 0.06, 0, Math.PI * 2); c.fill();
+
+                // Mandíbula inferior y dientes
+                c.fillStyle = '#475569';
+                c.beginPath(); c.moveTo(-r * 0.2, r * 0.15); c.lineTo(r * 0.75, 0.05); c.lineTo(r * 0.7, r * 0.2); c.lineTo(-r * 0.15, r * 0.3); c.closePath(); c.fill();
+                c.fillStyle = '#e2e8f0';
+                for (let ti = 0; ti < 5; ti++) {
+                    let tx = r * 0.15 + ti * r * 0.11;
+                    c.beginPath(); c.moveTo(tx, r * 0.05); c.lineTo(tx + r * 0.05, -r * 0.05); c.lineTo(tx + r * 0.1, r * 0.05); c.closePath(); c.fill();
+                }
+                c.restore();
+
+                // Grietas blancas del hielo en primer plano
+                c.strokeStyle = 'rgba(255, 255, 255, 0.9)'; c.lineWidth = 2.5;
+                c.beginPath();
+                c.moveTo(-r * 0.7, r * 0.8); c.lineTo(-r * 0.2, r * 0.2); c.lineTo(-r * 0.3, -r * 0.1); c.lineTo(r * 0.1, -r * 0.5); c.lineTo(r * 0.4, -r * 0.8);
+                c.stroke();
+                c.beginPath();
+                c.moveTo(-r * 0.2, r * 0.2); c.lineTo(r * 0.5, r * 0.4); c.lineTo(r * 0.8, r * 0.3);
+                c.stroke();
+                break;
+            }
+            case 'bug': {
+                // Alas traseras vibrantes
+                let bWing = Math.sin(animationTime * 25 + this.animPhase) * (r * 0.1);
+                c.fillStyle = 'rgba(186, 230, 253, 0.75)';
+                c.beginPath(); c.ellipse(-r * 0.85, -r * 0.45 + bWing, r * 0.35, r * 0.2, -0.6, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.ellipse(r * 0.85, -r * 0.45 - bWing, r * 0.35, r * 0.2, 0.6, 0, Math.PI * 2); c.fill();
+
+                // Cuerpo gris pizarra
+                c.fillStyle = '#475569'; drawRoundedRect(c, -r * 0.85, -r * 0.8, r * 1.7, r * 1.6, r * 0.35); c.fill();
+
+                // Cuerno/Cresta azul en V en la cabeza
+                c.fillStyle = '#2563eb';
+                c.beginPath();
+                c.moveTo(0, -r * 0.2); c.lineTo(-r * 0.75, -r * 1.15); c.lineTo(-r * 0.2, -r * 0.75);
+                c.lineTo(0, -r * 0.5); c.lineTo(r * 0.2, -r * 0.75); c.lineTo(r * 0.75, -r * 1.15);
+                c.closePath(); c.fill();
+                c.fillStyle = '#60a5fa';
+                c.beginPath(); c.moveTo(0, -r * 0.2); c.lineTo(-r * 0.65, -r * 1.05); c.lineTo(-r * 0.35, -r * 0.75); c.closePath(); c.fill();
+
+                // Pinzas/mandíbulas azules en las mejillas
+                c.fillStyle = '#2563eb';
+                c.beginPath(); c.arc(-r * 0.65, r * 0.35, r * 0.32, 0.3, Math.PI * 1.2); c.lineTo(-r * 0.55, r * 0.65); c.closePath(); c.fill();
+                c.beginPath(); c.arc(r * 0.65, r * 0.35, r * 0.32, -Math.PI * 0.2, Math.PI * 0.7); c.lineTo(r * 0.55, r * 0.65); c.closePath(); c.fill();
+                c.fillStyle = '#38bdf8';
+                c.beginPath(); c.ellipse(-r * 0.7, r * 0.35, r * 0.12, r * 0.2, -0.4, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.ellipse(r * 0.7, r * 0.35, r * 0.12, r * 0.2, 0.4, 0, Math.PI * 2); c.fill();
+
+                // Hocico redondeado gris claro
+                c.fillStyle = '#94a3b8';
+                c.beginPath(); c.arc(-r * 0.15, r * 0.3, r * 0.22, 0, Math.PI * 2); c.arc(r * 0.15, r * 0.3, r * 0.22, 0, Math.PI * 2); c.fill();
+
+                // Ojos grandes negros con DOBLE brillo blanco
+                c.fillStyle = '#0f172a';
+                c.beginPath(); c.ellipse(-r * 0.45, -r * 0.05, r * 0.24, r * 0.28, -0.2, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.ellipse(r * 0.45, -r * 0.05, r * 0.24, r * 0.28, 0.2, 0, Math.PI * 2); c.fill();
+                c.fillStyle = '#ffffff';
+                c.beginPath(); c.arc(-r * 0.38, -r * 0.12, r * 0.08, 0, Math.PI * 2); c.arc(-r * 0.52, r * 0.04, r * 0.045, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.arc(r * 0.52, -r * 0.12, r * 0.08, 0, Math.PI * 2); c.arc(r * 0.38, r * 0.04, r * 0.045, 0, Math.PI * 2); c.fill();
+                break;
+            }
+            case 'bush': {
+                // Arbusto esponjoso verde
+                c.fillStyle = '#22c55e';
+                c.beginPath();
+                c.arc(-r * 0.5, -r * 0.4, r * 0.55, 0, Math.PI * 2); c.arc(r * 0.5, -r * 0.4, r * 0.55, 0, Math.PI * 2);
+                c.arc(-r * 0.65, r * 0.1, r * 0.5, 0, Math.PI * 2); c.arc(r * 0.65, r * 0.1, r * 0.5, 0, Math.PI * 2);
+                c.arc(0, -r * 0.55, r * 0.55, 0, Math.PI * 2); c.arc(0, r * 0.2, r * 0.7, 0, Math.PI * 2); c.fill();
+                drawRoundedRect(c, -r * 0.8, r * 0.3, r * 1.6, r * 0.6, r * 0.25); c.fill();
+
+                // Tallo de madera y hoja superior derecha
+                c.fillStyle = '#78350f';
+                c.beginPath(); c.moveTo(r * 0.25, -r * 0.75); c.lineTo(r * 0.45, -r * 1.15); c.lineTo(r * 0.58, -r * 1.1); c.lineTo(r * 0.35, -r * 0.7); c.closePath(); c.fill();
+                c.fillStyle = '#4ade80';
+                c.beginPath(); c.ellipse(r * 0.35, -r * 1.2, r * 0.25, r * 0.12, -0.6, 0, Math.PI * 2); c.fill();
+
+                // Cejas en forma de hojas
+                c.fillStyle = '#16a34a';
+                c.beginPath(); c.ellipse(-r * 0.35, -r * 0.15, r * 0.3, r * 0.15, -0.35, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.ellipse(r * 0.35, -r * 0.15, r * 0.3, r * 0.15, 0.35, 0, Math.PI * 2); c.fill();
+
+                // Ojos oscuros oblicuos
+                c.fillStyle = '#0f172a';
+                c.beginPath(); c.ellipse(-r * 0.35, -r * 0.02, r * 0.22, r * 0.18, -0.2, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.ellipse(r * 0.35, -r * 0.02, r * 0.22, r * 0.18, 0.2, 0, Math.PI * 2); c.fill();
+
+                // Gran bigote de hojas y boca sonriente
+                c.strokeStyle = '#052e16'; c.lineWidth = 4;
+                c.beginPath(); c.arc(0, r * 0.35, r * 0.55, 0.2, Math.PI - 0.2); c.stroke();
+
+                c.fillStyle = '#16a34a';
+                c.beginPath();
+                c.moveTo(-r * 0.75, r * 0.3); c.quadraticCurveTo(-r * 0.35, r * 0.15, 0, r * 0.32);
+                c.quadraticCurveTo(r * 0.35, r * 0.15, r * 0.75, r * 0.3); c.quadraticCurveTo(r * 0.4, r * 0.62, 0, r * 0.45);
+                c.quadraticCurveTo(-r * 0.4, r * 0.62, -r * 0.75, r * 0.3); c.closePath(); c.fill();
+
+                c.fillStyle = '#4ade80';
+                c.beginPath();
+                c.moveTo(-r * 0.65, r * 0.3); c.quadraticCurveTo(-r * 0.3, r * 0.22, 0, r * 0.34);
+                c.quadraticCurveTo(r * 0.3, r * 0.22, r * 0.65, r * 0.3); c.quadraticCurveTo(r * 0.35, r * 0.5, 0, r * 0.4);
+                c.quadraticCurveTo(-r * 0.35, r * 0.5, -r * 0.65, r * 0.3); c.closePath(); c.fill();
+                break;
+            }
+            case 'ding':
+            case 'donk': {
+                const isDonk = this.drawType === 'donk';
+                if (this.isBoss) {
+                    let aura = c.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 1.5);
+                    aura.addColorStop(0, 'rgba(147, 51, 234, 0.75)'); aura.addColorStop(1, 'rgba(147, 51, 234, 0)');
+                    c.fillStyle = aura; c.beginPath(); c.arc(0, 0, r * 1.5, 0, Math.PI * 2); c.fill();
+                }
+
+                // Cuernos superiores
+                c.fillStyle = isDonk ? '#581c87' : '#6d28d9';
+                c.beginPath(); c.moveTo(-r * 0.8, -r * 0.4); c.lineTo(-r * 0.95, -r * 1.15); c.lineTo(-r * 0.5, -r * 0.7); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.8, -r * 0.4); c.lineTo(r * 0.95, -r * 1.15); c.lineTo(r * 0.5, -r * 0.7); c.closePath(); c.fill();
+
+                // Cuerpo morado
+                c.fillStyle = isDonk ? '#7e22ce' : '#a855f7';
+                drawRoundedRect(c, -r * 0.85, -r * 0.85, r * 1.7, r * 1.7, r * 0.3); c.fill();
+
+                // Pelo lanudo blanco en la frente
+                c.fillStyle = isDonk ? '#f3e8ff' : '#ffffff';
+                c.beginPath();
+                c.arc(0, -r * 0.75, r * 0.38, 0, Math.PI * 2);
+                c.arc(-r * 0.28, -r * 0.65, r * 0.28, 0, Math.PI * 2);
+                c.arc(r * 0.28, -r * 0.65, r * 0.28, 0, Math.PI * 2);
+                c.fill();
+
+                // Mejillas
+                c.fillStyle = 'rgba(192, 132, 252, 0.45)';
+                c.beginPath(); c.arc(-r * 0.55, r * 0.25, r * 0.18, 0, Math.PI * 2); c.arc(r * 0.55, r * 0.25, r * 0.18, 0, Math.PI * 2); c.fill();
+
+                // Hocico con poros oscuros
+                c.fillStyle = isDonk ? '#a855f7' : '#c084fc';
+                c.beginPath(); c.ellipse(0, r * 0.26, r * 0.36, r * 0.24, 0, 0, Math.PI * 2); c.fill();
+                c.fillStyle = isDonk ? '#581c87' : '#7e22ce';
+                c.beginPath();
+                c.arc(-r * 0.12, r * 0.22, r * 0.04, 0, Math.PI * 2); c.arc(r * 0.12, r * 0.22, r * 0.04, 0, Math.PI * 2);
+                c.arc(0, r * 0.32, r * 0.035, 0, Math.PI * 2);
+                c.arc(-r * 0.06, r * 0.32, r * 0.03, 0, Math.PI * 2); c.arc(r * 0.06, r * 0.32, r * 0.03, 0, Math.PI * 2);
+                c.fill();
+
+                // Colmillos que apuntan HACIA ARRIBA
+                c.fillStyle = '#ffffff';
+                c.beginPath(); c.moveTo(-r * 0.4, r * 0.32); c.lineTo(-r * 0.25, -r * 0.05); c.lineTo(-r * 0.16, r * 0.28); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.4, r * 0.32); c.lineTo(r * 0.25, -r * 0.05); c.lineTo(r * 0.16, r * 0.28); c.closePath(); c.fill();
+
+                // Barba blanca en la barbilla
+                c.fillStyle = isDonk ? '#f3e8ff' : '#ffffff';
+                c.beginPath(); c.moveTo(-r * 0.28, r * 0.62); c.lineTo(-r * 0.2, r * 0.82); c.lineTo(0, r * 0.9); c.lineTo(r * 0.2, r * 0.82); c.lineTo(r * 0.28, r * 0.62); c.closePath(); c.fill();
+
+                // Ojos con párpados pesados caídos (expresión desganada)
+                c.fillStyle = '#0f172a';
+                c.beginPath(); c.arc(-r * 0.38, -r * 0.08, r * 0.22, 0, Math.PI * 2); c.arc(r * 0.38, -r * 0.08, r * 0.22, 0, Math.PI * 2); c.fill();
+                c.fillStyle = '#ffffff';
+                c.beginPath(); c.arc(-r * 0.34, -r * 0.05, r * 0.08, 0, Math.PI * 2); c.arc(r * 0.42, -r * 0.05, r * 0.08, 0, Math.PI * 2); c.fill();
+
+                c.fillStyle = isDonk ? '#581c87' : '#7e22ce';
+                c.beginPath(); c.rect(-r * 0.65, -r * 0.32, r * 0.55, r * 0.24); c.fill();
+                c.beginPath(); c.rect(r * 0.1, -r * 0.32, r * 0.55, r * 0.24); c.fill();
+                break;
+            }
+            case 'rock': {
+                if (this.isBoss) {
+                    let aura = c.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 1.55);
+                    aura.addColorStop(0, 'rgba(56, 189, 248, 0.5)'); aura.addColorStop(1, 'rgba(56, 189, 248, 0)');
+                    c.fillStyle = aura; c.beginPath(); c.arc(0, 0, r * 1.55, 0, Math.PI * 2); c.fill();
+                }
+
+                // Cristales de hielo cyan en la coronilla
+                c.fillStyle = '#0284c7';
+                c.beginPath(); c.moveTo(-r * 0.65, -r * 0.7); c.lineTo(-r * 0.45, -r * 1.25); c.lineTo(-r * 0.15, -r * 0.7); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(-r * 0.15, -r * 0.7); c.lineTo(0.05, -r * 1.38); c.lineTo(r * 0.35, -r * 0.7); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.3, -r * 0.7); c.lineTo(r * 0.65, -r * 1.15); c.lineTo(r * 0.75, -r * 0.65); c.closePath(); c.fill();
+
+                c.fillStyle = '#38bdf8';
+                c.beginPath(); c.moveTo(-r * 0.5, -r * 0.75); c.lineTo(-r * 0.45, -r * 1.2); c.lineTo(-r * 0.25, -r * 0.72); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(-r * 0.05, -r * 0.75); c.lineTo(0.05, -r * 1.3); c.lineTo(r * 0.25, -r * 0.72); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.35, -r * 0.75); c.lineTo(r * 0.6, -r * 1.05); c.lineTo(r * 0.65, -r * 0.68); c.closePath(); c.fill();
+
+                // Cabeza de roca pizarra oscura
+                c.fillStyle = '#334155'; drawRoundedRect(c, -r * 0.85, -r * 0.75, r * 1.7, r * 1.55, r * 0.28); c.fill();
+
+                // Cuencas oculares oscuras y profundas
+                c.fillStyle = '#0f172a';
+                c.beginPath(); c.ellipse(-r * 0.4, -r * 0.12, r * 0.25, r * 0.22, -0.15, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.ellipse(r * 0.4, -r * 0.12, r * 0.25, r * 0.22, 0.15, 0, Math.PI * 2); c.fill();
+
+                // Morro de roca con poros circulares
+                c.fillStyle = '#475569'; drawRoundedRect(c, -r * 0.92, r * 0.1, r * 1.84, r * 0.65, r * 0.3); c.fill();
+                c.fillStyle = '#1e293b';
+                for (let p of [[-0.4, 0.28, 0.08], [0.4, 0.28, 0.08], [-0.15, 0.42, 0.09], [0.18, 0.45, 0.07], [0, 0.25, 0.06], [-0.55, 0.5, 0.06], [0.55, 0.48, 0.06]]) {
+                    c.beginPath(); c.arc(r * p[0], r * p[1], r * p[2], 0, Math.PI * 2); c.fill();
+                }
+                break;
+            }
+            case 'elemental': {
+                // Diamantes de hielo flotando sobre la cabeza
+                let floatY = Math.sin(animationTime * 6 + this.animPhase) * (r * 0.15);
+                c.fillStyle = '#38bdf8';
+                c.save(); c.translate(-r * 0.45, -r * 1.3 + floatY); c.rotate(0.3); c.fillRect(-r * 0.1, -r * 0.1, r * 0.2, r * 0.2); c.restore();
+                c.save(); c.translate(0, -r * 1.45 + floatY); c.rotate(animationTime * 2); c.fillRect(-r * 0.12, -r * 0.12, r * 0.24, r * 0.24); c.restore();
+                c.save(); c.translate(r * 0.45, -r * 1.3 + floatY); c.rotate(-0.3); c.fillRect(-r * 0.1, -r * 0.1, r * 0.2, r * 0.2); c.restore();
+
+                // Picos de hielo del cuerpo
+                c.fillStyle = '#0284c7';
+                c.beginPath(); c.moveTo(-r * 0.8, r * 0.6); c.lineTo(-r * 0.7, -r * 0.7); c.lineTo(0, -r * 1.2); c.lineTo(r * 0.7, -r * 0.7); c.lineTo(r * 0.8, r * 0.6); c.closePath(); c.fill();
+                c.fillStyle = '#38bdf8';
+                c.beginPath(); c.moveTo(0, -r * 1.2); c.lineTo(r * 0.7, -r * 0.7); c.lineTo(r * 0.75, r * 0.6); c.lineTo(0, r * 0.8); c.closePath(); c.fill();
+                c.fillStyle = '#bae6fd';
+                c.beginPath(); c.moveTo(0, -r * 1.1); c.lineTo(r * 0.15, -r * 0.6); c.lineTo(0, r * 0.7); c.closePath(); c.fill();
+
+                // Cejas y ojos enfadados
+                c.fillStyle = '#0369a1';
+                c.beginPath(); c.moveTo(-r * 0.55, -r * 0.25); c.lineTo(-r * 0.15, -r * 0.1); c.lineTo(-r * 0.2, -r * 0.35); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.55, -r * 0.25); c.lineTo(r * 0.15, -r * 0.1); c.lineTo(r * 0.2, -r * 0.35); c.closePath(); c.fill();
+
+                c.fillStyle = '#0b1329';
+                c.beginPath(); c.ellipse(-r * 0.38, -r * 0.02, r * 0.24, r * 0.28, -0.22, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.ellipse(r * 0.38, -r * 0.02, r * 0.24, r * 0.28, 0.22, 0, Math.PI * 2); c.fill();
+
+                // Boca de enfado
+                c.strokeStyle = '#0b1329'; c.lineWidth = 4;
+                c.beginPath(); c.arc(0, r * 0.48, r * 0.22, Math.PI * 1.1, Math.PI * 1.9); c.stroke();
+
+                // Garras de hielo en los costados
+                c.fillStyle = '#38bdf8';
+                c.beginPath(); c.moveTo(-r * 0.95, r * 0.5); c.lineTo(-r * 0.65, r * 0.35); c.lineTo(-r * 0.55, r * 0.75); c.lineTo(-r * 0.85, r * 0.8); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.95, r * 0.5); c.lineTo(r * 0.65, r * 0.35); c.lineTo(r * 0.55, r * 0.75); c.lineTo(r * 0.85, r * 0.8); c.closePath(); c.fill();
+                break;
+            }
+            case 'crab': {
+                let clawMove = Math.sin(animationTime * 6 + this.animPhase) * (r * 0.12);
+
+                if (this.isBoss) {
+                    let aura = c.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 1.6);
+                    aura.addColorStop(0, 'rgba(56, 189, 248, 0.7)'); aura.addColorStop(1, 'rgba(56, 189, 248, 0)');
+                    c.fillStyle = aura; c.beginPath(); c.arc(0, 0, r * 1.6, 0, Math.PI * 2); c.fill();
+                }
+
+                // Patas caminantes inferiores animadas
+                c.strokeStyle = '#0284c7'; c.lineWidth = Math.max(3, r * 0.09); c.lineCap = 'round';
+                let legW = Math.sin(animationTime * 10 + this.animPhase) * 4;
+                for (let side of [-1, 1]) {
+                    for (let li = 0; li < 3; li++) {
+                        let lx = side * (r * 0.3 + li * r * 0.22);
+                        let ldx = side * (r * 0.4 + li * r * 0.28);
+                        let ldy = r * 0.95 + (li % 2 === 0 ? legW : -legW);
+                        c.beginPath(); c.moveTo(lx, r * 0.55); c.quadraticCurveTo(ldx * 0.9, ldy * 0.7, ldx, ldy); c.stroke();
+                    }
+                }
+
+                // Pinzas levantadas
+                c.fillStyle = '#0284c7';
+                c.beginPath(); c.arc(-r * 0.75, -r * 0.85 + clawMove, r * 0.48, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.arc(r * 0.75, -r * 0.85 - clawMove, r * 0.48, 0, Math.PI * 2); c.fill();
+
+                // Montículos de nieve en las pinzas con témpanos de hielo
+                c.fillStyle = '#f8fafc';
+                c.beginPath(); c.ellipse(-r * 0.75, -r * 1.15 + clawMove, r * 0.45, r * 0.22, 0, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.moveTo(-r * 0.95, -r * 1.0 + clawMove); c.lineTo(-r * 0.85, -r * 0.65 + clawMove); c.lineTo(-r * 0.75, -r * 1.0 + clawMove); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(-r * 0.75, -r * 1.0 + clawMove); c.lineTo(-r * 0.65, -r * 0.7 + clawMove); c.lineTo(-r * 0.55, -r * 1.0 + clawMove); c.closePath(); c.fill();
+
+                c.beginPath(); c.ellipse(r * 0.75, -r * 1.15 - clawMove, r * 0.45, r * 0.22, 0, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.moveTo(r * 0.55, -r * 1.0 - clawMove); c.lineTo(r * 0.65, -r * 0.7 - clawMove); c.lineTo(r * 0.75, -r * 1.0 - clawMove); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.75, -r * 1.0 - clawMove); c.lineTo(r * 0.85, -r * 0.65 - clawMove); c.lineTo(r * 0.95, -r * 1.0 - clawMove); c.closePath(); c.fill();
+
+                // Caparazón del cangrejo
+                c.fillStyle = '#0ea5e9'; drawRoundedRect(c, -r * 0.9, -r * 0.5, r * 1.8, r * 1.25, r * 0.4); c.fill();
+                c.fillStyle = '#bae6fd'; c.beginPath(); c.ellipse(0, r * 0.25, r * 0.68, r * 0.35, 0, 0, Math.PI * 2); c.fill();
+
+                // Tiara/corona de hielo central
+                c.fillStyle = '#e0f2fe';
+                c.beginPath();
+                c.moveTo(-r * 0.28, -r * 0.5); c.lineTo(-r * 0.2, -r * 0.85); c.lineTo(0, -r * 0.55);
+                c.lineTo(r * 0.2, -r * 0.85); c.lineTo(r * 0.28, -r * 0.5); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(-r * 0.12, -r * 0.52); c.lineTo(0, -r * 1.0); c.lineTo(r * 0.12, -r * 0.52); c.closePath(); c.fill();
+                c.fillStyle = '#38bdf8'; c.beginPath(); c.arc(0, -r * 0.7, r * 0.06, 0, Math.PI * 2); c.fill();
+
+                // Ojos oscuros y pecas
+                c.fillStyle = '#0f172a';
+                c.beginPath(); c.arc(-r * 0.38, -r * 0.28, r * 0.1, 0, Math.PI * 2); c.arc(r * 0.38, -r * 0.28, r * 0.1, 0, Math.PI * 2); c.fill();
+                c.fillStyle = '#ffffff';
+                c.beginPath(); c.arc(-r * 0.35, -r * 0.31, r * 0.035, 0, Math.PI * 2); c.arc(r * 0.41, -r * 0.31, r * 0.035, 0, Math.PI * 2); c.fill();
+
+                c.fillStyle = '#0284c7';
+                c.beginPath(); c.arc(-r * 0.52, -r * 0.15, r * 0.045, 0, Math.PI * 2); c.arc(-r * 0.42, -r * 0.12, r * 0.045, 0, Math.PI * 2); c.arc(-r * 0.32, -r * 0.16, r * 0.045, 0, Math.PI * 2); c.fill();
+                c.beginPath(); c.arc(r * 0.52, -r * 0.15, r * 0.045, 0, Math.PI * 2); c.arc(r * 0.42, -r * 0.12, r * 0.045, 0, Math.PI * 2); c.arc(r * 0.32, -r * 0.16, r * 0.045, 0, Math.PI * 2); c.fill();
+
+                // Boca en chevrón ^
+                c.strokeStyle = '#0f172a'; c.lineWidth = 3; c.lineCap = 'round'; c.lineJoin = 'round';
+                c.beginPath(); c.moveTo(-r * 0.12, -r * 0.02); c.lineTo(0, -r * 0.1); c.lineTo(r * 0.12, -r * 0.02); c.stroke();
+                break;
+            }
+            case 'yeti': {
+                let aura = c.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 1.6);
+                aura.addColorStop(0, 'rgba(56, 189, 248, 0.85)'); aura.addColorStop(1, 'rgba(56, 189, 248, 0)');
+                c.fillStyle = aura; c.beginPath(); c.arc(0, 0, r * 1.6, 0, Math.PI * 2); c.fill();
+
+                // Cuernos rayados curvados
+                c.fillStyle = '#78350f';
+                c.beginPath(); c.moveTo(-r * 0.5, -r * 0.6); c.quadraticCurveTo(-r * 1.1, -r * 1.4, -r * 1.2, -r * 0.6); c.quadraticCurveTo(-r * 0.9, -r * 1.1, -r * 0.4, -r * 0.45); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.5, -r * 0.6); c.quadraticCurveTo(r * 1.1, -r * 1.4, r * 1.2, -r * 0.6); c.quadraticCurveTo(r * 0.9, -r * 1.1, r * 0.4, -r * 0.45); c.closePath(); c.fill();
+
+                c.fillStyle = '#451a03';
+                c.fillRect(-r * 0.92, -r * 1.1, r * 0.12, r * 0.2); c.fillRect(-r * 1.12, -r * 0.9, r * 0.12, r * 0.18);
+                c.fillRect(r * 0.8, -r * 1.1, r * 0.12, r * 0.2); c.fillRect(r * 1.0, -r * 0.9, r * 0.12, r * 0.18);
+
+                // Pelaje y mechones de las mejillas
+                c.fillStyle = '#93c5fd'; drawRoundedRect(c, -r * 0.85, -r * 0.75, r * 1.7, r * 1.55, r * 0.35); c.fill();
+                c.beginPath(); c.moveTo(-r * 0.85, -r * 0.1); c.lineTo(-r * 1.15, r * 0.1); c.lineTo(-r * 0.85, r * 0.25); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(-r * 0.85, r * 0.2); c.lineTo(-r * 1.1, r * 0.4); c.lineTo(-r * 0.85, r * 0.55); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.85, -r * 0.1); c.lineTo(r * 1.15, r * 0.1); c.lineTo(r * 0.85, r* 0.25); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.85, r * 0.2); c.lineTo(r * 1.1, r * 0.4); c.lineTo(r * 0.85, r * 0.55); c.closePath(); c.fill();
+
+                // Pelo blanco en la frente
+                c.fillStyle = '#f8fafc';
+                c.beginPath();
+                c.arc(0, -r * 0.6, r * 0.38, 0, Math.PI * 2);
+                c.arc(-r * 0.35, -r * 0.5, r * 0.26, 0, Math.PI * 2);
+                c.arc(r * 0.35, -r * 0.5, r * 0.26, 0, Math.PI * 2);
+                c.fill();
+
+                // Máscara azul facial
+                c.fillStyle = '#60a5fa'; c.beginPath(); c.arc(0, r * 0.05, r * 0.62, 0, Math.PI * 2); c.fill();
+
+                // Cejas azules
+                c.fillStyle = '#1d4ed8';
+                c.beginPath(); c.moveTo(-r * 0.55, -r * 0.22); c.lineTo(-r * 0.15, -r * 0.08); c.lineTo(-r * 0.22, -r * 0.32); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.55, -r * 0.22); c.lineTo(r * 0.15, -r * 0.08); c.lineTo(r * 0.22, -r * 0.32); c.closePath(); c.fill();
+
+                // Ojos brillantes con pupila y destello
+                c.fillStyle = '#ffffff';
+                c.beginPath(); c.arc(-r * 0.36, -r * 0.02, r * 0.24, 0, Math.PI * 2); c.arc(r * 0.36, -r * 0.02, r * 0.24, 0, Math.PI * 2); c.fill();
+                c.fillStyle = '#0f172a';
+                c.beginPath(); c.arc(-r * 0.34, -r * 0.02, r * 0.15, 0, Math.PI * 2); c.arc(r * 0.38, -r * 0.02, r * 0.15, 0, Math.PI * 2); c.fill();
+                c.fillStyle = '#ffffff';
+                c.beginPath(); c.arc(-r * 0.38, -r * 0.06, r * 0.065, 0, Math.PI * 2); c.arc(r * 0.34, -r * 0.06, r * 0.065, 0, Math.PI * 2); c.fill();
+
+                // Nariz azul
+                c.fillStyle = '#1d4ed8'; c.beginPath(); c.ellipse(0, r * 0.2, r * 0.22, r * 0.15, 0, 0, Math.PI * 2); c.fill();
+
+                // Boca con 4 colmillos feroces (2 superiores hacia abajo, 2 inferiores hacia arriba)
+                c.fillStyle = '#0f172a'; drawRoundedRect(c, -r * 0.55, r * 0.38, r * 1.1, r * 0.32, r * 0.12); c.fill();
+                c.fillStyle = '#ffffff';
+                c.beginPath(); c.moveTo(-r * 0.42, r * 0.38); c.lineTo(-r * 0.34, r * 0.56); c.lineTo(-r * 0.26, r * 0.38); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.26, r * 0.38); c.lineTo(r * 0.34, r * 0.56); c.lineTo(r * 0.42, r * 0.38); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(-r * 0.22, r * 0.7); c.lineTo(-r * 0.14, r * 0.5); c.lineTo(-r * 0.06, r * 0.7); c.closePath(); c.fill();
+                c.beginPath(); c.moveTo(r * 0.06, r * 0.7); c.lineTo(r * 0.14, r * 0.5); c.lineTo(r * 0.22, r * 0.7); c.closePath(); c.fill();
+                break;
+            }
+            default: {
+                c.fillStyle = this.color;
+                c.beginPath(); c.arc(0, 0, this.radius, 0, Math.PI * 2); c.fill();
+                break;
+            }
+        }
+        ctxCanvas.restore();
+    }
+}
+
 const enemyPool = new ObjectPool(() => new Enemy());
 const projectilePool = new ObjectPool(() => new Projectile());
 const enemyProjPool = new ObjectPool(() => new EnemyProjectile());
@@ -1361,7 +2015,11 @@ const textPool = new ObjectPool(() => new FloatingText());
 const enemies = [], projectiles = [], enemyProjectiles = [], xpOrbs = [], floatingTexts = [];
 const groundPuddles = [], aoeExplosions = [];
 const enemyGrid = new SpatialGrid(100);
-let player, spawnTimer = 0;
+let player = new Player();
+let spawnTimer = 0;
+
+// Límite de enemigos simultáneos para garantizar 60 FPS estables a partir del Nivel 26+
+const MAX_CONCURRENT_ENEMIES = 140;
 
 function updateWaveSpawner(dt) {
     for (let lvlStr in BOSS_CATALOG) {
@@ -1380,7 +2038,7 @@ function updateWaveSpawner(dt) {
             const boss = enemyPool.get();
             boss.spawn(
                 bx, by, bInfo.hp, bInfo.speed, bInfo.damage, bInfo.radius, bInfo.color,
-                false, false, true, bInfo.drawType, bInfo.diagonalMove || false, bInfo.name
+                false, false, true, bInfo.drawType, bInfo.diagonalMove || false, bInfo.name, bInfo.xp
             );
             enemies.push(boss);
             activeBoss = boss;
@@ -1391,26 +2049,25 @@ function updateWaveSpawner(dt) {
         }
     }
 
-    if (player.level >= 60 && activeBoss && activeBoss.drawType === 'yeti') {
-        return;
-    }
+    if (player.level >= 60 && activeBoss && activeBoss.drawType === 'yeti') return;
+
+    // Protección para evitar congelamientos en niveles altos:
+    if (enemies.length >= MAX_CONCURRENT_ENEMIES) return;
 
     spawnTimer -= dt;
-    
     let isSuperHorde = player.level >= 56 && player.level <= 59;
-    let spawnRate = isSuperHorde ? 0.025 : Math.max(0.04, 0.35 - (player.level * 0.008));
+    let spawnRate = isSuperHorde ? 0.04 : Math.max(0.08, 0.40 - (player.level * 0.007));
 
     if (spawnTimer <= 0) {
         spawnTimer = spawnRate;
-        
         let availableTypes = ENEMY_CATALOG.filter(e => player.level >= e.minLevel);
         if (availableTypes.length === 0) availableTypes = [ENEMY_CATALOG[0]];
         
-        let countToSpawn = isSuperHorde ? 7 + Math.floor(Math.random() * 6) : 2 + Math.floor(player.level / 4);
+        let countToSpawn = isSuperHorde ? 6 + Math.floor(Math.random() * 4) : 2 + Math.floor(player.level / 6);
 
         for (let i = 0; i < countToSpawn; i++) {
+            if (enemies.length >= MAX_CONCURRENT_ENEMIES) break;
             let selectedDef = availableTypes[Math.floor(Math.random() * availableTypes.length)];
-            
             let diffHpMult = currentDifficulty === 'experto' ? 1.4 : (currentDifficulty === 'dificil' ? 1.2 : 1.0);
             let finalHp = Math.floor(selectedDef.hp * diffHpMult);
             let finalSpeed = selectedDef.baseSpeed * (currentDifficulty === 'experto' ? 1.15 : 1.0);
@@ -1418,13 +2075,13 @@ function updateWaveSpawner(dt) {
             let isShooter = selectedDef.isShooter || ((currentDifficulty === 'dificil' || currentDifficulty === 'experto') && Math.random() < 0.2);
             let canDash = (currentDifficulty === 'experto') && Math.random() < 0.25;
 
-            let angle = Math.random() * Math.PI * 2, dist = Math.max(width, height) / 2 + 80 + Math.random() * 160;
+            let angle = Math.random() * Math.PI * 2, dist = Math.max(width, height) / 2 + 70 + Math.random() * 120;
             let sx = player.x + Math.cos(angle) * dist, sy = player.y + Math.sin(angle) * dist;
 
             const enemy = enemyPool.get();
             enemy.spawn(
                 sx, sy, finalHp, finalSpeed, 12, selectedDef.radius, selectedDef.color, 
-                isShooter, canDash, false, selectedDef.drawType, selectedDef.diagonalMove, selectedDef.name
+                isShooter, canDash, false, selectedDef.drawType, selectedDef.diagonalMove, selectedDef.name, selectedDef.xp
             );
             enemies.push(enemy);
         }
@@ -1439,7 +2096,12 @@ function updateBossHUD() {
 }
 
 function spawnXpOrb(x, y, val) { const orb = xpPool.get(); orb.spawn(x, y, val); xpOrbs.push(orb); }
-function spawnFloatingText(x, y, text, isCrit) { const ft = textPool.get(); ft.spawn(x, y, text, isCrit); floatingTexts.push(ft); }
+function spawnFloatingText(x, y, text, isCrit) {
+    if (floatingTexts.length > 35 && !isCrit) return;
+    const ft = textPool.get();
+    ft.spawn(x, y, text, isCrit);
+    floatingTexts.push(ft);
+}
 
 function triggerInitialDraft() {
     currentState = GAME_STATE.LEVEL_UP;
@@ -1447,7 +2109,6 @@ function triggerInitialDraft() {
     document.getElementById('draft-subtitle').innerText = "Selecciona 1 de las 3 habilidades aleatorias para comenzar";
     document.getElementById('level-up-screen').classList.remove('hidden');
 
-    // Mezclar aleatoriamente el catálogo completo de 18 habilidades y tomar las primeras 3
     let shuffled = [...WEAPONS_CATALOG].sort(() => 0.5 - Math.random());
     let choices = shuffled.slice(0, 3);
 
@@ -1484,7 +2145,6 @@ function triggerDraft() {
     document.getElementById('draft-title').innerText = "¡NIVEL ALCANZADO!";
     document.getElementById('draft-subtitle').innerText = "Selecciona una mejora estratégica para tu arsenal";
     document.getElementById('level-up-screen').classList.remove('hidden');
-    
     let draftPool = [];
 
     player.weapons.forEach(w => {
@@ -1527,9 +2187,16 @@ function triggerDraft() {
             <span class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-center text-xs uppercase tracking-wide">Elegir</span>
         `;
         btn.onclick = () => {
-            choice.apply(); updateHUD();
-            document.getElementById('level-up-screen').classList.add('hidden');
-            currentState = GAME_STATE.PLAYING; lastTime = performance.now();
+            choice.apply(); 
+            updateHUD();
+            if (player.pendingLevels && player.pendingLevels > 0) {
+                player.pendingLevels--;
+                triggerDraft();
+            } else {
+                document.getElementById('level-up-screen').classList.add('hidden');
+                currentState = GAME_STATE.PLAYING; 
+                lastTime = performance.now();
+            }
         };
         container.appendChild(btn);
     });
@@ -1537,7 +2204,7 @@ function triggerDraft() {
 
 function initGame(difficulty) {
     currentDifficulty = difficulty || 'normal';
-    player = new Player();
+    player.reset();
     gameTimer = 0; spawnTimer = 0; animationTime = 0; touchActive = false; activeBoss = null;
     spawnedBosses.clear();
     enemies.length = 0; projectiles.length = 0; enemyProjectiles.length = 0; xpOrbs.length = 0; floatingTexts.length = 0; groundPuddles.length = 0; aoeExplosions.length = 0;
@@ -1548,11 +2215,11 @@ function initGame(difficulty) {
     document.getElementById('hud').classList.remove('hidden');
     updateHUD(); 
 
-    // Al iniciar la partida, se le da al jugador a elegir 1 entre 3 poderes aleatorios
     triggerInitialDraft();
-    
+    lastTime = performance.now();
     requestAnimationFrame(gameLoop);
 }
+window.initGame = initGame;
 
 function formatTime(secs) {
     let m = Math.floor(secs / 60), s = Math.floor(secs % 60);
@@ -1608,127 +2275,233 @@ function gameLoop(timestamp) {
     const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
     lastTime = timestamp; gameTimer += dt; animationTime += dt;
 
-    player.update(dt);
-    updateWaveSpawner(dt);
+    try {
+        player.update(dt);
+        updateWaveSpawner(dt);
 
-    enemyGrid.clear();
-    for (let e of enemies) if (e.active) { e.update(dt, player.x, player.y); enemyGrid.insert(e); }
-
-    const nearbyToPlayer = enemyGrid.getNearby(player.x, player.y, player.radius + 70);
-    for (let e of nearbyToPlayer) {
-        if (!e.active) continue;
-        let dSq = distSq(player.x, player.y, e.x, e.y);
-        let rSum = player.radius + e.radius;
-        if (dSq < rSum * rSum) {
-            player.takeDamage(e.damage * dt * 1.5);
-        }
-    }
-
-    for (let i = groundPuddles.length - 1; i >= 0; i--) {
-        let puddle = groundPuddles[i];
-        puddle.duration -= dt;
-        let nearby = enemyGrid.getNearby(puddle.x, puddle.y, puddle.radius);
-        for (let e of nearby) {
-            if (e.active && distSq(puddle.x, puddle.y, e.x, e.y) < (puddle.radius + e.radius)**2) {
-                e.takeDamage(puddle.dps * dt, false, 0, 0);
+        enemyGrid.clear();
+        for (let i = 0; i < enemies.length; i++) {
+            let e = enemies[i];
+            if (e.active) {
+                e.update(dt, player.x, player.y);
+                enemyGrid.insert(e);
             }
         }
-        if (puddle.duration <= 0) groundPuddles.splice(i, 1);
-    }
 
-    for (let i = aoeExplosions.length - 1; i >= 0; i--) {
-        let exp = aoeExplosions[i];
-        exp.radius += (exp.maxRadius - exp.radius) * dt * 12;
-        let nearby = enemyGrid.getNearby(exp.x, exp.y, exp.maxRadius);
-        for (let e of nearby) {
-            if (e.active && distSq(exp.x, exp.y, e.x, e.y) < (exp.radius + e.radius)**2) {
-                e.takeDamage(exp.damage, true, (e.x - exp.x)/exp.radius, (e.y - exp.y)/exp.radius);
+        // Colisión de Jugador con Enemigos
+        const nearbyToPlayer = enemyGrid.getNearby(player.x, player.y, player.radius + 70);
+        for (let i = 0; i < nearbyToPlayer.length; i++) {
+            let e = nearbyToPlayer[i];
+            if (!e.active) continue;
+            let dSq = distSq(player.x, player.y, e.x, e.y);
+            let rSum = player.radius + e.radius;
+            if (dSq < rSum * rSum) {
+                player.takeDamage(e.damage * dt * 1.5);
             }
         }
-        if (exp.radius >= exp.maxRadius * 0.95) aoeExplosions.splice(i, 1);
-    }
 
-    for (let p of projectiles) {
-        if (!p.active) continue;
-        p.update(dt);
-        const nearby = enemyGrid.getNearby(p.x, p.y, p.radius + 60);
-        for (let e of nearby) {
-            if (e.active && !p.hitTargets.has(e) && distSq(p.x, p.y, e.x, e.y) < (p.radius + e.radius)**2) {
-                p.hitTargets.add(e);
-                e.takeDamage(p.damage, p.isCrit, p.vx, p.vy);
-                p.pierce--; if (p.pierce <= 0) { p.active = false; if (p.onExpire) p.onExpire(); break; }
+        // Actualización de Charcos de Jarabe (Syrup)
+        for (let i = groundPuddles.length - 1; i >= 0; i--) {
+            let puddle = groundPuddles[i];
+            puddle.duration -= dt;
+            let nearby = enemyGrid.getNearby(puddle.x, puddle.y, puddle.radius);
+            for (let j = 0; j < nearby.length; j++) {
+                let e = nearby[j];
+                if (e.active && distSq(puddle.x, puddle.y, e.x, e.y) < (puddle.radius + e.radius)**2) {
+                    e.takeDamage(puddle.dps * dt, false, 0, 0, false);
+                }
+            }
+            if (puddle.duration <= 0) groundPuddles.splice(i, 1);
+        }
+
+        // Actualización de Explosiones AOE
+        for (let i = aoeExplosions.length - 1; i >= 0; i--) {
+            let exp = aoeExplosions[i];
+            exp.radius += (exp.maxRadius - exp.radius) * dt * 12;
+            let nearby = enemyGrid.getNearby(exp.x, exp.y, exp.maxRadius);
+            for (let j = 0; j < nearby.length; j++) {
+                let e = nearby[j];
+                if (e.active && distSq(exp.x, exp.y, e.x, e.y) < (exp.radius + e.radius)**2) {
+                    let kx = e.x - exp.x, ky = e.y - exp.y;
+                    let kDist = Math.sqrt(kx * kx + ky * ky) || 1;
+                    e.takeDamage(exp.damage, true, kx / kDist, ky / kDist, true);
+                }
+            }
+            if (exp.radius >= exp.maxRadius * 0.95) aoeExplosions.splice(i, 1);
+        }
+
+        // Proyectiles del Jugador y Limpieza de memoria
+        for (let i = projectiles.length - 1; i >= 0; i--) {
+            let p = projectiles[i];
+            if (!p.active) {
+                projectilePool.release(p);
+                projectiles.splice(i, 1);
+                continue;
+            }
+            p.update(dt);
+            const nearby = enemyGrid.getNearby(p.x, p.y, p.radius + 60);
+            for (let j = 0; j < nearby.length; j++) {
+                let e = nearby[j];
+                if (e.active && !p.hitTargets.has(e) && distSq(p.x, p.y, e.x, e.y) < (p.radius + e.radius)**2) {
+                    p.hitTargets.add(e);
+                    e.takeDamage(p.damage, p.isCrit, p.vx, p.vy, true);
+                    p.pierce--; 
+                    if (p.pierce <= 0) { 
+                        p.active = false; 
+                        if (p.onExpire) p.onExpire(); 
+                        break; 
+                    }
+                }
             }
         }
-    }
 
-    for (let ep of enemyProjectiles) {
-        if (!ep.active) continue;
-        ep.update(dt);
-        if (distSq(ep.x, ep.y, player.x, player.y) < (ep.radius + player.radius)**2) {
-            player.takeDamage(ep.damage); ep.active = false;
+        // Proyectiles Enemigos y Limpieza
+        for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
+            let ep = enemyProjectiles[i];
+            if (!ep.active) {
+                enemyProjPool.release(ep);
+                enemyProjectiles.splice(i, 1);
+                continue;
+            }
+            ep.update(dt);
+            if (distSq(ep.x, ep.y, player.x, player.y) < (ep.radius + player.radius)**2) {
+                player.takeDamage(ep.damage); 
+                ep.active = false;
+            }
         }
-    }
 
-    for (let o of xpOrbs) {
-        if (!o.active) continue;
-        let dSq = distSq(o.x, o.y, player.x, player.y);
-        if (dSq < 10000) {
-            let dist = Math.sqrt(dSq) || 1;
-            o.x += ((player.x - o.x)/dist) * 350 * dt; o.y += ((player.y - o.y)/dist) * 350 * dt;
+        // Orbes de XP y Limpieza
+        for (let i = xpOrbs.length - 1; i >= 0; i--) {
+            let o = xpOrbs[i];
+            if (!o.active) {
+                xpPool.release(o);
+                xpOrbs.splice(i, 1);
+                continue;
+            }
+            let dSq = distSq(o.x, o.y, player.x, player.y);
+            if (dSq < 12000) {
+                let dist = Math.sqrt(dSq) || 1;
+                o.x += ((player.x - o.x)/dist) * 380 * dt; 
+                o.y += ((player.y - o.y)/dist) * 380 * dt;
+            }
+            if (dSq < (player.radius + o.radius)**2) { 
+                player.addXp(o.value); 
+                o.active = false; 
+            }
         }
-        if (dSq < (player.radius + o.radius)**2) { player.addXp(o.value); o.active = false; }
-    }
 
-    floatingTexts.forEach(ft => { if(ft.active) ft.update(dt); });
+        // Limpieza de Enemigos inactivos
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            let e = enemies[i];
+            if (!e.active) {
+                enemyPool.release(e);
+                enemies.splice(i, 1);
+            }
+        }
 
-    const camX = player.x - width / 2, camY = player.y - height / 2;
+        // Textos flotantes y Limpieza
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+            let ft = floatingTexts[i];
+            if (!ft.active) {
+                textPool.release(ft);
+                floatingTexts.splice(i, 1);
+            } else {
+                ft.update(dt);
+            }
+        }
 
-    if (bgPattern) {
-        ctx.fillStyle = bgPattern;
-        ctx.save(); ctx.translate(-camX, -camY); ctx.fillRect(camX, camY, width, height); ctx.restore();
-    } else {
-        ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, width, height);
-    }
+        const camX = player.x - width / 2, camY = player.y - height / 2;
 
-    ctx.save();
-    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 8;
-    ctx.shadowColor = '#f43f5e'; ctx.shadowBlur = 15;
-    ctx.strokeRect(-MAP_LIMIT - camX, -MAP_LIMIT - camY, MAP_LIMIT * 2, MAP_LIMIT * 2);
-    ctx.restore();
+        if (bgPattern) {
+            ctx.fillStyle = bgPattern;
+            ctx.save(); ctx.translate(-camX, -camY); ctx.fillRect(camX, camY, width, height); ctx.restore();
+        } else {
+            ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, width, height);
+        }
 
-    environmentProps.forEach(prop => {
-        let px = prop.x - camX, py = prop.y - camY;
-        if (px > -100 && px < width + 100 && py > -100 && py < height + 100) {
-            ctx.save(); ctx.translate(px, py); ctx.rotate(prop.rotation);
-            if (prop.type === 'rock') drawSnowyRock(ctx, prop.size);
-            else { ctx.fillStyle = '#15803d'; ctx.beginPath(); ctx.arc(0, 0, prop.size/2, 0, Math.PI*2); ctx.fill(); }
+        // Borde de Mapa
+        ctx.save();
+        ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 8;
+        ctx.shadowColor = '#f43f5e'; ctx.shadowBlur = 15;
+        ctx.strokeRect(-MAP_LIMIT - camX, -MAP_LIMIT - camY, MAP_LIMIT * 2, MAP_LIMIT * 2);
+        ctx.restore();
+
+        const viewMargin = 90;
+        const minVX = camX - viewMargin, maxVX = camX + width + viewMargin;
+        const minVY = camY - viewMargin, maxVY = camY + height + viewMargin;
+
+        // Entorno (sólo lo que está visible)
+        for (let i = 0; i < environmentProps.length; i++) {
+            let prop = environmentProps[i];
+            if (prop.x >= minVX && prop.x <= maxVX && prop.y >= minVY && prop.y <= maxVY) {
+                let px = prop.x - camX, py = prop.y - camY;
+                ctx.save(); ctx.translate(px, py); ctx.rotate(prop.rotation);
+                if (prop.type === 'rock') drawSnowyRock(ctx, prop.size);
+                else { ctx.fillStyle = '#15803d'; ctx.beginPath(); ctx.arc(0, 0, prop.size/2, 0, Math.PI*2); ctx.fill(); }
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < groundPuddles.length; i++) {
+            let puddle = groundPuddles[i];
+            if (puddle.x + puddle.radius >= minVX && puddle.x - puddle.radius <= maxVX &&
+                puddle.y + puddle.radius >= minVY && puddle.y - puddle.radius <= maxVY) {
+                ctx.save(); ctx.translate(puddle.x - camX, puddle.y - camY);
+                ctx.fillStyle = puddle.color; ctx.beginPath(); ctx.arc(0, 0, puddle.radius, 0, Math.PI*2); ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < aoeExplosions.length; i++) {
+            let exp = aoeExplosions[i];
+            ctx.save(); ctx.translate(exp.x - camX, exp.y - camY);
+            ctx.fillStyle = exp.color; ctx.beginPath(); ctx.arc(0, 0, exp.radius, 0, Math.PI*2); ctx.fill();
             ctx.restore();
         }
-    });
 
-    groundPuddles.forEach(puddle => {
-        ctx.save(); ctx.translate(puddle.x - camX, puddle.y - camY);
-        ctx.fillStyle = puddle.color; ctx.beginPath(); ctx.arc(0, 0, puddle.radius, 0, Math.PI*2); ctx.fill();
-        ctx.restore();
-    });
+        for (let i = 0; i < xpOrbs.length; i++) {
+            let o = xpOrbs[i];
+            if (o.active && o.x >= minVX && o.x <= maxVX && o.y >= minVY && o.y <= maxVY) {
+                o.draw(ctx, camX, camY);
+            }
+        }
 
-    aoeExplosions.forEach(exp => {
-        ctx.save(); ctx.translate(exp.x - camX, exp.y - camY);
-        ctx.fillStyle = exp.color; ctx.beginPath(); ctx.arc(0, 0, exp.radius, 0, Math.PI*2); ctx.fill();
-        ctx.restore();
-    });
+        for (let i = 0; i < enemies.length; i++) {
+            let e = enemies[i];
+            if (e.active && (e.isBoss || (e.x >= minVX && e.x <= maxVX && e.y >= minVY && e.y <= maxVY))) {
+                e.draw(ctx, camX, camY);
+            }
+        }
 
-    xpOrbs.forEach(o => { if(o.active) o.draw(ctx, camX, camY); });
-    enemies.forEach(e => { if(e.active) e.draw(ctx, camX, camY); });
-    player.draw(ctx, camX, camY);
+        player.draw(ctx, camX, camY);
 
-    player.weapons.forEach(w => {
-        if (w.drawOrbital) w.drawOrbital(ctx, camX, camY);
-    });
+        for (let i = 0; i < player.weapons.length; i++) {
+            let w = player.weapons[i];
+            if (w.drawOrbital) w.drawOrbital(ctx, camX, camY);
+        }
 
-    projectiles.forEach(p => { if(p.active) p.draw(ctx, camX, camY); });
-    enemyProjectiles.forEach(ep => { if(ep.active) ep.draw(ctx, camX, camY); });
-    floatingTexts.forEach(ft => { if(ft.active) ft.draw(ctx, camX, camY); });
+        for (let i = 0; i < projectiles.length; i++) {
+            let p = projectiles[i];
+            if (p.active && p.x >= minVX && p.x <= maxVX && p.y >= minVY && p.y <= maxVY) {
+                p.draw(ctx, camX, camY);
+            }
+        }
+
+        for (let i = 0; i < enemyProjectiles.length; i++) {
+            let ep = enemyProjectiles[i];
+            if (ep.active && ep.x >= minVX && ep.x <= maxVX && ep.y >= minVY && ep.y <= maxVY) {
+                ep.draw(ctx, camX, camY);
+            }
+        }
+
+        for (let i = 0; i < floatingTexts.length; i++) {
+            let ft = floatingTexts[i];
+            if (ft.active) ft.draw(ctx, camX, camY);
+        }
+
+    } catch (err) {
+        console.error("Game loop non-fatal error:", err);
+    }
 
     requestAnimationFrame(gameLoop);
 }
@@ -1740,6 +2513,21 @@ function openShop() {
     document.getElementById('shop-screen').classList.remove('hidden');
     renderShop();
 }
+window.openShop = openShop;
+
+function closeShop() {
+    document.getElementById('shop-screen').classList.add('hidden');
+    document.getElementById('main-menu').classList.remove('hidden');
+    currentState = GAME_STATE.MENU;
+}
+window.closeShop = closeShop;
+
+function toMenu() {
+    document.getElementById('game-over-screen').classList.add('hidden');
+    document.getElementById('main-menu').classList.remove('hidden');
+    currentState = GAME_STATE.MENU;
+}
+window.toMenu = toMenu;
 
 function renderShop() {
     document.getElementById('shop-points').innerText = totalPoints;
@@ -1759,24 +2547,6 @@ function renderShop() {
         container.appendChild(btn);
     });
 }
-
-document.getElementById('btn-start-normal').addEventListener('click', () => initGame('normal'));
-document.getElementById('btn-start-dificil').addEventListener('click', () => initGame('dificil'));
-document.getElementById('btn-start-experto').addEventListener('click', () => initGame('experto'));
-document.getElementById('btn-restart').addEventListener('click', () => initGame(currentDifficulty));
-document.getElementById('btn-to-menu').addEventListener('click', () => {
-    document.getElementById('game-over-screen').classList.add('hidden');
-    document.getElementById('main-menu').classList.remove('hidden');
-    currentState = GAME_STATE.MENU;
-});
-document.getElementById('btn-to-shop-from-go').addEventListener('click', openShop);
-document.getElementById('btn-shop').addEventListener('click', openShop);
-document.getElementById('btn-close-shop').addEventListener('click', () => {
-    document.getElementById('shop-screen').classList.add('hidden');
-    document.getElementById('main-menu').classList.remove('hidden');
-    currentState = GAME_STATE.MENU;
-});
-
 </script>
 </body>
 </html>
