@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Roblox Obby Simulator 3D - Teclado Multiverso & 6 Modos</title>
+    <title>Roblox Obby Simulator 3D - Teclado Multiverso & ASMR NeeDoh Tower</title>
     <!-- Tailwind CSS para UI de alta gama -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome para Iconos -->
@@ -126,6 +126,23 @@
             <!-- Rejilla de Modos con Scroll -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full overflow-y-auto max-h-[48vh] p-2 custom-scrollbar">
                 
+                <!-- 0. ASMR NeeDoh Tower (NeeDoh Obby) -->
+                <button id="mode-asmr" class="bg-gradient-to-b from-pink-950/80 via-purple-950/70 to-slate-900 border-2 border-pink-400 hover:border-yellow-300 p-4 rounded-2xl flex flex-col items-center text-center transition-all hover:scale-[1.02] shadow-xl group relative overflow-hidden glow-active">
+                    <div class="absolute top-2 right-2 bg-gradient-to-r from-pink-400 to-purple-400 text-slate-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase animate-pulse flex items-center gap-1">
+                        <i class="fa-solid fa-headphones"></i> ¡NUEVO MODO ASMR!
+                    </div>
+                    <div class="w-12 h-12 bg-pink-500/20 rounded-full flex items-center justify-center mb-2 text-pink-400 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-hand-holding-heart text-2xl text-pink-300"></i>
+                    </div>
+                    <span class="font-black text-base mb-1 text-pink-200">ASMR NeeDoh Tower 🎧</span>
+                    <span class="text-xs text-slate-300 leading-snug">
+                        ¡Escala la torre de squishies NeeDoh, pelotas elásticas, slime suave y puentes pop-it con sonidos ASMR ultra relajantes!
+                    </span>
+                    <div class="mt-3 px-2.5 py-1 bg-pink-500/20 text-pink-300 rounded-full text-[9px] font-bold tracking-widest uppercase flex items-center gap-1">
+                        <i class="fa-solid fa-spa"></i> Físicas Squishy & Slime
+                    </div>
+                </button>
+
                 <!-- 1. Escapa del Teclado (+1 Velocidad) -->
                 <button id="mode-keyboard" class="bg-gradient-to-b from-purple-950/80 to-slate-900 border-2 border-purple-500 hover:border-yellow-400 p-4 rounded-2xl flex flex-col items-center text-center transition-all hover:scale-[1.02] shadow-xl group relative overflow-hidden glow-active">
                     <div class="absolute top-2 right-2 bg-gradient-to-r from-pink-500 to-yellow-400 text-black text-[9px] font-black px-2 py-0.5 rounded-full uppercase animate-pulse">
@@ -477,6 +494,57 @@
                 gainNode.gain.linearRampToValueAtTime(0, now + 0.18);
                 osc.start(now);
                 osc.stop(now + 0.18);
+            } else if (type === 'needoh_squish') {
+                // Sonido Squishy elástico ultra satisfactorio (NeeDoh Ball)
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const squishGain = audioCtx.createGain();
+                
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(280, now);
+                osc1.frequency.exponentialRampToValueAtTime(75, now + 0.18);
+
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(450, now);
+                osc2.frequency.exponentialRampToValueAtTime(130, now + 0.14);
+
+                osc1.connect(squishGain);
+                osc2.connect(squishGain);
+                squishGain.connect(audioCtx.destination);
+
+                squishGain.gain.setValueAtTime(0.24, now);
+                squishGain.gain.linearRampToValueAtTime(0, now + 0.2);
+
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + 0.2);
+                osc2.stop(now + 0.2);
+            } else if (type === 'pop_it') {
+                // Sonido de burbuja Pop-It fidget satisfactorio
+                const popOsc = audioCtx.createOscillator();
+                const popGain = audioCtx.createGain();
+                popOsc.type = 'sine';
+                popOsc.frequency.setValueAtTime(1350, now);
+                popOsc.frequency.exponentialRampToValueAtTime(310, now + 0.05);
+                popOsc.connect(popGain);
+                popGain.connect(audioCtx.destination);
+                popGain.gain.setValueAtTime(0.22, now);
+                popGain.gain.linearRampToValueAtTime(0, now + 0.05);
+                popOsc.start(now);
+                popOsc.stop(now + 0.05);
+            } else if (type === 'slime') {
+                // Sonido de Slime mantecoso suave
+                const slimeOsc = audioCtx.createOscillator();
+                const slimeGain = audioCtx.createGain();
+                slimeOsc.type = 'triangle';
+                slimeOsc.frequency.setValueAtTime(320, now);
+                slimeOsc.frequency.linearRampToValueAtTime(160, now + 0.16);
+                slimeOsc.connect(slimeGain);
+                slimeGain.connect(audioCtx.destination);
+                slimeGain.gain.setValueAtTime(0.18, now);
+                slimeGain.gain.linearRampToValueAtTime(0, now + 0.16);
+                slimeOsc.start(now);
+                slimeOsc.stop(now + 0.16);
             } else if (type === 'key_click') {
                 const skin = KEYBOARD_THEMES[gameState.selectedSkin] || KEYBOARD_THEMES['rgb'];
                 if (skin.clickType === 'chocolate') {
@@ -931,7 +999,7 @@
 
         class Platform {
             constructor(width, height, depth, position, color, type = 'normal', keycapData = null) {
-                this.type = type; // 'normal', 'moving', 'disappearing', 'bounce', 'speed', 'glass_fake', 'keycap', 'roller'
+                this.type = type; // 'normal', 'moving', 'disappearing', 'bounce', 'speed', 'glass_fake', 'keycap', 'roller', 'needoh', 'popit', 'slime', 'dumpling'
                 this.initialPos = position.clone();
                 this.speed = 2.5;
                 this.range = 8;
@@ -940,12 +1008,16 @@
                 this.timer = 0;
                 this.rotationSpeed = 0;
                 
-                // Animación y retención de pulsación física de switch mecánico
+                // Deformación física elástica para squishies NeeDoh (Squash & Stretch)
+                this.squishAmount = 0;
+                this.baseScale = new THREE.Vector3(1, 1, 1);
+                
+                // Animación y retención de pulsación física de switch mecánico o pop-it
                 this.pressOffset = 0;
                 this.targetPress = 0;
                 this.isBeingPressed = false;
                 this.wasPressed = false;
-                this.pressHoldTimer = 0; // Mantiene la tecla hundida sin parpadeos ni vibración
+                this.pressHoldTimer = 0;
                 this.maxPress = (type === 'keycap' || gameState.mode === 'keyboard') ? 0.45 : 0.25;
 
                 let material;
@@ -956,6 +1028,34 @@
                     const sideMat = new THREE.MeshLambertMaterial({ color: keycapData.sideColor || skin.sideColor });
                     const topMat = new THREE.MeshLambertMaterial({ map: topTexture });
                     material = [sideMat, sideMat, topMat, sideMat, sideMat, sideMat];
+                } else if (type === 'needoh') {
+                    // Pelota antiestrés elástica NeeDoh con brillo gomoso
+                    material = new THREE.MeshStandardMaterial({ 
+                        color: color || '#ff69b4', 
+                        roughness: 0.15, 
+                        metalness: 0.05 
+                    });
+                } else if (type === 'popit') {
+                    // Base de silicona Pop-It
+                    material = new THREE.MeshStandardMaterial({ 
+                        color: color || '#ff7675', 
+                        roughness: 0.3 
+                    });
+                } else if (type === 'slime') {
+                    // Slime gelatinoso translúcido y brillante
+                    material = new THREE.MeshPhysicalMaterial({ 
+                        color: color || '#55efc4', 
+                        transparent: true, 
+                        opacity: 0.8, 
+                        roughness: 0.05,
+                        clearcoat: 0.9
+                    });
+                } else if (type === 'dumpling') {
+                    // Squishy tipo dumpling suave y cremoso
+                    material = new THREE.MeshStandardMaterial({ 
+                        color: '#fffbf0', 
+                        roughness: 0.4 
+                    });
                 } else if (type === 'disappearing') {
                     material = new THREE.MeshLambertMaterial({ color: '#ff2d55', transparent: true, opacity: 1 });
                 } else if (type === 'bounce') {
@@ -980,6 +1080,44 @@
                     this.mesh = new THREE.Mesh(cylGeo, material);
                     this.mesh.rotation.x = Math.PI / 2;
                     this.rotationSpeed = 1.2;
+                } else if (type === 'needoh') {
+                    // Esfera esférica elástica NeeDoh con polos ligeramente aplanados
+                    const sphereGeo = new THREE.SphereGeometry(width / 2, 24, 20);
+                    this.mesh = new THREE.Mesh(sphereGeo, material);
+                    this.mesh.scale.set(1, 0.88, 1);
+                    this.height = width * 0.88; // Altura exacta de contacto
+                } else if (type === 'dumpling') {
+                    // Dumpling squishy: forma redondeada con remolino superior
+                    const dumpGeo = new THREE.SphereGeometry(width / 2, 20, 16);
+                    this.mesh = new THREE.Mesh(dumpGeo, material);
+                    this.mesh.scale.set(1.1, 0.75, 1.1);
+                    this.height = width * 0.75; // Altura exacta de contacto
+
+                    // Carita kawaii en el dumpling
+                    const faceTex = createFaceTexture('#e17055', true);
+                    const faceMat = new THREE.MeshBasicMaterial({ map: faceTex, transparent: true });
+                    const facePlane = new THREE.Mesh(new THREE.PlaneGeometry(width * 0.5, width * 0.5), faceMat);
+                    facePlane.position.set(0, 0.1, width * 0.48);
+                    this.mesh.add(facePlane);
+                } else if (type === 'popit') {
+                    // Panel rectangular con botones redondos pop-it que sobresalen
+                    this.mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
+                    const bubbleGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.25, 16);
+                    const bubbleMat = new THREE.MeshStandardMaterial({ color: color || 0x00cec9, roughness: 0.2 });
+                    
+                    const numBubblesX = Math.max(1, Math.floor(width / 2.2));
+                    const numBubblesZ = Math.max(1, Math.floor(depth / 2.2));
+                    for (let bx = 0; bx < numBubblesX; bx++) {
+                        for (let bz = 0; bz < numBubblesZ; bz++) {
+                            const bubble = new THREE.Mesh(bubbleGeo, bubbleMat);
+                            bubble.position.set(
+                                -width/2 + 1.1 + bx * 2.2,
+                                height/2 + 0.1,
+                                -depth/2 + 1.1 + bz * 2.2
+                            );
+                            this.mesh.add(bubble);
+                        }
+                    }
                 } else {
                     this.mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
                 }
@@ -1041,8 +1179,19 @@
             }
 
             update(timeStep, elapsed) {
+                // Animación elástica de compresión y rebote squishy (NeeDoh & Dumpling)
+                if (this.type === 'needoh' || this.type === 'dumpling') {
+                    if (this.squishAmount > 0) {
+                        this.squishAmount -= timeStep * 3.5;
+                        if (this.squishAmount < 0) this.squishAmount = 0;
+                    }
+                    const squashY = (this.type === 'dumpling' ? 0.75 : 0.88) - this.squishAmount * 0.4;
+                    const stretchXZ = 1.0 + this.squishAmount * 0.35;
+                    this.mesh.scale.set(stretchXZ, squashY, stretchXZ);
+                }
+
                 // Mantener la tecla presionada de forma estable mientras el jugador esté sobre ella
-                if (this.type === 'keycap' || (gameState.mode === 'keyboard' && this.type !== 'roller')) {
+                if (this.type === 'keycap' || this.type === 'popit' || (gameState.mode === 'keyboard' && this.type !== 'roller')) {
                     if (this.pressHoldTimer > 0) {
                         this.pressHoldTimer -= timeStep;
                     }
@@ -1624,6 +1773,148 @@
             createGoalTrophy(finalPos);
         }
 
+        // =========================================================================
+        // 7. MODO: ASMR NeeDoh Tower (NeeDoh Obby)
+        // =========================================================================
+        function generateAsmrNeedohTowerMap() {
+            clearMap();
+            // Ambiente relajante pastel violeta y niebla zen en cielo abierto
+            scene.fog.color.set('#201435');
+            scene.fog.density = 0.006;
+            scene.background.set('#201435');
+
+            // Squishies y globos gigantes flotantes decorativos en el fondo
+            const pastelColors = ['#fd79a8', '#a29bfe', '#74b9ff', '#55efc4', '#ffeaa7', '#fab1a0'];
+            for (let d = 0; d < 35; d++) {
+                const decType = d % 3;
+                let decMesh;
+                const decColor = pastelColors[d % pastelColors.length];
+
+                if (decType === 0) {
+                    decMesh = new THREE.Mesh(
+                        new THREE.SphereGeometry(3 + Math.random() * 2, 16, 16),
+                        new THREE.MeshStandardMaterial({ color: decColor, roughness: 0.15 })
+                    );
+                } else if (decType === 1) {
+                    decMesh = new THREE.Mesh(
+                        new THREE.BoxGeometry(4, 4, 4),
+                        new THREE.MeshPhysicalMaterial({ color: decColor, transparent: true, opacity: 0.7, roughness: 0.1 })
+                    );
+                } else {
+                    decMesh = new THREE.Mesh(
+                        new THREE.SphereGeometry(3.2, 16, 14),
+                        new THREE.MeshStandardMaterial({ color: '#fff9e6', roughness: 0.35 })
+                    );
+                    decMesh.scale.set(1, 0.75, 1);
+                }
+
+                const rad = 28 + Math.random() * 32;
+                const ang = Math.random() * Math.PI * 2;
+                decMesh.position.set(Math.cos(ang) * rad, Math.random() * 140, Math.sin(ang) * rad);
+                decMesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+                scene.add(decMesh);
+                decorativeObjects.push(decMesh);
+            }
+
+            // --- PISO 1: ZEN LOUNGE & TAPETE DE MEMORY FOAM (Inicio) ---
+            new Platform(16, 1.2, 16, new THREE.Vector3(0, 0, 0), '#a29bfe');
+
+            // Escalera de Memory Foam suave
+            for (let f = 1; f <= 4; f++) {
+                new Platform(6.0, 0.8, 6.0, new THREE.Vector3(0, f * 1.8, -5 - (f * 7.0)), '#fd79a8');
+            }
+
+            // --- PISO 2: CAMINO CONTINUO DE PELOTAS SQUISHY NEEDOH ---
+            const squishyColors = ['#fd79a8', '#ffeaa7', '#55efc4', '#a29bfe', '#74b9ff'];
+            const needohConfigs = [
+                { x: 0, y: 8.8, z: -40 },
+                { x: -4.5, y: 11.2, z: -48 },
+                { x: 4.5, y: 13.6, z: -56 },
+                { x: -3.5, y: 16.0, z: -64 },
+                { x: 0, y: 18.4, z: -72 }
+            ];
+
+            needohConfigs.forEach((cfg, idx) => {
+                new Platform(6.5, 4.0, 6.5, new THREE.Vector3(cfg.x, cfg.y, cfg.z), squishyColors[idx % squishyColors.length], 'needoh');
+            });
+
+            // Checkpoint 1: Terraza NeeDoh Glow (Nivel 5)
+            const cp1Pos = new THREE.Vector3(0, 21.0, -82);
+            const cp1 = new Platform(12, 1.2, 12, cp1Pos, '#55efc4', 'checkpoint');
+            cp1.checkpointId = "Terraza NeeDoh (Piso 5)";
+            cp1.levelNumber = "Terraza NeeDoh Glow";
+            checkpoints.push(cp1);
+
+            // --- PISO 3: PUENTE POP-IT FIDGET ARCOÍRIS ---
+            const popitColors = ['#ff7675', '#fdcb6e', '#55efc4', '#0984e3', '#6c5ce7'];
+            for (let p = 0; p < 5; p++) {
+                const posX = (p % 2 === 0 ? -3.5 : 3.5);
+                new Platform(7.0, 0.8, 7.5, new THREE.Vector3(p === 4 ? 0 : posX, 23.2 + p * 2.2, -91 - (p * 8.0)), popitColors[p], 'popit');
+            }
+
+            // --- PISO 4: RÍO DE SLIME GELATINOSO TRANSLÚCIDO ---
+            for (let sl = 0; sl < 4; sl++) {
+                const slZ = -130 - (sl * 8.5);
+                const slX = (sl % 2 === 0 ? -4.0 : 4.0);
+                new Platform(7.5, 0.8, 7.5, new THREE.Vector3(slX, 34.2 + sl * 2.2, slZ), sl < 2 ? '#00cec9' : '#74b9ff', 'slime');
+            }
+
+            // Checkpoint 2: Oasis Dumpling Squishy (Nivel 10)
+            const cp2Pos = new THREE.Vector3(0, 43.0, -164);
+            const cp2 = new Platform(13, 1.2, 13, cp2Pos, '#a29bfe', 'checkpoint');
+            cp2.checkpointId = "Oasis Dumpling (Piso 10)";
+            cp2.levelNumber = "Oasis Dumpling";
+            checkpoints.push(cp2);
+
+            // --- PISO 5: PASARELA DE NEEDOH DUMPLINGS KAWAII ---
+            for (let d = 0; d < 5; d++) {
+                const dX = (d % 2 === 0 ? -4.5 : 4.5);
+                const dZ = -173 - (d * 8.5);
+                const dY = 45.4 + d * 2.4;
+                new Platform(6.5, 3.5, 6.5, new THREE.Vector3(d === 4 ? 0 : dX, dY, dZ), null, 'dumpling');
+            }
+
+            // --- PISO 6: TORRE DE NEEDOH SUGAR BALLS ASCENDENTES ---
+            for (let b = 0; b < 5; b++) {
+                const bX = (b % 2 === 0 ? 4.0 : -4.0);
+                const bZ = -215 - (b * 8.5);
+                const bY = 57.8 + b * 2.8;
+                new Platform(6.5, 4.0, 6.5, new THREE.Vector3(b === 4 ? 0 : bX, bY, bZ), squishyColors[b % squishyColors.length], 'needoh');
+            }
+
+            // Checkpoint 3: Santuario Pop-It Cósmico (Nivel 15)
+            const cp3Pos = new THREE.Vector3(0, 72.5, -257);
+            const cp3 = new Platform(14, 1.2, 14, cp3Pos, '#fd79a8', 'checkpoint');
+            cp3.checkpointId = "Santuario Pop-It (Piso 15)";
+            cp3.levelNumber = "Santuario Pop-It";
+            checkpoints.push(cp3);
+
+            // --- PISO 7: CAMINO DE NUBES Y SLIME FINAL ---
+            for (let j = 1; j <= 3; j++) {
+                const jX = (j % 2 === 0 ? 4.5 : -4.5);
+                const jY = 74.8 + j * 2.6;
+                const jZ = -257 - (j * 8.5);
+                new Platform(7.0, 0.8, 7.0, new THREE.Vector3(jX, jY, jZ), '#74b9ff', 'slime');
+            }
+
+            // Súper Trampolín NeeDoh de lanzamiento final
+            new Platform(8.5, 1.2, 8.5, new THREE.Vector3(0, 84.5, -290), '#e74c3c', 'bounce');
+
+            // --- PISO 8: LA CIMA SUPREMA - TEMPLO CORONA ASMR NEEDOH ---
+            const finalPos = new THREE.Vector3(0, 98.0, -305);
+            goalPad = new Platform(16, 2.0, 16, finalPos, '#fdcb6e', 'goal');
+            
+            // Halo brillante sobre el podio de victoria
+            const haloGeo = new THREE.TorusGeometry(6, 0.4, 16, 32);
+            const haloMesh = new THREE.Mesh(haloGeo, new THREE.MeshBasicMaterial({ color: 0xff7675 }));
+            haloMesh.rotation.x = Math.PI / 2;
+            haloMesh.position.set(finalPos.x, finalPos.y + 6.5, finalPos.z);
+            scene.add(haloMesh);
+            decorativeObjects.push(haloMesh);
+
+            createGoalTrophy(finalPos);
+        }
+
         // --- Controles de Teclado y Mobile ---
         const keys = { w: false, a: false, s: false, d: false, space: false };
         let mouseX = 0, mouseY = 0;
@@ -1764,32 +2055,11 @@
         let baseSpeed = 14;
         let isGrounded = false;
 
-        function checkOverlaps(p, b, ignoreStep = false) {
-            const pMinX = p.x - 0.8;
-            const pMaxX = p.x + 0.8;
-            const pMinY = p.y - 2.1;
-            const pMaxY = p.y + 2.5;
-            const pMinZ = p.z - 0.6;
-            const pMaxZ = p.z + 0.6;
-
-            // Tolerancia de escalón aumentada para transicionar fluidamente entre teclas hundidas y no hundidas
-            if (ignoreStep) {
-                const stepHeight = 0.95;
-                if (b.maxY - pMinY < stepHeight) {
-                    return false;
-                }
-            }
-
-            return (pMinX < b.maxX && pMaxX > b.minX) &&
-                   (pMinY < b.maxY && pMaxY > b.minY) &&
-                   (pMinZ < b.maxZ && pMaxZ > b.minZ);
-        }
-
         function updatePhysics(timeStep) {
             if (!gameState.isPlaying) return;
 
             // En el modo Teclado: ganancia de velocidad más pausada (cada 2.5s) y suave
-            const SPEED_STEP_INTERVAL = 2.5; // Intervalo de tiempo para cada +1 de velocidad
+            const SPEED_STEP_INTERVAL = 2.5;
             if (gameState.mode === 'keyboard') {
                 gameState.speedSecondTimer += timeStep;
                 const progressPct = Math.min(100, (gameState.speedSecondTimer / SPEED_STEP_INTERVAL) * 100);
@@ -1806,7 +2076,6 @@
 
             let currentSpeed = baseSpeed;
             if (gameState.mode === 'keyboard') {
-                // Multiplicador moderado (+0.4 por nivel) para mantener precisión en giros y saltos
                 currentSpeed += gameState.speedGained * 0.4;
             }
 
@@ -1815,7 +2084,6 @@
                 currentSpeed *= 1.6;
             }
 
-            // Estela visual cuando el jugador va a alta velocidad
             if (player.trailMesh) {
                 player.trailMesh.visible = (currentSpeed > 20);
             }
@@ -1859,53 +2127,102 @@
             }
 
             const pos = player.mesh.position;
+            const prevY = pos.y;
+            const pRadius = 0.75;
+            const pHeight = 2.1;
 
-            // Eje X
+            // Eje X: Deslizamiento suave contra paredes sin atascos
             pos.x += velocity.x * timeStep;
             for (let platform of platforms) {
-                const bounds = platform.getBounds();
-                if (!bounds) continue;
-                if (checkOverlaps(pos, bounds, true)) {
-                    if (velocity.x > 0) pos.x = bounds.minX - 0.8;
-                    else if (velocity.x < 0) pos.x = bounds.maxX + 0.8;
-                    velocity.x = 0;
+                const b = platform.getBounds();
+                if (!b) continue;
+                const feetY = pos.y - pHeight;
+                const headY = pos.y + pHeight;
+                // Verificar que estemos a la altura de la pared (sin chocar con la plataforma sobre la que pisamos)
+                if (feetY < b.maxY - 0.2 && headY > b.minY + 0.2) {
+                    if (pos.z + (pRadius - 0.1) > b.minZ && pos.z - (pRadius - 0.1) < b.maxZ) {
+                        if (velocity.x > 0 && pos.x + pRadius > b.minX && pos.x < b.minX) {
+                            pos.x = b.minX - pRadius;
+                            velocity.x = 0;
+                        } else if (velocity.x < 0 && pos.x - pRadius < b.maxX && pos.x > b.maxX) {
+                            pos.x = b.maxX + pRadius;
+                            velocity.x = 0;
+                        }
+                    }
                 }
             }
 
-            // Eje Z
+            // Eje Z: Deslizamiento suave contra paredes sin atascos
             pos.z += velocity.z * timeStep;
             for (let platform of platforms) {
-                const bounds = platform.getBounds();
-                if (!bounds) continue;
-                if (checkOverlaps(pos, bounds, true)) {
-                    if (velocity.z > 0) pos.z = bounds.minZ - 0.6;
-                    else if (velocity.z < 0) pos.z = bounds.maxZ + 0.6;
-                    velocity.z = 0;
+                const b = platform.getBounds();
+                if (!b) continue;
+                const feetY = pos.y - pHeight;
+                const headY = pos.y + pHeight;
+                if (feetY < b.maxY - 0.2 && headY > b.minY + 0.2) {
+                    if (pos.x + (pRadius - 0.1) > b.minX && pos.x - (pRadius - 0.1) < b.maxX) {
+                        if (velocity.z > 0 && pos.z + pRadius > b.minZ && pos.z < b.minZ) {
+                            pos.z = b.minZ - pRadius;
+                            velocity.z = 0;
+                        } else if (velocity.z < 0 && pos.z - pRadius < b.maxZ && pos.z > b.maxZ) {
+                            pos.z = b.maxZ + pRadius;
+                            velocity.z = 0;
+                        }
+                    }
                 }
             }
 
-            // Eje Y
+            // Eje Y: Movimiento vertical seguro
             pos.y += velocity.y * timeStep;
             let onGround = false;
 
             for (let platform of platforms) {
-                const bounds = platform.getBounds();
-                if (!bounds) continue;
+                const b = platform.getBounds();
+                if (!b) continue;
                 
-                if (checkOverlaps(pos, bounds, false)) {
-                    if (velocity.y <= 0) { 
-                        // Aterrizaje firme y continuo sobre la tecla
-                        pos.y = bounds.maxY + 2.1;
+                // Margen horizontal interno para determinar si estamos verdaderamente sobre la plataforma
+                const inHorizontal = (pos.x + 0.65 > b.minX) && (pos.x - 0.65 < b.maxX) &&
+                                     (pos.z + 0.65 > b.minZ) && (pos.z - 0.65 < b.maxZ);
+
+                if (!inHorizontal) continue;
+
+                // 1. Aterrizaje firme sobre una plataforma (cuando caemos o nos movemos hacia abajo)
+                if (velocity.y <= 0) {
+                    if (prevY - pHeight >= b.maxY - 0.6 && pos.y - pHeight <= b.maxY) {
+                        pos.y = b.maxY + pHeight;
                         velocity.y = 0;
                         onGround = true;
 
-                        // Mantener la tecla presionada de forma estable con temporizador de agarre
                         platform.isBeingPressed = true;
                         platform.pressHoldTimer = 0.25;
 
                         if (!platform.wasPressed && platform.pressOffset < 0.15) {
                             playSound('key_click');
                             platform.wasPressed = true;
+                        }
+
+                        if (platform.type === 'needoh') {
+                            platform.squishAmount = 1.0;
+                            velocity.y = jumpForce * 1.42;
+                            onGround = false;
+                            playSound('needoh_squish');
+                        }
+
+                        if (platform.type === 'popit') {
+                            platform.pressHoldTimer = 0.25;
+                            playSound('pop_it');
+                        }
+
+                        if (platform.type === 'slime') {
+                            velocity.y = jumpForce * 0.95;
+                            playSound('slime');
+                        }
+
+                        if (platform.type === 'dumpling') {
+                            platform.squishAmount = 1.0;
+                            velocity.y = jumpForce * 1.35;
+                            onGround = false;
+                            playSound('needoh_squish');
                         }
 
                         if (platform.type === 'bounce') {
@@ -1924,10 +2241,13 @@
                             scene.remove(platform.mesh);
                             playSound('glass_break');
                         }
-
-                    } else if (velocity.y > 0) { 
-                        pos.y = bounds.minY - 2.5;
-                        velocity.y = -2;
+                    }
+                } 
+                // 2. Colisión de techo: ÚNICAMENTE si la cabeza venía por debajo del fondo del bloque
+                else if (velocity.y > 0) {
+                    if (prevY + pHeight <= b.minY + 0.4 && pos.y + pHeight >= b.minY) {
+                        pos.y = b.minY - pHeight;
+                        velocity.y = -1; // Frenar ascenso sin teletransportar al vacío
                     }
                 }
             }
@@ -2144,7 +2464,8 @@
                 'tower': "Tower of Hell Challenge",
                 'lava': "El Piso es Lava",
                 'rainbow': "Mega Rainbow Obby",
-                'glass': "Puente de Cristal"
+                'glass': "Puente de Cristal",
+                'asmr': "ASMR NeeDoh Tower 🎧"
             };
 
             document.getElementById('stat-mode').textContent = modeNames[gameState.mode] || "Obby Challenge";
@@ -2230,7 +2551,8 @@
                 'tower': "Modo: Tower of Hell",
                 'lava': "Modo: El Piso es Lava",
                 'rainbow': "Modo: Rainbow Obby",
-                'glass': "Modo: Puente Cristal"
+                'glass': "Modo: Puente Cristal",
+                'asmr': "Modo: ASMR NeeDoh Tower 🎧"
             };
 
             document.getElementById('game-mode-text').textContent = modeTitles[mode];
@@ -2259,6 +2581,7 @@
             else if (mode === 'lava') generateFloorIsLavaMap();
             else if (mode === 'rainbow') generateRainbowObbyMap();
             else if (mode === 'glass') generateGlassBridgeMap();
+            else if (mode === 'asmr') generateAsmrNeedohTowerMap();
 
             document.getElementById('main-menu').classList.add('hidden');
             document.getElementById('skin-modal').classList.add('hidden');
@@ -2340,9 +2663,9 @@
             }
 
             // Animación suave de rotación para las teclas decorativas flotantes del fondo
-            if (gameState.mode === 'keyboard') {
+            if (gameState.mode === 'keyboard' || gameState.mode === 'asmr') {
                 decorativeObjects.forEach((obj, idx) => {
-                    if (obj.geometry && obj.geometry.type === 'BoxGeometry' && idx > 1) {
+                    if (obj.geometry && idx > 1) {
                         obj.rotation.y += 0.005;
                         obj.rotation.x += 0.003;
                     }
@@ -2361,6 +2684,7 @@
         }
 
         // Listeners de Selección de Modo
+        document.getElementById('mode-asmr').addEventListener('click', () => startGame('asmr'));
         document.getElementById('mode-keyboard').addEventListener('click', () => startGame('keyboard'));
         document.getElementById('mode-barry').addEventListener('click', () => startGame('barry'));
         document.getElementById('mode-tower').addEventListener('click', () => startGame('tower'));
