@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>El Juego del Calamar - Suite 3D en Primera Persona</title>
+  <title>El Juego del Calamar - Suite Completa 3D</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -40,7 +40,6 @@
       font-family: 'Orbitron', monospace;
     }
 
-    /* Glows y Luces de Neón */
     .pink-glow {
       box-shadow: 0 0 25px var(--sq-pink-glow), inset 0 0 10px var(--sq-pink-glow);
     }
@@ -50,11 +49,7 @@
     .gold-glow {
       text-shadow: 0 0 15px rgba(246, 200, 59, 0.8);
     }
-    .cyan-glow {
-      box-shadow: 0 0 25px rgba(6, 182, 212, 0.5), inset 0 0 10px rgba(6, 182, 212, 0.3);
-    }
 
-    /* Animación de escaneo láser */
     @keyframes scanner-laser {
       0% { transform: translateY(0%); opacity: 0.8; }
       50% { transform: translateY(100%); opacity: 0.4; }
@@ -64,7 +59,6 @@
       animation: scanner-laser 2s infinite ease-in-out;
     }
 
-    /* Shaking de impacto y eliminación */
     @keyframes shakeScreen {
       0% { transform: translate(1px, 1px) rotate(0deg); }
       20% { transform: translate(-4px, 0px) rotate(1deg); }
@@ -77,7 +71,6 @@
       animation: shakeScreen 0.45s ease-in-out;
     }
 
-    /* Canvas 3D Viewports */
     .three-canvas-container canvas {
       display: block;
       width: 100% !important;
@@ -85,12 +78,10 @@
       outline: none;
     }
 
-    /* Barra de progreso fluida */
     .progress-bar-fill {
       transition: width 0.15s ease-out;
     }
 
-    /* Primer plano / Manos en 1ra Persona */
     @keyframes punchAnimation {
       0% { transform: translate(0, 0) scale(1); }
       50% { transform: translate(20px, -25px) scale(1.15); }
@@ -100,20 +91,67 @@
       animation: punchAnimation 0.25s ease-out;
     }
 
-    /* Efecto de dinero cayendo en la hucha */
-    @keyframes moneyDrop {
-      0% { transform: translateY(-20px) scale(0.9); opacity: 0; }
-      50% { opacity: 1; }
-      100% { transform: translateY(0) scale(1); opacity: 1; }
+    @keyframes tinFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-7px); }
     }
-    .money-anim {
-      animation: moneyDrop 0.8s ease-out;
+    .animate-tin-float {
+      animation: tinFloat 3.2s ease-in-out infinite;
+    }
+
+    @keyframes tinShake {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      20% { transform: rotate(-3deg) scale(1.02); }
+      40% { transform: rotate(3deg) scale(1.02); }
+      60% { transform: rotate(-2deg) scale(1.03); }
+      80% { transform: rotate(2deg) scale(1.03); }
+    }
+    .animate-tin-shake {
+      animation: tinShake 0.45s ease-in-out;
+    }
+
+    .tin-lid-opened {
+      transform: translateY(-110px) rotateX(75deg) scale(0.7) !important;
+      opacity: 0 !important;
+      pointer-events: none;
+    }
+
+    @keyframes guardSlideIn {
+      0% { opacity: 0; transform: translateY(16px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .animate-guard-slide {
+      animation: guardSlideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes vestFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    .animate-vest-float {
+      animation: vestFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes vestZoomIn {
+      0% { transform: scale(0.4) rotate(-8deg); opacity: 0; }
+      70% { transform: scale(1.15) rotate(2deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .animate-vest-equip {
+      animation: vestZoomIn 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes crackPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.65; transform: scale(1.08); }
+    }
+    .animate-crack-pulse {
+      animation: crackPulse 0.35s ease-in-out;
     }
   </style>
 </head>
 <body class="min-h-screen bg-slate-950 flex flex-col justify-between selection:bg-pink-600 selection:text-white">
 
-  <!-- ==================== HEADER & TOP STATS BAR ==================== -->
   <header class="w-full bg-slate-900/90 backdrop-blur border-b border-pink-900/40 sticky top-0 z-50 px-4 py-2.5">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       
@@ -153,15 +191,14 @@
     </div>
   </header>
 
-  <!-- ==================== MAIN SCREEN CONTAINER ==================== -->
   <main id="appContainer" class="flex-1 max-w-6xl w-full mx-auto p-2.5 sm:p-5 flex flex-col justify-center items-center">
 
-    <!-- 1. MENÚ PRINCIPAL: CATÁLOGO DE LOS 6 JUEGOS -->
-    <section id="screenMenu" class="w-full max-w-5xl flex flex-col items-center text-center space-y-5 py-2">
+    <!-- 1. MENÚ PRINCIPAL: CATÁLOGO DE TODOS LOS JUEGOS -->
+    <section id="screenMenu" class="w-full max-w-5xl flex flex-col items-center text-center space-y-4 py-2">
       
       <!-- Hucha Gigante (Piggy Bank) -->
-      <div class="relative w-full max-w-md py-2 flex flex-col items-center">
-        <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-tr from-yellow-600 via-yellow-400 to-amber-200 border-4 border-yellow-300 shadow-[0_0_40px_rgba(245,158,11,0.5)] flex items-center justify-center animate-bounce duration-1000">
+      <div class="relative w-full max-w-md py-1 flex flex-col items-center">
+        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-yellow-600 via-yellow-400 to-amber-200 border-4 border-yellow-300 shadow-[0_0_40px_rgba(245,158,11,0.5)] flex items-center justify-center animate-bounce duration-1000">
           <span class="text-4xl sm:text-5xl">🐷</span>
         </div>
         <div class="mt-2 text-[10px] font-squid text-pink-400 tracking-widest uppercase">Premio Final de Supervivencia</div>
@@ -173,15 +210,36 @@
       <!-- BOTÓN PRINCIPAL: VIVIR LA SERIE COMPLETA Y CONTINUA -->
       <button onclick="app.startSeriesStoryMode()" class="w-full max-w-xl py-4 bg-gradient-to-r from-pink-600 via-rose-600 to-pink-700 hover:from-pink-500 hover:to-pink-600 text-white font-squid font-black text-sm sm:text-base rounded-2xl shadow-2xl pink-glow transition-all duration-300 transform active:scale-95 flex items-center justify-center space-x-3 border-2 border-pink-400/50">
         <span>🎬</span>
-        <span>JUGAR LA SERIE COMPLETA (6 CAPÍTULOS SEGUIDOS)</span>
+        <span>JUGAR LA SERIE COMPLETA (MODO HISTORIA SEGUIDO)</span>
         <span>→</span>
       </button>
 
-      <div class="text-xs text-slate-400 font-squid tracking-wider">O SELECCIONA UN CAPÍTULO INDIVIDUAL:</div>
+      <button onclick="app.startSeriesFromPrologue()" class="w-full max-w-xl py-2.5 bg-slate-900/90 hover:bg-slate-800 text-blue-300 hover:text-blue-200 font-squid font-bold text-xs rounded-xl border border-blue-900/60 transition flex items-center justify-center space-x-2">
+        <span>🟦</span>
+        <span>O EMPEZAR DESDE EL PRÓLOGO (EL DDAKJI DEL METRO CON EL RECLUTADOR)</span>
+      </button>
 
-      <!-- Rejilla de los 6 Juegos Oficiales -->
+      <div class="text-xs text-slate-400 font-squid tracking-wider mt-1">O SELECCIONA CUALQUIER DESAFÍO INDIVIDUAL:</div>
+      
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 w-full text-left">
-        
+        <!-- Prólogo: Ddakji -->
+        <div onclick="app.startDdakji()" class="group bg-slate-900/90 border-2 border-slate-800 hover:border-blue-500 rounded-2xl p-4 transition duration-300 hover:scale-[1.02] cursor-pointer flex flex-col justify-between hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[10px] font-squid text-blue-400 bg-blue-950/80 border border-blue-800 px-2 py-0.5 rounded">PRÓLOGO</span>
+              <span class="text-2xl">🟦</span>
+            </div>
+            <h3 class="text-base font-bold font-squid text-white group-hover:text-blue-400 transition">El Ddakji del Metro</h3>
+            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+              El reclutador te reta a voltear la paleta roja. Si fallas recibirás una bofetada; si ganas obtienes ₩100,000.
+            </p>
+          </div>
+          <div class="mt-3 flex items-center justify-between text-blue-400 font-squid text-xs font-bold">
+            <span>VOLTEAR PALETAS</span>
+            <span>JUGAR →</span>
+          </div>
+        </div>
+
         <!-- Tarjeta 01: Luz Roja, Luz Verde (3D) -->
         <div onclick="app.startRedLight()" class="group bg-slate-900/90 border-2 border-slate-800 hover:border-pink-500 rounded-2xl p-4 transition duration-300 hover:scale-[1.02] cursor-pointer flex flex-col justify-between hover:shadow-[0_0_20px_rgba(255,42,112,0.3)]">
           <div>
@@ -189,13 +247,13 @@
               <span class="text-[10px] font-squid text-emerald-400 bg-emerald-950/80 border border-emerald-800 px-2 py-0.5 rounded">JUEGO 01</span>
               <span class="text-2xl">👧</span>
             </div>
-            <h3 class="text-base font-bold font-squid text-white group-hover:text-pink-400 transition">Luz Roja, Luz Verde</h3>
+            <h3 class="text-base font-bold font-squid text-white group-hover:text-pink-400 transition">Luz Roja, Luz Verde (3D)</h3>
             <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-              Corre hacia la meta 3D mientras la muñeca canta. Inmóvilate antes de que gire o los soldados dispararán.
+              Corre hacia la meta mientras la muñeca canta. Deténte antes de que gire su cabeza o serás liquidado.
             </p>
           </div>
           <div class="mt-3 flex items-center justify-between text-pink-500 font-squid text-xs font-bold">
-            <span>MOTOR 3D THREE.JS</span>
+            <span>MOTOR THREE.JS 3D</span>
             <span>JUGAR →</span>
           </div>
         </div>
@@ -209,11 +267,11 @@
             </div>
             <h3 class="text-base font-bold font-squid text-white group-hover:text-yellow-400 transition">Galleta Dalgona</h3>
             <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-              Recorta la figura de azúcar con la aguja. No raspes en zonas vacías ni quiebres la galleta.
+              Recibe tu lata sellada aleatoria por parte de los soldados y recorta con la aguja sin quebrar el azúcar.
             </p>
           </div>
           <div class="mt-3 flex items-center justify-between text-yellow-400 font-squid text-xs font-bold">
-            <span>PIXEL ACCURACY</span>
+            <span>ENTREGA & CORTE</span>
             <span>JUGAR →</span>
           </div>
         </div>
@@ -227,11 +285,11 @@
             </div>
             <h3 class="text-base font-bold font-squid text-white group-hover:text-emerald-400 transition">Tira y Afloja</h3>
             <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-              Duelo sobre las torres elevadas. Sincroniza la fuerza en la zona óptima y usa el truco del anciano.
+              Duelo en las alturas. Sincroniza la fuerza en la zona óptima y usa la técnica secreta del anciano.
             </p>
           </div>
           <div class="mt-3 flex items-center justify-between text-emerald-400 font-squid text-xs font-bold">
-            <span>RITMO & ESTAMINA</span>
+            <span>RITMO & ESTRATEGIA</span>
             <span>JUGAR →</span>
           </div>
         </div>
@@ -245,11 +303,11 @@
             </div>
             <h3 class="text-base font-bold font-squid text-white group-hover:text-purple-400 transition">Las Canicas (Ggambu)</h3>
             <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-              Apuesta tus canicas en el duelo de Par o Impar contra tu compañero antes de que se agote el tiempo.
+              Apuesta tus canicas en el duelo de Par o Impar contra tu compañero antes de quedarte a cero.
             </p>
           </div>
           <div class="mt-3 flex items-center justify-between text-purple-400 font-squid text-xs font-bold">
-            <span>PSICOLOGÍA & APUESTA</span>
+            <span>DUELO PSICOLÓGICO</span>
             <span>JUGAR →</span>
           </div>
         </div>
@@ -263,7 +321,7 @@
             </div>
             <h3 class="text-base font-bold font-squid text-cyan-300 group-hover:text-cyan-200 transition">Puente de Cristal 3D (1ª Persona)</h3>
             <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-              Perspectiva en primera persona. Eres el Jugador #04: observa a los 3 bots saltar frente a ti y cruza al abismo.
+              Perspectiva en primera persona. Eres el Jugador #04: 3 bots saltan delante revelando el abismo.
             </p>
           </div>
           <div class="mt-3 flex items-center justify-between text-cyan-400 font-squid text-xs font-bold">
@@ -281,48 +339,41 @@
             </div>
             <h3 class="text-base font-bold font-squid text-rose-300 group-hover:text-rose-200 transition">Duelo del Calamar 3D (1ª Persona)</h3>
             <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
-              Combate en primera persona en la arena bajo la lluvia. Esquiva, golpea a tu rival y conquista la cabeza del calamar.
+              Barras de vida duales, empujes y daño en combate. Si sales del cuadrado marcado pierdes al instante.
             </p>
           </div>
           <div class="mt-3 flex items-center justify-between text-rose-400 font-squid text-xs font-bold">
-            <span>3D COMBATE FPS</span>
+            <span>3D COMBATE & LÍMITES</span>
             <span>JUGAR →</span>
           </div>
         </div>
-
       </div>
-
     </section>
 
-    <!-- ==================== CINEMÁTICA / INTERLUDIO DEL DORMITORIO ==================== -->
     <section id="screenIntermission" class="hidden w-full max-w-2xl flex-col items-center text-center py-4 space-y-4">
       <div class="w-full bg-slate-900/95 border-2 border-pink-500/80 rounded-3xl p-6 sm:p-8 shadow-[0_0_45px_rgba(255,42,112,0.35)] relative overflow-hidden">
         
-        <!-- Icono de la Hucha / Dormitorio -->
-        <div class="relative w-24 h-24 mx-auto rounded-full bg-gradient-to-tr from-yellow-600 to-amber-300 border-4 border-yellow-300 shadow-[0_0_30px_rgba(245,158,11,0.6)] flex items-center justify-center mb-3">
+        <div class="relative w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-yellow-600 to-amber-300 border-4 border-yellow-300 shadow-[0_0_30px_rgba(245,158,11,0.6)] flex items-center justify-center mb-3">
           <span class="text-4xl animate-pulse">🐷</span>
           <div class="absolute -top-1 -right-1 bg-pink-600 text-white font-squid text-[10px] font-bold px-2 py-0.5 rounded-full">
             + ₩ <span id="intermissionCashAdd">100M</span>
           </div>
         </div>
 
-        <!-- Título del Episodio / Notificación del Front Man -->
         <div id="intermissionEpisodeBadge" class="text-xs font-squid text-pink-400 uppercase tracking-widest mb-1">
           CAPÍTULO COMPLETADO
         </div>
-        <h2 id="intermissionTitle" class="text-2xl sm:text-3xl font-black font-squid text-white mb-2">
+        <h2 id="intermissionTitle" class="text-xl sm:text-2xl font-black font-squid text-white mb-2">
           DESCANSO EN EL DORMITORIO
         </h2>
 
-        <!-- Cifra de Dinero Acumulada -->
-        <div class="my-3 bg-slate-950/80 border border-yellow-500/40 rounded-2xl py-3 px-4 max-w-md mx-auto">
+        <div class="my-3 bg-slate-950/80 border border-yellow-500/40 rounded-2xl py-2.5 px-4 max-w-md mx-auto">
           <div class="text-[10px] font-squid text-slate-400 uppercase tracking-wider">Dinero Total en la Hucha de Cristal</div>
           <div id="intermissionPrizeMoney" class="text-xl sm:text-2xl font-black font-squid text-yellow-400 gold-glow mt-0.5">
             ₩ 26,900,000,000
           </div>
         </div>
 
-        <!-- Estado de Supervivientes -->
         <div class="grid grid-cols-2 gap-3 max-w-md mx-auto my-3 text-left font-squid">
           <div class="bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
             <div class="text-[10px] text-slate-400">JUGADORES VIVOS</div>
@@ -334,21 +385,73 @@
           </div>
         </div>
 
-        <!-- Mensaje Narrativo del Líder / Historia -->
-        <p id="intermissionNarrative" class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-lg mx-auto italic my-4">
+        <p id="intermissionNarrative" class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-lg mx-auto italic my-3">
           "El dinero ha caído en la gran hucha. Los soldados escoltan a los sobrevivientes hacia el siguiente desafío..."
         </p>
 
-        <!-- Botón de Siguiente Desafío -->
-        <button id="btnIntermissionNext" onclick="app.proceedToNextStage()" class="w-full max-w-md py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-squid font-black text-sm sm:text-base rounded-2xl shadow-xl border border-emerald-400 transition transform active:scale-95 flex items-center justify-center space-x-2 mx-auto">
-          <span id="intermissionNextBtnText">ENTRAR AL JUEGO 02: LA GALLETA DALGONA</span>
+        <button id="btnIntermissionNext" onclick="app.proceedToNextStage()" class="w-full max-w-md py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-squid font-black text-xs sm:text-sm rounded-2xl shadow-xl border border-emerald-400 transition transform active:scale-95 flex items-center justify-center space-x-2 mx-auto">
+          <span id="intermissionNextBtnText">CONTINUAR AL SIGUIENTE DESAFÍO</span>
           <span>→</span>
         </button>
 
       </div>
     </section>
 
-    <!-- 2. JUEGO 1: LUZ ROJA, LUZ VERDE (THREE.JS 3D) -->
+    <section id="screenDdakji" class="hidden w-full max-w-2xl flex-col items-center">
+      <div class="w-full flex items-center justify-between bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl mb-3">
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-squid text-blue-400 bg-blue-950 px-2 py-0.5 rounded border border-blue-800">ANDÉN DEL METRO</span>
+        </div>
+        <div class="flex items-center space-x-3 text-xs">
+          <div class="text-slate-400">Bofetadas recibidas: <span id="ddakjiSlapsCount" class="font-squid font-bold text-rose-400">0 / 3</span></div>
+          <button onclick="app.quitToMenu()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded font-squid">
+            SALIR
+          </button>
+        </div>
+      </div>
+
+      <div class="w-full bg-slate-950 border-2 border-blue-900/50 rounded-2xl p-5 relative overflow-hidden shadow-2xl flex flex-col items-center">
+        <div class="w-full bg-slate-900/80 border border-slate-700 p-3 rounded-xl mb-4 text-center">
+          <p id="recruiterSpeech" class="text-xs text-blue-200 italic font-medium">
+            "¿Un juego de Ddakji, señor Gi-hun? Si voltea mi paleta roja gana ₩100,000. Si falla, pagará con su cuerpo..."
+          </p>
+        </div>
+
+        <div class="relative w-full h-44 bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-xl flex items-center justify-center overflow-hidden">
+          <div id="redDdakji" class="w-20 h-20 bg-rose-600 border-4 border-rose-300 shadow-2xl rounded-sm transform rotate-6 transition-all duration-500 flex items-center justify-center font-squid font-black text-rose-100 text-xs">
+            ROJO
+          </div>
+          <div id="blueDdakji" class="absolute -bottom-24 w-20 h-20 bg-blue-600 border-4 border-blue-300 shadow-2xl rounded-sm opacity-0 transition-all duration-300 flex items-center justify-center font-squid font-black text-blue-100 text-xs">
+            AZUL
+          </div>
+          <div id="slapEffectOverlay" class="absolute inset-0 bg-red-600/50 pointer-events-none opacity-0 transition-opacity duration-150 flex items-center justify-center font-squid text-white font-black text-2xl">
+            ¡BOFETADA!
+          </div>
+        </div>
+
+        <div class="w-full max-w-md mt-4 flex flex-col items-center">
+          <div class="flex justify-between w-full text-[11px] font-squid text-slate-300 mb-1">
+            <span>Potencia de Lanzamiento:</span>
+            <span id="ddakjiPowerText" class="text-yellow-400 font-bold">0%</span>
+          </div>
+          <div class="w-full h-5 bg-slate-800 border border-slate-700 rounded-full relative overflow-hidden">
+            <div class="absolute left-[78%] right-[8%] top-0 bottom-0 bg-emerald-500/40 border-x-2 border-emerald-400 flex items-center justify-center text-[8px] font-squid text-emerald-300 font-bold">
+              ZONA IMPACTO
+            </div>
+            <div id="ddakjiPowerNeedle" class="absolute top-0 bottom-0 w-2.5 bg-yellow-400 shadow-[0_0_10px_#facc15] left-0"></div>
+          </div>
+        </div>
+
+        <button id="btnDdakjiThrow" onclick="ddakjiGame.throwTile()" class="w-full max-w-xs mt-4 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 text-white font-squid font-black text-sm rounded-xl shadow-lg border border-blue-400 active:scale-95 transition">
+          🖐️ ¡ARROJAR PALETA AZUL!
+        </button>
+
+        <p id="ddakjiFeedback" class="text-xs font-squid text-yellow-400 mt-2.5 h-4 text-center">
+          Presiona 'ARROJAR' cuando la aguja esté en la ZONA DE IMPACTO (78% - 92%).
+        </p>
+      </div>
+    </section>
+
     <section id="screenRedLight" class="hidden w-full flex-col items-center">
       <div class="w-full flex flex-wrap items-center justify-between bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl mb-2.5 gap-2">
         <div class="flex items-center space-x-2.5">
@@ -371,7 +474,6 @@
         </div>
       </div>
 
-      <!-- Viewport 3D -->
       <div class="relative w-full h-[52vh] min-h-[350px] max-h-[500px] bg-slate-950 rounded-2xl overflow-hidden border-2 border-slate-800 shadow-2xl three-canvas-container">
         <div id="threeJsContainer" class="w-full h-full"></div>
         
@@ -398,9 +500,67 @@
       </div>
     </section>
 
-    <!-- 3. JUEGO 2: LA GALLETA DALGONA (HTML5 CANVAS) -->
     <section id="screenDalgona" class="hidden w-full max-w-2xl flex-col items-center">
-      <div id="dalgonaShapePicker" class="w-full bg-slate-900 border-2 border-yellow-600/40 rounded-2xl p-5 text-center">
+      
+      <!-- CINEMÁTICA: ENTREGA DE LA LATA DE HOJALATA ALEATORIA -->
+      <div id="dalgonaDeliveryView" class="w-full bg-slate-900/95 border-2 border-yellow-600/50 rounded-3xl p-5 sm:p-7 text-center shadow-[0_0_40px_rgba(234,179,8,0.25)] relative overflow-hidden animate-guard-slide">
+        
+        <div class="flex items-center justify-center space-x-3 mb-3">
+          <div class="w-12 h-12 rounded-full bg-pink-600 border-2 border-pink-300 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,42,112,0.6)]">
+            <span class="w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-b-[14px] border-b-white inline-block"></span>
+          </div>
+          <div class="text-left">
+            <div class="text-[10px] font-squid text-pink-400 uppercase tracking-widest font-bold">SOLDADO ROSA △ #029</div>
+            <div class="text-xs text-slate-300 italic">"Jugador 456, tome su lata sellada. Su figura ha sido asignada al azar..."</div>
+          </div>
+        </div>
+
+        <h2 id="deliveryTitle" class="text-lg sm:text-xl font-black font-squid text-yellow-400 gold-glow mb-2">
+          LA CAJA DE HOJALATA MISTERIOSA
+        </h2>
+
+        <div class="relative w-52 h-52 sm:w-60 sm:h-60 mx-auto my-3 flex items-center justify-center cursor-pointer group" onclick="dalgonaGame.openTinCan()">
+          <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-amber-950 via-yellow-950 to-amber-900 border-4 border-amber-600/80 shadow-2xl flex flex-col items-center justify-center p-3">
+            <div id="revealedCookiePreview" class="w-36 h-36 rounded-full bg-gradient-to-tr from-amber-600 via-yellow-500 to-amber-400 border-4 border-amber-800/60 shadow-inner flex items-center justify-center">
+              <span id="revealedCookieShapeSymbol" class="text-5xl font-black text-amber-950 transition-transform duration-500">?</span>
+            </div>
+          </div>
+
+          <div id="dalgonaTinLid" class="absolute inset-0 rounded-full bg-gradient-to-b from-slate-300 via-amber-200 to-slate-400 border-4 border-yellow-400 shadow-[0_10px_35px_rgba(0,0,0,0.8)] flex flex-col items-center justify-center transition-all duration-700 z-10 animate-tin-float">
+            <div class="flex items-center space-x-2 text-slate-800/80 font-black text-sm mb-1">
+              <span>○</span>
+              <span>△</span>
+              <span>▢</span>
+            </div>
+            <div class="text-[11px] font-squid text-slate-900 font-black tracking-widest uppercase bg-yellow-400/80 px-3 py-1 rounded-full border border-yellow-600 shadow">
+              LATA SELLADA
+            </div>
+            <div class="mt-2 text-[9px] font-squid text-slate-700 animate-pulse">
+              👆 TOCA PARA ABRIR
+            </div>
+          </div>
+        </div>
+
+        <div id="deliveryShapeResult" class="min-h-[52px] flex flex-col items-center justify-center">
+          <p class="text-xs text-slate-400 font-squid">
+            Haz clic o toca la lata para romper el precinto y descubrir qué dulce te tocó.
+          </p>
+        </div>
+
+        <div class="mt-3 flex flex-col sm:flex-row items-center justify-center gap-2">
+          <button id="btnOpenTinBox" onclick="dalgonaGame.openTinCan()" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 font-squid font-black text-xs sm:text-sm rounded-xl shadow-lg border border-yellow-300 active:scale-95 transition flex items-center justify-center space-x-2">
+            <span>🔓</span>
+            <span id="btnOpenTinText">ABRIR LATA DE METAL</span>
+          </button>
+          
+          <button onclick="dalgonaGame.showManualPicker()" class="text-[11px] text-slate-400 hover:text-yellow-400 font-squid py-1 px-3 transition underline">
+            O elegir figura manualmente
+          </button>
+        </div>
+      </div>
+
+      <!-- SELECTOR MANUAL OPCIONAL -->
+      <div id="dalgonaShapePicker" class="hidden w-full bg-slate-900 border-2 border-yellow-600/40 rounded-2xl p-5 text-center">
         <div class="text-xs font-squid text-yellow-400 tracking-wider uppercase mb-1">Desafío de la Galleta de Azúcar</div>
         <h2 class="text-xl sm:text-2xl font-black font-squid text-white mb-5">ELIGE TU FIGURA</h2>
         
@@ -428,6 +588,7 @@
         </div>
       </div>
 
+      <!-- ÁREA DE JUEGO CANVAS -->
       <div id="dalgonaGameArea" class="hidden w-full flex-col items-center">
         <div class="w-full flex items-center justify-between bg-slate-900 border border-slate-800 p-2.5 rounded-xl mb-2.5">
           <div class="flex items-center space-x-2 text-xs">
@@ -443,6 +604,31 @@
             <button onclick="app.quitToMenu()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded font-squid">
               SALIR
             </button>
+          </div>
+        </div>
+
+        <!-- Indicador de Resistencia de la Galleta (3 Oportunidades) -->
+        <div class="w-full max-w-md bg-slate-900/90 border border-slate-700/80 rounded-xl p-2.5 mb-2.5 flex flex-col items-center">
+          <div class="flex items-center justify-between w-full text-[11px] font-squid mb-1.5">
+            <span class="text-slate-400 uppercase tracking-wider">Integridad de la Galleta:</span>
+            <span id="dalgonaCracksCountText" class="text-emerald-400 font-bold">0 / 3 FISURAS</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 w-full">
+            <div id="dalgonaStrikeSlot1" class="bg-slate-800 border-2 border-emerald-500/50 rounded-lg py-1 px-2 text-center text-[10px] font-squid font-bold text-emerald-300 transition-all flex items-center justify-center space-x-1">
+              <span>🍪</span>
+              <span id="strikeText1">INTACTA</span>
+            </div>
+            <div id="dalgonaStrikeSlot2" class="bg-slate-800 border-2 border-emerald-500/50 rounded-lg py-1 px-2 text-center text-[10px] font-squid font-bold text-emerald-300 transition-all flex items-center justify-center space-x-1">
+              <span>🍪</span>
+              <span id="strikeText2">INTACTA</span>
+            </div>
+            <div id="dalgonaStrikeSlot3" class="bg-slate-800 border-2 border-emerald-500/50 rounded-lg py-1 px-2 text-center text-[10px] font-squid font-bold text-emerald-300 transition-all flex items-center justify-center space-x-1">
+              <span>🍪</span>
+              <span id="strikeText3">INTACTA</span>
+            </div>
+          </div>
+          <div id="dalgonaCrackFeedback" class="text-[11px] font-squid text-slate-300 mt-1.5 text-center transition-colors">
+            Raspa sobre la silueta. Dispones de 3 advertencias antes de que se fracture por completo.
           </div>
         </div>
 
@@ -465,7 +651,6 @@
       </div>
     </section>
 
-    <!-- 4. JUEGO 3: TIRA Y AFLOJA (TUG OF WAR) -->
     <section id="screenTugOfWar" class="hidden w-full max-w-2xl flex-col items-center">
       <div class="w-full flex items-center justify-between bg-slate-900 border border-slate-800 p-2.5 rounded-xl mb-3">
         <div class="flex items-center space-x-2">
@@ -518,7 +703,6 @@
       </div>
     </section>
 
-    <!-- 5. JUEGO 4: LAS CANICAS (MARBLES) -->
     <section id="screenMarbles" class="hidden w-full max-w-2xl flex-col items-center">
       <div class="w-full flex items-center justify-between bg-slate-900 border border-slate-800 p-2.5 rounded-xl mb-3">
         <div class="flex items-center space-x-2">
@@ -564,87 +748,203 @@
       </div>
     </section>
 
-    <!-- 6. JUEGO 5: EL PUENTE DE CRISTAL 3D EN PRIMERA PERSONA (THREE.JS 3D FPS) -->
     <section id="screenGlassBridge" class="hidden w-full max-w-4xl flex-col items-center">
-      
-      <!-- Barra superior de estado -->
-      <div class="w-full flex flex-wrap items-center justify-between bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl mb-2.5 gap-2">
-        <div class="flex items-center space-x-2.5">
-          <span class="text-xs font-squid text-cyan-400 bg-cyan-950 px-2.5 py-0.5 rounded border border-cyan-800">
-            PASO <span id="currentBridgeStep">1</span> / 6
-          </span>
-          <span id="bridgeTurnStatus" class="font-squid text-xs font-bold text-yellow-400 bg-yellow-950/60 px-2.5 py-0.5 rounded border border-yellow-800/60">
-            TURNO: BOT #096
-          </span>
-        </div>
-
-        <div class="flex items-center space-x-3 text-xs">
-          <div class="text-slate-400">
-            Tiempo: <span id="bridgeTimer" class="font-squid font-bold text-yellow-400">60s</span>
+      <!-- 1. SALA DE MANIQUÍES Y ELECCIÓN DE CHALECO NUMERADO -->
+      <div id="bridgeVestPickerView" class="w-full bg-slate-900/95 border-2 border-cyan-500/50 rounded-3xl p-5 sm:p-7 text-center shadow-[0_0_40px_rgba(6,182,212,0.25)] relative overflow-hidden animate-guard-slide">
+        
+        <div class="flex items-center justify-center space-x-3 mb-3">
+          <div class="w-12 h-12 rounded-full bg-pink-600 border-2 border-pink-300 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,42,112,0.6)]">
+            <span class="w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-b-[14px] border-b-white inline-block"></span>
           </div>
-          <button onclick="app.quitToMenu()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded font-squid">
-            SALIR
-          </button>
-        </div>
-      </div>
-
-      <!-- Fila de Orden de Jugadores (Solo 3 bots delante: Tú eres el #04) -->
-      <div class="w-full bg-slate-900/80 border border-slate-800 rounded-xl p-2 mb-2.5">
-        <div class="text-[10px] font-squid text-slate-400 uppercase tracking-wider mb-1 flex justify-between">
-          <span>Cola de Saltadores (Tú eres el #04)</span>
-          <span id="bridgeQueueStatus" class="text-cyan-400">3 competidores delante</span>
-        </div>
-        <div id="bridgePlayersQueue" class="flex items-center space-x-2 overflow-x-auto py-0.5">
-          <!-- Generado dinámicamente -->
-        </div>
-      </div>
-
-      <!-- Canvas 3D First Person Viewport -->
-      <div class="relative w-full h-[50vh] min-h-[350px] max-h-[500px] bg-slate-950 rounded-2xl overflow-hidden border-2 border-cyan-800/60 shadow-[0_0_30px_rgba(6,182,212,0.25)] three-canvas-container">
-        <div id="threeBridgeContainer" class="w-full h-full"></div>
-
-        <!-- Mira / HUD en Primera Persona -->
-        <div class="absolute inset-0 pointer-events-none flex flex-col justify-between p-3.5">
-          <div class="flex justify-between items-center text-[11px] font-squid text-cyan-300 bg-black/60 px-3 py-1 rounded-full border border-cyan-500/30 w-fit mx-auto">
-            <span>👁️ VISTA EN PRIMERA PERSONA - PUENTE A 60M</span>
+          <div class="text-left">
+            <div class="text-[10px] font-squid text-pink-400 uppercase tracking-widest font-bold">SOLDADO ROSA △ #011</div>
+            <div class="text-xs text-slate-300 italic">"Jugadores, acérquense a los maniquíes y elijan su chaleco numerado. Su elección determinará el orden para cruzar el puente."</div>
           </div>
+        </div>
 
-          <!-- Indicador de Panel Izq / Der en pantalla -->
-          <div class="flex justify-between items-center px-4 sm:px-12 text-xs font-squid font-bold">
-            <div class="bg-cyan-950/80 border border-cyan-400/50 text-cyan-300 px-3 py-1 rounded-lg backdrop-blur">
-              ◀ PANEL IZQUIERDO
+        <h2 class="text-lg sm:text-2xl font-black font-squid text-cyan-300 gold-glow mb-1">
+          SALA DE MANIQUÍES: ELIGE TU NÚMERO
+        </h2>
+        <p class="text-xs text-slate-400 max-w-xl mx-auto mb-4 font-squid">
+          Los primeros saltadores enfrentan el abismo sin pistas. Los últimos tienen más información de los paneles rotos.
+        </p>
+
+        <!-- Grid de Maniquíes con Chalecos #1 al #8 -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto mb-4">
+          <!-- Maniquí 1 -->
+          <div onclick="bridge3D.selectVest(1)" class="group bg-slate-950 border-2 border-slate-700 hover:border-red-500 rounded-2xl p-3 cursor-pointer transition-all hover:scale-105 flex flex-col items-center hover:shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+            <div class="w-12 h-16 bg-gradient-to-b from-slate-700 to-slate-900 rounded-t-xl border border-slate-600 flex flex-col items-center justify-center relative mb-1.5 animate-vest-float">
+              <div class="w-4 h-4 rounded-full bg-slate-600 -mt-2 mb-1"></div>
+              <div class="bg-red-600 text-white font-squid font-black text-xs px-2 py-0.5 rounded shadow">01</div>
             </div>
-            <div class="bg-cyan-950/80 border border-cyan-400/50 text-cyan-300 px-3 py-1 rounded-lg backdrop-blur">
-              PANEL DERECHO ▶
+            <span class="font-squid font-bold text-xs text-white group-hover:text-red-400">CHALECO #01</span>
+            <span class="text-[9px] font-squid text-red-400 mt-0.5">1º SALTO (EXTREMO)</span>
+          </div>
+
+          <!-- Maniquí 2 -->
+          <div onclick="bridge3D.selectVest(2)" class="group bg-slate-950 border-2 border-slate-700 hover:border-orange-500 rounded-2xl p-3 cursor-pointer transition-all hover:scale-105 flex flex-col items-center hover:shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+            <div class="w-12 h-16 bg-gradient-to-b from-slate-700 to-slate-900 rounded-t-xl border border-slate-600 flex flex-col items-center justify-center relative mb-1.5 animate-vest-float" style="animation-delay: 0.2s">
+              <div class="w-4 h-4 rounded-full bg-slate-600 -mt-2 mb-1"></div>
+              <div class="bg-orange-600 text-white font-squid font-black text-xs px-2 py-0.5 rounded shadow">02</div>
             </div>
+            <span class="font-squid font-bold text-xs text-white group-hover:text-orange-400">CHALECO #02</span>
+            <span class="text-[9px] font-squid text-orange-400 mt-0.5">1 BOT DELANTE</span>
           </div>
 
-          <div id="bridgeFeedbackBanner" class="text-center text-xs font-squid text-yellow-400 bg-black/70 py-1 px-4 rounded-full border border-yellow-500/30 mx-auto">
-            Observando el salto del bot...
+          <!-- Maniquí 3 -->
+          <div onclick="bridge3D.selectVest(3)" class="group bg-slate-950 border-2 border-slate-700 hover:border-yellow-500 rounded-2xl p-3 cursor-pointer transition-all hover:scale-105 flex flex-col items-center hover:shadow-[0_0_20px_rgba(234,179,8,0.4)]">
+            <div class="w-12 h-16 bg-gradient-to-b from-slate-700 to-slate-900 rounded-t-xl border border-slate-600 flex flex-col items-center justify-center relative mb-1.5 animate-vest-float" style="animation-delay: 0.4s">
+              <div class="w-4 h-4 rounded-full bg-slate-600 -mt-2 mb-1"></div>
+              <div class="bg-yellow-600 text-white font-squid font-black text-xs px-2 py-0.5 rounded shadow">03</div>
+            </div>
+            <span class="font-squid font-bold text-xs text-white group-hover:text-yellow-400">CHALECO #03</span>
+            <span class="text-[9px] font-squid text-yellow-400 mt-0.5">2 BOTS DELANTE</span>
+          </div>
+
+          <!-- Maniquí 4 (Equilibrado clásico) -->
+          <div onclick="bridge3D.selectVest(4)" class="group bg-slate-950 border-2 border-cyan-500/70 hover:border-cyan-400 rounded-2xl p-3 cursor-pointer transition-all hover:scale-105 flex flex-col items-center shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)]">
+            <div class="w-12 h-16 bg-gradient-to-b from-slate-700 to-slate-900 rounded-t-xl border border-cyan-400 flex flex-col items-center justify-center relative mb-1.5 animate-vest-float" style="animation-delay: 0.6s">
+              <div class="w-4 h-4 rounded-full bg-slate-600 -mt-2 mb-1"></div>
+              <div class="bg-cyan-600 text-white font-squid font-black text-xs px-2 py-0.5 rounded shadow">04</div>
+            </div>
+            <span class="font-squid font-bold text-xs text-cyan-300 group-hover:text-cyan-200">CHALECO #04</span>
+            <span class="text-[9px] font-squid text-cyan-400 mt-0.5 font-bold">3 BOTS DELANTE</span>
+          </div>
+
+          <!-- Maniquí 5 -->
+          <div onclick="bridge3D.selectVest(5)" class="group bg-slate-950 border-2 border-slate-700 hover:border-emerald-500 rounded-2xl p-3 cursor-pointer transition-all hover:scale-105 flex flex-col items-center hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+            <div class="w-12 h-16 bg-gradient-to-b from-slate-700 to-slate-900 rounded-t-xl border border-slate-600 flex flex-col items-center justify-center relative mb-1.5 animate-vest-float" style="animation-delay: 0.8s">
+              <div class="w-4 h-4 rounded-full bg-slate-600 -mt-2 mb-1"></div>
+              <div class="bg-emerald-600 text-white font-squid font-black text-xs px-2 py-0.5 rounded shadow">05</div>
+            </div>
+            <span class="font-squid font-bold text-xs text-white group-hover:text-emerald-400">CHALECO #05</span>
+            <span class="text-[9px] font-squid text-emerald-400 mt-0.5">4 BOTS DELANTE</span>
+          </div>
+
+          <!-- Maniquí 6 -->
+          <div onclick="bridge3D.selectVest(6)" class="group bg-slate-950 border-2 border-slate-700 hover:border-teal-500 rounded-2xl p-3 cursor-pointer transition-all hover:scale-105 flex flex-col items-center hover:shadow-[0_0_20px_rgba(20,184,166,0.4)]">
+            <div class="w-12 h-16 bg-gradient-to-b from-slate-700 to-slate-900 rounded-t-xl border border-slate-600 flex flex-col items-center justify-center relative mb-1.5 animate-vest-float" style="animation-delay: 1.0s">
+              <div class="w-4 h-4 rounded-full bg-slate-600 -mt-2 mb-1"></div>
+              <div class="bg-teal-600 text-white font-squid font-black text-xs px-2 py-0.5 rounded shadow">06</div>
+            </div>
+            <span class="font-squid font-bold text-xs text-white group-hover:text-teal-400">CHALECO #06</span>
+            <span class="text-[9px] font-squid text-teal-400 mt-0.5">5 BOTS DELANTE</span>
+          </div>
+
+          <!-- Maniquí 7 -->
+          <div onclick="bridge3D.selectVest(7)" class="group bg-slate-950 border-2 border-slate-700 hover:border-blue-500 rounded-2xl p-3 cursor-pointer transition-all hover:scale-105 flex flex-col items-center hover:shadow-[0_0_20px_rgba(59,130,246,0.4)]">
+            <div class="w-12 h-16 bg-gradient-to-b from-slate-700 to-slate-900 rounded-t-xl border border-slate-600 flex flex-col items-center justify-center relative mb-1.5 animate-vest-float" style="animation-delay: 1.2s">
+              <div class="w-4 h-4 rounded-full bg-slate-600 -mt-2 mb-1"></div>
+              <div class="bg-blue-600 text-white font-squid font-black text-xs px-2 py-0.5 rounded shadow">07</div>
+            </div>
+            <span class="font-squid font-bold text-xs text-white group-hover:text-blue-400">CHALECO #07</span>
+            <span class="text-[9px] font-squid text-blue-400 mt-0.5">6 BOTS DELANTE</span>
+          </div>
+
+          <!-- Maniquí 8 (Último saltador) -->
+          <div onclick="bridge3D.selectVest(8)" class="group bg-slate-950 border-2 border-slate-700 hover:border-purple-500 rounded-2xl p-3 cursor-pointer transition-all hover:scale-105 flex flex-col items-center hover:shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+            <div class="w-12 h-16 bg-gradient-to-b from-slate-700 to-slate-900 rounded-t-xl border border-purple-400 flex flex-col items-center justify-center relative mb-1.5 animate-vest-float" style="animation-delay: 1.4s">
+              <div class="w-4 h-4 rounded-full bg-slate-600 -mt-2 mb-1"></div>
+              <div class="bg-purple-600 text-white font-squid font-black text-xs px-2 py-0.5 rounded shadow">08</div>
+            </div>
+            <span class="font-squid font-bold text-xs text-white group-hover:text-purple-400">CHALECO #08</span>
+            <span class="text-[9px] font-squid text-purple-400 mt-0.5">ÚLTIMO SALTO</span>
           </div>
         </div>
-      </div>
 
-      <!-- Controles de Salto en Primera Persona -->
-      <div id="bridgeActionControls" class="w-full max-w-md mt-3 flex flex-col items-center gap-2">
-        <div id="bridgePlayerChoiceBtns" class="grid grid-cols-2 gap-3 w-full hidden">
-          <button onclick="bridge3D.playerJump('L')" class="py-3.5 bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-500 text-white font-squid font-black text-xs sm:text-sm rounded-xl shadow-lg border border-cyan-400 active:scale-95 transition">
-            👈 SALTAR AL CRISTAL IZQ
-          </button>
-          <button onclick="bridge3D.playerJump('R')" class="py-3.5 bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-500 text-white font-squid font-black text-xs sm:text-sm rounded-xl shadow-lg border border-cyan-400 active:scale-95 transition">
-            SALTAR AL CRISTAL DER 👉
-          </button>
-        </div>
-
-        <button id="btnTriggerBotJump" onclick="bridge3D.stepBotForward()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-squid font-bold text-xs rounded-xl transition flex items-center justify-center space-x-2">
-          <span>⏩</span>
-          <span>ORDENAR SIGUIENTE SALTO AL BOT</span>
+        <!-- Botón de Elección Rápida -->
+        <button onclick="bridge3D.selectVest(Math.floor(Math.random() * 8) + 1)" class="text-xs font-squid text-cyan-300 hover:text-cyan-200 underline">
+          🎲 O elegir chaleco al azar como Gi-hun
         </button>
+
+        <!-- Overlay Cinemático de Equipar Chaleco -->
+        <div id="vestEquipOverlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md hidden flex-col items-center justify-center z-20">
+          <div class="w-28 h-36 bg-gradient-to-b from-emerald-600 to-teal-800 rounded-2xl border-4 border-yellow-400 shadow-[0_0_40px_rgba(234,179,8,0.6)] flex flex-col items-center justify-center animate-vest-equip mb-3">
+            <div class="text-[10px] font-squid text-yellow-300 font-bold tracking-widest uppercase">CHALECO</div>
+            <div id="equippedVestNumberDisplay" class="text-5xl font-black font-squid text-white gold-glow my-1">04</div>
+            <div class="text-[9px] font-squid text-emerald-200">JUGADOR 456</div>
+          </div>
+          <h3 class="text-base sm:text-xl font-black font-squid text-white mb-1">
+            ¡HAS ELEGIDO EL CHALECO #<span id="equippedVestNumText">04</span>!
+          </h3>
+          <p id="equippedVestOrderDesc" class="text-xs text-slate-300 font-squid">
+            Tienes 3 bots por delante en la cola de salto.
+          </p>
+        </div>
+
       </div>
 
+      <!-- 2. PANTALLA PRINCIPAL DEL JUEGO DEL PUENTE (3D) -->
+      <div id="bridgePlayArea" class="hidden w-full flex-col items-center">
+        <div class="w-full flex flex-wrap items-center justify-between bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl mb-2.5 gap-2">
+          <div class="flex items-center space-x-2.5">
+            <span class="text-xs font-squid text-cyan-400 bg-cyan-950 px-2.5 py-0.5 rounded border border-cyan-800">
+              PASO <span id="currentBridgeStep">1</span> / 20
+            </span>
+            <span id="bridgeTurnStatus" class="font-squid text-xs font-bold text-yellow-400 bg-yellow-950/60 px-2.5 py-0.5 rounded border border-yellow-800/60">
+              TURNO: BOT #096
+            </span>
+          </div>
+
+          <div class="flex items-center space-x-3 text-xs">
+            <div class="text-slate-400">
+              Tiempo: <span id="bridgeTimer" class="font-squid font-bold text-yellow-400">120s</span>
+            </div>
+            <button onclick="app.quitToMenu()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded font-squid">
+              SALIR
+            </button>
+          </div>
+        </div>
+
+        <div class="w-full bg-slate-900/80 border border-slate-800 rounded-xl p-2 mb-2.5">
+          <div class="text-[10px] font-squid text-slate-400 uppercase tracking-wider mb-1 flex justify-between">
+            <span id="bridgeQueueLabel">Cola de Saltadores (Tú eres el #04)</span>
+            <span id="bridgeQueueStatus" class="text-cyan-400">3 competidores delante</span>
+          </div>
+          <div id="bridgePlayersQueue" class="flex items-center space-x-2 overflow-x-auto py-0.5"></div>
+        </div>
+
+        <div class="relative w-full h-[50vh] min-h-[350px] max-h-[500px] bg-slate-950 rounded-2xl overflow-hidden border-2 border-cyan-800/60 shadow-[0_0_30px_rgba(6,182,212,0.25)] three-canvas-container">
+          <div id="threeBridgeContainer" class="w-full h-full"></div>
+
+          <div class="absolute inset-0 pointer-events-none flex flex-col justify-between p-3.5">
+            <div class="flex justify-between items-center text-[11px] font-squid text-cyan-300 bg-black/60 px-3 py-1 rounded-full border border-cyan-500/30 w-fit mx-auto">
+              <span>👁️ VISTA EN PRIMERA PERSONA - PUENTE A 60M</span>
+            </div>
+
+            <div class="flex justify-between items-center px-4 sm:px-12 text-xs font-squid font-bold">
+              <div class="bg-cyan-950/80 border border-cyan-400/50 text-cyan-300 px-3 py-1 rounded-lg backdrop-blur">
+                ◀ PANEL IZQUIERDO
+              </div>
+              <div class="bg-cyan-950/80 border border-cyan-400/50 text-cyan-300 px-3 py-1 rounded-lg backdrop-blur">
+                PANEL DERECHO ▶
+              </div>
+            </div>
+
+            <div id="bridgeFeedbackBanner" class="text-center text-xs font-squid text-yellow-400 bg-black/70 py-1 px-4 rounded-full border border-yellow-500/30 mx-auto">
+              Observando el salto del bot...
+            </div>
+          </div>
+        </div>
+
+        <div id="bridgeActionControls" class="w-full max-w-md mt-3 flex flex-col items-center gap-2">
+          <div id="bridgePlayerChoiceBtns" class="grid grid-cols-2 gap-3 w-full hidden">
+            <button onclick="bridge3D.playerJump('L')" class="py-3.5 bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-500 text-white font-squid font-black text-xs sm:text-sm rounded-xl shadow-lg border border-cyan-400 active:scale-95 transition">
+              👈 SALTAR AL CRISTAL IZQ
+            </button>
+            <button onclick="bridge3D.playerJump('R')" class="py-3.5 bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-500 text-white font-squid font-black text-xs sm:text-sm rounded-xl shadow-lg border border-cyan-400 active:scale-95 transition">
+              SALTAR AL CRISTAL DER 👉
+            </button>
+          </div>
+
+          <button id="btnTriggerBotJump" onclick="bridge3D.stepBotForward()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-squid font-bold text-xs rounded-xl transition flex items-center justify-center space-x-2">
+            <span>⏩</span>
+            <span>ORDENAR SIGUIENTE SALTO AL BOT</span>
+          </button>
+        </div>
+      </div>
     </section>
 
-    <!-- 7. JUEGO 6: EL DUELO FINAL DEL CALAMAR 3D EN PRIMERA PERSONA (THREE.JS 3D FPS COMBAT) -->
     <section id="screenSquidFinal" class="hidden w-full max-w-4xl flex-col items-center">
       <div class="w-full flex flex-wrap items-center justify-between bg-slate-900/90 border border-slate-800 p-2.5 rounded-xl mb-2.5 gap-2">
         <div class="flex items-center space-x-2.5">
@@ -652,7 +952,6 @@
           <span id="squidArenaZoneBadge" class="text-[11px] font-squid text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800">DENTRO DEL CUADRADO</span>
         </div>
         <div class="flex items-center space-x-3 text-xs">
-          <!-- Vida Jugador -->
           <div class="flex items-center space-x-1.5">
             <span class="text-slate-400">Tú:</span>
             <div class="w-16 bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
@@ -661,7 +960,6 @@
             <span id="squidPlayerHp" class="font-squid font-bold text-emerald-400">100 HP</span>
           </div>
 
-          <!-- Vida Rival -->
           <div class="flex items-center space-x-1.5">
             <span class="text-slate-400">Rival:</span>
             <div class="w-16 bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
@@ -677,39 +975,31 @@
         </div>
       </div>
 
-      <!-- Viewport 3D del Duelo en Primera Persona -->
       <div class="relative w-full h-[52vh] min-h-[360px] max-h-[500px] bg-slate-950 rounded-2xl overflow-hidden border-2 border-rose-900/60 shadow-[0_0_30px_rgba(244,63,94,0.3)] three-canvas-container">
         <div id="threeSquidDuelContainer" class="w-full h-full"></div>
 
-        <!-- Destello Rojo al recibir daño -->
         <div id="squidDamageFlash" class="absolute inset-0 bg-red-600/40 pointer-events-none opacity-0 transition-opacity duration-150"></div>
 
-        <!-- Manos / Guantes en Primera Persona (HUD) -->
         <div id="fpsArmsOverlay" class="absolute inset-0 pointer-events-none flex justify-between items-end px-10 pb-2">
-          <!-- Mano Izquierda -->
           <div id="leftFist" class="w-16 h-20 bg-gradient-to-t from-emerald-800 to-emerald-600 rounded-t-2xl border-2 border-emerald-400 shadow-lg transform -rotate-12 opacity-85 transition-transform"></div>
-          <!-- Mano Derecha -->
           <div id="rightFist" class="w-16 h-20 bg-gradient-to-t from-emerald-800 to-emerald-600 rounded-t-2xl border-2 border-emerald-400 shadow-lg transform rotate-12 opacity-85 transition-transform"></div>
         </div>
 
-        <!-- Mira Central & Banner de Objetivo -->
         <div class="absolute inset-0 pointer-events-none flex flex-col justify-between p-3">
           <div class="text-center text-[10px] sm:text-xs font-squid text-rose-300 bg-black/70 py-1 px-4 rounded-full border border-rose-500/30 mx-auto">
             🎯 Golpea a tu rival para noquearlo o empújalo fuera del campo y alcanza la <b>Cabeza del Calamar</b>
           </div>
 
-          <!-- Retícula de Apuntado -->
           <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 border-2 border-rose-500/60 rounded-full flex items-center justify-center">
             <div class="w-1 h-1 bg-rose-400 rounded-full"></div>
           </div>
 
           <div id="squidDuelFeedback" class="text-center text-xs font-squid text-yellow-400 bg-black/70 py-1 px-3 rounded-full border border-yellow-500/30 mx-auto">
-            ¡Usa WASD / Flechas o botones para moverte y ESPACIO para golpear!
+            ¡Usa WASD o botones para moverte y ESPACIO para golpear!
           </div>
         </div>
       </div>
 
-      <!-- Controles Táctiles y Botones de Combate en Primera Persona -->
       <div class="w-full max-w-md mt-3 flex flex-col items-center gap-2">
         <div class="grid grid-cols-3 gap-2 w-full">
           <button onclick="squidDuel3D.moveLeft()" class="py-3 bg-slate-800 hover:bg-slate-700 text-white font-squid font-bold text-xs rounded-xl active:scale-95 border border-slate-700">
@@ -730,7 +1020,6 @@
       </div>
     </section>
 
-    <!-- 8. MODAL DE RESULTADOS / ELIMINACIÓN / VICTORIA -->
     <div id="resultModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex-col items-center justify-center p-4">
       <div class="w-full max-w-md bg-slate-900 border-2 border-pink-500 rounded-3xl p-6 sm:p-8 text-center shadow-[0_0_50px_rgba(255,42,112,0.4)] relative">
         
@@ -764,7 +1053,6 @@
 
   </main>
 
-  <!-- ==================== FOOTER ==================== -->
   <footer class="w-full bg-slate-950 border-t border-slate-900 py-2.5 px-4 text-center text-[11px] text-slate-500 font-squid">
     <div class="flex justify-center items-center space-x-2">
       <span class="text-pink-500">○</span>
@@ -775,9 +1063,6 @@
   </footer>
 
   <script>
-    /* =========================================================================
-       1. SISTEMA DE AUDIO SINTETIZADO (Web Audio API)
-       ========================================================================= */
     class SoundEngine {
       constructor() {
         this.ctx = null;
@@ -861,23 +1146,53 @@
         noise.start(now);
       }
 
-      playGlassShatter() {
+      playLidOpen() {
         if (this.muted) return;
         this.initContext();
         const now = this.ctx.currentTime;
-        for (let i = 0; i < 5; i++) {
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1400, now);
+        osc.frequency.exponentialRampToValueAtTime(320, now + 0.18);
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.22);
+
+        const ring = this.ctx.createOscillator();
+        const ringGain = this.ctx.createGain();
+        ring.type = 'triangle';
+        ring.frequency.setValueAtTime(880, now + 0.05);
+        ring.frequency.exponentialRampToValueAtTime(660, now + 0.4);
+        ringGain.gain.setValueAtTime(0.2, now + 0.05);
+        ringGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+        ring.connect(ringGain);
+        ringGain.connect(this.ctx.destination);
+        ring.start(now + 0.05);
+        ring.stop(now + 0.48);
+      }
+
+      playHeartbeat() {
+        if (this.muted) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+        [0, 0.14].forEach(offset => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(1400 + Math.random() * 2000, now + i * 0.03);
-          osc.frequency.exponentialRampToValueAtTime(80, now + i * 0.03 + 0.2);
-          gain.gain.setValueAtTime(0.3, now + i * 0.03);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.03 + 0.2);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(80, now + offset);
+          osc.frequency.exponentialRampToValueAtTime(30, now + offset + 0.12);
+          gain.gain.setValueAtTime(0.4, now + offset);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.12);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
-          osc.start(now + i * 0.03);
-          osc.stop(now + i * 0.03 + 0.22);
-        }
+          osc.start(now + offset);
+          osc.stop(now + offset + 0.13);
+        });
       }
 
       playVictory() {
@@ -889,30 +1204,14 @@
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(f, now + i * 0.12);
-          gain.gain.setValueAtTime(0.3, now + i * 0.12);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.12 + 0.55);
+          osc.frequency.setValueAtTime(f, now + i * 0.1);
+          gain.gain.setValueAtTime(0.25, now + i * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.1 + 0.5);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
-          osc.start(now + i * 0.12);
-          osc.stop(now + i * 0.12 + 0.6);
+          osc.start(now + i * 0.1);
+          osc.stop(now + i * 0.1 + 0.55);
         });
-      }
-
-      playScrape() {
-        if (this.muted) return;
-        this.initContext();
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(750 + Math.random() * 300, now);
-        gain.gain.setValueAtTime(0.04, now);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.06);
       }
 
       playHit() {
@@ -921,31 +1220,141 @@
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(180, now);
-        osc.frequency.exponentialRampToValueAtTime(40, now + 0.14);
-        gain.gain.setValueAtTime(0.35, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+        gain.gain.setValueAtTime(0.7, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.15);
+        osc.stop(now + 0.16);
+      }
+
+      playScrape() {
+        if (this.muted) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(700 + Math.random() * 300, now);
+        gain.gain.setValueAtTime(0.04, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      }
+
+      playGlassShatter() {
+        if (this.muted) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+        for (let i = 0; i < 4; i++) {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(1300 + Math.random() * 1500, now + i * 0.04);
+          osc.frequency.exponentialRampToValueAtTime(80, now + i * 0.04 + 0.2);
+          gain.gain.setValueAtTime(0.3, now + i * 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.04 + 0.2);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.04);
+          osc.stop(now + i * 0.04 + 0.22);
+        }
+      }
+
+      playSlap() {
+        if (this.muted) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+        const bufferSize = this.ctx.sampleRate * 0.18;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1400, now);
+        filter.Q.setValueAtTime(3, now);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.95, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.17);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(now);
+      }
+
+      playCrackWarning(strikeLevel = 1) {
+        if (this.muted) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+
+        const count = strikeLevel === 1 ? 2 : 4;
+        for (let i = 0; i < count; i++) {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(900 + Math.random() * 800, now + i * 0.03);
+          osc.frequency.exponentialRampToValueAtTime(120, now + i * 0.03 + 0.12);
+
+          gain.gain.setValueAtTime(0.25 * strikeLevel, now + i * 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.03 + 0.12);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.03);
+          osc.stop(now + i * 0.03 + 0.14);
+        }
+      }
+
+      playVestEquip() {
+        if (this.muted) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+
+        const freqs = [330, 440, 660];
+        freqs.forEach((f, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, now + i * 0.08);
+          gain.gain.setValueAtTime(0.25, now + i * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.3);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.08);
+          osc.stop(now + i * 0.08 + 0.32);
+        });
       }
     }
 
     const sound = new SoundEngine();
 
-    /* =========================================================================
-       2. CONTROLADOR PRINCIPAL DE LA APLICACIÓN Y MODO HISTORIA SEGUIDO
-       ========================================================================= */
     class SquidApp {
       constructor() {
         this.currentScreen = 'menu';
-        this.isStoryMode = true; // Por defecto modo seguido de la serie
+        this.isStoryMode = false;
         this.storyStage = 1;
 
-        // Datos narrativos de cada interludio de la serie
         this.storyChapters = [
+          {
+            stage: 0,
+            name: 'El Ddakji del Metro',
+            survivors: '456 / 456',
+            eliminated: '0 eliminados',
+            money: '₩ 100,000',
+            cashAdd: '100K',
+            narrative: 'Aceptaste la tarjeta de presentación con el círculo, triángulo y cuadrado. Un vehículo te traslada inconsciente hacia la isla secreta.',
+            nextBtnText: 'DESPERTAR EN EL DORMITORIO → JUEGO 01'
+          },
           {
             stage: 1,
             name: 'Luz Roja, Luz Verde',
@@ -953,7 +1362,7 @@
             eliminated: '269 eliminados',
             money: '₩ 26,900,000,000',
             cashAdd: '26.9B',
-            narrative: 'Los 456 jugadores entraron a la arena sin saber el destino. Tras el primer disparo, 269 cayeron eliminados. La gran hucha de cristal en el techo del dormitorio comienza a llenarse.',
+            narrative: 'Los 456 jugadores entraron a la arena. Tras el primer disparo, 269 cayeron eliminados. La gran hucha de cristal comienza a llenarse con billetes.',
             nextBtnText: 'CONTINUAR AL JUEGO 02: LA GALLETA DALGONA'
           },
           {
@@ -963,7 +1372,7 @@
             eliminated: '107 eliminados',
             money: '₩ 37,600,000,000',
             cashAdd: '10.7B',
-            narrative: 'Bajo la tensión del metal y la aguja, muchos quebraron el dulce de azúcar. Los sobrevivientes regresan al dormitorio sintiendo el peso de la alianza.',
+            narrative: 'Bajo la tensión del metal y la aguja, muchos quebraron el dulce de azúcar. Los sobrevivientes regresan al dormitorio sintiendo el peso de la muerte.',
             nextBtnText: 'CONTINUAR AL JUEGO 03: TIRA Y AFLOJA'
           },
           {
@@ -973,7 +1382,7 @@
             eliminated: '40 eliminados',
             money: '₩ 41,600,000,000',
             cashAdd: '4.0B',
-            narrative: 'Sobre las torres elevadas, solo los equipos coordinados y la estrategia del anciano lograron evitar la caída al abismo.',
+            narrative: 'Sobre las torres elevadas, solo los equipos coordinados y la técnica del anciano lograron evitar la caída al abismo.',
             nextBtnText: 'CONTINUAR AL JUEGO 04: LAS CANICAS'
           },
           {
@@ -983,7 +1392,7 @@
             eliminated: '24 eliminados',
             money: '₩ 44,000,000,000',
             cashAdd: '2.4B',
-            narrative: 'Tuviste que competir contra tu compañero más cercano. El callejón del vecindario se llenó de lágrimas y despedidas amargas.',
+            narrative: 'Tuviste que competir contra tu compañero más cercano. El callejón del vecindario se llenó de lágrimas y amargura.',
             nextBtnText: 'CONTINUAR AL JUEGO 05: PUENTE DE CRISTAL 3D'
           },
           {
@@ -993,7 +1402,7 @@
             eliminated: '14 eliminados',
             money: '₩ 45,400,000,000',
             cashAdd: '1.4B',
-            narrative: 'A 60 metros sobre el vacío, los cristales frágiles hicieron caer a los saltadores. Tras cruzar el puente, los finalistas reciben la cena de gala en smoking.',
+            narrative: 'A 60 metros sobre el vacío, los cristales frágiles hicieron caer a los saltadores. Los dos finalistas reciben la cena de gala en smoking.',
             nextBtnText: 'CONTINUAR AL GRAN DUELO FINAL DEL CALAMAR'
           },
           {
@@ -1003,7 +1412,7 @@
             eliminated: '1 eliminado',
             money: '₩ 45,600,000,000',
             cashAdd: '200M',
-            narrative: 'Bajo una lluvia incesante en la arena del calamar, el Jugador 456 conquista la cabeza del calamar y se proclama único ganador de los ₩ 45.6 Mil Millones.',
+            narrative: 'Bajo una lluvia incesante en la arena del calamar, el Jugador 456 noquea a su rival, conquista la cabeza y se proclama único ganador.',
             nextBtnText: 'RECLAMAR EL GRAN PREMIO Y FINALIZAR'
           }
         ];
@@ -1011,8 +1420,8 @@
 
       showScreen(screenId) {
         const screens = [
-          'screenMenu', 'screenIntermission', 'screenRedLight', 'screenDalgona', 
-          'screenTugOfWar', 'screenMarbles', 'screenGlassBridge', 'screenSquidFinal'
+          'screenMenu', 'screenIntermission', 'screenDdakji', 'screenRedLight', 
+          'screenDalgona', 'screenTugOfWar', 'screenMarbles', 'screenGlassBridge', 'screenSquidFinal'
         ];
         screens.forEach(id => {
           const el = document.getElementById(id);
@@ -1037,27 +1446,37 @@
           }
           this.currentScreen = screenId;
         }
+
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+        }, 60);
       }
 
       stopAllGames() {
-        if (redLight3D) redLight3D.stopGame();
-        if (dalgonaGame) dalgonaGame.stopGame();
-        if (towGame) towGame.stopGame();
-        if (marblesGame) marblesGame.stopGame();
-        if (bridge3D) bridge3D.stopGame();
-        if (squidDuel3D) squidDuel3D.stopGame();
+        if (typeof ddakjiGame !== 'undefined' && ddakjiGame) ddakjiGame.stopGame();
+        if (typeof redLight3D !== 'undefined' && redLight3D) redLight3D.stopGame();
+        if (typeof dalgonaGame !== 'undefined' && dalgonaGame) dalgonaGame.stopGame();
+        if (typeof towGame !== 'undefined' && towGame) towGame.stopGame();
+        if (typeof marblesGame !== 'undefined' && marblesGame) marblesGame.stopGame();
+        if (typeof bridge3D !== 'undefined' && bridge3D) bridge3D.stopGame();
+        if (typeof squidDuel3D !== 'undefined' && squidDuel3D) squidDuel3D.stopGame();
       }
 
-      // Inicia la serie completa desde el Capítulo 1
       startSeriesStoryMode() {
         this.isStoryMode = true;
         this.storyStage = 1;
         this.startRedLight();
       }
 
-      // Inicia el torneo normal
-      startTournament() {
-        this.startSeriesStoryMode();
+      startSeriesFromPrologue() {
+        this.isStoryMode = true;
+        this.storyStage = 0;
+        this.startDdakji();
+      }
+
+      startDdakji() {
+        this.showScreen('ddakji');
+        ddakjiGame.init();
       }
 
       startRedLight() {
@@ -1068,8 +1487,7 @@
 
       showDalgonaSelector() {
         this.showScreen('dalgona');
-        document.getElementById('dalgonaShapePicker').classList.remove('hidden');
-        document.getElementById('dalgonaGameArea').classList.add('hidden');
+        dalgonaGame.startRandomDelivery();
       }
 
       startTugOfWar() {
@@ -1085,7 +1503,7 @@
       startGlassBridge() {
         this.showScreen('glassBridge');
         bridge3D.init();
-        bridge3D.startGame();
+        bridge3D.showVestPicker();
       }
 
       startSquidFinal() {
@@ -1094,16 +1512,13 @@
         squidDuel3D.startGame();
       }
 
-      // Manejador cuando se gana un juego
       onGameWon() {
         sound.playVictory();
         
         if (this.isStoryMode) {
           if (this.storyStage >= 6) {
-            // Victoria final absoluta de la serie
             this.showIntermission(6);
           } else {
-            // Mostrar interludio del dormitorio y avanzar al siguiente juego
             this.showIntermission(this.storyStage);
           }
         } else {
@@ -1113,11 +1528,10 @@
         }
       }
 
-      // Muestra la pantalla de transición y progreso de la serie
       showIntermission(stageCompleted) {
-        const chapter = this.storyChapters.find(c => c.stage === stageCompleted) || this.storyChapters[0];
+        const chapter = this.storyChapters.find(c => c.stage === stageCompleted) || this.storyChapters[1];
         
-        document.getElementById('intermissionEpisodeBadge').textContent = `EPISODIO ${chapter.stage} SUPERADO`;
+        document.getElementById('intermissionEpisodeBadge').textContent = chapter.stage === 0 ? 'PRÓLOGO SUPERADO' : `EPISODIO ${chapter.stage} SUPERADO`;
         document.getElementById('intermissionTitle').textContent = `DESCANSO TRAS: ${chapter.name.toUpperCase()}`;
         document.getElementById('intermissionPrizeMoney').textContent = chapter.money;
         document.getElementById('topPrizeDisplay').textContent = chapter.money;
@@ -1130,11 +1544,14 @@
         this.showScreen('screenIntermission');
       }
 
-      // Procesa el avance tras el interludio del dormitorio
       proceedToNextStage() {
-        if (this.storyStage === 1) {
+        if (this.storyStage === 0) {
+          this.storyStage = 1;
+          this.startRedLight();
+        } else if (this.storyStage === 1) {
           this.storyStage = 2;
-          this.showDalgonaSelector();
+          this.showScreen('dalgona');
+          dalgonaGame.startRandomDelivery();
         } else if (this.storyStage === 2) {
           this.storyStage = 3;
           this.startTugOfWar();
@@ -1148,10 +1565,9 @@
           this.storyStage = 6;
           this.startSquidFinal();
         } else if (this.storyStage >= 6) {
-          // Gran Final
           this.showModal(
             '¡CAMPEÓN SUPREMO 456!',
-            '¡Has sobrevivido a los 6 juegos seguidos de la serie! Te has llevado los ₩ 45,600,000,000 a casa.',
+            '¡Has sobrevivido a la serie completa! Te has llevado los ₩ 45,600,000,000 a casa.',
             '👑',
             'VOLVER AL MENÚ PRINCIPAL',
             () => this.showScreen('menu')
@@ -1198,8 +1614,9 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         
-        if (this.currentScreen === 'redLight') redLight3D.startGame();
-        else if (this.currentScreen === 'dalgona') dalgonaGame.restartShape();
+        if (this.currentScreen === 'ddakji') ddakjiGame.init();
+        else if (this.currentScreen === 'redLight') redLight3D.startGame();
+        else if (this.currentScreen === 'dalgona') dalgonaGame.startRandomDelivery();
         else if (this.currentScreen === 'tugOfWar') towGame.init();
         else if (this.currentScreen === 'marbles') marblesGame.init();
         else if (this.currentScreen === 'glassBridge') bridge3D.startGame();
@@ -1214,9 +1631,121 @@
 
     const app = new SquidApp();
 
-    /* =========================================================================
-       3. JUEGO 1: LUZ ROJA, LUZ VERDE EN 3D (THREE.JS)
-       ========================================================================= */
+    class DdakjiGame {
+      constructor() {
+        this.power = 0;
+        this.direction = 1;
+        this.speed = 2.4;
+        this.slaps = 0;
+        this.gameActive = false;
+        this.loopId = null;
+
+        this.needle = document.getElementById('ddakjiPowerNeedle');
+        this.powerText = document.getElementById('ddakjiPowerText');
+        this.slapsEl = document.getElementById('ddakjiSlapsCount');
+        this.feedbackEl = document.getElementById('ddakjiFeedback');
+        this.redTile = document.getElementById('redDdakji');
+        this.blueTile = document.getElementById('blueDdakji');
+        this.slapOverlay = document.getElementById('slapEffectOverlay');
+        this.btnThrow = document.getElementById('btnDdakjiThrow');
+      }
+
+      init() {
+        this.power = 0;
+        this.direction = 1;
+        this.slaps = 0;
+        this.gameActive = true;
+        this.slapsEl.textContent = '0 / 3';
+        this.feedbackEl.textContent = "Presiona 'ARROJAR' cuando la aguja esté en la ZONA DE IMPACTO (78% - 92%).";
+        this.redTile.style.transform = 'rotate(6deg)';
+        this.blueTile.style.opacity = '0';
+        this.blueTile.style.bottom = '-96px';
+        this.btnThrow.disabled = false;
+
+        this.startLoop();
+      }
+
+      startLoop() {
+        if (this.loopId) cancelAnimationFrame(this.loopId);
+        const loop = () => {
+          if (!this.gameActive) return;
+          this.power += this.speed * this.direction;
+          if (this.power >= 100) {
+            this.power = 100;
+            this.direction = -1;
+          } else if (this.power <= 0) {
+            this.power = 0;
+            this.direction = 1;
+          }
+
+          if (this.needle) this.needle.style.left = `${this.power}%`;
+          if (this.powerText) this.powerText.textContent = `${Math.round(this.power)}%`;
+
+          this.loopId = requestAnimationFrame(loop);
+        };
+        this.loopId = requestAnimationFrame(loop);
+      }
+
+      throwTile() {
+        if (!this.gameActive) return;
+        this.btnThrow.disabled = true;
+
+        this.blueTile.style.transition = 'all 0.25s ease-out';
+        this.blueTile.style.opacity = '1';
+        this.blueTile.style.bottom = '32px';
+
+        const isHit = (this.power >= 78 && this.power <= 92);
+
+        setTimeout(() => {
+          sound.playHit();
+          if (isHit) {
+            this.gameActive = false;
+            this.redTile.style.transform = 'rotateY(180deg) scale(1.15)';
+            sound.playVictory();
+            this.feedbackEl.textContent = '🎉 ¡VOLTEASTE LA PALETA! Ganaste ₩100,000 y la tarjeta.';
+            this.feedbackEl.className = 'text-xs font-squid text-emerald-400 mt-2.5 h-4 text-center';
+
+            setTimeout(() => {
+              app.onGameWon();
+            }, 1000);
+          } else {
+            sound.playSlap();
+            this.slapOverlay.style.opacity = '1';
+            document.body.classList.add('shake');
+            setTimeout(() => {
+              this.slapOverlay.style.opacity = '0';
+              document.body.classList.remove('shake');
+            }, 200);
+
+            this.slaps++;
+            this.slapsEl.textContent = `${this.slaps} / 3`;
+            this.feedbackEl.textContent = '💥 ¡FALLASTE! El reclutador te abofeteó en la mejilla.';
+            this.feedbackEl.className = 'text-xs font-squid text-rose-400 mt-2.5 h-4 text-center';
+
+            setTimeout(() => {
+              this.blueTile.style.opacity = '0';
+              this.blueTile.style.bottom = '-96px';
+              this.btnThrow.disabled = false;
+            }, 450);
+
+            if (this.slaps >= 3) {
+              this.stopGame();
+              setTimeout(() => {
+                app.onPlayerEliminated('Has recibido 3 bofetadas del reclutador y caíste desmayado.');
+              }, 500);
+            }
+          }
+        }, 260);
+      }
+
+      stopGame() {
+        this.gameActive = false;
+        if (this.loopId) cancelAnimationFrame(this.loopId);
+      }
+    }
+
+    const ddakjiGame = new DdakjiGame();
+
     class RedLightThreeGame {
       constructor() {
         this.container = document.getElementById('threeJsContainer');
@@ -1226,13 +1755,13 @@
         this.dollHead = null;
         this.playerMesh = null;
         this.botMeshes = [];
-        
+
         this.isRunning = false;
         this.isHoldingRun = false;
         this.playerZ = 80;
         this.finishZ = -80;
         this.startZ = 80;
-        
+
         this.dollState = 'GREEN';
         this.dollTimer = null;
         this.gameTimer = 60;
@@ -1250,17 +1779,15 @@
 
       setupEventListeners() {
         const runBtn = document.getElementById('btnHoldRun');
-        runBtn.addEventListener('mousedown', () => this.isHoldingRun = true);
-        window.addEventListener('mouseup', () => this.isHoldingRun = false);
-        
-        runBtn.addEventListener('touchstart', (e) => {
-          e.preventDefault();
-          this.isHoldingRun = true;
-        }, { passive: false });
-
-        window.addEventListener('touchend', () => {
-          this.isHoldingRun = false;
-        });
+        if (runBtn) {
+          runBtn.addEventListener('mousedown', () => this.isHoldingRun = true);
+          window.addEventListener('mouseup', () => this.isHoldingRun = false);
+          runBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.isHoldingRun = true;
+          }, { passive: false });
+          window.addEventListener('touchend', () => this.isHoldingRun = false);
+        }
 
         window.addEventListener('keydown', (e) => {
           if (app.currentScreen === 'redLight' && (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp')) {
@@ -1275,12 +1802,12 @@
         });
 
         window.addEventListener('resize', () => {
-          if (this.camera && this.renderer && this.container) {
-            const width = this.container.clientWidth;
-            const height = this.container.clientHeight;
-            this.camera.aspect = width / height;
+          if (this.camera && this.renderer && this.container && this.container.clientWidth > 0) {
+            const w = this.container.clientWidth;
+            const h = this.container.clientHeight;
+            this.camera.aspect = w / h;
             this.camera.updateProjectionMatrix();
-            this.renderer.setSize(width, height);
+            this.renderer.setSize(w, h);
           }
         });
       }
@@ -1289,7 +1816,7 @@
         if (this.scene) return;
 
         const width = this.container.clientWidth || 800;
-        const height = this.container.clientHeight || 400;
+        const height = this.container.clientHeight || 450;
 
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0xf6d5a8);
@@ -1303,23 +1830,22 @@
         this.renderer.shadowMap.enabled = true;
         this.container.appendChild(this.renderer.domElement);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
         this.scene.add(ambientLight);
 
-        const dirLight = new THREE.DirectionalLight(0xfffaed, 0.8);
+        const dirLight = new THREE.DirectionalLight(0xfffaed, 0.85);
         dirLight.position.set(40, 70, 30);
-        dirLight.castShadow = true;
         this.scene.add(dirLight);
 
         const groundGeo = new THREE.PlaneGeometry(120, 240);
         const groundMat = new THREE.MeshLambertMaterial({ color: 0xd9b382 });
         const ground = new THREE.Mesh(groundGeo, groundMat);
         ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
         this.scene.add(ground);
 
         this.createTrackLine(this.startZ, 0x037a4b);
         this.createTrackLine(this.finishZ, 0xff2a70);
+
         this.createWall(-35);
         this.createWall(35);
         this.createTree(0, this.finishZ - 10);
@@ -1335,7 +1861,9 @@
         const animate = () => {
           requestAnimationFrame(animate);
           this.update();
-          this.renderer.render(this.scene, this.camera);
+          if (this.renderer && this.scene && this.camera && this.container && this.container.clientWidth > 0) {
+            this.renderer.render(this.scene, this.camera);
+          }
         };
         animate();
       }
@@ -1397,12 +1925,14 @@
 
         this.dollHead = headGroup;
         dollGroup.add(headGroup);
+
         this.scene.add(dollGroup);
       }
 
       createGuard(x, z) {
         const guard = new THREE.Group();
         guard.position.set(x, 0, z);
+
         const bodyGeo = new THREE.CylinderGeometry(0.9, 1.1, 4.5, 8);
         const bodyMat = new THREE.MeshLambertMaterial({ color: 0xff2a70 });
         const body = new THREE.Mesh(bodyGeo, bodyMat);
@@ -1440,6 +1970,7 @@
           pin.position.y = 6.2;
           human.add(pin);
         }
+
         return human;
       }
 
@@ -1458,7 +1989,7 @@
             mesh: mesh,
             speed: 0.12 + Math.random() * 0.14,
             alive: true,
-            reactionDelay: 0.1 + Math.random() * 0.5,
+            reactionDelay: 0.1 + Math.random() * 0.4,
             isMoving: false
           });
         }
@@ -1467,9 +1998,13 @@
       startGame() {
         this.isRunning = true;
         this.playerZ = this.startZ;
-        this.playerMesh.position.set(0, 0, this.playerZ);
-        this.playerMesh.visible = true;
-        this.camera.position.set(0, 10, this.playerZ + 20);
+        if (this.playerMesh) {
+          this.playerMesh.position.set(0, 0, this.playerZ);
+          this.playerMesh.rotation.set(0, 0, 0);
+          this.playerMesh.visible = true;
+        }
+
+        if (this.camera) this.camera.position.set(0, 10, this.playerZ + 20);
 
         this.createBots();
         this.gameTimer = 60;
@@ -1482,7 +2017,7 @@
           this.timerEl.textContent = `${this.gameTimer}s`;
           if (this.gameTimer <= 0) {
             this.stopGame();
-            app.onPlayerEliminated('Se agotó el tiempo antes de cruzar la meta.');
+            app.onPlayerEliminated('Se agotó el tiempo de 60 segundos antes de cruzar la meta.');
           }
         }, 1000);
 
@@ -1493,14 +2028,14 @@
         if (!this.isRunning) return;
 
         this.dollState = 'GREEN';
-        if (this.dollHead) this.dollHead.rotation.y = THREE.MathUtils.degToRad(180);
-        
+        if (this.dollHead) this.dollHead.rotation.y = Math.PI;
+
         this.trafficEl.className = "px-3.5 py-1 rounded-full font-squid font-black text-xs sm:text-sm tracking-wider bg-emerald-600 text-white shadow-[0_0_15px_#10b981]";
-        this.trafficEl.textContent = "🟢 LUZ VERDE - ¡AVANZA!";
+        this.trafficEl.textContent = "🟢 LUZ VERDE - ¡CORRE!";
         this.scannerOverlay.style.opacity = '0';
         this.dollSongBanner.textContent = '🎵 "Mugunghwa kkoci pieot seumnida..."';
 
-        const chantDuration = 2.2 + Math.random() * 2.5;
+        const chantDuration = 2.2 + Math.random() * 2.2;
         sound.playDollChant(chantDuration);
 
         this.botMeshes.forEach(b => {
@@ -1513,14 +2048,14 @@
 
           this.dollState = 'TURNING';
           this.trafficEl.className = "px-3.5 py-1 rounded-full font-squid font-black text-xs sm:text-sm tracking-wider bg-yellow-500 text-black shadow-[0_0_15px_#eab308]";
-          this.trafficEl.textContent = "🟡 GIRANDO...";
+          this.trafficEl.textContent = "🟡 ¡ATENTO! GIRANDO...";
 
           setTimeout(() => {
             if (!this.isRunning) return;
-            
+
             this.dollState = 'RED';
             if (this.dollHead) this.dollHead.rotation.y = 0;
-            
+
             this.trafficEl.className = "px-3.5 py-1 rounded-full font-squid font-black text-xs sm:text-sm tracking-wider bg-red-600 text-white shadow-[0_0_20px_#ef4444]";
             this.trafficEl.textContent = "🔴 LUZ ROJA - ¡ALTO!";
             this.scannerOverlay.style.opacity = '1';
@@ -1529,7 +2064,7 @@
             this.botMeshes.forEach(b => {
               if (b.alive) {
                 setTimeout(() => {
-                  if (Math.random() < 0.22 && this.dollState === 'RED') {
+                  if (Math.random() < 0.2 && this.dollState === 'RED') {
                     b.alive = false;
                     b.isMoving = false;
                     b.mesh.rotation.x = Math.PI / 2;
@@ -1542,7 +2077,7 @@
               }
             });
 
-            const redDuration = 2500 + Math.random() * 2000;
+            const redDuration = 2400 + Math.random() * 1800;
             this.dollTimer = setTimeout(() => {
               this.dollStateCycle();
             }, redDuration);
@@ -1563,17 +2098,19 @@
         if (this.isHoldingRun) {
           if (this.dollState === 'RED') {
             this.stopGame();
-            this.playerMesh.rotation.x = Math.PI / 2;
+            if (this.playerMesh) this.playerMesh.rotation.x = Math.PI / 2;
             app.onPlayerEliminated('¡Te has movido mientras la muñeca vigilaba en Luz Roja!');
             return;
           }
 
-          this.playerZ -= 0.32;
-          this.playerMesh.position.z = this.playerZ;
+          this.playerZ -= 0.34;
+          if (this.playerMesh) this.playerMesh.position.z = this.playerZ;
         }
 
-        this.camera.position.z = this.playerZ + 18;
-        this.camera.position.x = this.playerMesh.position.x * 0.3;
+        if (this.camera && this.playerMesh) {
+          this.camera.position.z = this.playerZ + 18;
+          this.camera.position.x = this.playerMesh.position.x * 0.3;
+        }
 
         const totalDistance = this.startZ - this.finishZ;
         const currentProgress = Math.min(100, Math.max(0, Math.floor(((this.startZ - this.playerZ) / totalDistance) * 100)));
@@ -1602,9 +2139,6 @@
 
     const redLight3D = new RedLightThreeGame();
 
-    /* =========================================================================
-       4. JUEGO 2: LA GALLETA DALGONA (CANVAS)
-       ========================================================================= */
     class DalgonaGame {
       constructor() {
         this.canvas = document.getElementById('dalgonaCanvas');
@@ -1618,11 +2152,36 @@
         this.gameActive = false;
         this.timer = 45;
         this.timerInterval = null;
+        this.isTinOpened = false;
+
+        this.cracks = 0;
+        this.maxCracks = 3;
+        this.crackCooldown = false;
+
+        this.deliveryView = document.getElementById('dalgonaDeliveryView');
+        this.tinLid = document.getElementById('dalgonaTinLid');
+        this.revealedSymbol = document.getElementById('revealedCookieShapeSymbol');
+        this.resultBanner = document.getElementById('deliveryShapeResult');
+        this.btnOpenTinText = document.getElementById('btnOpenTinText');
+        this.btnOpenTin = document.getElementById('btnOpenTinBox');
 
         this.progressBar = document.getElementById('dalgonaProgressBar');
         this.percentageEl = document.getElementById('dalgonaCutPercentage');
         this.timerEl = document.getElementById('dalgonaTimer');
         this.crackOverlay = document.getElementById('cookieCrackOverlay');
+
+        this.cracksCountText = document.getElementById('dalgonaCracksCountText');
+        this.crackFeedback = document.getElementById('dalgonaCrackFeedback');
+        this.strikeSlots = [
+          document.getElementById('dalgonaStrikeSlot1'),
+          document.getElementById('dalgonaStrikeSlot2'),
+          document.getElementById('dalgonaStrikeSlot3')
+        ];
+        this.strikeTexts = [
+          document.getElementById('strikeText1'),
+          document.getElementById('strikeText2'),
+          document.getElementById('strikeText3')
+        ];
 
         this.setupEvents();
       }
@@ -1679,6 +2238,95 @@
         }, { passive: false });
       }
 
+      startRandomDelivery() {
+        this.deliveryView.classList.remove('hidden');
+        document.getElementById('dalgonaShapePicker').classList.add('hidden');
+        document.getElementById('dalgonaGameArea').classList.add('hidden');
+        
+        this.isTinOpened = false;
+        this.tinLid.classList.remove('tin-lid-opened');
+        this.revealedSymbol.textContent = '?';
+        this.revealedSymbol.style.transform = 'scale(1)';
+        this.btnOpenTinText.textContent = 'ABRIR LATA DE METAL';
+        this.btnOpenTin.onclick = () => this.openTinCan();
+        
+        this.resultBanner.innerHTML = `
+          <p class="text-xs text-slate-300 font-squid">
+            Haz clic o toca la lata para romper el precinto y descubrir qué dulce te tocó.
+          </p>
+        `;
+
+        sound.playHeartbeat();
+      }
+
+      openTinCan() {
+        if (this.isTinOpened) return;
+        this.isTinOpened = true;
+
+        sound.playLidOpen();
+        sound.playHeartbeat();
+
+        this.tinLid.classList.add('animate-tin-shake');
+        
+        setTimeout(() => {
+          this.tinLid.classList.remove('animate-tin-shake');
+          this.tinLid.classList.add('tin-lid-opened');
+
+          const shapes = ['circle', 'triangle', 'star', 'umbrella'];
+          const picked = shapes[Math.floor(Math.random() * shapes.length)];
+          this.shape = picked;
+
+          const shapeMeta = {
+            circle: { symbol: '○', name: 'CÍRCULO', difficulty: 'FÁCIL', color: 'text-emerald-400', desc: '¡Buena suerte! Es el trazo más suave y seguro.' },
+            triangle: { symbol: '△', name: 'TRIÁNGULO', difficulty: 'MEDIO', color: 'text-yellow-400', desc: '3 lados rectos y puntas filosas. Mantén el pulso firme.' },
+            star: { symbol: '★', name: 'ESTRELLA', difficulty: 'DIFÍCIL', color: 'text-orange-400', desc: '5 puntas delgadas. Ten extremo cuidado al tallar los ángulos internos.' },
+            umbrella: { symbol: '☂️', name: 'PARAGUAS', difficulty: 'EXTREMO', color: 'text-red-400', desc: '¡LA PEOR PESADILLA DE GI-HUN! Múltiples curvas y un mango frágil.' }
+          };
+
+          const meta = shapeMeta[picked];
+          this.revealedSymbol.textContent = meta.symbol;
+          this.revealedSymbol.style.transform = 'scale(1.2)';
+
+          this.resultBanner.innerHTML = `
+            <div class="flex items-center justify-center space-x-2 animate-bounce">
+              <span class="text-xs font-squid text-slate-300 uppercase">Te ha tocado:</span>
+              <span class="font-squid font-black text-sm ${meta.color}">${meta.name} (${meta.difficulty})</span>
+            </div>
+            <div class="text-[11px] text-amber-200/90 italic mt-0.5 max-w-sm mx-auto">"${meta.desc}"</div>
+          `;
+
+          this.btnOpenTinText.textContent = '¡COMENZAR A TALLAR CON LA AGUJA!';
+          this.btnOpenTin.onclick = () => this.startCarvingSession();
+
+          setTimeout(() => {
+            if (this.isTinOpened && !this.gameActive && app.currentScreen === 'dalgona') {
+              this.startCarvingSession();
+            }
+          }, 2600);
+
+        }, 350);
+      }
+
+      startCarvingSession() {
+        this.deliveryView.classList.add('hidden');
+        document.getElementById('dalgonaGameArea').classList.remove('hidden');
+        document.getElementById('dalgonaGameArea').classList.add('flex');
+
+        const namesMap = {
+          circle: 'Círculo (Fácil)',
+          triangle: 'Triángulo (Medio)',
+          star: 'Estrella (Difícil)',
+          umbrella: 'Paraguas (Extremo)'
+        };
+        document.getElementById('dalgonaCurrentShapeName').textContent = namesMap[this.shape];
+        this.restartShape();
+      }
+
+      showManualPicker() {
+        this.deliveryView.classList.add('hidden');
+        document.getElementById('dalgonaShapePicker').classList.remove('hidden');
+      }
+
       selectShape(shapeName) {
         this.shape = shapeName;
         document.getElementById('dalgonaShapePicker').classList.add('hidden');
@@ -1703,6 +2351,10 @@
         this.timerEl.textContent = `${this.timer}s`;
         this.percentageEl.textContent = '0%';
         this.progressBar.style.width = '0%';
+
+        this.cracks = 0;
+        this.crackCooldown = false;
+        this.updateCrackUI();
 
         this.drawCookieBaseAndStencil();
 
@@ -1793,7 +2445,7 @@
 
         const distFromCenter = Math.hypot(x2 - this.canvas.width/2, y2 - this.canvas.height/2);
         if (distFromCenter > 175) {
-          this.breakCookie('¡Te saliste del contorno exterior de la galleta!');
+          this.handleCarveMistake('¡Te saliste del contorno exterior de la galleta!', x2, y2);
           return;
         }
 
@@ -1805,7 +2457,7 @@
         const isOnStencil = (maskR < 90 && maskG < 45 && maskB < 35);
 
         if (!isOnStencil) {
-          this.breakCookie('¡Has quebrado la galleta al raspar fuera de la silueta!');
+          this.handleCarveMistake('¡Raspaste fuera de la plantilla de azúcar!', x2, y2);
           return;
         }
 
@@ -1819,6 +2471,101 @@
 
         sound.playScrape();
         this.evaluateAccuracy();
+      }
+
+      handleCarveMistake(reason, errX, errY) {
+        if (this.crackCooldown || !this.gameActive) return;
+        this.crackCooldown = true;
+
+        this.cracks++;
+        this.drawCrackBranch(errX, errY, this.cracks);
+        this.updateCrackUI();
+
+        if (this.cracks === 1) {
+          sound.playCrackWarning(1);
+          document.body.classList.add('shake');
+          setTimeout(() => document.body.classList.remove('shake'), 250);
+
+          this.crackFeedback.textContent = '⚠️ ¡PRIMERA FISURA! La galleta se ha agrietado un poco (1/3 oportunidades).';
+          this.crackFeedback.className = 'text-[11px] font-squid text-yellow-400 mt-1.5 text-center font-bold animate-pulse';
+
+          setTimeout(() => {
+            this.crackCooldown = false;
+          }, 450);
+
+        } else if (this.cracks === 2) {
+          sound.playCrackWarning(2);
+          document.body.classList.add('shake');
+          setTimeout(() => document.body.classList.remove('shake'), 350);
+
+          this.crackFeedback.textContent = '🚨 ¡SEGUNDA FISURA GRAVE! La estructura está muy debilitada. Un fallo más y se partirá (2/3).';
+          this.crackFeedback.className = 'text-[11px] font-squid text-orange-400 mt-1.5 text-center font-bold animate-pulse';
+
+          setTimeout(() => {
+            this.crackCooldown = false;
+          }, 450);
+
+        } else if (this.cracks >= 3) {
+          this.crackFeedback.textContent = '💥 ¡TERCERA FISURA FATAL! La galleta no soportó la tensión y se quebró.';
+          this.crackFeedback.className = 'text-[11px] font-squid text-rose-500 mt-1.5 text-center font-bold';
+          this.breakCookie(reason);
+        }
+      }
+
+      drawCrackBranch(startX, startY, level) {
+        this.ctx.save();
+        this.ctx.strokeStyle = level === 1 ? 'rgba(255, 255, 255, 0.85)' : '#ffffff';
+        this.ctx.lineWidth = level === 1 ? 2.5 : 4.5;
+        this.ctx.lineCap = 'round';
+
+        const length = level === 1 ? 35 : 75;
+        const branches = level === 1 ? 2 : 4;
+
+        for (let b = 0; b < branches; b++) {
+          const angle = (Math.PI * 2 * (b / branches)) + (Math.random() * 0.6 - 0.3);
+          let cx = startX;
+          let cy = startY;
+
+          this.ctx.beginPath();
+          this.ctx.moveTo(cx, cy);
+
+          for (let seg = 0; seg < 4; seg++) {
+            cx += Math.cos(angle + (Math.random() * 0.8 - 0.4)) * (length / 4);
+            cy += Math.sin(angle + (Math.random() * 0.8 - 0.4)) * (length / 4);
+            this.ctx.lineTo(cx, cy);
+          }
+          this.ctx.stroke();
+        }
+        this.ctx.restore();
+      }
+
+      updateCrackUI() {
+        if (this.cracksCountText) {
+          this.cracksCountText.textContent = `${this.cracks} / 3 FISURAS`;
+          this.cracksCountText.className = this.cracks === 0 ? 'text-emerald-400 font-bold' : (this.cracks === 1 ? 'text-yellow-400 font-bold' : 'text-rose-500 font-bold');
+        }
+
+        for (let i = 0; i < 3; i++) {
+          const slot = this.strikeSlots[i];
+          const txt = this.strikeTexts[i];
+          if (!slot || !txt) continue;
+
+          if (i < this.cracks) {
+            if (i === 0) {
+              slot.className = 'bg-yellow-950/80 border-2 border-yellow-500 rounded-lg py-1 px-2 text-center text-[10px] font-squid font-bold text-yellow-300 transition-all flex items-center justify-center space-x-1 shadow-[0_0_10px_#eab308] animate-crack-pulse';
+              txt.textContent = 'FISURA 1';
+            } else if (i === 1) {
+              slot.className = 'bg-orange-950/80 border-2 border-orange-500 rounded-lg py-1 px-2 text-center text-[10px] font-squid font-bold text-orange-300 transition-all flex items-center justify-center space-x-1 shadow-[0_0_12px_#f97316] animate-crack-pulse';
+              txt.textContent = 'FISURA 2';
+            } else {
+              slot.className = 'bg-red-950/90 border-2 border-red-500 rounded-lg py-1 px-2 text-center text-[10px] font-squid font-bold text-red-300 transition-all flex items-center justify-center space-x-1 shadow-[0_0_15px_#ef4444] animate-crack-pulse';
+              txt.textContent = 'QUEBRADA';
+            }
+          } else {
+            slot.className = 'bg-slate-800 border-2 border-emerald-500/50 rounded-lg py-1 px-2 text-center text-[10px] font-squid font-bold text-emerald-300 transition-all flex items-center justify-center space-x-1';
+            txt.textContent = 'INTACTA';
+          }
+        }
       }
 
       evaluateAccuracy() {
@@ -1871,9 +2618,6 @@
 
     const dalgonaGame = new DalgonaGame();
 
-    /* =========================================================================
-       5. JUEGO 3: TIRA Y AFLOJA (TUG OF WAR)
-       ========================================================================= */
     class TugOfWarGame {
       constructor() {
         this.ropePosition = 50;
@@ -1923,6 +2667,7 @@
       }
 
       startLoop() {
+        if (this.loopId) cancelAnimationFrame(this.loopId);
         const loop = () => {
           if (!this.gameActive) return;
 
@@ -1999,16 +2744,13 @@
 
       stopGame() {
         this.gameActive = false;
-        cancelAnimationFrame(this.loopId);
+        if (this.loopId) cancelAnimationFrame(this.loopId);
         clearInterval(this.timerInterval);
       }
     }
 
     const towGame = new TugOfWarGame();
 
-    /* =========================================================================
-       6. JUEGO 4: LAS CANICAS (MARBLES)
-       ========================================================================= */
     class MarblesGame {
       constructor() {
         this.playerMarbles = 10;
@@ -2089,9 +2831,6 @@
 
     const marblesGame = new MarblesGame();
 
-    /* =========================================================================
-       7. JUEGO 5: EL PUENTE DE CRISTAL 3D EN PRIMERA PERSONA (THREE.JS 3D FPS)
-       ========================================================================= */
     class GlassBridge3DFPS {
       constructor() {
         this.container = document.getElementById('threeBridgeContainer');
@@ -2099,23 +2838,22 @@
         this.camera = null;
         this.renderer = null;
 
-        this.totalSteps = 6;
-        this.safePath = []; // 'L' o 'R'
-        this.panels3D = []; // [{ step, leftMesh, rightMesh, brokenSide: null }]
+        this.totalSteps = 20;
+        this.safePath = [];
+        this.panels3D = [];
         this.botMeshes = [];
 
-        // Solo 3 bots por delante: Tú eres el #04
+        this.chosenVestNumber = 4;
         this.playerQueueIndex = 3;
         this.currentTurnIndex = 0;
-        this.currentStep = 0; // Paso alcanzado en el puente
+        this.currentStep = 0;
 
         this.queue = [];
         this.isRunning = false;
-        this.timer = 60;
+        this.timer = 120;
         this.timerInterval = null;
         this.autoBotInterval = null;
 
-        // Posición de cámara en 1ra persona
         this.cameraStartZ = 14;
         this.cameraTargetZ = 14;
         this.cameraTargetX = 0;
@@ -2124,6 +2862,14 @@
         this.stepLength = 8.0;
         this.leftX = -2.6;
         this.rightX = 2.6;
+
+        this.vestPickerView = document.getElementById('bridgeVestPickerView');
+        this.playArea = document.getElementById('bridgePlayArea');
+        this.vestEquipOverlay = document.getElementById('vestEquipOverlay');
+        this.equippedVestNumDisplay = document.getElementById('equippedVestNumberDisplay');
+        this.equippedVestNumText = document.getElementById('equippedVestNumText');
+        this.equippedVestOrderDesc = document.getElementById('equippedVestOrderDesc');
+        this.queueLabelEl = document.getElementById('bridgeQueueLabel');
 
         this.turnStatusEl = document.getElementById('bridgeTurnStatus');
         this.queueStatusEl = document.getElementById('bridgeQueueStatus');
@@ -2135,6 +2881,51 @@
         this.queueContainer = document.getElementById('bridgePlayersQueue');
       }
 
+      showVestPicker() {
+        this.stopGame();
+        if (this.vestPickerView) this.vestPickerView.classList.remove('hidden');
+        if (this.playArea) this.playArea.classList.add('hidden');
+        if (this.vestEquipOverlay) this.vestEquipOverlay.classList.add('hidden');
+        sound.playHeartbeat();
+      }
+
+      selectVest(vestNumber) {
+        this.chosenVestNumber = vestNumber;
+        sound.playVestEquip();
+
+        if (this.equippedVestNumDisplay) this.equippedVestNumDisplay.textContent = vestNumber < 10 ? `0${vestNumber}` : vestNumber;
+        if (this.equippedVestNumText) this.equippedVestNumText.textContent = vestNumber < 10 ? `0${vestNumber}` : vestNumber;
+        
+        const botsAhead = vestNumber - 1;
+        if (this.equippedVestOrderDesc) {
+          this.equippedVestOrderDesc.textContent = botsAhead === 0 
+            ? '¡Eres el primer saltador! No hay bots por delante que prueben los cristales.' 
+            : `Tienes ${botsAhead} competidor(es) por delante que saltarán primero y revelarán el camino.`;
+        }
+
+        if (this.vestEquipOverlay) {
+          this.vestEquipOverlay.classList.remove('hidden');
+          this.vestEquipOverlay.classList.add('flex');
+        }
+
+        setTimeout(() => {
+          if (this.vestEquipOverlay) {
+            this.vestEquipOverlay.classList.add('hidden');
+            this.vestEquipOverlay.classList.remove('flex');
+          }
+          if (this.vestPickerView) this.vestPickerView.classList.add('hidden');
+          if (this.playArea) {
+            this.playArea.classList.remove('hidden');
+            this.playArea.classList.add('flex');
+          }
+          this.launchBridgeStage();
+        }, 1500);
+      }
+
+      launchBridgeStage() {
+        this.startGame();
+      }
+
       init() {
         if (this.scene) return;
 
@@ -2143,10 +2934,9 @@
 
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x05070d);
-        this.scene.fog = new THREE.FogExp2(0x05070d, 0.015);
+        this.scene.fog = new THREE.FogExp2(0x05070d, 0.007);
 
-        // Cámara en primera persona a la altura de los ojos
-        this.camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 500);
+        this.camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 600);
         this.camera.position.set(0, 2.4, this.cameraStartZ);
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -2154,24 +2944,32 @@
         this.renderer.shadowMap.enabled = true;
         this.container.appendChild(this.renderer.domElement);
 
-        // Luces teatrales de la sala VIP
-        const ambientLight = new THREE.AmbientLight(0x1a2b4c, 1.2);
+        const ambientLight = new THREE.AmbientLight(0x1a2b4c, 1.4);
         this.scene.add(ambientLight);
 
+        const dirLight = new THREE.DirectionalLight(0x38bdf8, 0.85);
+        dirLight.position.set(0, 50, -80);
+        this.scene.add(dirLight);
+
         const spotPink = new THREE.SpotLight(0xff2a70, 2.5);
-        spotPink.position.set(0, 30, 0);
+        spotPink.position.set(0, 35, 0);
         spotPink.angle = Math.PI / 3;
         this.scene.add(spotPink);
 
-        const spotCyan = new THREE.SpotLight(0x06b6d4, 2.0);
-        spotCyan.position.set(0, 25, -25);
+        const spotCyan = new THREE.SpotLight(0x06b6d4, 2.2);
+        spotCyan.position.set(0, 35, -80);
         spotCyan.angle = Math.PI / 3;
         this.scene.add(spotCyan);
+
+        const spotPinkEnd = new THREE.SpotLight(0xff2a70, 2.2);
+        spotPinkEnd.position.set(0, 35, -150);
+        spotPinkEnd.angle = Math.PI / 3;
+        this.scene.add(spotPinkEnd);
 
         this.buildBridgeEnvironment();
 
         window.addEventListener('resize', () => {
-          if (this.camera && this.renderer && this.container) {
+          if (this.camera && this.renderer && this.container && this.container.clientWidth > 0) {
             const w = this.container.clientWidth;
             const h = this.container.clientHeight;
             this.camera.aspect = w / h;
@@ -2180,43 +2978,28 @@
           }
         });
 
-        // Bucle 3D
         const animate = () => {
           requestAnimationFrame(animate);
           this.update();
-          this.renderer.render(this.scene, this.camera);
+          if (this.renderer && this.scene && this.camera && this.container && this.container.clientWidth > 0) {
+            this.renderer.render(this.scene, this.camera);
+          }
         };
         animate();
       }
 
       buildBridgeEnvironment() {
-        // Plataforma de inicio de metal
         const startPlatGeo = new THREE.BoxGeometry(10, 1, 10);
         const startPlatMat = new THREE.MeshStandardMaterial({ color: 0x222633, roughness: 0.4, metalness: 0.8 });
         const startPlat = new THREE.Mesh(startPlatGeo, startPlatMat);
         startPlat.position.set(0, -0.5, 14);
         this.scene.add(startPlat);
 
-        // Barandillas decorativas de inicio
-        const railGeo = new THREE.CylinderGeometry(0.08, 0.08, 10, 8);
-        const railMat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x06b6d4, emissiveIntensity: 0.6 });
-        const railL = new THREE.Mesh(railGeo, railMat);
-        railL.rotation.x = Math.PI / 2;
-        railL.position.set(-4.8, 1.2, 14);
-        this.scene.add(railL);
-
-        const railR = new THREE.Mesh(railGeo, railMat);
-        railR.rotation.x = Math.PI / 2;
-        railR.position.set(4.8, 1.2, 14);
-        this.scene.add(railR);
-
-        // Plataforma de meta
         const endZ = - (this.totalSteps * this.stepLength) - 4;
         const endPlat = new THREE.Mesh(startPlatGeo, startPlatMat);
         endPlat.position.set(0, -0.5, endZ);
         this.scene.add(endPlat);
 
-        // Vigas de soporte metálicas a lo largo del abismo
         const beamGeo = new THREE.BoxGeometry(0.3, 0.5, (this.totalSteps * this.stepLength) + 20);
         const beamMat = new THREE.MeshStandardMaterial({ color: 0x111625, metalness: 0.9 });
         const beamL = new THREE.Mesh(beamGeo, beamMat);
@@ -2227,8 +3010,7 @@
         beamR.position.set(2.6, -0.8, - (this.totalSteps * this.stepLength) / 2);
         this.scene.add(beamR);
 
-        // Fondo del abismo oscuro con niebla
-        const abyssGeo = new THREE.PlaneGeometry(300, 300);
+        const abyssGeo = new THREE.PlaneGeometry(600, 600);
         const abyssMat = new THREE.MeshBasicMaterial({ color: 0x010204 });
         const abyss = new THREE.Mesh(abyssGeo, abyssMat);
         abyss.rotation.x = -Math.PI / 2;
@@ -2237,7 +3019,6 @@
       }
 
       createGlassPanels() {
-        // Limpiar paneles anteriores
         this.panels3D.forEach(p => {
           this.scene.remove(p.leftMesh);
           this.scene.remove(p.rightMesh);
@@ -2247,7 +3028,6 @@
         for (let i = 0; i < this.totalSteps; i++) {
           const zPos = - (i * this.stepLength) + 6;
 
-          // Panel Izquierdo
           const glassGeo = new THREE.BoxGeometry(3.6, 0.18, 4.4);
           const glassMatL = new THREE.MeshPhysicalMaterial({
             color: 0x6ee7b7,
@@ -2263,7 +3043,6 @@
           meshL.position.set(this.leftX, 0, zPos);
           this.scene.add(meshL);
 
-          // Panel Derecho
           const glassMatR = glassMatL.clone();
           const meshR = new THREE.Mesh(glassGeo, glassMatR);
           meshR.position.set(this.rightX, 0, zPos);
@@ -2285,8 +3064,6 @@
         this.queue.forEach((p, idx) => {
           if (!p.isPlayer) {
             const botGroup = new THREE.Group();
-            
-            // Cuerpo y Cabeza
             const bodyGeo = new THREE.CylinderGeometry(0.7, 0.8, 2.6, 8);
             const bodyMat = new THREE.MeshLambertMaterial({ color: 0x025e39 });
             const body = new THREE.Mesh(bodyGeo, bodyMat);
@@ -2299,7 +3076,6 @@
             head.position.y = 3.1;
             botGroup.add(head);
 
-            // Posición inicial en la cola sobre la plataforma
             botGroup.position.set(0, 0, 11 - (idx * 2.2));
             this.scene.add(botGroup);
 
@@ -2317,32 +3093,42 @@
         this.isRunning = true;
         this.currentTurnIndex = 0;
         this.currentStep = 0;
-        this.timer = 60;
+        this.timer = 120;
         this.timerEl.textContent = `${this.timer}s`;
         this.stepDisplay.textContent = '1';
 
-        // Generar ruta segura de 6 pasos
         this.safePath = [];
         for (let i = 0; i < this.totalSteps; i++) {
           this.safePath.push(Math.random() < 0.5 ? 'L' : 'R');
         }
 
-        // Cola con SOLO 3 BOTS por delante: Tú eres el #04
-        this.queue = [
-          { num: '096', isPlayer: false, alive: true },
-          { num: '199', isPlayer: false, alive: true },
-          { num: '218', isPlayer: false, alive: true },
-          { num: '456', isPlayer: true, alive: true } // Tú eres el #04
-        ];
+        this.playerQueueIndex = this.chosenVestNumber - 1;
+        
+        const candidateNumbers = ['096', '199', '218', '067', '101', '240', '001', '322'];
+        this.queue = [];
+
+        let botIdx = 0;
+        for (let i = 0; i < 8; i++) {
+          if (i === this.playerQueueIndex) {
+            this.queue.push({ num: '456', isPlayer: true, alive: true });
+          } else {
+            const num = candidateNumbers[botIdx % candidateNumbers.length];
+            this.queue.push({ num: num, isPlayer: false, alive: true });
+            botIdx++;
+          }
+        }
+
+        if (this.queueLabelEl) {
+          this.queueLabelEl.textContent = `Cola de Saltadores (Tú eres el Chaleco #${this.chosenVestNumber < 10 ? '0' + this.chosenVestNumber : this.chosenVestNumber})`;
+        }
 
         this.createGlassPanels();
         this.createBots3D();
 
-        // Posicionar cámara al inicio
         this.cameraTargetZ = this.cameraStartZ;
         this.cameraTargetX = 0;
         this.cameraTargetY = 2.4;
-        this.camera.position.set(0, 2.4, this.cameraStartZ);
+        if (this.camera) this.camera.position.set(0, 2.4, this.cameraStartZ);
 
         this.renderQueueUI();
         this.updateTurnUI();
@@ -2358,13 +3144,12 @@
           }
         }, 1000);
 
-        // Salto automático suave de bots cada 3.5 segundos
         clearInterval(this.autoBotInterval);
         this.autoBotInterval = setInterval(() => {
           if (this.isRunning && !this.isPlayerTurn()) {
             this.stepBotForward();
           }
-        }, 3500);
+        }, 3200);
       }
 
       isPlayerTurn() {
@@ -2420,18 +3205,15 @@
         const currentPanel = this.panels3D[this.currentStep];
         if (!currentPanel) return;
 
-        // El bot elige un lado (o aprovecha si ya fue revelado)
         let chosenSide = (currentPanel.brokenSide ? (currentPanel.brokenSide === 'L' ? 'R' : 'L') : (Math.random() < 0.5 ? 'L' : 'R'));
         const isSafe = (chosenSide === this.safePath[this.currentStep]);
 
         const targetZ = - (this.currentStep * this.stepLength) + 6;
         const targetX = (chosenSide === 'L' ? this.leftX : this.rightX);
 
-        // Mover el bot al panel en 3D
         bot3d.group.position.set(targetX, 0, targetZ);
 
         if (isSafe) {
-          // Acierto
           sound.playScrape();
           const mesh = (chosenSide === 'L' ? currentPanel.leftMesh : currentPanel.rightMesh);
           mesh.material.color.setHex(0x10b981);
@@ -2445,19 +3227,16 @@
             this.currentTurnIndex++;
           }
         } else {
-          // Rompe el cristal y cae al vacío
           sound.playGlassShatter();
           currentPanel.brokenSide = chosenSide;
           const brokenMesh = (chosenSide === 'L' ? currentPanel.leftMesh : currentPanel.rightMesh);
           this.scene.remove(brokenMesh);
 
-          // Revelar el lado seguro restante
           const safeOpposite = (chosenSide === 'L' ? currentPanel.rightMesh : currentPanel.leftMesh);
           safeOpposite.material.color.setHex(0x10b981);
           safeOpposite.material.emissive = new THREE.Color(0x059669);
           safeOpposite.material.emissiveIntensity = 0.5;
 
-          // Animación de caída del bot
           bot3d.falling = true;
           currentBot.alive = false;
 
@@ -2486,14 +3265,12 @@
         const targetX = (choice === 'L' ? this.leftX : this.rightX);
 
         if (isSafe) {
-          // El jugador acierta en primera persona
           sound.playScrape();
           const mesh = (choice === 'L' ? currentPanel.leftMesh : currentPanel.rightMesh);
           mesh.material.color.setHex(0x10b981);
           mesh.material.emissive = new THREE.Color(0x059669);
           mesh.material.emissiveIntensity = 0.6;
 
-          // Desplazar cámara al panel en 1ra persona
           this.cameraTargetX = targetX;
           this.cameraTargetZ = targetZ + 1.5;
 
@@ -2502,7 +3279,6 @@
 
           if (this.currentStep >= this.totalSteps) {
             this.stopGame();
-            // Desplazar a la plataforma final
             this.cameraTargetZ = - (this.totalSteps * this.stepLength) - 2;
             this.cameraTargetX = 0;
             setTimeout(() => app.onGameWon(), 600);
@@ -2510,13 +3286,11 @@
             this.updateTurnUI();
           }
         } else {
-          // El jugador rompe el cristal: cae en primera persona
           this.stopGame();
           sound.playGlassShatter();
           const brokenMesh = (choice === 'L' ? currentPanel.leftMesh : currentPanel.rightMesh);
           this.scene.remove(brokenMesh);
 
-          // Cámara se desploma al abismo
           this.cameraTargetX = targetX;
           this.cameraTargetZ = targetZ;
           this.cameraTargetY = -50;
@@ -2530,12 +3304,10 @@
       update() {
         if (!this.scene) return;
 
-        // Suavizado de cámara en primera persona (Lerp)
         this.camera.position.x += (this.cameraTargetX - this.camera.position.x) * 0.12;
         this.camera.position.z += (this.cameraTargetZ - this.camera.position.z) * 0.12;
         this.camera.position.y += (this.cameraTargetY - this.camera.position.y) * 0.1;
 
-        // Simular caída física de bots eliminados
         this.botMeshes.forEach(b => {
           if (b.falling) {
             b.fallSpeed += 0.08;
@@ -2555,9 +3327,6 @@
 
     const bridge3D = new GlassBridge3DFPS();
 
-    /* =========================================================================
-       8. JUEGO 6: EL DUELO FINAL DEL CALAMAR 3D EN PRIMERA PERSONA (THREE.JS FPS)
-       ========================================================================= */
     class SquidDuel3DFPS {
       constructor() {
         this.container = document.getElementById('threeSquidDuelContainer');
@@ -2565,7 +3334,6 @@
         this.camera = null;
         this.renderer = null;
 
-        // Jugador en Primera Persona
         this.player = {
           x: 0,
           z: 13,
@@ -2576,7 +3344,6 @@
           isInvulnerable: false
         };
 
-        // Rival Boss (Sang-woo)
         this.bossMesh = null;
         this.boss = {
           x: 0,
@@ -2592,7 +3359,6 @@
         this.timer = 60;
         this.timerInterval = null;
 
-        // Elementos del DOM
         this.playerHpEl = document.getElementById('squidPlayerHp');
         this.playerHpBar = document.getElementById('squidPlayerHpBar');
         this.bossHpEl = document.getElementById('squidBossHp');
@@ -2601,7 +3367,6 @@
         this.feedbackEl = document.getElementById('squidDuelFeedback');
         this.damageFlashEl = document.getElementById('squidDamageFlash');
         this.zoneBadgeEl = document.getElementById('squidArenaZoneBadge');
-        this.leftFist = document.getElementById('leftFist');
         this.rightFist = document.getElementById('rightFist');
 
         this.setupKeyboard();
@@ -2651,7 +3416,7 @@
         this.createBossMesh();
 
         window.addEventListener('resize', () => {
-          if (this.camera && this.renderer && this.container) {
+          if (this.camera && this.renderer && this.container && this.container.clientWidth > 0) {
             const w = this.container.clientWidth;
             const h = this.container.clientHeight;
             this.camera.aspect = w / h;
@@ -2663,21 +3428,20 @@
         const animate = () => {
           requestAnimationFrame(animate);
           this.update();
-          this.renderer.render(this.scene, this.camera);
+          if (this.renderer && this.scene && this.camera && this.container && this.container.clientWidth > 0) {
+            this.renderer.render(this.scene, this.camera);
+          }
         };
         animate();
       }
 
       buildSquidArena() {
-        // Suelo de arena mojada bajo la lluvia
         const groundGeo = new THREE.PlaneGeometry(80, 80);
         const groundMat = new THREE.MeshStandardMaterial({ color: 0x161310, roughness: 0.85, metalness: 0.1 });
         const ground = new THREE.Mesh(groundGeo, groundMat);
         ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
         this.scene.add(ground);
 
-        // Suelo interior del Cuadrado del Calamar (Área permitida: X: -8 a +8, Z: -2 a +15)
         const squareFillGeo = new THREE.PlaneGeometry(16, 17);
         const squareFillMat = new THREE.MeshStandardMaterial({ color: 0x221c17, roughness: 0.7 });
         const squareFill = new THREE.Mesh(squareFillGeo, squareFillMat);
@@ -2685,15 +3449,12 @@
         squareFill.position.set(0, 0.01, 6.5);
         this.scene.add(squareFill);
 
-        // Líneas de Tiza del Cuadrado del Calamar
-        const squareGeo = new THREE.PlaneGeometry(16, 17);
-        const squareEdges = new THREE.EdgesGeometry(squareGeo);
+        const squareEdges = new THREE.EdgesGeometry(squareFillGeo);
         const squareLine = new THREE.LineSegments(squareEdges, new THREE.LineBasicMaterial({ color: 0xff2a70, linewidth: 4 }));
         squareLine.rotation.x = -Math.PI / 2;
         squareLine.position.set(0, 0.05, 6.5);
         this.scene.add(squareLine);
 
-        // Pasillo de conexión hacia la cabeza (X: -3.5 a +3.5, Z: -10 a -2)
         const corridorGeo = new THREE.PlaneGeometry(7, 8);
         const corridorFill = new THREE.Mesh(corridorGeo, squareFillMat);
         corridorFill.rotation.x = -Math.PI / 2;
@@ -2706,7 +3467,6 @@
         corridorLine.position.set(0, 0.05, -6);
         this.scene.add(corridorLine);
 
-        // Cabeza: Círculo Superior (Z = -14)
         const circleGeo = new THREE.RingGeometry(4.8, 5.2, 32);
         const circleMat = new THREE.MeshBasicMaterial({ color: 0xff2a70, side: THREE.DoubleSide });
         const circle = new THREE.Mesh(circleGeo, circleMat);
@@ -2714,88 +3474,26 @@
         circle.position.set(0, 0.05, -14);
         this.scene.add(circle);
 
-        // Plataforma dorada dentro de la cabeza (Meta final)
         const headPadGeo = new THREE.CylinderGeometry(4.5, 4.5, 0.2, 32);
         const headPadMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xf59e0b, emissiveIntensity: 0.35 });
         const headPad = new THREE.Mesh(headPadGeo, headPadMat);
         headPad.position.set(0, 0.02, -14);
         this.scene.add(headPad);
-
-        // Balizas de peligro láser en los 4 vértices del cuadrado
-        this.createHazardPost(-8, -2);
-        this.createHazardPost(8, -2);
-        this.createHazardPost(-8, 15);
-        this.createHazardPost(8, 15);
-
-        // Guardias vestidos de rosa observando en el perímetro
-        for (let i = -2; i <= 2; i++) {
-          this.createGuard(-16, i * 7);
-          this.createGuard(16, i * 7);
-        }
-      }
-
-      createHazardPost(x, z) {
-        const post = new THREE.Group();
-        post.position.set(x, 0, z);
-
-        const poleGeo = new THREE.CylinderGeometry(0.15, 0.15, 3, 8);
-        const poleMat = new THREE.MeshStandardMaterial({ color: 0xef4444 });
-        const pole = new THREE.Mesh(poleGeo, poleMat);
-        pole.position.y = 1.5;
-        post.add(pole);
-
-        const beaconGeo = new THREE.SphereGeometry(0.35, 8, 8);
-        const beaconMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
-        const beacon = new THREE.Mesh(beaconGeo, beaconMat);
-        beacon.position.y = 3;
-        post.add(beacon);
-
-        this.scene.add(post);
-      }
-
-      createGuard(x, z) {
-        const guard = new THREE.Group();
-        guard.position.set(x, 0, z);
-
-        const bodyGeo = new THREE.CylinderGeometry(0.8, 1.0, 3.8, 8);
-        const bodyMat = new THREE.MeshLambertMaterial({ color: 0xff2a70 });
-        const body = new THREE.Mesh(bodyGeo, bodyMat);
-        body.position.y = 1.9;
-        guard.add(body);
-
-        const headGeo = new THREE.SphereGeometry(0.9, 12, 12);
-        const headMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
-        const head = new THREE.Mesh(headGeo, headMat);
-        head.position.y = 4.0;
-        guard.add(head);
-
-        this.scene.add(guard);
       }
 
       createBossMesh() {
         const bossGroup = new THREE.Group();
-        
-        // Abrigo oscuro del rival (Sang-woo)
         const coatGeo = new THREE.CylinderGeometry(0.9, 1.1, 3.4, 8);
         const coatMat = new THREE.MeshLambertMaterial({ color: 0x181e2b });
         const coat = new THREE.Mesh(coatGeo, coatMat);
         coat.position.y = 1.7;
         bossGroup.add(coat);
 
-        // Cabeza
         const headGeo = new THREE.SphereGeometry(0.8, 12, 12);
         const headMat = new THREE.MeshLambertMaterial({ color: 0xffd1a4 });
         const head = new THREE.Mesh(headGeo, headMat);
         head.position.y = 3.6;
         bossGroup.add(head);
-
-        // Marcador de vida flotante sobre el rival
-        const pinGeo = new THREE.ConeGeometry(0.4, 1.0, 6);
-        const pinMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-        const pin = new THREE.Mesh(pinGeo, pinMat);
-        pin.rotation.x = Math.PI;
-        pin.position.y = 5.2;
-        bossGroup.add(pin);
 
         bossGroup.position.set(this.boss.x, 0, this.boss.z);
         this.scene.add(bossGroup);
@@ -2834,7 +3532,7 @@
           this.bossMesh.rotation.set(0, 0, 0);
         }
 
-        this.camera.position.set(this.player.x, this.player.y, this.player.z);
+        if (this.camera) this.camera.position.set(this.player.x, this.player.y, this.player.z);
 
         clearInterval(this.timerInterval);
         this.timerInterval = setInterval(() => {
@@ -2849,7 +3547,6 @@
       }
 
       updateHealthUI() {
-        // Vida Jugador
         this.playerHpEl.textContent = `${Math.max(0, this.player.hp)} HP`;
         const pPct = Math.max(0, Math.min(100, (this.player.hp / this.player.maxHp) * 100));
         this.playerHpBar.style.width = `${pPct}%`;
@@ -2860,23 +3557,15 @@
           this.playerHpBar.className = "h-full bg-gradient-to-r from-emerald-500 to-teal-400 progress-bar-fill";
         }
 
-        // Vida Rival
         this.bossHpEl.textContent = `${Math.max(0, this.boss.hp)} HP`;
         const bPct = Math.max(0, Math.min(100, (this.boss.hp / this.boss.maxHp) * 100));
         this.bossHpBar.style.width = `${bPct}%`;
       }
 
-      // Comprueba si las coordenadas están estrictamente dentro de los límites del campo
       isInsideSquidArena(x, z) {
-        // 1. Zona Cuadrado del Calamar (Cuerpo): X: -8.0 a 8.0, Z: -2.0 a 15.0
         const inSquare = (x >= -8.0 && x <= 8.0 && z >= -2.0 && z <= 15.0);
-
-        // 2. Zona Pasillo de conexión: X: -3.5 a 3.5, Z: -10.0 a -2.0
         const inCorridor = (x >= -3.5 && x <= 3.5 && z >= -10.0 && z < -2.0);
-
-        // 3. Zona Cabeza del Calamar: Centro (0, -14), Radio 4.8
         const inHeadCircle = (Math.hypot(x, z - (-14.0)) <= 4.8);
-
         return (inSquare || inCorridor || inHeadCircle);
       }
 
@@ -2886,7 +3575,6 @@
         const inside = this.isInsideSquidArena(this.player.x, this.player.z);
 
         if (!inside) {
-          // ¡ELIMINADO POR SALIR DEL CUADRADO DEL CALAMAR!
           this.stopGame();
           sound.playHit();
           document.body.classList.add('shake');
@@ -2899,7 +3587,6 @@
           return;
         }
 
-        // Indicador de estado de zona
         if (this.player.z <= -10) {
           this.zoneBadgeEl.className = "text-[11px] font-squid text-yellow-400 bg-yellow-950/80 px-2 py-0.5 rounded border border-yellow-700";
           this.zoneBadgeEl.textContent = "ZONA CABEZA (META)";
@@ -2937,7 +3624,6 @@
       attack() {
         if (!this.isRunning) return;
 
-        // Efecto visual de golpe con los puños HUD
         if (this.rightFist) {
           this.rightFist.classList.remove('punch-active');
           void this.rightFist.offsetWidth;
@@ -2951,7 +3637,6 @@
           this.boss.hp = Math.max(0, this.boss.hp - 25);
           this.updateHealthUI();
 
-          // Empujar al rival hacia atrás
           this.boss.z -= 3.2;
           this.boss.isStunned = true;
           this.feedbackEl.textContent = '💥 ¡Impacto directo! Rival empujado.';
@@ -2973,25 +3658,21 @@
         }
       }
 
-      // Ataque y empuje del enemigo sobre el jugador
       enemyAttackPlayer() {
         if (!this.isRunning || this.player.isInvulnerable || this.boss.isStunned) return;
 
         sound.playHit();
         this.player.isInvulnerable = true;
 
-        // Infligir 20 de daño al jugador
         this.player.hp = Math.max(0, this.player.hp - 20);
         this.updateHealthUI();
 
-        // Empujar al jugador hacia atrás físicamente
         const pushForceZ = 3.6;
         const pushForceX = (this.player.x - this.boss.x) * 0.8;
 
         this.player.z += pushForceZ;
         this.player.x += pushForceX;
 
-        // Efectos visuales de impacto y sacudida
         if (this.damageFlashEl) {
           this.damageFlashEl.style.opacity = '0.7';
           setTimeout(() => this.damageFlashEl.style.opacity = '0', 200);
@@ -3001,7 +3682,6 @@
 
         this.feedbackEl.textContent = '⚠️ ¡El rival te ha golpeado y empujado hacia atrás!';
 
-        // Comprobar si el empuje mató al jugador o lo sacó del cuadrado
         if (this.player.hp <= 0) {
           this.stopGame();
           setTimeout(() => {
@@ -3010,7 +3690,6 @@
           return;
         }
 
-        // Comprobar si el empuje sacó al jugador del cuadrado dibujado
         this.checkArenaBoundaries();
 
         setTimeout(() => {
@@ -3019,7 +3698,6 @@
       }
 
       checkHeadGoal() {
-        // Conquistar la Cabeza del Calamar (Z <= -12 y |X| <= 3.5)
         if (this.player.z <= -12 && Math.abs(this.player.x) <= 3.5) {
           this.stopGame();
           sound.playVictory();
@@ -3031,31 +3709,26 @@
       update() {
         if (!this.isRunning) return;
 
-        // Suavizado de cámara en primera persona
-        this.camera.position.x += (this.player.x - this.camera.position.x) * 0.18;
-        this.camera.position.z += (this.player.z - this.camera.position.z) * 0.18;
+        if (this.camera) {
+          this.camera.position.x += (this.player.x - this.camera.position.x) * 0.18;
+          this.camera.position.z += (this.player.z - this.camera.position.z) * 0.18;
+        }
 
-        // IA de combate y persecución del rival
         if (this.bossMesh && this.boss.hp > 0 && !this.boss.isStunned) {
           const distToPlayer = Math.hypot(this.player.x - this.boss.x, this.player.z - this.boss.z);
 
-          // Movimiento lateral para alinearse con el jugador
           if (this.boss.x < this.player.x - 0.2) this.boss.x += 0.045;
           else if (this.boss.x > this.player.x + 0.2) this.boss.x -= 0.045;
 
-          // Rival intenta bloquear el paso o acorralar al jugador
           if (this.boss.z < this.player.z - 2.8) {
-            this.boss.z += 0.055; // Avanza hacia el jugador
+            this.boss.z += 0.055;
           } else if (this.boss.z > this.player.z - 1.2) {
             this.boss.z -= 0.03;
           }
 
           this.bossMesh.position.set(this.boss.x, 0, this.boss.z);
+          this.boss.attackCooldown -= 0.016;
 
-          // Enfriamiento del ataque del enemigo
-          this.boss.attackCooldown -= 0.016; // ~60fps
-
-          // Si está a corta distancia y el cooldown terminó -> El rival ataca y empuja
           if (distToPlayer <= 3.5 && this.boss.attackCooldown <= 0) {
             this.enemyAttackPlayer();
             this.boss.attackCooldown = 1.4 + Math.random() * 0.8;
@@ -3071,7 +3744,6 @@
 
     const squidDuel3D = new SquidDuel3DFPS();
 
-    // Warmup del sistema de audio al interactuar
     window.onload = function() {
       document.body.addEventListener('click', () => sound.initContext(), { once: true });
       document.body.addEventListener('touchstart', () => sound.initContext(), { once: true });
