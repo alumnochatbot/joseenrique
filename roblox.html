@@ -1332,31 +1332,31 @@
             scene.background.set(skin.bgScene);
 
             // 1. GIGANTESCO CHASIS DE TECLADO MECÁNICO EN EL FONDO INFERIOR
-            const chassisGeo = new THREE.BoxGeometry(120, 4, 600);
+            const chassisGeo = new THREE.BoxGeometry(120, 4, 750);
             const chassisMat = new THREE.MeshLambertMaterial({ color: skin.chassisColor });
             const chassis = new THREE.Mesh(chassisGeo, chassisMat);
-            chassis.position.set(0, -22, -260);
+            chassis.position.set(0, -22, -340);
             scene.add(chassis);
             decorativeObjects.push(chassis);
 
             // Borde LED luminoso del chasis
-            const chassisGlowGeo = new THREE.BoxGeometry(124, 1.5, 604);
+            const chassisGlowGeo = new THREE.BoxGeometry(124, 1.5, 754);
             const chassisGlowMat = new THREE.MeshBasicMaterial({ color: skin.keyBorder });
             const chassisGlow = new THREE.Mesh(chassisGlowGeo, chassisGlowMat);
-            chassisGlow.position.set(0, -21, -260);
+            chassisGlow.position.set(0, -21, -340);
             scene.add(chassisGlow);
             decorativeObjects.push(chassisGlow);
 
             // Cable gigante trenzado USB-C (Tubos curvos decorativos)
-            const cableGeo = new THREE.CylinderGeometry(2.5, 2.5, 580, 16);
+            const cableGeo = new THREE.CylinderGeometry(2.5, 2.5, 720, 16);
             const cableMat = new THREE.MeshLambertMaterial({ color: skin.cableColor });
             const cable = new THREE.Mesh(cableGeo, cableMat);
-            cable.position.set(-65, -15, -260);
+            cable.position.set(-65, -15, -340);
             cable.rotation.x = Math.PI / 2;
             scene.add(cable);
             decorativeObjects.push(cable);
 
-            // 2. DECENAS DE TECLAS FLOTANTES DECORATIVAS EN EL ABISMO (TECLADO POR TODOS LADOS)
+            // 2. DECENAS DE TECLAS FLOTANTES DECORATIVAS EN EL ABISMO
             const ambientKeyLabels = [
                 "ESC", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
                 "TAB", "CAPS", "SHIFT", "CTRL", "ALT", "CMD", "DEL", "ENTER", "BACK",
@@ -1364,7 +1364,7 @@
                 "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "SPACE", "RGB", "❤️", "🍫", "100%"
             ];
 
-            for (let k = 0; k < 45; k++) {
+            for (let k = 0; k < 50; k++) {
                 const randLabel = ambientKeyLabels[k % ambientKeyLabels.length];
                 const keyTex = createKeycapTexture(randLabel, "", skin);
                 const sideMat = new THREE.MeshLambertMaterial({ color: skin.sideColor });
@@ -1375,10 +1375,9 @@
                     [sideMat, sideMat, topMat, sideMat, sideMat, sideMat]
                 );
 
-                // Posiciones dispersas alrededor del camino principal
                 const sideX = (Math.random() < 0.5 ? -1 : 1) * (25 + Math.random() * 45);
                 const posY = -12 + Math.random() * 35;
-                const posZ = -Math.random() * 550;
+                const posZ = -Math.random() * 680;
 
                 decKey.position.set(sideX, posY, posZ);
                 decKey.rotation.set(Math.random() * 0.6, Math.random() * Math.PI, Math.random() * 0.6);
@@ -1391,14 +1390,14 @@
                 label: "MOUSEPAD", sub: "LOBBY GAMER", sideColor: skin.sideColor
             });
             
-            // Pista larga de aceleración recta: Mega SPACEBAR de 40 unidades de largo
-            new Platform(12, 1.5, 40, new THREE.Vector3(0, 0, -32), null, 'keycap', {
+            // Pista de aceleración recta
+            new Platform(12, 1.5, 36, new THREE.Vector3(0, 0, -34), null, 'keycap', {
                 label: "SPACEBAR", sub: "PISTA DE ACELERACIÓN", sideColor: skin.sideColor
             });
-            new Platform(6, 0.4, 10, new THREE.Vector3(0, 0.8, -22), null, 'speed');
-            new Platform(6, 0.4, 10, new THREE.Vector3(0, 0.8, -42), null, 'speed');
+            new Platform(6, 0.4, 10, new THREE.Vector3(0, 0.8, -24), null, 'speed');
+            new Platform(6, 0.4, 10, new THREE.Vector3(0, 0.8, -44), null, 'speed');
 
-            // --- ZONA 2: EL GRAN SALTO DE FE / MEGA RAMPA DE TECLAS MODIFICADORAS (Nivel 2) ---
+            // --- ZONA 2: MEGA RAMPA DE TECLAS CON SALTOS SEPARADOS (Nivel 2) ---
             const rampKeys = [
                 { label: "CTRL", sub: "L-CTRL" },
                 { label: "WIN", sub: "SYSTEM" },
@@ -1407,102 +1406,103 @@
                 { label: "SHIFT", sub: "SUPER-SALTO" }
             ];
             for (let r = 0; r < rampKeys.length; r++) {
-                new Platform(9, 1.2, 6.5, new THREE.Vector3(0, r * 1.5, -55 - (r * 6.5)), null, 'keycap', {
+                // Separación clara de 11.5 unidades (brechas de ~5.5 unidades de aire entre teclas)
+                new Platform(8, 1.2, 6.0, new THREE.Vector3(0, r * 1.5, -60 - (r * 11.5)), null, 'keycap', {
                     label: rampKeys[r].label, sub: rampKeys[r].sub, sideColor: skin.sideColor
                 });
             }
             // Trampolín de despegue al final de la rampa
-            new Platform(9, 1.2, 7, new THREE.Vector3(0, 7.8, -92), '#e74c3c', 'bounce');
+            new Platform(8, 1.2, 6.5, new THREE.Vector3(0, 7.8, -122), '#e74c3c', 'bounce');
 
             // Checkpoint 1: Tecla ENTER Gigante de Aterrizaje Aéreo (Nivel 3)
-            const cp1Pos = new THREE.Vector3(0, 8.0, -135);
+            const cp1Pos = new THREE.Vector3(0, 8.0, -156);
             const cp1 = new Platform(16, 1.4, 16, cp1Pos, null, 'checkpoint');
             cp1.checkpointId = "Tecla ENTER (Fase 1)";
             cp1.levelNumber = "Zona 2: Salto de Fe";
             checkpoints.push(cp1);
 
             // --- ZONA 3: TÚNEL LÁSER DE REFLEJOS EN FILA NUMÉRICA [1-0] (Nivel 4) ---
-            new Platform(12, 1.0, 60, new THREE.Vector3(0, 8.0, -178), null, 'keycap', {
+            new Platform(12, 1.0, 60, new THREE.Vector3(0, 8.0, -204), null, 'keycap', {
                 label: "[ 1 2 3 4 5 6 7 8 9 0 ]", sub: "TÚNEL DE REFLEJOS", sideColor: skin.sideColor
             });
             
             // Paredes de teclas laterales
-            const wallL = new Platform(1.5, 4, 60, new THREE.Vector3(-6.8, 10.0, -178), skin.chassisColor);
-            const wallR = new Platform(1.5, 4, 60, new THREE.Vector3(6.8, 10.0, -178), skin.chassisColor);
+            const wallL = new Platform(1.5, 4, 60, new THREE.Vector3(-6.8, 10.0, -204), skin.chassisColor);
+            const wallR = new Platform(1.5, 4, 60, new THREE.Vector3(6.8, 10.0, -204), skin.chassisColor);
 
             // Láseres deslizantes en el túnel
             const laserBarGeo = new THREE.BoxGeometry(5, 0.35, 0.35);
-            new Hazard(laserBarGeo, new THREE.Vector3(-2, 9.2, -160), '#ff0055', 'sliding', 3.5);
-            new Hazard(laserBarGeo, new THREE.Vector3(2, 9.2, -180), '#00ffcc', 'sliding', 4.0);
-            new Hazard(laserBarGeo, new THREE.Vector3(-2, 9.2, -198), '#ff0055', 'sliding', 4.5);
+            new Hazard(laserBarGeo, new THREE.Vector3(-2, 9.2, -186), '#ff0055', 'sliding', 3.5);
+            new Hazard(laserBarGeo, new THREE.Vector3(2, 9.2, -206), '#00ffcc', 'sliding', 4.0);
+            new Hazard(laserBarGeo, new THREE.Vector3(-2, 9.2, -224), '#ff0055', 'sliding', 4.5);
 
-            // --- ZONA 4: CIRCUITO DE CURVAS EN ZIGZAG DE TECLAS WASD (Nivel 5) ---
+            // --- ZONA 4: CIRCUITO DE SALTOS EN ZIGZAG DE TECLAS WASD (Nivel 5) ---
             const wasdKeys = [
-                { label: "W", sub: "FORWARD", x: -8, y: 8.5, z: -218 },
-                { label: "A", sub: "LEFT", x: -18, y: 9.0, z: -234 },
-                { label: "S", sub: "BACK", x: -10, y: 9.5, z: -250 },
-                { label: "D", sub: "RIGHT", x: 6, y: 10.0, z: -264 }
+                { label: "W", sub: "FORWARD", x: -7, y: 8.5, z: -250 },
+                { label: "A", sub: "LEFT", x: -16, y: 9.0, z: -268 },
+                { label: "S", sub: "BACK", x: -7, y: 9.5, z: -286 },
+                { label: "D", sub: "RIGHT", x: 6, y: 10.0, z: -304 }
             ];
             wasdKeys.forEach(k => {
-                new Platform(8, 1.2, 16, new THREE.Vector3(k.x, k.y, k.z), null, 'keycap', {
+                new Platform(7, 1.2, 10, new THREE.Vector3(k.x, k.y, k.z), null, 'keycap', {
                     label: k.label, sub: k.sub, sideColor: skin.sideColor
                 });
             });
 
             // Checkpoint 2: Dial de Switch Rotatorio (Nivel 6)
-            const cp2Pos = new THREE.Vector3(6, 10.5, -284);
+            const cp2Pos = new THREE.Vector3(6, 10.5, -326);
             const cp2 = new Platform(14, 1.4, 14, cp2Pos, null, 'checkpoint');
             cp2.checkpointId = "Dial Mecánico (Fase 2)";
             cp2.levelNumber = "Zona 4: Circuito WASD";
             checkpoints.push(cp2);
 
             // --- ZONA 5: LOS RODILLOS GIRATORIOS DE VOLUMEN (Nivel 7) ---
-            new Platform(6, 6, 22, new THREE.Vector3(6, 9.5, -306), skin.accentColor, 'roller');
-            new Platform(8, 1.2, 8, new THREE.Vector3(6, 10.5, -322), null, 'keycap', { label: "MUTE", sub: "KNOB", sideColor: skin.sideColor });
-            new Platform(6, 6, 22, new THREE.Vector3(6, 9.5, -340), skin.keyBorder, 'roller');
+            new Platform(6, 6, 20, new THREE.Vector3(6, 9.5, -352), skin.accentColor, 'roller');
+            new Platform(8, 1.2, 8, new THREE.Vector3(6, 10.5, -374), null, 'keycap', { label: "MUTE", sub: "KNOB", sideColor: skin.sideColor });
+            new Platform(6, 6, 20, new THREE.Vector3(6, 9.5, -396), skin.keyBorder, 'roller');
 
             // --- ZONA 6: BOSQUE DE SWITCHES MECÁNICOS (CHERRY MX) (Nivel 8) ---
             const switchKeys = [
-                { label: "BLUE", sub: "CLICKY", pos: [0, 11.5, -360] },
-                { label: "RED", sub: "LINEAR", pos: [-8, 13.0, -376] },
-                { label: "BROWN", sub: "TACTILE", pos: [8, 14.5, -392] },
-                { label: "BLACK", sub: "HEAVY", pos: [0, 16.0, -410] }
+                { label: "BLUE", sub: "CLICKY", pos: [0, 11.5, -420] },
+                { label: "RED", sub: "LINEAR", pos: [-8, 13.0, -438] },
+                { label: "BROWN", sub: "TACTILE", pos: [8, 14.5, -456] },
+                { label: "BLACK", sub: "HEAVY", pos: [0, 16.0, -476] }
             ];
             switchKeys.forEach(k => {
-                new Platform(7, 1.8, 7, new THREE.Vector3(k.pos[0], k.pos[1], k.pos[2]), null, 'keycap', {
+                new Platform(6.5, 1.8, 6.5, new THREE.Vector3(k.pos[0], k.pos[1], k.pos[2]), null, 'keycap', {
                     label: k.label, sub: k.sub, sideColor: skin.sideColor
                 });
             });
 
             // Checkpoint 3: Socket de la Placa Base (Nivel 9)
-            const cp3Pos = new THREE.Vector3(0, 17.0, -430);
+            const cp3Pos = new THREE.Vector3(0, 17.0, -500);
             const cp3 = new Platform(15, 1.4, 15, cp3Pos, null, 'checkpoint');
             cp3.checkpointId = "Socket Placa Base (Fase 3)";
             cp3.levelNumber = "Zona 8: Placa Base";
             checkpoints.push(cp3);
 
             // --- ZONA 7: TÚNEL DE OVERCLOCK / CABLES DE ALTA TENSIÓN (Nivel 10) ---
-            new Platform(10, 1.2, 40, new THREE.Vector3(0, 17.0, -460), null, 'keycap', {
+            new Platform(10, 1.2, 40, new THREE.Vector3(0, 17.0, -534), null, 'keycap', {
                 label: "OVERCLOCK", sub: "HIGH VOLTAGE", sideColor: skin.sideColor
             });
             const cableRotGeo = new THREE.BoxGeometry(16, 0.4, 0.4);
-            new Hazard(cableRotGeo, new THREE.Vector3(0, 18.5, -450), '#ff0055', 'rotating', 2.0);
-            new Hazard(cableRotGeo, new THREE.Vector3(0, 18.5, -470), '#00ffcc', 'rotating', -2.5);
+            new Hazard(cableRotGeo, new THREE.Vector3(0, 18.5, -524), '#ff0055', 'rotating', 2.0);
+            new Hazard(cableRotGeo, new THREE.Vector3(0, 18.5, -544), '#00ffcc', 'rotating', -2.5);
 
             // --- ZONA 8: ESCALERA AL PROCESADOR CPU SUPREMO (Nivel 11) ---
             const fKeys = ["F9", "F10", "F11", "F12"];
             for (let c = 1; c <= 4; c++) {
                 const posX = (c % 2 === 0 ? 6.5 : -6.5);
-                new Platform(6.5, 1.2, 6.5, new THREE.Vector3(posX, 17.0 + c * 2.5, -485 - (c * 10)), null, 'keycap', {
+                new Platform(6.0, 1.2, 6.0, new THREE.Vector3(posX, 17.0 + c * 2.4, -562 - (c * 14.5)), null, 'keycap', {
                     label: fKeys[c - 1], sub: "STEP", sideColor: skin.sideColor
                 });
             }
 
             // Trampolín de lanzamiento hacia la gran tecla dorada final
-            new Platform(9, 1.2, 9, new THREE.Vector3(0, 28.5, -532), '#e74c3c', 'bounce');
+            new Platform(9, 1.2, 9, new THREE.Vector3(0, 28.5, -635), '#e74c3c', 'bounce');
 
             // --- ZONA 9: LA GRAN META - TECLA ESC SUPREMA (Nivel 12) ---
-            const finalPos = new THREE.Vector3(0, 37.0, -570);
+            const finalPos = new THREE.Vector3(0, 37.0, -675);
             goalPad = new Platform(16, 2.5, 16, finalPos, null, 'goal');
             new Platform(14, 2.0, 14, new THREE.Vector3(finalPos.x, finalPos.y + 0.6, finalPos.z), null, 'keycap', {
                 label: "ESC",
@@ -1518,61 +1518,63 @@
         function generateBarrysEscapeMap() {
             clearMap();
             scene.fog.color.set('#0a0f1d');
-            scene.fog.density = 0.008;
+            scene.fog.density = 0.007;
             scene.background.set('#0a0f1d');
 
             new Platform(14, 1, 14, new THREE.Vector3(0, 0, 0), '#2ecc71');
 
+            // 4 bloques iniciales con saltos bien definidos (brecha de ~6.2 unidades)
             for (let i = 1; i <= 4; i++) {
-                new Platform(5.2, 0.8, 5.2, new THREE.Vector3(0, 0.4 * i, -6.5 * i), '#34495e');
+                new Platform(4.8, 0.8, 4.8, new THREE.Vector3(0, 0.4 * i, -11.0 * i), '#34495e');
             }
 
-            const check1Pos = new THREE.Vector3(0, 2.0, -36);
+            const check1Pos = new THREE.Vector3(0, 2.0, -58);
             const cp1 = new Platform(10, 0.8, 10, check1Pos, '#3498db', 'checkpoint');
             cp1.checkpointId = "Comedor (Nivel 6)";
             cp1.levelNumber = "Prisión: Comedor";
             checkpoints.push(cp1);
 
-            const laserHubPos1 = new THREE.Vector3(0, 3.2, -54);
-            new Platform(5, 2, 5, new THREE.Vector3(0, 2.5, -54), '#1f2937');
+            const laserHubPos1 = new THREE.Vector3(0, 3.2, -78);
+            new Platform(5, 2, 5, new THREE.Vector3(0, 2.5, -78), '#1f2937');
             const laserBladeGeo = new THREE.BoxGeometry(14, 0.2, 0.8);
             new Hazard(laserBladeGeo, laserHubPos1, '#ff3b30', 'rotating');
 
-            new Platform(5.2, 0.8, 5.2, new THREE.Vector3(-6, 3.0, -70), '#34495e');
-            new Platform(5.2, 0.8, 5.2, new THREE.Vector3(6, 4.0, -84), '#34495e');
+            new Platform(4.8, 0.8, 4.8, new THREE.Vector3(-5.5, 3.0, -96), '#34495e');
+            new Platform(4.8, 0.8, 4.8, new THREE.Vector3(5.5, 4.0, -112), '#34495e');
 
-            const check2Pos = new THREE.Vector3(0, 5.0, -102);
+            const check2Pos = new THREE.Vector3(0, 5.0, -132);
             const cp2 = new Platform(12, 0.8, 12, check2Pos, '#3498db', 'checkpoint');
             cp2.checkpointId = "Patio Barry (Nivel 10)";
             cp2.levelNumber = "Patio de Barry";
             checkpoints.push(cp2);
 
-            new Platform(24, 1, 48, new THREE.Vector3(0, 5.0, -136), '#16a085');
+            new Platform(24, 1, 48, new THREE.Vector3(0, 5.0, -170), '#16a085');
             barryNPC = createBarryMesh();
-            barryNPC.mesh.position.set(0, 8.4, -145);
-            barryNPC.patrolPointA.set(0, 8.4, -155);
-            barryNPC.patrolPointB.set(0, 8.4, -120);
+            barryNPC.mesh.position.set(0, 8.4, -180);
+            barryNPC.patrolPointA.set(0, 8.4, -190);
+            barryNPC.patrolPointB.set(0, 8.4, -155);
             barryNPC.state = 'patrol';
 
+            // Plataformas que desaparecen con saltos separados
             for (let i = 0; i < 3; i++) {
-                new Platform(5.2, 0.6, 5.2, new THREE.Vector3(0, 6.0 + i * 1.5, -170 - (i * 7.5)), null, 'disappearing');
+                new Platform(4.8, 0.6, 4.8, new THREE.Vector3(0, 6.0 + i * 1.6, -208 - (i * 12.0)), null, 'disappearing');
             }
 
-            const check3Pos = new THREE.Vector3(0, 11.0, -200);
+            const check3Pos = new THREE.Vector3(0, 11.0, -256);
             const cp3 = new Platform(10, 0.8, 10, check3Pos, '#3498db', 'checkpoint');
             cp3.checkpointId = "Generadores (Nivel 16)";
             cp3.levelNumber = "Sala de Generadores";
             checkpoints.push(cp3);
 
-            const laserHubPos2 = new THREE.Vector3(0, 12.2, -225);
-            new Platform(5, 2, 5, new THREE.Vector3(0, 11.5, -225), '#2c3e50');
+            const laserHubPos2 = new THREE.Vector3(0, 12.2, -282);
+            new Platform(5, 2, 5, new THREE.Vector3(0, 11.5, -282), '#2c3e50');
             new Hazard(laserBladeGeo, laserHubPos2, '#00ffcc', 'rotating');
 
-            new Platform(5.5, 0.8, 5.5, new THREE.Vector3(-6, 13.0, -245), '#e67e22', 'bounce');
-            new Platform(5.5, 0.8, 5.5, new THREE.Vector3(6, 16.0, -268), '#34495e');
-            new Platform(5.5, 0.8, 5.5, new THREE.Vector3(0, 18.0, -290), '#e74c3c', 'moving');
+            new Platform(5.2, 0.8, 5.2, new THREE.Vector3(-6, 13.0, -304), '#e67e22', 'bounce');
+            new Platform(5.2, 0.8, 5.2, new THREE.Vector3(6, 16.0, -328), '#34495e');
+            new Platform(5.2, 0.8, 5.2, new THREE.Vector3(0, 18.0, -352), '#e74c3c', 'moving');
 
-            const finalPos = new THREE.Vector3(0, 20.0, -320);
+            const finalPos = new THREE.Vector3(0, 20.0, -384);
             goalPad = new Platform(14, 1.0, 14, finalPos, '#f1c40f', 'goal');
             createGoalTrophy(finalPos);
         }
@@ -1583,7 +1585,7 @@
         function generateTowerOfHellMap() {
             clearMap();
             scene.fog.color.set('#1b0826');
-            scene.fog.density = 0.012;
+            scene.fog.density = 0.010;
             scene.background.set('#1b0826');
 
             new Platform(20, 1, 20, new THREE.Vector3(0, 0, 0), '#8e44ad');
@@ -1591,19 +1593,20 @@
             const segments = 20;
             const colors = ['#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#ff007f', '#00d2d3'];
 
+            // Radio ampliado y separación helicoidal con brechas de salto claras (~6.5 unidades)
+            const radius = 9.2;
             for (let i = 1; i <= segments; i++) {
-                const angle = (i * Math.PI * 0.38);
-                const radius = 7.0;
+                const angle = (i * Math.PI * 0.42);
                 const nextX = Math.cos(angle) * radius;
                 const nextZ = Math.sin(angle) * radius;
-                const nextY = i * 2.3;
+                const nextY = i * 2.2;
 
                 const color = colors[i % colors.length];
                 let platType = 'normal';
                 if (i % 6 === 0) platType = 'moving';
                 else if (i % 8 === 0) platType = 'bounce';
 
-                const plat = new Platform(5.0, 0.7, 5.0, new THREE.Vector3(nextX, nextY, nextZ), color, platType);
+                const plat = new Platform(4.6, 0.7, 4.6, new THREE.Vector3(nextX, nextY, nextZ), color, platType);
                 if (platType === 'moving') {
                     plat.range = 3.0;
                     plat.speed = 2.2;
@@ -1616,7 +1619,7 @@
                 }
             }
 
-            const finalY = segments * 2.3 + 3.0;
+            const finalY = segments * 2.2 + 3.0;
             const finalPos = new THREE.Vector3(0, finalY, 0);
             goalPad = new Platform(12, 0.8, 12, finalPos, '#f1c40f', 'goal');
             createGoalTrophy(finalPos);
@@ -1628,61 +1631,64 @@
         function generateFloorIsLavaMap() {
             clearMap();
             scene.fog.color.set('#2c0b05');
-            scene.fog.density = 0.010;
+            scene.fog.density = 0.009;
             scene.background.set('#2c0b05');
 
-            const lavaGeo = new THREE.PlaneGeometry(160, 160);
+            const lavaGeo = new THREE.PlaneGeometry(240, 240);
             const lavaMat = new THREE.MeshBasicMaterial({ color: 0xff3300, side: THREE.DoubleSide });
             lavaMesh = new THREE.Mesh(lavaGeo, lavaMat);
             lavaMesh.rotation.x = -Math.PI / 2;
-            lavaMesh.position.set(0, -8, -60);
+            lavaMesh.position.set(0, -8, -120);
             scene.add(lavaMesh);
 
             new Platform(14, 1, 14, new THREE.Vector3(0, 0, 0), '#d35400');
 
+            // Sección 1: Saltos espaciados en Z a 12 unidades (brecha de ~7 unidades)
             for (let i = 1; i <= 6; i++) {
                 const type = (i === 3 || i === 6) ? 'bounce' : 'normal';
                 const pos = new THREE.Vector3(
-                    (i % 2 === 0 ? 5 : -5),
-                    i * 3.2,
-                    -i * 6.5
+                    (i % 2 === 0 ? 5.0 : -5.0),
+                    i * 2.6,
+                    -i * 12.0
                 );
-                new Platform(5.8, 0.8, 5.8, pos, '#e67e22', type);
+                new Platform(5.0, 0.8, 5.0, pos, '#e67e22', type);
             }
 
-            const cp1Pos = new THREE.Vector3(0, 24.0, -48);
+            const cp1Pos = new THREE.Vector3(0, 18.0, -84);
             const cp1 = new Platform(11, 0.8, 11, cp1Pos, '#3498db', 'checkpoint');
             cp1.checkpointId = "Grúa de Acero (Nivel 7)";
             cp1.levelNumber = "Grúa de Acero";
             checkpoints.push(cp1);
 
+            // Sección 2: Escalada sobre magma
             for (let i = 1; i <= 6; i++) {
                 const type = (i === 3) ? 'speed' : (i === 5 ? 'bounce' : 'normal');
                 const pos = new THREE.Vector3(
-                    (i % 2 === 0 ? -5 : 5),
-                    24.0 + i * 3.4,
-                    -48 - i * 7.0
+                    (i % 2 === 0 ? -5.0 : 5.0),
+                    18.0 + i * 2.8,
+                    -84 - i * 12.5
                 );
-                new Platform(5.6, 0.8, 5.6, pos, '#d35400', type);
+                new Platform(5.0, 0.8, 5.0, pos, '#d35400', type);
             }
 
-            const cp2Pos = new THREE.Vector3(0, 48.0, -98);
+            const cp2Pos = new THREE.Vector3(0, 38.0, -172);
             const cp2 = new Platform(11, 0.8, 11, cp2Pos, '#3498db', 'checkpoint');
             cp2.checkpointId = "Helipuerto (Nivel 14)";
             cp2.levelNumber = "Helipuerto";
             checkpoints.push(cp2);
 
+            // Sección 3: Tramo final
             for (let i = 1; i <= 5; i++) {
                 const type = (i === 3) ? 'bounce' : 'normal';
                 const pos = new THREE.Vector3(
-                    (i % 2 === 0 ? 5 : -5),
-                    48.0 + i * 3.6,
-                    -98 - i * 7.5
+                    (i % 2 === 0 ? 5.0 : -5.0),
+                    38.0 + i * 3.0,
+                    -172 - i * 13.0
                 );
-                new Platform(5.4, 0.8, 5.4, pos, '#c0392b', type);
+                new Platform(4.8, 0.8, 4.8, pos, '#c0392b', type);
             }
 
-            const finalPos = new THREE.Vector3(0, 72, -145);
+            const finalPos = new THREE.Vector3(0, 56, -250);
             goalPad = new Platform(14, 0.8, 14, finalPos, '#f1c40f', 'goal');
             createGoalTrophy(finalPos);
         }
@@ -1693,25 +1699,26 @@
         function generateRainbowObbyMap() {
             clearMap();
             scene.fog.color.set('#09203f');
-            scene.fog.density = 0.006;
+            scene.fog.density = 0.005;
             scene.background.set('#09203f');
 
             const colors = ['#ff4757', '#ffa502', '#2ed573', '#1e90ff', '#3742fa', '#5352ed', '#e056fd', '#686de0'];
             new Platform(16, 1, 16, new THREE.Vector3(0, 0, 0), '#ffffff');
 
+            // Saltos espaciados a 12.5 unidades con plataforma de 4.8 (brecha de ~7.7 unidades)
             for (let i = 1; i <= 20; i++) {
                 const color = colors[i % colors.length];
                 let type = 'normal';
                 if (i === 3 || i === 9 || i === 16) type = 'bounce';
                 if (i === 5 || i === 12 || i === 18) type = 'speed';
 
-                const xOffset = Math.sin(i * 0.7) * 6;
-                const pos = new THREE.Vector3(xOffset, i * 1.6, -i * 7.5);
+                const xOffset = Math.sin(i * 0.7) * 6.5;
+                const pos = new THREE.Vector3(xOffset, i * 1.6, -i * 12.5);
 
-                new Platform(5.8, 0.8, 5.8, pos, color, type);
+                new Platform(4.8, 0.8, 4.8, pos, color, type);
 
                 if (i === 7) {
-                    const cpPos = new THREE.Vector3(xOffset, i * 1.6, -i * 7.5);
+                    const cpPos = new THREE.Vector3(xOffset, i * 1.6, -i * 12.5);
                     const cp = new Platform(10, 0.8, 10, cpPos, '#2ecc71', 'checkpoint');
                     cp.checkpointId = "Estación Nube (Nivel 7)";
                     cp.levelNumber = "Estación Nube";
@@ -1719,7 +1726,7 @@
                 }
 
                 if (i === 14) {
-                    const cpPos = new THREE.Vector3(xOffset, i * 1.6, -i * 7.5);
+                    const cpPos = new THREE.Vector3(xOffset, i * 1.6, -i * 12.5);
                     const cp = new Platform(10, 0.8, 10, cpPos, '#2ecc71', 'checkpoint');
                     cp.checkpointId = "Arcoíris Cósmico (Nivel 14)";
                     cp.levelNumber = "Arcoíris Cósmico";
@@ -1727,7 +1734,7 @@
                 }
             }
 
-            const finalPos = new THREE.Vector3(0, 36, -165);
+            const finalPos = new THREE.Vector3(0, 36, -270);
             goalPad = new Platform(14, 0.8, 14, finalPos, '#f1c40f', 'goal');
             createGoalTrophy(finalPos);
         }
@@ -1738,37 +1745,38 @@
         function generateGlassBridgeMap() {
             clearMap();
             scene.fog.color.set('#030c1e');
-            scene.fog.density = 0.008;
+            scene.fog.density = 0.007;
             scene.background.set('#030c1e');
 
             new Platform(14, 1, 12, new THREE.Vector3(0, 0, 0), '#2c3e50');
 
+            // Separación de 11 unidades con cristales de 4.2 de largo (brecha de salto real de 6.8 unidades)
             const pairs = 18;
             for (let i = 1; i <= pairs; i++) {
-                const z = -i * 7.0;
+                const z = -i * 11.0;
                 const fakeIsLeft = Math.random() < 0.5;
 
-                new Platform(4.5, 0.35, 5.5, new THREE.Vector3(-3.2, 0, z), null, fakeIsLeft ? 'glass_fake' : 'glass_solid');
-                new Platform(4.5, 0.35, 5.5, new THREE.Vector3(3.2, 0, z), null, fakeIsLeft ? 'glass_solid' : 'glass_fake');
+                new Platform(4.2, 0.35, 4.2, new THREE.Vector3(-3.4, 0, z), null, fakeIsLeft ? 'glass_fake' : 'glass_solid');
+                new Platform(4.2, 0.35, 4.2, new THREE.Vector3(3.4, 0, z), null, fakeIsLeft ? 'glass_solid' : 'glass_fake');
 
                 if (i === 6) {
-                    const cpPos = new THREE.Vector3(0, 0, z - 3.5);
-                    const cp = new Platform(12, 0.8, 4, cpPos, '#3498db', 'checkpoint');
+                    const cpPos = new THREE.Vector3(0, 0, z - 5.5);
+                    const cp = new Platform(12, 0.8, 5, cpPos, '#3498db', 'checkpoint');
                     cp.checkpointId = "Puente 1 (Nivel 6)";
                     cp.levelNumber = "Puente 1";
                     checkpoints.push(cp);
                 }
 
                 if (i === 12) {
-                    const cpPos = new THREE.Vector3(0, 0, z - 3.5);
-                    const cp = new Platform(12, 0.8, 4, cpPos, '#3498db', 'checkpoint');
+                    const cpPos = new THREE.Vector3(0, 0, z - 5.5);
+                    const cp = new Platform(12, 0.8, 5, cpPos, '#3498db', 'checkpoint');
                     cp.checkpointId = "Puente 2 (Nivel 12)";
                     cp.levelNumber = "Puente 2";
                     checkpoints.push(cp);
                 }
             }
 
-            const finalPos = new THREE.Vector3(0, 0, -pairs * 7.0 - 9);
+            const finalPos = new THREE.Vector3(0, 0, -pairs * 11.0 - 12);
             goalPad = new Platform(14, 0.8, 14, finalPos, '#f1c40f', 'goal');
             createGoalTrophy(finalPos);
         }
@@ -1780,7 +1788,7 @@
             clearMap();
             // Ambiente relajante pastel violeta y niebla zen en cielo abierto
             scene.fog.color.set('#201435');
-            scene.fog.density = 0.006;
+            scene.fog.density = 0.005;
             scene.background.set('#201435');
 
             // Squishies y globos gigantes flotantes decorativos en el fondo
@@ -1808,9 +1816,9 @@
                     decMesh.scale.set(1, 0.75, 1);
                 }
 
-                const rad = 28 + Math.random() * 32;
+                const rad = 32 + Math.random() * 36;
                 const ang = Math.random() * Math.PI * 2;
-                decMesh.position.set(Math.cos(ang) * rad, Math.random() * 140, Math.sin(ang) * rad);
+                decMesh.position.set(Math.cos(ang) * rad, Math.random() * 160, Math.sin(ang) * rad);
                 decMesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
                 scene.add(decMesh);
                 decorativeObjects.push(decMesh);
@@ -1819,48 +1827,48 @@
             // --- PISO 1: ZEN LOUNGE & TAPETE DE MEMORY FOAM (Inicio) ---
             new Platform(16, 1.2, 16, new THREE.Vector3(0, 0, 0), '#a29bfe');
 
-            // Escalera de Memory Foam suave
+            // Escalera de Memory Foam suave con saltos definidos
             for (let f = 1; f <= 4; f++) {
-                new Platform(6.0, 0.8, 6.0, new THREE.Vector3(0, f * 1.8, -5 - (f * 7.0)), '#fd79a8');
+                new Platform(5.2, 0.8, 5.2, new THREE.Vector3(0, f * 2.0, -6 - (f * 11.5)), '#fd79a8');
             }
 
-            // --- PISO 2: CAMINO CONTINUO DE PELOTAS SQUISHY NEEDOH ---
+            // --- PISO 2: CAMINO CONTINUO DE PELOTAS SQUISHY NEEDOH (Saltos elásticos flotantes) ---
             const squishyColors = ['#fd79a8', '#ffeaa7', '#55efc4', '#a29bfe', '#74b9ff'];
             const needohConfigs = [
-                { x: 0, y: 8.8, z: -40 },
-                { x: -4.5, y: 11.2, z: -48 },
-                { x: 4.5, y: 13.6, z: -56 },
-                { x: -3.5, y: 16.0, z: -64 },
-                { x: 0, y: 18.4, z: -72 }
+                { x: 0, y: 10.5, z: -66 },
+                { x: -5.0, y: 13.0, z: -80 },
+                { x: 5.0, y: 15.5, z: -94 },
+                { x: -4.0, y: 18.0, z: -108 },
+                { x: 0, y: 20.5, z: -122 }
             ];
 
             needohConfigs.forEach((cfg, idx) => {
-                new Platform(6.5, 4.0, 6.5, new THREE.Vector3(cfg.x, cfg.y, cfg.z), squishyColors[idx % squishyColors.length], 'needoh');
+                new Platform(5.8, 4.0, 5.8, new THREE.Vector3(cfg.x, cfg.y, cfg.z), squishyColors[idx % squishyColors.length], 'needoh');
             });
 
             // Checkpoint 1: Terraza NeeDoh Glow (Nivel 5)
-            const cp1Pos = new THREE.Vector3(0, 21.0, -82);
+            const cp1Pos = new THREE.Vector3(0, 22.5, -138);
             const cp1 = new Platform(12, 1.2, 12, cp1Pos, '#55efc4', 'checkpoint');
             cp1.checkpointId = "Terraza NeeDoh (Piso 5)";
             cp1.levelNumber = "Terraza NeeDoh Glow";
             checkpoints.push(cp1);
 
-            // --- PISO 3: PUENTE POP-IT FIDGET ARCOÍRIS ---
+            // --- PISO 3: PUENTE POP-IT FIDGET ARCOÍRIS CON SALTOS SEPARADOS ---
             const popitColors = ['#ff7675', '#fdcb6e', '#55efc4', '#0984e3', '#6c5ce7'];
             for (let p = 0; p < 5; p++) {
-                const posX = (p % 2 === 0 ? -3.5 : 3.5);
-                new Platform(7.0, 0.8, 7.5, new THREE.Vector3(p === 4 ? 0 : posX, 23.2 + p * 2.2, -91 - (p * 8.0)), popitColors[p], 'popit');
+                const posX = (p % 2 === 0 ? -4.0 : 4.0);
+                new Platform(5.5, 0.8, 5.5, new THREE.Vector3(p === 4 ? 0 : posX, 24.5 + p * 2.2, -152 - (p * 12.0)), popitColors[p], 'popit');
             }
 
             // --- PISO 4: RÍO DE SLIME GELATINOSO TRANSLÚCIDO ---
             for (let sl = 0; sl < 4; sl++) {
-                const slZ = -130 - (sl * 8.5);
-                const slX = (sl % 2 === 0 ? -4.0 : 4.0);
-                new Platform(7.5, 0.8, 7.5, new THREE.Vector3(slX, 34.2 + sl * 2.2, slZ), sl < 2 ? '#00cec9' : '#74b9ff', 'slime');
+                const slZ = -222 - (sl * 12.5);
+                const slX = (sl % 2 === 0 ? -4.5 : 4.5);
+                new Platform(5.8, 0.8, 5.8, new THREE.Vector3(slX, 36.0 + sl * 2.2, slZ), sl < 2 ? '#00cec9' : '#74b9ff', 'slime');
             }
 
             // Checkpoint 2: Oasis Dumpling Squishy (Nivel 10)
-            const cp2Pos = new THREE.Vector3(0, 43.0, -164);
+            const cp2Pos = new THREE.Vector3(0, 46.0, -282);
             const cp2 = new Platform(13, 1.2, 13, cp2Pos, '#a29bfe', 'checkpoint');
             cp2.checkpointId = "Oasis Dumpling (Piso 10)";
             cp2.levelNumber = "Oasis Dumpling";
@@ -1868,22 +1876,22 @@
 
             // --- PISO 5: PASARELA DE NEEDOH DUMPLINGS KAWAII ---
             for (let d = 0; d < 5; d++) {
-                const dX = (d % 2 === 0 ? -4.5 : 4.5);
-                const dZ = -173 - (d * 8.5);
-                const dY = 45.4 + d * 2.4;
-                new Platform(6.5, 3.5, 6.5, new THREE.Vector3(d === 4 ? 0 : dX, dY, dZ), null, 'dumpling');
+                const dX = (d % 2 === 0 ? -5.0 : 5.0);
+                const dZ = -298 - (d * 12.5);
+                const dY = 48.5 + d * 2.4;
+                new Platform(5.6, 3.5, 5.6, new THREE.Vector3(d === 4 ? 0 : dX, dY, dZ), null, 'dumpling');
             }
 
             // --- PISO 6: TORRE DE NEEDOH SUGAR BALLS ASCENDENTES ---
             for (let b = 0; b < 5; b++) {
-                const bX = (b % 2 === 0 ? 4.0 : -4.0);
-                const bZ = -215 - (b * 8.5);
-                const bY = 57.8 + b * 2.8;
-                new Platform(6.5, 4.0, 6.5, new THREE.Vector3(b === 4 ? 0 : bX, bY, bZ), squishyColors[b % squishyColors.length], 'needoh');
+                const bX = (b % 2 === 0 ? 4.5 : -4.5);
+                const bZ = -370 - (b * 13.0);
+                const bY = 62.0 + b * 2.8;
+                new Platform(5.8, 4.0, 5.8, new THREE.Vector3(b === 4 ? 0 : bX, bY, bZ), squishyColors[b % squishyColors.length], 'needoh');
             }
 
             // Checkpoint 3: Santuario Pop-It Cósmico (Nivel 15)
-            const cp3Pos = new THREE.Vector3(0, 72.5, -257);
+            const cp3Pos = new THREE.Vector3(0, 78.0, -446);
             const cp3 = new Platform(14, 1.2, 14, cp3Pos, '#fd79a8', 'checkpoint');
             cp3.checkpointId = "Santuario Pop-It (Piso 15)";
             cp3.levelNumber = "Santuario Pop-It";
@@ -1891,17 +1899,17 @@
 
             // --- PISO 7: CAMINO DE NUBES Y SLIME FINAL ---
             for (let j = 1; j <= 3; j++) {
-                const jX = (j % 2 === 0 ? 4.5 : -4.5);
-                const jY = 74.8 + j * 2.6;
-                const jZ = -257 - (j * 8.5);
-                new Platform(7.0, 0.8, 7.0, new THREE.Vector3(jX, jY, jZ), '#74b9ff', 'slime');
+                const jX = (j % 2 === 0 ? 5.0 : -5.0);
+                const jY = 80.5 + j * 2.6;
+                const jZ = -446 - (j * 12.5);
+                new Platform(5.8, 0.8, 5.8, new THREE.Vector3(jX, jY, jZ), '#74b9ff', 'slime');
             }
 
             // Súper Trampolín NeeDoh de lanzamiento final
-            new Platform(8.5, 1.2, 8.5, new THREE.Vector3(0, 84.5, -290), '#e74c3c', 'bounce');
+            new Platform(8.5, 1.2, 8.5, new THREE.Vector3(0, 91.0, -495), '#e74c3c', 'bounce');
 
             // --- PISO 8: LA CIMA SUPREMA - TEMPLO CORONA ASMR NEEDOH ---
-            const finalPos = new THREE.Vector3(0, 98.0, -305);
+            const finalPos = new THREE.Vector3(0, 108.0, -525);
             goalPad = new Platform(16, 2.0, 16, finalPos, '#fdcb6e', 'goal');
             
             // Halo brillante sobre el podio de victoria
