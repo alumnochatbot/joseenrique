@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Angry Birds Clone - Ultimate 67 Levels Edition</title>
+    <title>Angry Birds Clone - Ultimate 80 Levels Edition</title>
     <!-- Importar Matter.js para simulación física -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <!-- Importar Tailwind CSS para la interfaz de usuario -->
@@ -46,7 +46,7 @@
             <div class="bg-slate-900/90 text-white border border-purple-500/30 rounded-2xl px-5 py-3 shadow-2xl backdrop-blur-md flex items-center gap-4">
                 <div class="flex flex-col">
                     <span class="text-xs text-purple-400 font-bold uppercase tracking-wider">Progreso</span>
-                    <span class="text-lg font-black text-yellow-300">Nivel <span id="current-level-num">1</span> / 67</span>
+                    <span class="text-lg font-black text-yellow-300">Nivel <span id="current-level-num">1</span> / 80</span>
                 </div>
                 <div class="h-8 w-[1px] bg-purple-500/30"></div>
                 <div class="flex flex-col">
@@ -58,7 +58,7 @@
             <!-- Controles de Selección de Nivel y Reinicio -->
             <div class="flex items-center gap-2">
                 <select id="level-select" onchange="selectLevel(this.value)" class="bg-slate-900/95 text-white border-2 border-purple-600 rounded-xl px-4 py-2.5 font-bold text-sm shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer max-w-[250px] md:max-w-none">
-                    <!-- Se cargarán los 67 niveles dinámicamente -->
+                    <!-- Se cargarán los 80 niveles dinámicamente -->
                 </select>
                 <button id="btn-restart" onclick="initGame()" class="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-extrabold px-5 py-2.5 rounded-xl shadow-lg shadow-red-500/20 active:scale-95 transition-all flex items-center gap-2 text-sm border border-red-400/20">
                     <i class="fa-solid fa-rotate-right"></i> Reiniciar
@@ -126,7 +126,7 @@
             <ul class="space-y-3 text-xs md:text-sm text-slate-300">
                 <li class="flex gap-2.5">
                     <span class="text-yellow-400 font-bold">1.</span>
-                    <p>Arrastra el **pájaro activo** en la resortera hacia atrás para apuntar y suéltalo para disparar.</p>
+                    <p>Arrastra el <strong>pájaro activo</strong> en la resortera hacia atrás para apuntar y suéltalo para disparar.</p>
                 </li>
                 <li class="flex gap-2.5">
                     <span class="text-yellow-400 font-bold">2.</span>
@@ -134,8 +134,9 @@
                 </li>
                 <li class="pl-6 space-y-1 text-xs">
                     <p>🧊 <strong>Cristal:</strong> Se destruye al 1.er impacto.</p>
-                    <p>🪵 <strong>Madera:</strong> Se agrieta al 1.er impacto y se rompe al 2.º.</p>
-                    <p>🪨 <strong>Piedra:</strong> Leve grieta al 1.º, grieta profunda al 2.º y rompe al 3.º.</p>
+                    <p>🪵 <strong>Madera:</strong> Se agrieta al 1.er impacto y se destruye al 2.º.</p>
+                    <p>🪨 <strong>Piedra:</strong> Leve grieta al 1.º, grieta profunda al 2.º y se destruye al 3.º.</p>
+                    <p>⚙️ <strong>Metal:</strong> Blindado, se agrieta progresivamente y se destruye al 4.º.</p>
                 </li>
                 <li class="flex gap-2.5 border border-purple-500/40 p-2.5 rounded-xl bg-purple-950/20">
                     <span class="text-yellow-400 font-bold">3.</span>
@@ -173,10 +174,13 @@
         let isFired = false, score = 0, gameState = 'PLAYING';
         let birdQueue = [], currentBirdType = '', isAbilityUsed = false;
         let activeExplosions = []; 
+        let activeDebris = [];
+        let activePuffs = [];
         let currentLevel = 1;
-        const totalLevels = 67;
+        const totalLevels = 80;
         
         let levelFrameCount = 0;
+        let structureUnlocked = false;
 
         let pendingReward = null;
         let activeReward = null;
@@ -237,11 +241,14 @@
             "El Gran Búnker Blindado", "La Trampa del Embudo", "El Templo Sagrado", "La Resistencia del Desierto",
             "El Gran Acueducto", "La Jaula de Cristal", "La Guarida del Dragón", "La Fortificación Angular",
             "La Torre de la Magia", "El Puente del Caos", "La Telaraña de Cerdos", "La Cueva del Rey Cerdo",
-            "La Ciudadela Militar", "El Último Bastión", "El Búnker de Cristal de Obsidiana", "Laberinto de Doble Rey",
+            "La Ciudadela Militar", "El Último Bastión", "El Búnker de Obsidiana", "Laberinto de Doble Rey",
             "La Bóveda Blindada", "Cúpula de Hielo Colosal", "Cámara de Alta Presión", "La Gran Muralla Vertical",
             "Fortaleza de Hielo y Acero", "El Trono Impenetrable", "Laberinto Flotante de Cristal", "Torres Gemelas de Piedra Colosal",
             "Búnker de TNT Blindado", "Bóveda Imperial de Hielo", "El Bastión de Obsidiana Pesada", "El Gran Coliseo Glaciar",
-            "El Puente del Juicio Final", "El Bastión de Cristal Colosal", "El Gran Coliseo Imperial"
+            "El Puente del Juicio Final", "El Bastión de Cristal Colosal", "El Gran Coliseo Imperial", "El Sanctum del Vacío",
+            "La Muralla de Fuego y TNT", "El Zigurat Celestial", "La Bóveda Blindada Titán", "El Laberinto de Espejos y Cristal",
+            "El Puente de Cadenas Colgantes", "La Fortaleza de la Corona Real", "El Búnker Atómico Subterráneo", "La Torre Colosal de Marfil",
+            "El Baluarte de los Tres Reyes", "La Trampa de Demolición del Abismo", "La Puerta del Inframundo", "El Apocalipsis Final del Rey Cerdo"
         ];
 
         function populateLevelSelect() {
@@ -266,7 +273,7 @@
             world = engine.world;
             engine.gravity.y = 1;
 
-            // Elevar las iteraciones de precisión para evitar que los pájaros atraviesen bloques a alta velocidad
+            // Iteraciones elevadas para evitar traspaso de paredes a alta velocidad
             engine.positionIterations = 14;
             engine.velocityIterations = 14;
 
@@ -359,76 +366,89 @@
         }
 
         function getBaseBirdQueue(level) {
-            switch(level) {
-                case 1:  return ['red', 'red'];
-                case 2:  return ['red', 'yellow', 'red'];
-                case 3:  return ['yellow', 'black', 'red'];
-                case 4:  return ['red', 'yellow', 'yellow'];
-                case 5:  return ['black', 'red', 'yellow'];
-                case 6:  return ['yellow', 'black', 'red', 'red'];
-                case 7:  return ['red', 'yellow', 'black'];
-                case 8:  return ['black', 'yellow', 'yellow'];
-                case 9:  return ['yellow', 'yellow', 'black', 'red'];
-                case 10: return ['black', 'black', 'yellow', 'red'];
-                case 11: return ['red', 'yellow', 'black', 'black'];
-                case 12: return ['yellow', 'yellow', 'yellow', 'red'];
-                case 13: return ['black', 'yellow', 'red', 'red'];
-                case 14: return ['yellow', 'black', 'yellow', 'black'];
-                case 15: return ['red', 'red', 'yellow', 'black'];
-                case 16: return ['black', 'black', 'yellow', 'red', 'red'];
-                case 17: return ['yellow', 'yellow', 'black', 'black'];
-                case 18: return ['black', 'yellow', 'yellow', 'black'];
-                case 19: return ['red', 'yellow', 'black', 'black', 'red'];
-                case 20: return ['yellow', 'black', 'yellow', 'black', 'red'];
-                case 21: return ['yellow', 'red', 'red'];
-                case 22: return ['yellow', 'black', 'red'];
-                case 23: return ['yellow', 'yellow', 'red'];
-                case 24: return ['black', 'yellow', 'red'];
-                case 25: return ['black', 'black', 'yellow'];
-                case 26: return ['red', 'yellow', 'red', 'red'];
-                case 27: return ['yellow', 'black', 'black'];
-                case 28: return ['black', 'yellow', 'red'];
-                case 29: return ['yellow', 'yellow', 'black'];
-                case 30: return ['yellow', 'yellow', 'red', 'red'];
-                case 31: return ['black', 'yellow', 'yellow', 'red'];
-                case 32: return ['yellow', 'red', 'red', 'red'];
-                case 33: return ['black', 'black', 'red'];
-                case 34: return ['yellow', 'black', 'red'];
-                case 35: return ['yellow', 'yellow', 'red', 'red'];
-                case 36: return ['black', 'yellow', 'red'];
-                case 37: return ['black', 'black', 'yellow', 'yellow'];
-                case 38: return ['red', 'yellow', 'yellow', 'red'];
-                case 39: return ['yellow', 'yellow', 'red'];
-                case 40: return ['black', 'yellow', 'yellow', 'yellow'];
-                case 41: return ['yellow', 'red', 'red', 'red'];
-                case 42: return ['black', 'black', 'red', 'red'];
-                case 43: return ['yellow', 'black', 'yellow'];
-                case 44: return ['red', 'yellow', 'black', 'red'];
-                case 45: return ['yellow', 'yellow', 'black', 'red'];
-                case 46: return ['black', 'yellow', 'yellow', 'red'];
-                case 47: return ['yellow', 'black', 'yellow', 'red'];
-                case 48: return ['black', 'black', 'black', 'yellow'];
-                case 49: return ['yellow', 'black', 'black', 'red'];
-                case 50: return ['yellow', 'yellow', 'black', 'red', 'red'];
-                case 51: return ['black', 'yellow', 'yellow', 'red'];
-                case 52: return ['yellow', 'black', 'black'];
-                case 53: return ['red', 'yellow', 'black', 'red'];
-                case 54: return ['black', 'yellow', 'red', 'red'];
-                case 55: return ['yellow', 'yellow', 'black', 'black'];
-                case 56: return ['black', 'black', 'yellow', 'red'];
-                case 57: return ['yellow', 'black', 'yellow', 'red'];
-                case 58: return ['black', 'yellow', 'black', 'red'];
-                case 59: return ['yellow', 'yellow', 'black', 'red'];
-                case 60: return ['black', 'black', 'yellow', 'yellow'];
-                case 61: return ['yellow', 'black', 'red', 'red'];
-                case 62: return ['black', 'black', 'black', 'red'];
-                case 63: return ['yellow', 'black', 'yellow', 'black'];
-                case 64: return ['black', 'yellow', 'black', 'red'];
-                case 65: return ['yellow', 'black', 'yellow', 'black', 'red'];
-                case 66: return ['yellow', 'black', 'yellow', 'red'];
-                case 67: return ['black', 'yellow', 'black', 'yellow', 'red'];
-                default: return ['red', 'yellow', 'black'];
-            }
+            const birdPresets = [
+                ['red', 'red'],                              // 1
+                ['red', 'yellow', 'red'],                    // 2
+                ['yellow', 'black', 'red'],                  // 3
+                ['red', 'yellow', 'yellow'],                 // 4
+                ['black', 'red', 'yellow'],                  // 5
+                ['yellow', 'black', 'red', 'red'],           // 6
+                ['red', 'yellow', 'black'],                  // 7
+                ['black', 'yellow', 'yellow'],               // 8
+                ['yellow', 'yellow', 'black', 'red'],        // 9
+                ['black', 'black', 'yellow', 'red'],         // 10
+                ['red', 'yellow', 'black', 'black'],         // 11
+                ['yellow', 'yellow', 'yellow', 'red'],       // 12
+                ['black', 'yellow', 'red', 'red'],           // 13
+                ['yellow', 'black', 'yellow', 'black'],      // 14
+                ['red', 'red', 'yellow', 'black'],           // 15
+                ['black', 'black', 'yellow', 'red'],         // 16
+                ['yellow', 'yellow', 'black', 'black'],      // 17
+                ['black', 'yellow', 'yellow', 'black'],      // 18
+                ['red', 'yellow', 'black', 'black', 'red'],  // 19
+                ['yellow', 'black', 'yellow', 'black', 'red'], // 20
+                ['yellow', 'red', 'red'],                    // 21
+                ['yellow', 'black', 'red'],                  // 22
+                ['yellow', 'yellow', 'red'],                 // 23
+                ['black', 'yellow', 'red'],                  // 24
+                ['black', 'black', 'yellow'],                // 25
+                ['red', 'yellow', 'red', 'red'],             // 26
+                ['yellow', 'black', 'black'],                // 27
+                ['black', 'yellow', 'red'],                  // 28
+                ['yellow', 'yellow', 'black'],               // 29
+                ['yellow', 'yellow', 'red', 'red'],          // 30
+                ['black', 'yellow', 'yellow', 'red'],        // 31
+                ['yellow', 'red', 'red', 'red'],             // 32
+                ['black', 'black', 'red'],                   // 33
+                ['yellow', 'black', 'red'],                  // 34
+                ['yellow', 'yellow', 'red', 'red'],          // 35
+                ['black', 'yellow', 'red'],                  // 36
+                ['black', 'black', 'yellow', 'yellow'],      // 37
+                ['red', 'yellow', 'yellow', 'red'],          // 38
+                ['yellow', 'yellow', 'red'],                 // 39
+                ['black', 'yellow', 'yellow', 'yellow'],     // 40
+                ['yellow', 'red', 'red', 'red'],             // 41
+                ['black', 'black', 'red', 'red'],            // 42
+                ['yellow', 'black', 'yellow'],               // 43
+                ['red', 'yellow', 'black', 'red'],           // 44
+                ['yellow', 'yellow', 'black', 'red'],        // 45
+                ['black', 'yellow', 'yellow', 'red'],        // 46
+                ['yellow', 'black', 'yellow', 'red'],        // 47
+                ['black', 'black', 'black', 'yellow'],       // 48
+                ['yellow', 'black', 'black', 'red'],         // 49
+                ['yellow', 'yellow', 'black', 'red', 'red'], // 50
+                ['black', 'yellow', 'yellow', 'red'],        // 51
+                ['yellow', 'black', 'black'],                // 52
+                ['red', 'yellow', 'black', 'red'],           // 53
+                ['black', 'yellow', 'red', 'red'],           // 54
+                ['yellow', 'yellow', 'black', 'black'],      // 55
+                ['black', 'black', 'yellow', 'red'],         // 56
+                ['yellow', 'black', 'yellow', 'red'],        // 57
+                ['black', 'yellow', 'black', 'red'],         // 58
+                ['yellow', 'yellow', 'black', 'red'],        // 59
+                ['black', 'black', 'yellow', 'yellow'],      // 60
+                ['yellow', 'black', 'red', 'red'],           // 61
+                ['black', 'black', 'black', 'red'],          // 62
+                ['yellow', 'black', 'yellow', 'black'],      // 63
+                ['black', 'yellow', 'black', 'red'],         // 64
+                ['yellow', 'black', 'yellow', 'black', 'red'], // 65
+                ['yellow', 'black', 'yellow', 'red'],        // 66
+                ['black', 'yellow', 'black', 'yellow', 'red'], // 67
+                ['black', 'black', 'yellow', 'red'],         // 68
+                ['yellow', 'yellow', 'black', 'black'],      // 69
+                ['yellow', 'black', 'black', 'red'],         // 70
+                ['black', 'black', 'yellow', 'yellow'],      // 71
+                ['yellow', 'yellow', 'black', 'red', 'red'], // 72
+                ['yellow', 'black', 'yellow', 'black'],      // 73
+                ['black', 'yellow', 'black', 'yellow', 'red'], // 74
+                ['black', 'black', 'black', 'yellow', 'red'], // 75
+                ['yellow', 'yellow', 'yellow', 'black', 'red'], // 76
+                ['black', 'black', 'yellow', 'black', 'red'], // 77
+                ['yellow', 'black', 'yellow', 'red'],        // 78
+                ['black', 'black', 'yellow', 'yellow', 'red'], // 79
+                ['black', 'yellow', 'black', 'yellow', 'black', 'red'] // 80
+            ];
+            return birdPresets[(level - 1) % birdPresets.length];
         }
 
         function initGame() {
@@ -439,12 +459,15 @@
             isFired = false;
             score = 0;
             levelFrameCount = 0;
+            structureUnlocked = false;
             updateScore(0);
             gameState = 'PLAYING';
             msgContainer.classList.add('hidden');
             isAbilityUsed = false;
             sling = null;
             activeExplosions = [];
+            activeDebris = [];
+            activePuffs = [];
             levelNumEl.innerText = currentLevel;
             levelSelect.value = currentLevel;
 
@@ -496,7 +519,7 @@
             isFired = false;
             isAbilityUsed = false;
 
-            // Restitución elástica (restitution: 0.8) para garantizar un rebote nítido al chocar contra paredes
+            // Restitución elástica de 0.8 para rebotes nítidos
             let birdOpts = { restitution: 0.8, frictionAir: 0.005, label: 'bird', birdType: currentBirdType };
             
             if (currentBirdType === 'yellow') birdOpts.density = 0.0025;
@@ -528,18 +551,36 @@
             Composite.add(world, [bird, sling]);
         }
 
+        function unlockStructure() {
+            if (structureUnlocked) return;
+            structureUnlocked = true;
+            blocks.forEach(b => {
+                if (b.label !== 'ground') {
+                    Body.setStatic(b, false);
+                    if (b.initialDensity) Body.setDensity(b, b.initialDensity);
+                }
+            });
+            pigs.forEach(p => {
+                Body.setStatic(p, false);
+                if (p.initialDensity) Body.setDensity(p, p.initialDensity);
+            });
+        }
+
         function buildLevel() {
             const baseX = width * 0.73, baseY = height - 40;
             
-            const woodOpts = { restitution: 0.5, density: 0.004, friction: 0.2, label: 'wood', hp: 2, maxHp: 2 };
-            const stoneOpts = { restitution: 0.6, density: 0.012, friction: 0.2, label: 'stone', hp: 3, maxHp: 3 };
-            const iceOpts = { restitution: 0.4, density: 0.002, friction: 0.1, label: 'ice', hp: 1, maxHp: 1 };
-            const tntOpts = { restitution: 0.3, density: 0.0015, friction: 0.4, label: 'tnt' };
-            const pigOpts = { restitution: 0.35, density: 0.001, friction: 0.4, label: 'pig' };
-            const bonusOpts = { restitution: 0.6, density: 0.0005, friction: 0.2, label: 'bonus' };
+            // Físicas optimizadas y durabilidad por material
+            const woodOpts = { restitution: 0.2, density: 0.005, friction: 0.85, label: 'wood', hp: 2, maxHp: 2 };
+            const stoneOpts = { restitution: 0.15, density: 0.015, friction: 0.9, label: 'stone', hp: 3, maxHp: 3 };
+            const iceOpts = { restitution: 0.25, density: 0.003, friction: 0.5, label: 'ice', hp: 1, maxHp: 1 };
+            const metalOpts = { restitution: 0.1, density: 0.025, friction: 0.95, label: 'metal', hp: 4, maxHp: 4 };
+            const tntOpts = { restitution: 0.2, density: 0.002, friction: 0.7, label: 'tnt' };
+            const pigOpts = { restitution: 0.35, density: 0.001, friction: 0.6, label: 'pig' };
+            const bonusOpts = { restitution: 0.6, density: 0.0005, friction: 0.3, label: 'bonus' };
 
             const spawnColumn = (x, y, w, h, materialOpts) => {
-                const col = Bodies.rectangle(x, y - h/2, w, h, materialOpts);
+                const col = Bodies.rectangle(x, y - h/2, w, h, { ...materialOpts, isStatic: true });
+                col.initialDensity = materialOpts.density || 0.005;
                 col.hp = materialOpts.hp !== undefined ? materialOpts.hp : 2;
                 col.maxHp = materialOpts.maxHp !== undefined ? materialOpts.maxHp : 2;
                 blocks.push(col);
@@ -547,765 +588,398 @@
             };
 
             const spawnBeam = (x, y, w, h, materialOpts) => {
-                const beam = Bodies.rectangle(x, y - h/2, w, h, materialOpts);
+                const beam = Bodies.rectangle(x, y - h/2, w, h, { ...materialOpts, isStatic: true });
+                beam.initialDensity = materialOpts.density || 0.005;
                 beam.hp = materialOpts.hp !== undefined ? materialOpts.hp : 2;
                 beam.maxHp = materialOpts.maxHp !== undefined ? materialOpts.maxHp : 2;
                 blocks.push(beam);
                 return beam;
             };
 
+            const spawnTriangle = (x, y, size, materialOpts) => {
+                const labelName = materialOpts.label + '_tri';
+                const tri = Bodies.polygon(x, y - size/2, 3, size * 0.65, { ...materialOpts, isStatic: true, label: labelName });
+                tri.initialDensity = materialOpts.density || 0.005;
+                tri.hp = materialOpts.hp !== undefined ? materialOpts.hp : 2;
+                tri.maxHp = materialOpts.maxHp !== undefined ? materialOpts.maxHp : 2;
+                blocks.push(tri);
+                return tri;
+            };
+
             const spawnTNT = (x, y, size) => {
-                const tnt = Bodies.rectangle(x, y - size/2, size, size, tntOpts);
+                const tnt = Bodies.rectangle(x, y - size/2, size, size, { ...tntOpts, isStatic: true });
+                tnt.initialDensity = tntOpts.density;
                 blocks.push(tnt);
                 return tnt;
             };
 
             const spawnPig = (x, y, radius, pigType) => {
-                const pig = Bodies.circle(x, y - radius, radius, { ...pigOpts, pigType });
+                const pig = Bodies.circle(x, y - radius, radius, { ...pigOpts, isStatic: true, pigType });
+                pig.initialDensity = pigOpts.density;
                 pigs.push(pig);
                 return pig;
             };
 
             const spawnBoulder = (x, y, radius) => {
-                const boulder = Bodies.circle(x, y - radius, radius, { ...stoneOpts, label: 'boulder', hp: 3, maxHp: 3 });
+                const boulder = Bodies.circle(x, y - radius, radius, { ...stoneOpts, isStatic: true, label: 'boulder', hp: 3, maxHp: 3 });
+                boulder.initialDensity = stoneOpts.density;
                 blocks.push(boulder);
                 return boulder;
             };
 
             const spawnBonus = (x, y, radius, bonusType) => {
-                const bonus = Bodies.circle(x, y - radius, radius, { ...bonusOpts, bonusType });
+                const bonus = Bodies.circle(x, y - radius, radius, { ...bonusOpts, isStatic: true, bonusType });
+                bonus.initialDensity = bonusOpts.density;
                 blocks.push(bonus);
                 return bonus;
             };
 
             if (currentLevel === 1) {
-                spawnColumn(baseX - 50, baseY, 20, 60, woodOpts);
-                spawnColumn(baseX + 50, baseY, 20, 60, woodOpts);
-                spawnBeam(baseX, baseY - 60, 140, 20, woodOpts);
+                // NIVEL 1: Introductorio y accesible (Un refugio clásico de madera con 1 cerdo fácil)
+                spawnColumn(baseX - 45, baseY, 20, 65, woodOpts);
+                spawnColumn(baseX + 45, baseY, 20, 65, woodOpts);
+                spawnBeam(baseX, baseY - 65, 120, 16, woodOpts);
+                spawnTriangle(baseX, baseY - 81, 36, woodOpts);
                 spawnPig(baseX, baseY, 18, 'normal');
 
             } else if (currentLevel === 2) {
-                spawnColumn(baseX - 60, baseY, 25, 80, stoneOpts);
-                spawnColumn(baseX - 10, baseY, 25, 80, stoneOpts);
-                spawnBeam(baseX - 35, baseY - 80, 90, 15, stoneOpts);
+                // NIVEL 2: Dos plataformas pequeñas con madera y cristal
+                spawnColumn(baseX - 60, baseY, 20, 75, woodOpts);
+                spawnColumn(baseX - 10, baseY, 20, 75, woodOpts);
+                spawnBeam(baseX - 35, baseY - 75, 80, 16, iceOpts);
                 spawnPig(baseX - 35, baseY, 18, 'normal');
 
-                spawnColumn(baseX + 10, baseY, 25, 80, stoneOpts);
-                spawnColumn(baseX + 60, baseY, 25, 80, stoneOpts);
-                spawnBeam(baseX + 35, baseY - 80, 90, 15, stoneOpts);
+                spawnColumn(baseX + 10, baseY, 20, 75, woodOpts);
+                spawnColumn(baseX + 60, baseY, 20, 75, woodOpts);
+                spawnBeam(baseX + 35, baseY - 75, 80, 16, iceOpts);
                 spawnPig(baseX + 35, baseY, 18, 'normal');
 
             } else if (currentLevel === 3) {
-                spawnColumn(baseX - 80, baseY, 25, 80, woodOpts);
-                spawnColumn(baseX + 80, baseY, 25, 80, woodOpts);
-                spawnBeam(baseX, baseY - 80, 200, 15, stoneOpts);
-
-                spawnColumn(baseX - 40, baseY - 95, 20, 60, iceOpts);
-                spawnColumn(baseX + 40, baseY - 95, 20, 60, iceOpts);
-                spawnBeam(baseX, baseY - 155, 120, 15, woodOpts);
-
-                spawnTNT(baseX, baseY, 35);
-                spawnPig(baseX, baseY - 95, 22, 'helmet');
-                spawnPig(baseX, baseY - 170, 26, 'king');
+                // NIVEL 3: Primer contacto con dinamita y piedra
+                spawnColumn(baseX - 70, baseY, 24, 80, stoneOpts);
+                spawnColumn(baseX + 70, baseY, 24, 80, stoneOpts);
+                spawnBeam(baseX, baseY - 80, 170, 18, woodOpts);
+                spawnTNT(baseX, baseY, 34);
+                spawnPig(baseX, baseY - 80, 20, 'helmet');
 
             } else if (currentLevel === 4) {
-                for (let i = 0; i < 3; i++) {
-                    let px = baseX - 90 + i * 90;
-                    spawnColumn(px, baseY, 25, 90, iceOpts);
-                    spawnBeam(px, baseY - 90, 80, 15, iceOpts);
-                    spawnPig(px, baseY, 18, 'normal');
-                }
-                spawnBeam(baseX, baseY - 105, 260, 15, iceOpts);
-                spawnPig(baseX, baseY - 120, 22, 'helmet');
+                // NIVEL 4: Fortaleza de Hielo con soportes de madera
+                [-70, 0, 70].forEach(ox => {
+                    spawnColumn(baseX + ox - 18, baseY, 18, 80, iceOpts);
+                    spawnColumn(baseX + ox + 18, baseY, 18, 80, iceOpts);
+                    spawnBeam(baseX + ox, baseY - 80, 65, 16, woodOpts);
+                    spawnPig(baseX + ox, baseY, 18, 'normal');
+                });
+                spawnBeam(baseX, baseY - 96, 210, 18, iceOpts);
+                spawnPig(baseX, baseY - 114, 20, 'helmet');
 
             } else if (currentLevel === 5) {
-                let layers = 4;
-                for (let row = 0; row < layers; row++) {
-                    let y = baseY - (row * 65);
-                    let count = layers - row;
-                    for (let col = 0; col < count; col++) {
-                        let px = baseX - ((count - 1) * 35) + (col * 70);
-                        let material = row === 0 ? stoneOpts : (row === 1 ? woodOpts : iceOpts);
-                        spawnColumn(px, y, 20, 50, material);
-                        spawnBeam(px, y - 50, 65, 15, material);
-                        if (col < count - 1) spawnPig(px + 35, y, 18, 'cowboy');
+                // NIVEL 5: Pirámide escalonada compacta
+                for (let r = 0; r < 3; r++) {
+                    let cy = baseY - (r * 60);
+                    let count = 3 - r;
+                    for (let c = 0; c < count; c++) {
+                        let px = baseX - ((count - 1) * 36) + (c * 72);
+                        spawnColumn(px - 18, cy, 18, 45, woodOpts);
+                        spawnColumn(px + 18, cy, 18, 45, woodOpts);
+                        spawnBeam(px, cy - 45, 68, 15, woodOpts);
+                        if (r === 0) spawnPig(px, cy, 17, 'cowboy');
                     }
                 }
+                spawnPig(baseX, baseY - 180, 22, 'helmet');
+                spawnTriangle(baseX, baseY - 195, 36, woodOpts);
 
             } else if (currentLevel === 6) {
-                spawnColumn(baseX - 160, baseY, 40, 150, stoneOpts); 
-                spawnColumn(baseX + 160, baseY, 40, 150, stoneOpts); 
-                spawnBeam(baseX, baseY, 280, 20, woodOpts); 
-                spawnPig(baseX - 80, baseY - 20, 20, 'helmet');
-                spawnPig(baseX + 80, baseY - 20, 20, 'helmet');
-                spawnColumn(baseX - 60, baseY - 20, 20, 110, iceOpts);
-                spawnColumn(baseX + 60, baseY - 20, 20, 110, iceOpts);
-                spawnColumn(baseX, baseY - 20, 25, 110, stoneOpts);
-                spawnBeam(baseX, baseY - 150, 320, 20, iceOpts); 
-                spawnPig(baseX - 100, baseY - 170, 20, 'cowboy');
-                spawnPig(baseX + 100, baseY - 170, 20, 'cowboy');
-                spawnPig(baseX, baseY - 170, 26, 'king');
-                spawnBoulder(baseX - 140, baseY - 170, 24);
-                spawnBoulder(baseX + 140, baseY - 170, 24);
+                // NIVEL 6: Puente de madera con pilares de piedra
+                [-120, 120].forEach(ox => {
+                    spawnColumn(baseX + ox, baseY, 28, 110, stoneOpts);
+                    spawnTriangle(baseX + ox, baseY - 110, 32, woodOpts);
+                });
+                spawnBeam(baseX, baseY - 110, 280, 20, woodOpts);
+                spawnColumn(baseX - 45, baseY, 20, 110, woodOpts);
+                spawnColumn(baseX + 45, baseY, 20, 110, woodOpts);
+                spawnPig(baseX - 75, baseY, 18, 'normal');
+                spawnPig(baseX + 75, baseY, 18, 'normal');
+                spawnPig(baseX, baseY - 130, 24, 'helmet');
 
             } else if (currentLevel === 7) {
-                spawnColumn(baseX - 130, baseY, 30, 120, woodOpts);
-                spawnBeam(baseX - 130, baseY - 120, 90, 20, woodOpts);
-                spawnPig(baseX - 130, baseY - 140, 22, 'helmet');
-                spawnBonus(baseX - 180, baseY - 100, 18, 'balloon');
-                spawnColumn(baseX + 130, baseY, 30, 120, woodOpts);
-                spawnBeam(baseX + 130, baseY - 120, 90, 20, woodOpts);
-                spawnPig(baseX + 130, baseY - 140, 22, 'helmet');
-                spawnBonus(baseX + 180, baseY - 100, 18, 'balloon');
-                spawnBeam(baseX, baseY, 100, 15, stoneOpts);
-                spawnTNT(baseX, baseY - 15, 35);
-                spawnColumn(baseX - 40, baseY - 50, 15, 80, iceOpts);
-                spawnColumn(baseX + 40, baseY - 50, 15, 80, iceOpts);
-                spawnBeam(baseX, baseY - 130, 160, 15, woodOpts);
-                spawnTNT(baseX - 50, baseY - 145, 30);
-                spawnTNT(baseX + 50, baseY - 145, 30);
-                spawnPig(baseX, baseY - 145, 22, 'cowboy');
-                spawnBonus(baseX, baseY - 220, 20, 'balloon');
+                // NIVEL 7: Caos aéreo con globos y vigas metálicas iniciales
+                spawnColumn(baseX - 100, baseY, 24, 100, woodOpts);
+                spawnColumn(baseX + 100, baseY, 24, 100, woodOpts);
+                spawnBeam(baseX, baseY - 100, 230, 20, metalOpts);
+                spawnBonus(baseX - 120, baseY - 100, 20, 'balloon');
+                spawnBonus(baseX + 120, baseY - 100, 20, 'balloon');
+                spawnTNT(baseX, baseY, 36);
+                spawnPig(baseX - 50, baseY - 120, 20, 'cowboy');
+                spawnPig(baseX + 50, baseY - 120, 20, 'cowboy');
 
             } else if (currentLevel === 8) {
-                for(let j = 0; j < 3; j++) {
-                    let y = baseY - (j * 70);
-                    spawnColumn(baseX - 80, y, 30, 70, stoneOpts);
-                    spawnColumn(baseX - 50, y, 30, 70, woodOpts);
-                    spawnColumn(baseX - 20, y, 30, 70, stoneOpts);
-                }
-                spawnPig(baseX + 60, baseY, 22, 'king');
-                spawnBeam(baseX + 60, baseY - 44, 80, 15, woodOpts);
-                spawnPig(baseX + 60, baseY - 59, 20, 'helmet');
-                spawnBeam(baseX + 60, baseY - 99, 80, 15, woodOpts);
+                // NIVEL 8: Muralla triple de madera y piedra
+                [-80, -25, 25, 80].forEach(ox => {
+                    spawnColumn(baseX + ox, baseY, 22, 100, (Math.abs(ox) > 50) ? stoneOpts : woodOpts);
+                });
+                spawnBeam(baseX, baseY - 100, 200, 20, woodOpts);
+                spawnPig(baseX - 50, baseY, 18, 'helmet');
+                spawnPig(baseX + 50, baseY, 18, 'helmet');
+                spawnColumn(baseX, baseY - 120, 20, 60, metalOpts);
+                spawnPig(baseX, baseY - 180, 22, 'cowboy');
 
             } else if (currentLevel === 9) {
-                for(let i = -2; i <= 2; i += 2) {
-                    spawnColumn(baseX + i * 40, baseY, 20, 100, iceOpts);
-                    spawnColumn(baseX + i * 40, baseY - 115, 20, 100, iceOpts);
-                    spawnPig(baseX + i * 40, baseY - 230, 18, 'normal');
-                }
-                spawnBeam(baseX, baseY - 100, 240, 15, iceOpts);
-                spawnBeam(baseX, baseY - 215, 240, 15, iceOpts);
-                spawnPig(baseX, baseY, 22, 'helmet');
-                spawnPig(baseX, baseY - 115, 22, 'helmet');
-                spawnBoulder(baseX, baseY - 230, 20);
+                // NIVEL 9: Castillo de Cristal con amarres de metal
+                [-70, 0, 70].forEach(ox => {
+                    spawnColumn(baseX + ox, baseY, 20, 110, iceOpts);
+                });
+                spawnBeam(baseX, baseY - 110, 190, 18, metalOpts);
+                spawnColumn(baseX - 40, baseY - 128, 20, 65, woodOpts);
+                spawnColumn(baseX + 40, baseY - 128, 20, 65, woodOpts);
+                spawnBeam(baseX, baseY - 193, 120, 18, iceOpts);
+                spawnPig(baseX, baseY, 20, 'helmet');
+                spawnPig(baseX, baseY - 128, 24, 'king');
 
             } else if (currentLevel === 10) {
-                spawnColumn(baseX - 140, baseY, 40, 120, stoneOpts);
-                spawnColumn(baseX + 140, baseY, 40, 120, stoneOpts);
-                spawnColumn(baseX, baseY, 30, 80, stoneOpts);
-                spawnBeam(baseX, baseY - 120, 340, 20, stoneOpts);
-                spawnPig(baseX - 80, baseY - 140, 20, 'helmet');
-                spawnPig(baseX + 80, baseY - 140, 20, 'helmet');
-                spawnPig(baseX, baseY - 140, 28, 'king');
-                spawnColumn(baseX - 110, baseY - 140, 20, 90, iceOpts);
-                spawnColumn(baseX + 110, baseY - 140, 20, 90, iceOpts);
-                spawnColumn(baseX - 40, baseY - 140, 20, 90, woodOpts);
-                spawnColumn(baseX + 40, baseY - 140, 20, 90, woodOpts);
-                spawnBeam(baseX, baseY - 230, 280, 15, woodOpts);
-                spawnBoulder(baseX, baseY - 245, 30);
+                // NIVEL 10: Primera gran fortaleza real sin TNT (Madera, Piedra y Metal)
+                spawnColumn(baseX - 110, baseY, 32, 120, stoneOpts);
+                spawnColumn(baseX - 40, baseY, 24, 120, woodOpts);
+                spawnColumn(baseX + 40, baseY, 24, 120, woodOpts);
+                spawnColumn(baseX + 110, baseY, 32, 120, stoneOpts);
+                spawnBeam(baseX, baseY - 120, 260, 24, metalOpts);
+                spawnPig(baseX - 75, baseY, 20, 'helmet');
+                spawnPig(baseX + 75, baseY, 20, 'helmet');
 
-            } else if (currentLevel === 11) {
-                spawnColumn(baseX - 120, baseY, 45, 140, stoneOpts);
-                spawnColumn(baseX + 120, baseY, 45, 140, stoneOpts);
-                spawnBeam(baseX, baseY - 140, 300, 25, stoneOpts);
-                spawnTNT(baseX - 80, baseY - 165, 35);
-                spawnTNT(baseX + 80, baseY - 165, 35);
-                spawnColumn(baseX - 50, baseY - 165, 20, 80, woodOpts);
-                spawnColumn(baseX + 50, baseY - 165, 20, 80, woodOpts);
-                spawnBeam(baseX, baseY - 245, 150, 20, stoneOpts);
-                spawnPig(baseX, baseY - 265, 25, 'king');
-                spawnPig(baseX, baseY, 20, 'helmet');
-                spawnBoulder(baseX - 50, baseY - 265, 20);
+                spawnColumn(baseX - 50, baseY - 144, 22, 75, woodOpts);
+                spawnColumn(baseX + 50, baseY - 144, 22, 75, woodOpts);
+                spawnBeam(baseX, baseY - 219, 140, 20, stoneOpts);
+                spawnPig(baseX, baseY - 144, 26, 'king');
+                spawnBoulder(baseX, baseY - 239, 26);
 
-            } else if (currentLevel === 12) {
-                for (let i = -2; i <= 2; i++) {
-                    let px = baseX + i * 55;
-                    spawnColumn(px, baseY, 15, 120, iceOpts);
-                    if (Math.abs(i) !== 2) spawnPig(px + 27.5, baseY, 18, 'cowboy');
-                }
-                spawnBeam(baseX, baseY - 120, 270, 15, iceOpts);
-                spawnColumn(baseX - 80, baseY - 135, 20, 80, iceOpts);
-                spawnColumn(baseX + 80, baseY - 135, 20, 80, iceOpts);
-                spawnBeam(baseX, baseY - 215, 200, 15, woodOpts);
-                spawnPig(baseX, baseY - 230, 24, 'king');
-                spawnTNT(baseX, baseY - 135, 35);
+            } else {
+                // NIVELES 11 AL 80: Dificultad ascendente con materiales combinados
+                const progress = (currentLevel - 11) / 69;
+                const archId = (currentLevel - 11) % 15;
 
-            } else if (currentLevel === 13) {
-                for (let i = -2; i <= 2; i++) {
-                    let px = baseX + i * 70;
-                    spawnColumn(px, baseY, 15, 150, stoneOpts);
-                    spawnBeam(px, baseY - 150, 45, 10, stoneOpts);
-                    spawnPig(px - 10, baseY - 160, 15, 'helmet');
-                    spawnBoulder(px + 10, baseY - 160, 15);
-                }
+                const baseColMat = progress > 0.45 ? (progress > 0.75 ? metalOpts : stoneOpts) : woodOpts;
+                const beamMat = progress > 0.35 ? (progress > 0.7 ? metalOpts : stoneOpts) : woodOpts;
+                const topMat = progress > 0.6 ? metalOpts : woodOpts;
 
-            } else if (currentLevel === 14) {
-                spawnColumn(baseX - 100, baseY, 25, 90, woodOpts);
-                spawnColumn(baseX + 100, baseY, 25, 90, woodOpts);
-                spawnBeam(baseX, baseY - 90, 240, 15, woodOpts);
-                spawnBeam(baseX, baseY - 160, 180, 15, iceOpts);
-                spawnBonus(baseX - 90, baseY - 160, 20, 'balloon');
-                spawnBonus(baseX + 90, baseY - 160, 20, 'balloon');
-                spawnTNT(baseX, baseY - 175, 35);
-                spawnPig(baseX - 45, baseY - 175, 18, 'cowboy');
-                spawnPig(baseX + 45, baseY - 175, 18, 'cowboy');
-                spawnPig(baseX, baseY - 210, 22, 'helmet');
+                if (currentLevel === 80) {
+                    // NIVEL 80: EL APOCALIPSIS FINAL DEL REY CERDO
+                    spawnColumn(baseX - 170, baseY, 48, 180, metalOpts);
+                    spawnColumn(baseX - 90, baseY, 34, 180, stoneOpts);
+                    spawnColumn(baseX, baseY, 34, 180, metalOpts);
+                    spawnColumn(baseX + 90, baseY, 34, 180, stoneOpts);
+                    spawnColumn(baseX + 170, baseY, 48, 180, metalOpts);
+                    spawnBeam(baseX, baseY - 180, 410, 32, metalOpts);
 
-            } else if (currentLevel === 15) {
-                spawnColumn(baseX - 150, baseY, 50, 120, stoneOpts);
-                spawnColumn(baseX + 150, baseY, 50, 120, stoneOpts);
-                spawnColumn(baseX, baseY, 40, 120, stoneOpts);
-                spawnBeam(baseX, baseY - 120, 360, 30, stoneOpts);
-                spawnPig(baseX - 75, baseY, 18, 'helmet');
-                spawnPig(baseX + 75, baseY, 18, 'helmet');
-                spawnTNT(baseX, baseY - 150, 35);
-                spawnPig(baseX, baseY - 185, 24, 'king');
+                    spawnPig(baseX - 130, baseY, 24, 'helmet');
+                    spawnPig(baseX + 130, baseY, 24, 'helmet');
+                    spawnPig(baseX - 45, baseY, 24, 'helmet');
+                    spawnPig(baseX + 45, baseY, 24, 'helmet');
 
-            } else if (currentLevel === 16) {
-                spawnColumn(baseX - 60, baseY, 30, 110, stoneOpts);
-                spawnColumn(baseX + 60, baseY, 30, 110, stoneOpts);
-                spawnBeam(baseX, baseY - 110, 150, 20, stoneOpts);
-                spawnTNT(baseX, baseY, 40);
-                spawnPig(baseX, baseY - 130, 26, 'king');
-                spawnColumn(baseX - 120, baseY, 20, 80, woodOpts);
-                spawnColumn(baseX + 120, baseY, 20, 80, woodOpts);
-                spawnBeam(baseX - 120, baseY - 80, 60, 15, woodOpts);
-                spawnBeam(baseX + 120, baseY - 80, 60, 15, woodOpts);
-                spawnPig(baseX - 120, baseY - 95, 18, 'cowboy');
-                spawnPig(baseX + 120, baseY - 95, 18, 'cowboy');
+                    spawnColumn(baseX - 100, baseY - 212, 28, 90, metalOpts);
+                    spawnColumn(baseX, baseY - 212, 28, 90, stoneOpts);
+                    spawnColumn(baseX + 100, baseY - 212, 28, 90, metalOpts);
+                    spawnBeam(baseX, baseY - 302, 260, 26, metalOpts);
+                    spawnPig(baseX - 50, baseY - 212, 26, 'cowboy');
+                    spawnPig(baseX + 50, baseY - 212, 26, 'cowboy');
 
-            } else if (currentLevel === 17) {
-                for (let j = 0; j < 4; j++) {
-                    let y = baseY - (j * 20);
-                    spawnBeam(baseX - 55, y, 100, 20, stoneOpts);
-                    spawnBeam(baseX + 55, y, 100, 20, stoneOpts);
-                }
-                spawnPig(baseX + 140, baseY, 28, 'king');
-                spawnPig(baseX + 140, baseY - 56, 22, 'helmet');
-                spawnColumn(baseX + 190, baseY, 20, 120, woodOpts);
-                spawnBeam(baseX + 145, baseY - 120, 110, 15, woodOpts);
+                    spawnColumn(baseX - 45, baseY - 328, 24, 75, metalOpts);
+                    spawnColumn(baseX + 45, baseY - 328, 24, 75, metalOpts);
+                    spawnBeam(baseX, baseY - 403, 140, 22, metalOpts);
+                    spawnPig(baseX, baseY - 328, 34, 'king');
 
-            } else if (currentLevel === 18) {
-                spawnColumn(baseX - 90, baseY, 40, 40, iceOpts);
-                spawnColumn(baseX - 90, baseY - 40, 30, 80, stoneOpts);
-                spawnBeam(baseX - 90, baseY - 120, 80, 15, woodOpts);
-                spawnPig(baseX - 90, baseY - 135, 20, 'helmet');
-                spawnColumn(baseX + 90, baseY, 40, 40, iceOpts);
-                spawnColumn(baseX + 90, baseY - 40, 30, 80, stoneOpts);
-                spawnBeam(baseX + 90, baseY - 120, 80, 15, woodOpts);
-                spawnPig(baseX + 90, baseY - 135, 20, 'helmet');
-                spawnBeam(baseX, baseY - 40, 100, 15, woodOpts);
-                spawnTNT(baseX, baseY - 55, 30);
-                spawnPig(baseX, baseY, 18, 'cowboy');
+                    spawnTriangle(baseX - 80, baseY - 425, 42, metalOpts);
+                    spawnTriangle(baseX + 80, baseY - 425, 42, metalOpts);
+                    spawnBoulder(baseX, baseY - 425, 34);
 
-            } else if (currentLevel === 19) {
-                spawnColumn(baseX - 140, baseY, 30, 150, stoneOpts);
-                spawnColumn(baseX + 140, baseY, 30, 150, stoneOpts);
-                spawnBeam(baseX, baseY - 150, 310, 20, stoneOpts);
-                spawnColumn(baseX - 80, baseY, 20, 80, woodOpts);
-                spawnColumn(baseX + 80, baseY, 20, 80, woodOpts);
-                spawnBeam(baseX, baseY - 80, 160, 15, woodOpts);
-                spawnTNT(baseX, baseY, 35);
-                spawnPig(baseX - 40, baseY, 18, 'normal');
-                spawnPig(baseX + 40, baseY, 18, 'normal');
-                spawnColumn(baseX - 60, baseY - 170, 20, 80, iceOpts);
-                spawnColumn(baseX + 60, baseY - 170, 20, 80, iceOpts);
-                spawnBeam(baseX, baseY - 250, 160, 15, iceOpts);
-                spawnPig(baseX, baseY - 170, 26, 'king');
-                spawnPig(baseX - 110, baseY - 170, 20, 'helmet');
-                spawnPig(baseX + 110, baseY - 170, 20, 'helmet');
-                spawnBoulder(baseX, baseY - 265, 30);
+                } else if (archId === 0) {
+                    spawnColumn(baseX - 120, baseY, 30, 125, baseColMat);
+                    spawnColumn(baseX - 40, baseY, 22, 125, woodOpts);
+                    spawnColumn(baseX + 40, baseY, 22, 125, woodOpts);
+                    spawnColumn(baseX + 120, baseY, 30, 125, baseColMat);
+                    spawnBeam(baseX, baseY - 125, 280, 24, beamMat);
+                    spawnTNT(baseX, baseY, 36);
+                    spawnPig(baseX - 80, baseY, 20, 'helmet');
+                    spawnPig(baseX + 80, baseY, 20, 'helmet');
 
-            } else if (currentLevel === 20) {
-                spawnColumn(baseX - 160, baseY, 50, 160, stoneOpts);
-                spawnColumn(baseX + 160, baseY, 50, 160, stoneOpts);
-                spawnColumn(baseX, baseY, 40, 140, stoneOpts);
-                spawnBeam(baseX, baseY - 160, 370, 25, stoneOpts);
-                spawnTNT(baseX - 80, baseY, 35);
-                spawnTNT(baseX + 80, baseY, 35);
-                spawnPig(baseX - 80, baseY - 35, 20, 'helmet');
-                spawnPig(baseX + 80, baseY - 35, 20, 'helmet');
-                spawnColumn(baseX - 100, baseY - 185, 20, 100, iceOpts);
-                spawnColumn(baseX + 100, baseY - 185, 20, 100, iceOpts);
-                spawnColumn(baseX - 30, baseY - 185, 20, 100, woodOpts);
-                spawnColumn(baseX + 30, baseY - 185, 20, 100, woodOpts);
-                spawnBeam(baseX, baseY - 285, 240, 15, woodOpts);
-                spawnPig(baseX, baseY - 185, 28, 'king');
-                spawnPig(baseX - 130, baseY - 185, 22, 'helmet');
-                spawnPig(baseX + 130, baseY - 185, 22, 'helmet');
-                spawnBoulder(baseX, baseY - 300, 30);
-                spawnBonus(baseX - 190, baseY - 100, 20, 'balloon');
-                spawnBonus(baseX + 190, baseY - 100, 20, 'balloon');
+                    spawnColumn(baseX - 55, baseY - 149, 22, 80, topMat);
+                    spawnColumn(baseX + 55, baseY - 149, 22, 80, topMat);
+                    spawnBeam(baseX, baseY - 229, 160, 20, beamMat);
+                    spawnPig(baseX, baseY - 149, 26, 'king');
+                    spawnTriangle(baseX, baseY - 249, 38, topMat);
 
-            } else if (currentLevel === 21) {
-                spawnColumn(baseX - 70, baseY, 25, 95, stoneOpts);
-                spawnColumn(baseX + 70, baseY, 25, 95, stoneOpts);
-                spawnBeam(baseX, baseY - 95, 160, 20, stoneOpts);
-                spawnTNT(baseX, baseY, 30);
-                spawnPig(baseX, baseY - 115, 20, 'helmet');
-                spawnColumn(baseX - 40, baseY - 115, 20, 70, stoneOpts);
-                spawnColumn(baseX + 40, baseY - 115, 20, 70, stoneOpts);
-                spawnBeam(baseX, baseY - 185, 100, 15, stoneOpts);
-                spawnPig(baseX, baseY - 200, 18, 'helmet');
-
-            } else if (currentLevel === 22) {
-                spawnColumn(baseX - 100, baseY, 35, 120, stoneOpts);
-                spawnColumn(baseX + 100, baseY, 35, 120, stoneOpts);
-                spawnBeam(baseX, baseY - 120, 230, 25, stoneOpts);
-                spawnColumn(baseX - 50, baseY - 145, 25, 90, stoneOpts);
-                spawnColumn(baseX + 50, baseY - 145, 25, 90, stoneOpts);
-                spawnBeam(baseX, baseY - 235, 130, 20, stoneOpts);
-                spawnPig(baseX - 50, baseY, 22, 'helmet');
-                spawnPig(baseX + 50, baseY, 22, 'helmet');
-                spawnPig(baseX, baseY - 145, 26, 'king');
-                spawnBoulder(baseX, baseY - 260, 25);
-
-            } else if (currentLevel === 23) {
-                spawnColumn(baseX - 30, baseY, 30, 100, stoneOpts);
-                spawnColumn(baseX + 30, baseY, 30, 100, stoneOpts);
-                spawnBeam(baseX, baseY - 100, 95, 15, stoneOpts);
-                spawnColumn(baseX - 20, baseY - 115, 25, 80, stoneOpts);
-                spawnColumn(baseX + 20, baseY - 115, 25, 80, stoneOpts);
-                spawnBeam(baseX, baseY - 195, 75, 15, stoneOpts);
-                spawnPig(baseX, baseY, 18, 'helmet');
-                spawnPig(baseX, baseY - 115, 22, 'helmet');
-                spawnPig(baseX, baseY - 210, 26, 'king');
-                spawnBoulder(baseX, baseY - 230, 15);
-
-            } else if (currentLevel === 24) {
-                spawnBeam(baseX, baseY - 110, 160, 20, stoneOpts);
-                spawnBonus(baseX - 80, baseY - 110, 20, 'balloon');
-                spawnBonus(baseX + 80, baseY - 110, 20, 'balloon');
-                spawnPig(baseX, baseY - 130, 20, 'helmet');
-                spawnColumn(baseX - 40, baseY - 130, 20, 70, stoneOpts);
-                spawnColumn(baseX + 40, baseY - 130, 20, 70, stoneOpts);
-                spawnBeam(baseX, baseY - 200, 100, 15, stoneOpts);
-                spawnPig(baseX, baseY - 220, 20, 'cowboy');
-
-            } else if (currentLevel === 25) {
-                for (let i = -1; i <= 1; i++) {
-                    spawnColumn(baseX + i * 80, baseY, 30, 130, stoneOpts);
-                    spawnPig(baseX + i * 80, baseY - 150, 22, 'helmet');
-                }
-                spawnBeam(baseX, baseY - 130, 240, 20, stoneOpts);
-                spawnTNT(baseX, baseY, 35);
-                spawnPig(baseX, baseY - 155, 26, 'king');
-                spawnBoulder(baseX - 40, baseY - 155, 20);
-                spawnBoulder(baseX + 40, baseY - 155, 20);
-
-            } else if (currentLevel === 26) {
-                spawnColumn(baseX - 50, baseY, 25, 150, stoneOpts);
-                spawnColumn(baseX + 50, baseY, 25, 150, stoneOpts);
-                spawnBeam(baseX, baseY - 150, 130, 25, stoneOpts);
-                spawnBoulder(baseX, baseY - 175, 35);
-                spawnTNT(baseX, baseY, 35);
-                spawnPig(baseX, baseY - 40, 20, 'helmet');
-
-            } else if (currentLevel === 27) {
-                spawnColumn(baseX - 120, baseY, 35, 170, stoneOpts);
-                spawnColumn(baseX + 120, baseY, 35, 170, stoneOpts);
-                spawnBeam(baseX, baseY, 210, 20, stoneOpts);
-                spawnPig(baseX - 40, baseY, 20, 'helmet');
-                spawnPig(baseX + 40, baseY, 20, 'helmet');
-                spawnTNT(baseX, baseY - 20, 30);
-                spawnColumn(baseX - 50, baseY - 170, 20, 80, stoneOpts);
-                spawnColumn(baseX + 50, baseY - 170, 20, 80, stoneOpts);
-                spawnBeam(baseX, baseY - 250, 120, 15, stoneOpts);
-                spawnPig(baseX, baseY - 270, 22, 'king');
-
-            } else if (currentLevel === 28) {
-                spawnColumn(baseX - 45, baseY, 25, 100, stoneOpts);
-                spawnColumn(baseX + 45, baseY, 25, 100, stoneOpts);
-                spawnBeam(baseX, baseY - 100, 115, 25, stoneOpts);
-                spawnColumn(baseX - 45, baseY - 125, 25, 100, stoneOpts);
-                spawnColumn(baseX + 45, baseY - 125, 25, 100, stoneOpts);
-                spawnBeam(baseX, baseY - 225, 115, 25, stoneOpts);
-                spawnPig(baseX, baseY, 22, 'helmet');
-                spawnPig(baseX, baseY - 125, 24, 'king');
-
-            } else if (currentLevel === 29) {
-                spawnColumn(baseX, baseY, 35, 160, stoneOpts);
-                spawnBeam(baseX, baseY - 160, 130, 20, stoneOpts);
-                spawnBonus(baseX - 65, baseY - 160, 18, 'balloon');
-                spawnBonus(baseX + 65, baseY - 160, 18, 'balloon');
-                spawnPig(baseX - 45, baseY - 180, 22, 'helmet');
-                spawnPig(baseX + 45, baseY - 180, 22, 'helmet');
-                spawnTNT(baseX, baseY - 180, 30);
-
-            } else if (currentLevel === 30) {
-                for (let i = 0; i < 5; i++) {
-                    spawnColumn(baseX - 100 + i * 50, baseY, 25, 120, stoneOpts);
-                }
-                spawnBeam(baseX, baseY - 120, 260, 25, stoneOpts);
-                spawnPig(baseX - 60, baseY, 22, 'helmet');
-                spawnPig(baseX, baseY, 28, 'king');
-                spawnPig(baseX + 60, baseY, 22, 'helmet');
-                spawnBoulder(baseX - 30, baseY - 145, 20);
-                spawnBoulder(baseX + 30, baseY - 145, 20);
-
-            } else if (currentLevel === 31) {
-                spawnColumn(baseX - 120, baseY, 55, 160, stoneOpts);
-                spawnColumn(baseX + 120, baseY, 55, 160, stoneOpts);
-                spawnBeam(baseX, baseY - 160, 295, 35, stoneOpts);
-                spawnPig(baseX - 60, baseY, 24, 'king');
-                spawnPig(baseX + 60, baseY, 24, 'king');
-                spawnBoulder(baseX, baseY - 195, 32);
-                spawnPig(baseX, baseY - 227, 28, 'king');
-
-            } else if (currentLevel === 32) {
-                spawnBeam(baseX, baseY - 150, 210, 20, stoneOpts);
-                spawnBonus(baseX - 105, baseY - 150, 22, 'balloon');
-                spawnBonus(baseX + 105, baseY - 150, 22, 'balloon');
-                spawnPig(baseX, baseY - 170, 22, 'king');
-                spawnTNT(baseX, baseY, 30);
-                spawnColumn(baseX - 30, baseY, 15, 150, stoneOpts);
-                spawnColumn(baseX + 30, baseY, 15, 150, stoneOpts);
-
-            } else if (currentLevel === 33) {
-                spawnColumn(baseX - 90, baseY, 30, 140, stoneOpts);
-                spawnColumn(baseX + 90, baseY, 30, 140, stoneOpts);
-                spawnBeam(baseX, baseY - 140, 210, 20, stoneOpts);
-                spawnBonus(baseX - 110, baseY - 140, 18, 'balloon');
-                spawnBonus(baseX + 110, baseY - 140, 18, 'balloon');
-                spawnPig(baseX, baseY - 165, 26, 'king');
-                spawnBoulder(baseX, baseY - 190, 25);
-
-            } else if (currentLevel === 34) {
-                spawnColumn(baseX - 60, baseY, 30, 110, stoneOpts);
-                spawnColumn(baseX + 60, baseY, 30, 110, stoneOpts);
-                spawnBeam(baseX, baseY - 110, 150, 20, stoneOpts);
-                spawnTNT(baseX, baseY, 35);
-                spawnTNT(baseX, baseY - 130, 30);
-                spawnPig(baseX - 30, baseY, 20, 'helmet');
-                spawnPig(baseX + 30, baseY, 20, 'helmet');
-
-            } else if (currentLevel === 35) {
-                for (let i = 0; i < 3; i++) {
-                    spawnColumn(baseX - 60 + i * 60, baseY, 20, 100, stoneOpts);
-                }
-                spawnBeam(baseX, baseY - 100, 160, 20, stoneOpts);
-                spawnPig(baseX, baseY - 120, 28, 'king');
-                spawnBoulder(baseX - 40, baseY - 120, 15);
-                spawnBoulder(baseX + 40, baseY - 120, 15);
-
-            } else if (currentLevel === 36) {
-                spawnColumn(baseX - 80, baseY, 20, 150, stoneOpts);
-                spawnColumn(baseX, baseY, 20, 150, stoneOpts);
-                spawnColumn(baseX + 80, baseY, 20, 150, stoneOpts);
-                spawnPig(baseX - 40, baseY, 20, 'helmet');
-                spawnPig(baseX + 40, baseY, 20, 'helmet');
-                spawnBeam(baseX, baseY - 150, 200, 15, stoneOpts);
-                spawnPig(baseX, baseY - 170, 24, 'king');
-
-            } else if (currentLevel === 37) {
-                spawnColumn(baseX - 110, baseY, 45, 140, stoneOpts);
-                spawnColumn(baseX + 110, baseY, 45, 140, stoneOpts);
-                spawnBeam(baseX, baseY - 140, 265, 30, stoneOpts);
-                spawnPig(baseX, baseY, 22, 'helmet');
-                spawnColumn(baseX, baseY - 170, 35, 90, stoneOpts);
-                spawnPig(baseX, baseY - 260, 28, 'king');
-
-            } else if (currentLevel === 38) {
-                spawnColumn(baseX - 130, baseY, 30, 120, stoneOpts);
-                spawnColumn(baseX + 130, baseY, 30, 120, stoneOpts);
-                spawnBeam(baseX - 65, baseY - 120, 150, 20, stoneOpts);
-                spawnBeam(baseX + 65, baseY - 120, 150, 20, stoneOpts);
-                spawnBoulder(baseX, baseY - 140, 28);
-                spawnPig(baseX - 50, baseY, 20, 'helmet');
-                spawnPig(baseX + 50, baseY, 20, 'helmet');
-
-            } else if (currentLevel === 39) {
-                spawnColumn(baseX - 80, baseY, 35, 130, stoneOpts);
-                spawnColumn(baseX + 80, baseY, 35, 130, stoneOpts);
-                spawnBeam(baseX, baseY - 130, 195, 25, stoneOpts);
-                spawnColumn(baseX, baseY, 25, 130, stoneOpts);
-                spawnPig(baseX - 40, baseY, 22, 'cowboy');
-                spawnPig(baseX + 40, baseY, 22, 'cowboy');
-                spawnPig(baseX, baseY - 155, 24, 'king');
-
-            } else if (currentLevel === 40) {
-                for (let i = -1; i <= 1; i++) {
-                    spawnColumn(baseX + i * 90, baseY, 30, 90, stoneOpts);
-                }
-                spawnBeam(baseX, baseY - 90, 215, 20, stoneOpts);
-                spawnPig(baseX - 45, baseY, 20, 'helmet');
-                spawnPig(baseX + 45, baseY, 20, 'helmet');
-                spawnPig(baseX, baseY - 110, 26, 'king');
-
-            } else if (currentLevel === 41) {
-                spawnColumn(baseX - 120, baseY, 30, 110, stoneOpts);
-                spawnColumn(baseX, baseY, 30, 110, stoneOpts);
-                spawnColumn(baseX + 120, baseY, 30, 110, stoneOpts);
-                spawnBeam(baseX - 60, baseY - 110, 140, 20, stoneOpts);
-                spawnBeam(baseX + 60, baseY - 110, 140, 20, stoneOpts);
-                spawnPig(baseX - 60, baseY, 22, 'helmet');
-                spawnPig(baseX + 60, baseY, 22, 'helmet');
-                spawnBoulder(baseX - 60, baseY - 135, 20);
-                spawnBoulder(baseX + 60, baseY - 135, 20);
-
-            } else if (currentLevel === 42) {
-                spawnColumn(baseX - 50, baseY - 100, 20, 90, stoneOpts);
-                spawnColumn(baseX + 50, baseY - 100, 20, 90, stoneOpts);
-                spawnBeam(baseX, baseY - 190, 120, 20, stoneOpts);
-                spawnBonus(baseX, baseY - 190, 24, 'balloon');
-                spawnPig(baseX, baseY - 130, 22, 'cowboy');
-
-            } else if (currentLevel === 43) {
-                spawnColumn(baseX - 100, baseY, 35, 120, stoneOpts);
-                spawnColumn(baseX + 100, baseY, 35, 120, stoneOpts);
-                spawnBeam(baseX, baseY - 120, 235, 20, stoneOpts);
-                spawnTNT(baseX, baseY, 40);
-                spawnBoulder(baseX - 50, baseY - 145, 24);
-                spawnBoulder(baseX + 50, baseY - 145, 24);
-                spawnPig(baseX, baseY - 145, 28, 'king');
-
-            } else if (currentLevel === 44) {
-                spawnColumn(baseX - 80, baseY, 25, 110, stoneOpts);
-                spawnColumn(baseX + 80, baseY, 25, 110, stoneOpts);
-                spawnBeam(baseX, baseY - 110, 185, 20, stoneOpts);
-                spawnPig(baseX, baseY, 24, 'helmet');
-                spawnBoulder(baseX, baseY - 135, 24);
-
-            } else if (currentLevel === 45) {
-                spawnColumn(baseX, baseY, 40, 130, stoneOpts);
-                spawnBeam(baseX, baseY - 130, 100, 20, stoneOpts);
-                spawnColumn(baseX, baseY - 150, 30, 90, stoneOpts);
-                spawnPig(baseX, baseY - 250, 24, 'king');
-
-            } else if (currentLevel === 46) {
-                spawnColumn(baseX - 130, baseY, 30, 80, stoneOpts);
-                spawnColumn(baseX + 130, baseY, 30, 80, stoneOpts);
-                spawnBeam(baseX, baseY - 80, 280, 20, stoneOpts);
-                spawnPig(baseX - 60, baseY - 100, 20, 'helmet');
-                spawnPig(baseX + 60, baseY - 100, 20, 'helmet');
-                spawnPig(baseX, baseY - 100, 22, 'helmet');
-
-            } else if (currentLevel === 47) {
-                spawnColumn(baseX - 100, baseY, 25, 150, stoneOpts);
-                spawnColumn(baseX + 100, baseY, 25, 150, stoneOpts);
-                spawnBeam(baseX, baseY - 75, 220, 15, stoneOpts);
-                spawnBeam(baseX, baseY - 150, 220, 15, stoneOpts);
-                spawnPig(baseX - 50, baseY - 95, 20, 'cowboy');
-                spawnPig(baseX + 50, baseY - 95, 20, 'cowboy');
-                spawnPig(baseX, baseY - 170, 26, 'king');
-
-            } else if (currentLevel === 48) {
-                spawnColumn(baseX - 90, baseY, 45, 120, stoneOpts);
-                spawnColumn(baseX + 90, baseY, 45, 120, stoneOpts);
-                spawnBeam(baseX, baseY - 120, 225, 30, stoneOpts);
-                spawnPig(baseX, baseY, 30, 'king');
-                spawnBoulder(baseX - 40, baseY - 145, 20);
-                spawnBoulder(baseX + 40, baseY - 145, 20);
-
-            } else if (currentLevel === 49) {
-                spawnColumn(baseX - 120, baseY, 45, 160, stoneOpts);
-                spawnColumn(baseX + 120, baseY, 45, 160, stoneOpts);
-                spawnBeam(baseX, baseY - 160, 285, 25, stoneOpts);
-                spawnPig(baseX - 60, baseY, 24, 'helmet');
-                spawnPig(baseX + 60, baseY, 24, 'helmet');
-                spawnPig(baseX, baseY - 190, 26, 'king');
-
-            } else if (currentLevel === 50) {
-                spawnColumn(baseX - 140, baseY, 55, 170, stoneOpts);
-                spawnColumn(baseX + 140, baseY, 55, 170, stoneOpts);
-                spawnColumn(baseX, baseY, 45, 150, stoneOpts);
-                spawnBeam(baseX, baseY - 170, 330, 35, stoneOpts);
-                spawnPig(baseX - 70, baseY, 26, 'helmet');
-                spawnPig(baseX + 70, baseY, 26, 'helmet');
-                spawnColumn(baseX - 80, baseY - 205, 30, 100, stoneOpts);
-                spawnColumn(baseX + 80, baseY - 205, 30, 100, stoneOpts);
-                spawnBeam(baseX, baseY - 305, 195, 25, stoneOpts);
-                spawnPig(baseX, baseY - 205, 32, 'king');
-                spawnBoulder(baseX, baseY - 340, 38);
-
-            } else if (currentLevel === 51) {
-                spawnColumn(baseX - 110, baseY, 25, 140, iceOpts);
-                spawnColumn(baseX + 110, baseY, 25, 140, iceOpts);
-                spawnColumn(baseX - 50, baseY, 30, 100, stoneOpts);
-                spawnColumn(baseX + 50, baseY, 30, 100, stoneOpts);
-                spawnBeam(baseX, baseY - 140, 250, 20, stoneOpts);
-                spawnPig(baseX, baseY - 165, 28, 'king');
-                spawnPig(baseX - 80, baseY, 20, 'helmet');
-                spawnPig(baseX + 80, baseY, 20, 'helmet');
-
-            } else if (currentLevel === 52) {
-                spawnColumn(baseX - 90, baseY, 35, 180, stoneOpts);
-                spawnColumn(baseX + 90, baseY, 35, 180, stoneOpts);
-                spawnTNT(baseX, baseY - 90, 35);
-                spawnBeam(baseX, baseY - 180, 210, 20, stoneOpts);
-                spawnPig(baseX - 45, baseY - 200, 22, 'helmet');
-                spawnPig(baseX + 45, baseY - 200, 22, 'helmet');
-
-            } else if (currentLevel === 53) {
-                spawnColumn(baseX - 70, baseY, 30, 120, stoneOpts);
-                spawnColumn(baseX + 70, baseY, 30, 120, stoneOpts);
-                spawnBeam(baseX, baseY - 120, 170, 20, woodOpts);
-                spawnBoulder(baseX, baseY - 145, 30);
-                spawnPig(baseX, baseY, 24, 'helmet');
-
-            } else if (currentLevel === 54) {
-                for (let i = -1; i <= 1; i++) {
-                    spawnColumn(baseX + i * 70, baseY, 25, 110, stoneOpts);
-                    spawnPig(baseX + i * 70, baseY - 130, 20, 'helmet');
-                }
-                spawnBeam(baseX, baseY - 110, 180, 20, stoneOpts);
-                spawnPig(baseX, baseY, 26, 'king');
-
-            } else if (currentLevel === 55) {
-                spawnBeam(baseX, baseY - 140, 220, 20, stoneOpts);
-                spawnBonus(baseX - 100, baseY - 140, 20, 'balloon');
-                spawnBonus(baseX, baseY - 140, 20, 'balloon');
-                spawnBonus(baseX + 100, baseY - 140, 20, 'balloon');
-                spawnColumn(baseX - 60, baseY - 160, 20, 80, stoneOpts);
-                spawnColumn(baseX + 60, baseY - 160, 20, 80, stoneOpts);
-                spawnPig(baseX, baseY - 160, 22, 'helmet');
-                spawnPig(baseX - 60, baseY - 250, 20, 'cowboy');
-                spawnPig(baseX + 60, baseY - 250, 20, 'cowboy');
-
-            } else if (currentLevel === 56) {
-                spawnColumn(baseX - 130, baseY, 40, 160, stoneOpts);
-                spawnColumn(baseX - 50, baseY, 25, 100, stoneOpts);
-                spawnTNT(baseX - 90, baseY, 35);
-                spawnBeam(baseX - 90, baseY - 160, 120, 20, stoneOpts);
-                spawnColumn(baseX + 50, baseY, 40, 160, stoneOpts);
-                spawnPig(baseX + 50, baseY - 180, 24, 'helmet');
-                spawnPig(baseX - 90, baseY - 180, 26, 'king');
-
-            } else if (currentLevel === 57) {
-                let layers = 3;
-                for (let r = 0; r < layers; r++) {
-                    let y = baseY - (r * 60);
-                    let count = layers - r;
-                    for (let c = 0; c < count; c++) {
-                        let px = baseX - ((count - 1) * 40) + (c * 80);
-                        spawnColumn(px, y, 20, 45, r % 2 === 0 ? iceOpts : stoneOpts);
-                        spawnBeam(px, y - 45, 75, 15, stoneOpts);
+                } else if (archId === 1) {
+                    let floors = Math.min(5, 3 + Math.floor(progress * 2.5));
+                    let curY = baseY;
+                    for (let f = 0; f < floors; f++) {
+                        let floorMat = f >= 2 ? metalOpts : (f === 1 ? stoneOpts : woodOpts);
+                        spawnColumn(baseX - 50, curY, 22, 60, floorMat);
+                        spawnColumn(baseX + 50, curY, 22, 60, floorMat);
+                        spawnBeam(baseX, curY - 60, 140, 18, floorMat);
+                        spawnPig(baseX, curY, 18, (f === floors - 1) ? 'king' : 'helmet');
+                        curY -= 78;
                     }
+                    spawnTriangle(baseX, curY, 40, metalOpts);
+
+                } else if (archId === 2) {
+                    spawnColumn(baseX - 95, baseY, 32, 150, metalOpts);
+                    spawnColumn(baseX + 95, baseY, 32, 150, metalOpts);
+                    spawnBeam(baseX, baseY - 150, 240, 26, metalOpts);
+                    spawnColumn(baseX - 35, baseY - 176, 20, 75, stoneOpts);
+                    spawnColumn(baseX + 35, baseY - 176, 20, 75, stoneOpts);
+                    spawnBeam(baseX, baseY - 251, 130, 20, beamMat);
+                    spawnBoulder(baseX, baseY - 271, 30);
+                    spawnPig(baseX, baseY, 28, 'king');
+                    spawnPig(baseX - 60, baseY - 176, 18, 'helmet');
+                    spawnPig(baseX + 60, baseY - 176, 18, 'helmet');
+
+                } else if (archId === 3) {
+                    [-135, -45, 45, 135].forEach((ox, idx) => {
+                        spawnColumn(baseX + ox, baseY, 26, 110, (idx === 0 || idx === 3) ? metalOpts : stoneOpts);
+                        if (idx < 3) spawnPig(baseX + ox + 45, baseY, 18, idx === 1 ? 'king' : 'helmet');
+                    });
+                    spawnBeam(baseX, baseY - 110, 335, 24, beamMat);
+                    spawnColumn(baseX - 70, baseY - 134, 22, 75, topMat);
+                    spawnColumn(baseX + 70, baseY - 134, 22, 75, topMat);
+                    spawnBeam(baseX, baseY - 209, 200, 20, beamMat);
+                    spawnBoulder(baseX, baseY - 229, 24);
+
+                } else if (archId === 4) {
+                    spawnBeam(baseX, baseY - 120, 270, 24, metalOpts);
+                    spawnBonus(baseX - 125, baseY - 120, 22, 'balloon');
+                    spawnBonus(baseX + 125, baseY - 120, 22, 'balloon');
+                    spawnColumn(baseX - 70, baseY - 144, 22, 75, stoneOpts);
+                    spawnColumn(baseX + 70, baseY - 144, 22, 75, stoneOpts);
+                    spawnBeam(baseX, baseY - 219, 180, 20, beamMat);
+                    spawnPig(baseX, baseY - 144, 26, 'king');
+                    spawnPig(baseX - 80, baseY, 20, 'helmet');
+                    spawnPig(baseX + 80, baseY, 20, 'helmet');
+                    spawnTNT(baseX, baseY, 36);
+
+                } else if (archId === 5) {
+                    spawnColumn(baseX - 125, baseY, 34, 110, metalOpts);
+                    spawnColumn(baseX - 45, baseY, 24, 110, stoneOpts);
+                    spawnColumn(baseX + 45, baseY, 24, 110, stoneOpts);
+                    spawnColumn(baseX + 125, baseY, 34, 110, metalOpts);
+                    spawnBeam(baseX, baseY - 110, 310, 26, metalOpts);
+                    spawnPig(baseX - 85, baseY, 20, 'helmet');
+                    spawnPig(baseX + 85, baseY, 20, 'helmet');
+                    spawnColumn(baseX - 60, baseY - 136, 24, 80, topMat);
+                    spawnColumn(baseX + 60, baseY - 136, 24, 80, topMat);
+                    spawnBeam(baseX, baseY - 216, 180, 22, beamMat);
+                    spawnPig(baseX, baseY - 136, 28, 'king');
+
+                } else if (archId === 6) {
+                    [-90, 90].forEach(ox => spawnColumn(baseX + ox, baseY, 28, 75, metalOpts));
+                    spawnColumn(baseX, baseY, 22, 75, woodOpts);
+                    spawnBeam(baseX, baseY - 75, 255, 20, beamMat);
+                    spawnPig(baseX - 45, baseY, 18, 'cowboy');
+                    spawnPig(baseX + 45, baseY, 18, 'cowboy');
+
+                    [-65, 65].forEach(ox => spawnColumn(baseX + ox, baseY - 95, 24, 70, stoneOpts));
+                    spawnBeam(baseX, baseY - 165, 195, 18, metalOpts);
+                    spawnPig(baseX, baseY - 95, 22, 'helmet');
+
+                    [-35, 35].forEach(ox => spawnColumn(baseX + ox, baseY - 183, 20, 60, topMat));
+                    spawnBeam(baseX, baseY - 243, 130, 16, topMat);
+                    spawnPig(baseX, baseY - 183, 26, 'king');
+                    spawnTriangle(baseX, baseY - 259, 42, metalOpts);
+
+                } else if (archId === 7) {
+                    spawnColumn(baseX - 130, baseY, 32, 135, metalOpts);
+                    spawnColumn(baseX + 130, baseY, 32, 135, metalOpts);
+                    spawnBeam(baseX - 65, baseY - 135, 140, 20, beamMat);
+                    spawnBeam(baseX + 65, baseY - 135, 140, 20, beamMat);
+                    spawnBoulder(baseX, baseY - 155, 32);
+                    spawnPig(baseX - 60, baseY, 22, 'helmet');
+                    spawnPig(baseX + 60, baseY, 22, 'helmet');
+                    spawnTNT(baseX, baseY, 36);
+
+                } else if (archId === 8) {
+                    for (let r = 0; r < 3; r++) {
+                        let cy = baseY - (r * 75);
+                        let cellMat = r === 2 ? metalOpts : (r === 1 ? stoneOpts : woodOpts);
+                        spawnColumn(baseX - 75, cy, 22, 60, cellMat);
+                        spawnColumn(baseX, cy, 22, 60, cellMat);
+                        spawnColumn(baseX + 75, cy, 22, 60, cellMat);
+                        spawnBeam(baseX, cy - 60, 195, 18, cellMat);
+                        if (r === 0) spawnPig(baseX - 35, cy, 18, 'helmet');
+                        else if (r === 1) spawnTNT(baseX, cy, 34);
+                        else spawnPig(baseX, cy, 26, 'king');
+                    }
+
+                } else if (archId === 9) {
+                    spawnColumn(baseX - 110, baseY, 36, 155, metalOpts);
+                    spawnColumn(baseX - 45, baseY, 26, 155, metalOpts);
+                    spawnBeam(baseX - 77, baseY - 155, 130, 24, metalOpts);
+                    spawnPig(baseX - 77, baseY, 24, 'helmet');
+                    spawnBoulder(baseX - 77, baseY - 179, 26);
+
+                    spawnColumn(baseX + 30, baseY, 22, 95, stoneOpts);
+                    spawnColumn(baseX + 90, baseY, 22, 95, stoneOpts);
+                    spawnBeam(baseX + 60, baseY - 95, 110, 18, woodOpts);
+                    spawnPig(baseX + 60, baseY, 26, 'king');
+
+                } else if (archId === 10) {
+                    spawnColumn(baseX - 145, baseY, 40, 90, metalOpts);
+                    spawnColumn(baseX - 45, baseY, 28, 90, stoneOpts);
+                    spawnColumn(baseX + 45, baseY, 28, 90, stoneOpts);
+                    spawnColumn(baseX + 145, baseY, 40, 90, metalOpts);
+                    spawnBeam(baseX, baseY - 90, 340, 28, metalOpts);
+                    spawnPig(baseX - 95, baseY, 22, 'helmet');
+                    spawnPig(baseX + 95, baseY, 22, 'helmet');
+                    spawnPig(baseX, baseY, 28, 'king');
+                    spawnBoulder(baseX - 85, baseY - 118, 26);
+                    spawnBoulder(baseX + 85, baseY - 118, 26);
+
+                } else if (archId === 11) {
+                    [-140, -60, 60, 140].forEach((ox, idx) => {
+                        let h = (idx === 0 || idx === 3) ? 135 : 95;
+                        spawnColumn(baseX + ox, baseY, 28, h, (idx === 0 || idx === 3) ? metalOpts : stoneOpts);
+                    });
+                    spawnBeam(baseX - 100, baseY - 95, 130, 20, woodOpts);
+                    spawnBeam(baseX + 100, baseY - 95, 130, 20, woodOpts);
+                    spawnBeam(baseX, baseY - 135, 325, 24, metalOpts);
+                    spawnPig(baseX - 100, baseY, 20, 'helmet');
+                    spawnPig(baseX + 100, baseY, 20, 'helmet');
+                    spawnPig(baseX, baseY - 135, 30, 'king');
+
+                } else if (archId === 12) {
+                    [-95, 0, 95].forEach(ox => {
+                        spawnColumn(baseX + ox - 24, baseY, 22, 100, stoneOpts);
+                        spawnColumn(baseX + ox + 24, baseY, 22, 100, stoneOpts);
+                        spawnBeam(baseX + ox, baseY - 100, 80, 20, metalOpts);
+                        spawnPig(baseX + ox, baseY, 20, 'helmet');
+                    });
+                    spawnBeam(baseX, baseY - 150, 280, 22, metalOpts);
+                    spawnPig(baseX, baseY - 172, 28, 'king');
+                    spawnBoulder(baseX, baseY - 204, 28);
+
+                } else if (archId === 13) {
+                    spawnColumn(baseX - 90, baseY, 32, 100, metalOpts);
+                    spawnColumn(baseX, baseY, 26, 100, stoneOpts);
+                    spawnColumn(baseX + 90, baseY, 32, 100, metalOpts);
+                    spawnBeam(baseX, baseY - 100, 220, 24, metalOpts);
+                    spawnPig(baseX - 45, baseY, 22, 'helmet');
+                    spawnPig(baseX + 45, baseY, 22, 'helmet');
+                    spawnBonus(baseX - 125, baseY - 180, 22, 'balloon');
+                    spawnBonus(baseX + 125, baseY - 180, 22, 'balloon');
+                    spawnBeam(baseX, baseY - 180, 240, 22, beamMat);
+                    spawnPig(baseX, baseY - 202, 30, 'king');
+
+                } else {
+                    spawnColumn(baseX - 150, baseY, 40, 160, metalOpts);
+                    spawnColumn(baseX - 75, baseY, 26, 160, stoneOpts);
+                    spawnColumn(baseX + 75, baseY, 26, 160, stoneOpts);
+                    spawnColumn(baseX + 150, baseY, 40, 160, metalOpts);
+                    spawnBeam(baseX, baseY - 160, 360, 28, metalOpts);
+                    spawnPig(baseX - 110, baseY, 22, 'helmet');
+                    spawnPig(baseX + 110, baseY, 22, 'helmet');
+                    spawnColumn(baseX - 80, baseY - 188, 24, 80, metalOpts);
+                    spawnColumn(baseX + 80, baseY - 188, 24, 80, metalOpts);
+                    spawnBeam(baseX, baseY - 268, 210, 22, stoneOpts);
+                    spawnPig(baseX, baseY - 188, 30, 'king');
+                    spawnBoulder(baseX, baseY - 290, 32);
                 }
-                spawnPig(baseX, baseY - 180, 28, 'king');
-                spawnBoulder(baseX, baseY - 205, 25);
-
-            } else if (currentLevel === 58) {
-                spawnColumn(baseX - 100, baseY, 50, 150, stoneOpts);
-                spawnColumn(baseX + 100, baseY, 50, 150, stoneOpts);
-                spawnBeam(baseX, baseY - 150, 250, 30, stoneOpts);
-                spawnBoulder(baseX - 50, baseY - 180, 25);
-                spawnBoulder(baseX + 50, baseY - 180, 25);
-                spawnPig(baseX, baseY, 24, 'king');
-                spawnPig(baseX, baseY - 180, 22, 'helmet');
-
-            } else if (currentLevel === 59) {
-                spawnColumn(baseX - 80, baseY, 30, 120, stoneOpts);
-                spawnColumn(baseX + 80, baseY, 30, 120, stoneOpts);
-                spawnBeam(baseX, baseY - 120, 190, 20, stoneOpts);
-                spawnTNT(baseX - 50, baseY - 190, 30);
-                spawnTNT(baseX, baseY - 190, 30);
-                spawnTNT(baseX + 50, baseY - 190, 30);
-                spawnBonus(baseX - 50, baseY - 190, 18, 'balloon');
-                spawnBonus(baseX + 50, baseY - 190, 18, 'balloon');
-                spawnPig(baseX, baseY, 26, 'king');
-
-            } else if (currentLevel === 60) {
-                for (let i = -2; i <= 3; i++) {
-                    let px = baseX + (i - 0.5) * 45;
-                    spawnColumn(px, baseY, 18, 110, stoneOpts);
-                }
-                spawnBeam(baseX, baseY - 110, 250, 20, stoneOpts);
-                spawnPig(baseX, baseY - 135, 30, 'king');
-                spawnPig(baseX - 80, baseY, 20, 'helmet');
-                spawnPig(baseX + 80, baseY, 20, 'helmet');
-
-            } else if (currentLevel === 61) {
-                spawnColumn(baseX - 110, baseY, 30, 120, stoneOpts);
-                spawnColumn(baseX - 50, baseY, 30, 120, stoneOpts);
-                spawnBeam(baseX - 80, baseY - 120, 90, 20, stoneOpts);
-                spawnPig(baseX - 80, baseY - 145, 24, 'king');
-
-                spawnColumn(baseX + 50, baseY, 30, 120, stoneOpts);
-                spawnColumn(baseX + 110, baseY, 30, 120, stoneOpts);
-                spawnBeam(baseX + 80, baseY - 120, 90, 20, stoneOpts);
-                spawnPig(baseX + 80, baseY - 145, 24, 'king');
-
-            } else if (currentLevel === 62) {
-                for (let j = 0; j < 3; j++) {
-                    let y = baseY - (j * 40);
-                    spawnBeam(baseX - 40, y, 90, 35, stoneOpts);
-                }
-                spawnPig(baseX + 50, baseY, 20, 'helmet');
-                spawnPig(baseX + 50, baseY - 45, 20, 'helmet');
-                spawnPig(baseX + 50, baseY - 90, 20, 'helmet');
-
-            } else if (currentLevel === 63) {
-                spawnColumn(baseX - 120, baseY, 35, 140, stoneOpts);
-                spawnColumn(baseX + 120, baseY, 35, 140, stoneOpts);
-                spawnBeam(baseX, baseY - 140, 275, 20, stoneOpts);
-                for (let i = -1; i <= 1; i++) {
-                    spawnColumn(baseX + i * 50, baseY, 15, 80, iceOpts);
-                }
-                spawnBeam(baseX, baseY - 80, 130, 15, iceOpts);
-                spawnPig(baseX, baseY - 165, 26, 'king');
-
-            } else if (currentLevel === 64) {
-                spawnColumn(baseX - 140, baseY, 40, 160, stoneOpts);
-                spawnColumn(baseX + 140, baseY, 40, 160, stoneOpts);
-                spawnBeam(baseX, baseY - 160, 320, 25, stoneOpts);
-                spawnBoulder(baseX - 90, baseY - 185, 25);
-                spawnBoulder(baseX, baseY - 185, 25);
-                spawnBoulder(baseX + 90, baseY - 185, 25);
-                spawnPig(baseX - 60, baseY, 20, 'helmet');
-                spawnPig(baseX + 60, baseY, 20, 'helmet');
-
-            } else if (currentLevel === 65) {
-                spawnColumn(baseX - 150, baseY, 45, 180, stoneOpts);
-                spawnColumn(baseX + 150, baseY, 45, 180, stoneOpts);
-                spawnBeam(baseX, baseY - 180, 345, 25, stoneOpts);
-                spawnPig(baseX - 80, baseY, 24, 'helmet');
-                spawnPig(baseX + 80, baseY, 24, 'helmet');
-                spawnColumn(baseX - 70, baseY - 205, 25, 90, stoneOpts);
-                spawnColumn(baseX + 70, baseY - 205, 25, 90, stoneOpts);
-                spawnBeam(baseX, baseY - 295, 165, 20, stoneOpts);
-                spawnPig(baseX - 40, baseY - 205, 26, 'king');
-                spawnPig(baseX + 40, baseY - 205, 26, 'king');
-                spawnBoulder(baseX, baseY - 320, 30);
-
-            } else if (currentLevel === 66) {
-                for (let i = -3; i <= 3; i++) {
-                    let px = baseX + i * 45;
-                    spawnColumn(px, baseY, 18, 140, iceOpts);
-                }
-                spawnBeam(baseX, baseY - 140, 330, 20, iceOpts);
-                spawnPig(baseX - 100, baseY, 22, 'helmet');
-                spawnPig(baseX, baseY, 26, 'king');
-                spawnPig(baseX + 100, baseY, 22, 'helmet');
-                
-                spawnColumn(baseX - 100, baseY - 160, 25, 90, stoneOpts);
-                spawnColumn(baseX + 100, baseY - 160, 25, 90, stoneOpts);
-                spawnBeam(baseX, baseY - 250, 240, 20, woodOpts);
-                spawnPig(baseX, baseY - 160, 28, 'king');
-                spawnBoulder(baseX, baseY - 270, 30);
-
-            } else if (currentLevel === 67) {
-                spawnColumn(baseX - 180, baseY, 50, 200, stoneOpts);
-                spawnColumn(baseX + 180, baseY, 50, 200, stoneOpts);
-                spawnBeam(baseX, baseY - 200, 410, 30, stoneOpts);
-                
-                for (let c = -2; c <= 2; c++) {
-                    let cx = baseX + c * 60;
-                    spawnColumn(cx, baseY, 18, 100, iceOpts);
-                    spawnPig(cx, baseY - 100, 20, c === 0 ? 'king' : 'cowboy');
-                }
-                spawnBeam(baseX, baseY - 100, 320, 18, iceOpts);
-
-                spawnColumn(baseX - 90, baseY - 230, 30, 110, stoneOpts);
-                spawnColumn(baseX + 90, baseY - 230, 30, 110, stoneOpts);
-                spawnBeam(baseX, baseY - 340, 220, 25, stoneOpts);
-                spawnPig(baseX, baseY - 230, 32, 'king');
-
-                spawnBoulder(baseX - 60, baseY - 365, 25);
-                spawnBoulder(baseX + 60, baseY - 365, 25);
-                spawnTNT(baseX, baseY - 230, 35);
             }
 
             Composite.add(world, [...blocks, ...pigs]);
@@ -1355,11 +1029,16 @@
                 event.pairs.forEach(pair => {
                     const { bodyA, bodyB } = pair;
                     const relVel = Vector.magnitude(Vector.sub(bodyA.velocity, bodyB.velocity));
+
+                    // Despertar físico al colisionar con el pájaro
+                    if (bodyA.label === 'bird' || bodyB.label === 'bird') {
+                        unlockStructure();
+                    }
                     
-                    // Lógica de durabilidad y agrietamiento progresivo por toques
+                    // Durabilidad y agrietamiento progresivo
                     [bodyA, bodyB].forEach((b, idx) => {
                         const other = idx === 0 ? bodyB : bodyA;
-                        if (b.hp !== undefined && !b.isStatic && !b.isDead) {
+                        if (b.hp !== undefined && !b.isDead) {
                             const isBirdHit = other.label === 'bird';
                             const isSignificantImpact = relVel > 1.2;
 
@@ -1369,15 +1048,15 @@
                                     b.lastHitFrame = now;
 
                                     if (b.label === 'ice') {
-                                        // Cristal: Se rompe al 1.er toque
                                         b.hp = 0;
-                                    } else if (b.label === 'wood') {
-                                        // Madera: 1.er toque se agrieta, 2.º toque se destruye
+                                    } else if (b.label === 'wood' || b.label === 'wood_tri') {
                                         let dmg = (other.birdType === 'yellow') ? 2 : 1;
                                         b.hp -= dmg;
                                     } else if (b.label === 'stone' || b.label === 'stone_tri' || b.label === 'boulder') {
-                                        // Piedra: 1.er toque grieta leve, 2.º toque grieta profunda, 3.er toque se destruye
                                         let dmg = (other.birdType === 'black') ? 2 : 1;
+                                        b.hp -= dmg;
+                                    } else if (b.label === 'metal' || b.label === 'metal_tri') {
+                                        let dmg = (other.birdType === 'black') ? 3 : ((other.birdType === 'yellow') ? 2 : 1);
                                         b.hp -= dmg;
                                     }
 
@@ -1398,7 +1077,7 @@
                         }
                     }
 
-                    // Impactos sobre Enemigos (Cerdos)
+                    // Impactos sobre cerdos
                     const isPigA = bodyA.label === 'pig', isPigB = bodyB.label === 'pig';
                     if (isPigA || isPigB) {
                         const pig = isPigA ? bodyA : bodyB;
@@ -1414,7 +1093,7 @@
                         }
                     }
 
-                    // Destrucción de bonos decorativos
+                    // Destrucción de bonos
                     const isBonusA = bodyA.label === 'bonus', isBonusB = bodyB.label === 'bonus';
                     if (isBonusA || isBonusB) {
                         const bonus = isBonusA ? bodyA : bodyB;
@@ -1427,6 +1106,7 @@
         }
 
         function explode(position, radius = 110, forceFactor = 0.0007) {
+            unlockStructure();
             activeExplosions.push({
                 x: position.x,
                 y: position.y,
@@ -1436,7 +1116,7 @@
             });
 
             Composite.allBodies(world).forEach(b => {
-                if (b.isStatic || b.label === 'bird') return;
+                if (b.label === 'ground' || b.label === 'bird') return;
                 const distance = Vector.magnitude(Vector.sub(b.position, position));
                 if (distance < radius) {
                     const forceDirection = Vector.normalise(Vector.sub(b.position, position));
@@ -1469,15 +1149,14 @@
             requestAnimationFrame(gameLoop);
             if (gameState !== 'PLAYING') return;
             
-            // Substepping doble (2 iteraciones de 1/120s por frame) para impedir que ningún cuerpo atraviese paredes
+            // Substepping doble (120Hz) para evitar atravesar paredes
             Engine.update(engine, 1000 / 120);
             Engine.update(engine, 1000 / 120);
             levelFrameCount++;
 
-            // MANTENER EL PÁJARO FIRME EN LA HONDA O LIMITAR EL ARRASTRE
+            // Fijación en honda o limitación de estiramiento (máx 120px)
             if (bird && !isFired) {
                 if (mouseConstraint.body !== bird) {
-                    // Fijar el pájaro en la honda sin que la gravedad o el resorte lo desplace
                     Body.setPosition(bird, { x: slingPos.x, y: slingPos.y });
                     Body.setVelocity(bird, { x: 0, y: 0 });
                     Body.setAngularVelocity(bird, 0);
@@ -1494,6 +1173,7 @@
                 }
             }
 
+            // Manejo de bomba negra y fusible
             if (bird && bird.birdType === 'black' && isFired) {
                 if (bird.timeSinceLaunch === undefined) bird.timeSinceLaunch = 0;
                 bird.timeSinceLaunch++;
@@ -1514,14 +1194,19 @@
                 }
             });
 
+            // Limpieza de bloques fuera de pantalla
             for (let i = blocks.length - 1; i >= 0; i--) {
                 const b = blocks[i];
-                // Si el bloque sale de la pantalla, se destruye inmediatamente
                 if (b.position.x < -100 || b.position.x > width + 100 || b.position.y > height + 100 || b.position.y < -400) {
                     b.isDead = true;
                 }
 
                 if (blocks[i].isDead) {
+                    const isInside = b.position.x >= -40 && b.position.x <= width + 40 && b.position.y <= height + 40 && b.position.y >= -150;
+                    if (isInside) {
+                        shatterBlock(b);
+                    }
+
                     if (blocks[i].label === 'tnt') {
                         explode(blocks[i].position, 130 * bonusExplosionRadius, 0.0012 * bonusExplosionRadius);
                         updateScore(1200);
@@ -1535,14 +1220,18 @@
                 }
             }
 
+            // Limpieza de cerdos eliminados
             for (let i = pigs.length - 1; i >= 0; i--) {
                 const p = pigs[i];
-                // Si el cerdo es lanzado fuera de la pantalla, muere inmediatamente
                 if (p.position.x < -80 || p.position.x > width + 80 || p.position.y > height + 80 || p.position.y < -400) {
                     p.isDead = true;
                 }
 
                 if (pigs[i].isDead) {
+                    const isInside = p.position.x >= -30 && p.position.x <= width + 30 && p.position.y <= height + 30;
+                    if (isInside) {
+                        shatterPig(p);
+                    }
                     World.remove(world, pigs[i]);
                     let bonusPoints = 500;
                     if (pigs[i].pigType === 'king') bonusPoints = 2500;
@@ -1553,6 +1242,7 @@
                 }
             }
 
+            // Comprobación de Victoria
             if (pigs.length === 0 && gameState === 'PLAYING' && levelFrameCount > 60) {
                 gameState = 'WON';
                 
@@ -1576,14 +1266,14 @@
                 } else {
                     msgTitle.innerText = "🏆 ¡VICTORIA SUPREMA! 🏆";
                     msgTitle.style.color = "#ffbe76";
-                    msgSubtitle.innerText = "¡Has completado los 67 niveles del juego!";
+                    msgSubtitle.innerText = "¡Has completado los 80 niveles del juego y conquistado todas las fortalezas!";
                     btnNextLevel.innerText = "Volver a Jugar 🔄";
                 }
             }
 
+            // Comprobación de Derrota
             if (isFired && pigs.length > 0 && bird) {
                 const speed = Vector.magnitude(bird.velocity);
-                // Detectar si el pájaro sale de los límites visibles de la pantalla (izquierda, derecha, abajo o arriba)
                 const outOfBounds = bird.position.x > width + 40 || bird.position.x < -40 || bird.position.y > height + 40 || bird.position.y < -300;
                 
                 if (outOfBounds) {
@@ -1593,7 +1283,6 @@
                 if (outOfBounds || (speed < 0.22 && bird.position.y > height - 60) || bird.isDead) {
                     if (!bird.deathTimer) bird.deathTimer = 1;
                     
-                    // Si el pájaro sale de la pantalla, eliminarlo al instante sin esperar
                     if (outOfBounds) {
                         bird.deathTimer += 100;
                     } else {
@@ -1855,8 +1544,12 @@
         function drawProceduralBlock(label, width, height, hp = 1, maxHp = 1) {
             ctx.save();
             if (label === 'wood' || label === 'wood_tri') {
-                ctx.fillStyle = '#d3a26a';
-                ctx.strokeStyle = '#8b5a2b';
+                const woodGrad = ctx.createLinearGradient(-width/2, -height/2, width/2, height/2);
+                woodGrad.addColorStop(0, '#e5b87e');
+                woodGrad.addColorStop(0.5, '#d3a26a');
+                woodGrad.addColorStop(1, '#b8834e');
+                ctx.fillStyle = woodGrad;
+                ctx.strokeStyle = '#6e3c1b';
                 ctx.lineWidth = 3;
 
                 if (label === 'wood_tri') {
@@ -1866,17 +1559,89 @@
                     ctx.lineTo(0, -height / 2);
                     ctx.closePath();
                     ctx.fill(); ctx.stroke();
+
+                    ctx.strokeStyle = '#9c5e2d';
+                    ctx.lineWidth = 1.8;
+                    ctx.beginPath();
+                    ctx.moveTo(-width * 0.28, height * 0.35);
+                    ctx.lineTo(0, -height * 0.15);
+                    ctx.lineTo(width * 0.28, height * 0.35);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#4a260f';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
                 } else {
                     ctx.fillRect(-width / 2, -height / 2, width, height);
                     ctx.strokeRect(-width / 2, -height / 2, width, height);
-                    ctx.strokeStyle = '#b07c4b';
+                    
+                    ctx.strokeStyle = '#9c5e2d';
                     ctx.lineWidth = 1.5;
                     ctx.beginPath();
-                    ctx.moveTo(-width / 2 + 5, -height / 4);
-                    ctx.lineTo(width / 2 - 5, -height / 4);
-                    ctx.moveTo(-width / 2 + 5, height / 4);
-                    ctx.lineTo(width / 2 - 5, height / 4);
+                    ctx.moveTo(-width / 2 + 6, -height / 4);
+                    ctx.lineTo(width / 2 - 6, -height / 4);
+                    ctx.moveTo(-width / 2 + 6, height / 4);
+                    ctx.lineTo(width / 2 - 6, height / 4);
                     ctx.stroke();
+
+                    if (width > 22 && height > 22) {
+                        ctx.fillStyle = '#4a260f';
+                        const offset = 4.5;
+                        ctx.beginPath();
+                        ctx.arc(-width / 2 + offset, -height / 2 + offset, 2, 0, Math.PI * 2);
+                        ctx.arc(width / 2 - offset, -height / 2 + offset, 2, 0, Math.PI * 2);
+                        ctx.arc(-width / 2 + offset, height / 2 - offset, 2, 0, Math.PI * 2);
+                        ctx.arc(width / 2 - offset, height / 2 - offset, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+            } else if (label === 'metal' || label === 'metal_tri') {
+                const metalGrad = ctx.createLinearGradient(-width/2, -height/2, width/2, height/2);
+                metalGrad.addColorStop(0, '#95a5a6');
+                metalGrad.addColorStop(0.3, '#7f8c8d');
+                metalGrad.addColorStop(0.7, '#bdc3c7');
+                metalGrad.addColorStop(1, '#34495e');
+                ctx.fillStyle = metalGrad;
+                ctx.strokeStyle = '#1a252f';
+                ctx.lineWidth = 3;
+
+                if (label === 'metal_tri') {
+                    ctx.beginPath();
+                    ctx.moveTo(-width / 2, height / 2);
+                    ctx.lineTo(width / 2, height / 2);
+                    ctx.lineTo(0, -height / 2);
+                    ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+
+                    ctx.strokeStyle = '#2c3e50';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(-width * 0.25, height * 0.25);
+                    ctx.lineTo(width * 0.25, height * 0.25);
+                    ctx.stroke();
+                } else {
+                    ctx.fillRect(-width / 2, -height / 2, width, height);
+                    ctx.strokeRect(-width / 2, -height / 2, width, height);
+
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(-width / 2 + 3, -height / 2 + 3);
+                    ctx.lineTo(width / 2 - 3, -height / 2 + 3);
+                    ctx.stroke();
+
+                    if (width > 18 && height > 18) {
+                        ctx.fillStyle = '#2c3e50';
+                        const offset = 4;
+                        ctx.beginPath();
+                        ctx.arc(-width / 2 + offset, -height / 2 + offset, 2.5, 0, Math.PI * 2);
+                        ctx.arc(width / 2 - offset, -height / 2 + offset, 2.5, 0, Math.PI * 2);
+                        ctx.arc(-width / 2 + offset, height / 2 - offset, 2.5, 0, Math.PI * 2);
+                        ctx.arc(width / 2 - offset, height / 2 - offset, 2.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
                 }
 
             } else if (label === 'stone' || label === 'stone_tri' || label === 'boulder') {
@@ -1936,11 +1701,11 @@
                 ctx.fillText('TNT', 0, 0);
             }
 
-            // Renderizado de grietas físicas de daño
+            // Renderizado de grietas por daño
             const damageTaken = maxHp - hp;
             if (damageTaken > 0 && label !== 'tnt') {
                 ctx.save();
-                ctx.strokeStyle = label === 'ice' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(35, 20, 10, 0.8)';
+                ctx.strokeStyle = label === 'ice' ? 'rgba(255, 255, 255, 0.95)' : (label === 'metal' || label === 'metal_tri' ? 'rgba(20, 30, 40, 0.9)' : 'rgba(35, 20, 10, 0.8)');
                 ctx.lineWidth = label === 'ice' ? 2.0 : 1.8;
                 ctx.beginPath();
 
@@ -1948,7 +1713,14 @@
                     ctx.moveTo(-width * 0.25, -height * 0.2);
                     ctx.lineTo(0, 0);
                     ctx.lineTo(width * 0.2, height * 0.25);
-                } else if (damageTaken >= 2) {
+                } else if (damageTaken === 2) {
+                    ctx.moveTo(-width * 0.35, -height * 0.3);
+                    ctx.lineTo(-width * 0.1, -height * 0.05);
+                    ctx.lineTo(width * 0.3, height * 0.35);
+
+                    ctx.moveTo(-width * 0.1, -height * 0.05);
+                    ctx.lineTo(width * 0.25, -height * 0.25);
+                } else if (damageTaken >= 3) {
                     ctx.moveTo(-width * 0.35, -height * 0.3);
                     ctx.lineTo(-width * 0.1, -height * 0.05);
                     ctx.lineTo(width * 0.3, height * 0.35);
@@ -1958,6 +1730,9 @@
 
                     ctx.moveTo(-width * 0.1, -height * 0.05);
                     ctx.lineTo(-width * 0.3, height * 0.2);
+
+                    ctx.moveTo(0, -height * 0.35);
+                    ctx.lineTo(0, height * 0.35);
                 }
                 ctx.stroke();
                 ctx.restore();
@@ -2078,7 +1853,283 @@
                 ctx.restore();
             });
 
+            updateAndDrawDebris();
             drawExplosions();
+        }
+
+        function shatterBlock(block) {
+            const w = Math.max(16, block.bounds.max.x - block.bounds.min.x);
+            const h = Math.max(16, block.bounds.max.y - block.bounds.min.y);
+            const label = block.label;
+            
+            // Cantidad de fragmentos según escala del objeto (entre 8 y 24 trozos)
+            let cols = Math.max(2, Math.min(6, Math.round(w / 18)));
+            let rows = Math.max(2, Math.min(5, Math.round(h / 18)));
+            if (label.includes('_tri')) {
+                cols = 3; rows = 3;
+            }
+
+            const baseVx = block.velocity ? block.velocity.x * 0.35 : 0;
+            const baseVy = block.velocity ? block.velocity.y * 0.35 : 0;
+
+            const woodColors = ['#d3a26a', '#b8834e', '#e5b87e', '#8b5a2b', '#9c5e2d'];
+            const stoneColors = ['#7f8c8d', '#95a5a6', '#6c7a7a', '#566573', '#abb2b9'];
+            const iceColors = ['rgba(173, 230, 245, 0.85)', 'rgba(215, 248, 255, 0.95)', 'rgba(130, 210, 235, 0.8)'];
+            const metalColors = ['#7f8c8d', '#bdc3c7', '#95a5a6', '#5d6d7e', '#485460'];
+
+            const cosA = Math.cos(block.angle);
+            const sinA = Math.sin(block.angle);
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const lx = -w/2 + (c + 0.5) * (w / cols) + (Math.random() - 0.5) * (w / cols * 0.45);
+                    const ly = -h/2 + (r + 0.5) * (h / rows) + (Math.random() - 0.5) * (h / rows * 0.45);
+
+                    const gx = block.position.x + (lx * cosA - ly * sinA);
+                    const gy = block.position.y + (lx * sinA + ly * cosA);
+
+                    const angleOut = Math.atan2(ly, lx) + (Math.random() - 0.5) * 0.65;
+                    const blastSpeed = 2.5 + Math.random() * 7.0;
+
+                    const pw = (w / cols) * (0.65 + Math.random() * 0.6);
+                    const ph = (h / rows) * (0.65 + Math.random() * 0.6);
+                    const size = Math.max(pw, ph) * 0.5;
+
+                    // Creación de polígono irregular para dar apariencia de fractura realista
+                    const numVerts = 4 + Math.floor(Math.random() * 3);
+                    const pts = [];
+                    for (let v = 0; v < numVerts; v++) {
+                        const theta = (v / numVerts) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+                        const rad = size * (0.6 + Math.random() * 0.7);
+                        pts.push({ x: Math.cos(theta) * rad, y: Math.sin(theta) * rad });
+                    }
+
+                    let color = '#d3a26a';
+                    let bounce = 0.32;
+                    if (label.includes('wood')) {
+                        color = woodColors[Math.floor(Math.random() * woodColors.length)];
+                        bounce = 0.35;
+                    } else if (label.includes('stone') || label === 'boulder') {
+                        color = stoneColors[Math.floor(Math.random() * stoneColors.length)];
+                        bounce = 0.25;
+                    } else if (label === 'ice') {
+                        color = iceColors[Math.floor(Math.random() * iceColors.length)];
+                        bounce = 0.42;
+                    } else if (label.includes('metal')) {
+                        color = metalColors[Math.floor(Math.random() * metalColors.length)];
+                        bounce = 0.18;
+                    } else if (label === 'tnt') {
+                        color = Math.random() > 0.4 ? '#b32424' : '#f1c40f';
+                        bounce = 0.3;
+                    }
+
+                    activeDebris.push({
+                        x: gx,
+                        y: gy,
+                        vx: baseVx + Math.cos(angleOut) * blastSpeed,
+                        vy: baseVy + Math.sin(angleOut) * blastSpeed - (1.5 + Math.random() * 3.5),
+                        angle: Math.random() * Math.PI * 2,
+                        vRot: (Math.random() - 0.5) * 0.38,
+                        pts: pts,
+                        size: size,
+                        color: color,
+                        label: label,
+                        bounce: bounce,
+                        timer: 0,
+                        maxTimer: 100 + Math.floor(Math.random() * 60)
+                    });
+                }
+            }
+
+            let puffColor = 'rgba(211, 162, 106, ';
+            if (label.includes('stone') || label === 'boulder') puffColor = 'rgba(160, 165, 170, ';
+            else if (label === 'ice') puffColor = 'rgba(200, 240, 255, ';
+            else if (label.includes('metal')) puffColor = 'rgba(180, 190, 200, ';
+            else if (label === 'tnt') puffColor = 'rgba(220, 100, 40, ';
+
+            const numPuffs = 4 + Math.floor(Math.random() * 4);
+            for (let p = 0; p < numPuffs; p++) {
+                activePuffs.push({
+                    x: block.position.x + (Math.random() - 0.5) * w * 0.6,
+                    y: block.position.y + (Math.random() - 0.5) * h * 0.6,
+                    vx: (Math.random() - 0.5) * 3,
+                    vy: -1 - Math.random() * 2,
+                    radius: 5 + Math.random() * 8,
+                    maxRadius: 18 + Math.random() * 16,
+                    color: puffColor,
+                    baseAlpha: 0.55,
+                    timer: 0,
+                    maxTimer: 25 + Math.floor(Math.random() * 15)
+                });
+            }
+        }
+
+        function shatterPig(pig) {
+            const r = (pig.bounds.max.x - pig.bounds.min.x) / 2;
+            for (let p = 0; p < 8; p++) {
+                activePuffs.push({
+                    x: pig.position.x + (Math.random() - 0.5) * r,
+                    y: pig.position.y + (Math.random() - 0.5) * r,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: -1.5 - Math.random() * 3,
+                    radius: 8 + Math.random() * 6,
+                    maxRadius: 22 + Math.random() * 14,
+                    color: 'rgba(46, 204, 113, ',
+                    baseAlpha: 0.7,
+                    timer: 0,
+                    maxTimer: 28 + Math.floor(Math.random() * 12)
+                });
+            }
+
+            const pigColors = ['#2ecc71', '#27ae60', '#f1c40f', '#e74c3c'];
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+                const spd = 3 + Math.random() * 5;
+                const size = 4 + Math.random() * 5;
+                activeDebris.push({
+                    x: pig.position.x,
+                    y: pig.position.y,
+                    vx: Math.cos(angle) * spd,
+                    vy: Math.sin(angle) * spd - 2,
+                    angle: Math.random() * Math.PI * 2,
+                    vRot: (Math.random() - 0.5) * 0.4,
+                    pts: [
+                        { x: -size, y: -size },
+                        { x: size, y: -size },
+                        { x: size, y: size },
+                        { x: -size, y: size }
+                    ],
+                    size: size,
+                    color: pigColors[Math.floor(Math.random() * pigColors.length)],
+                    label: 'pig_part',
+                    bounce: 0.4,
+                    timer: 0,
+                    maxTimer: 80 + Math.floor(Math.random() * 40)
+                });
+            }
+        }
+
+        function updateAndDrawDebris() {
+            const groundY = height - 20;
+
+            // Nubes de humo y polvo
+            for (let i = activePuffs.length - 1; i >= 0; i--) {
+                const p = activePuffs[i];
+                p.timer++;
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vx *= 0.96;
+                p.vy *= 0.96;
+                const progress = p.timer / p.maxTimer;
+                const curRadius = p.radius + (p.maxRadius - p.radius) * progress;
+                const alpha = Math.max(0, 1 - progress) * p.baseAlpha;
+
+                ctx.save();
+                ctx.fillStyle = p.color + alpha + ')';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, curRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                if (p.timer >= p.maxTimer) {
+                    activePuffs.splice(i, 1);
+                }
+            }
+
+            // Fragmentos de bloques con rebote en el suelo y rotación
+            for (let i = activeDebris.length - 1; i >= 0; i--) {
+                const d = activeDebris[i];
+                d.timer++;
+                
+                d.vy += 0.35; // Gravedad
+                d.x += d.vx;
+                d.y += d.vy;
+                d.angle += d.vRot;
+                d.vx *= 0.99;
+
+                if (d.y >= groundY - d.size) {
+                    d.y = groundY - d.size;
+                    d.vy = -d.vy * d.bounce;
+                    d.vx *= 0.85;
+                    d.vRot *= 0.7;
+                    if (Math.abs(d.vy) < 0.5) d.vy = 0;
+                }
+
+                const fadeStart = d.maxTimer * 0.7;
+                let alpha = 1;
+                if (d.timer > fadeStart) {
+                    alpha = Math.max(0, 1 - ((d.timer - fadeStart) / (d.maxTimer - fadeStart)));
+                }
+
+                ctx.save();
+                ctx.translate(Math.floor(d.x), Math.floor(d.y));
+                ctx.rotate(d.angle);
+                ctx.globalAlpha = alpha;
+
+                drawDebrisPiece(d);
+
+                ctx.restore();
+
+                if (d.timer >= d.maxTimer || d.x < -100 || d.x > width + 100) {
+                    activeDebris.splice(i, 1);
+                }
+            }
+        }
+
+        function drawDebrisPiece(d) {
+            ctx.beginPath();
+            if (d.pts && d.pts.length > 0) {
+                ctx.moveTo(d.pts[0].x, d.pts[0].y);
+                for (let j = 1; j < d.pts.length; j++) {
+                    ctx.lineTo(d.pts[j].x, d.pts[j].y);
+                }
+                ctx.closePath();
+            } else {
+                ctx.arc(0, 0, d.size, 0, Math.PI * 2);
+            }
+            ctx.fillStyle = d.color;
+            ctx.fill();
+
+            if (d.label && d.label.includes('wood')) {
+                ctx.strokeStyle = '#5c3114';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.strokeStyle = 'rgba(74, 38, 15, 0.4)';
+                ctx.beginPath();
+                ctx.moveTo(-d.size * 0.4, -d.size * 0.2);
+                ctx.lineTo(d.size * 0.4, d.size * 0.2);
+                ctx.stroke();
+            } else if (d.label && (d.label.includes('stone') || d.label === 'boulder')) {
+                ctx.strokeStyle = '#374146';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                ctx.beginPath();
+                ctx.moveTo(-d.size * 0.3, -d.size * 0.3);
+                ctx.lineTo(d.size * 0.2, 0);
+                ctx.stroke();
+            } else if (d.label && d.label === 'ice') {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.lineWidth = 1.2;
+                ctx.stroke();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.beginPath();
+                ctx.arc(-d.size * 0.2, -d.size * 0.2, Math.max(1, d.size * 0.25), 0, Math.PI * 2);
+                ctx.fill();
+            } else if (d.label && d.label.includes('metal')) {
+                ctx.strokeStyle = '#1a252f';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.beginPath();
+                ctx.moveTo(-d.size * 0.5, -d.size * 0.3);
+                ctx.lineTo(d.size * 0.5, -d.size * 0.3);
+                ctx.stroke();
+            } else {
+                ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                ctx.lineWidth = 0.8;
+                ctx.stroke();
+            }
         }
 
         function drawBody(body, color) {
