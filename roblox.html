@@ -47,6 +47,9 @@
 </head>
 <body class="bg-slate-950 text-white">
 
+    <!-- Flash de daño en pantalla -->
+    <div id="damage-flash" class="absolute inset-0 pointer-events-none z-50 bg-red-600/35 opacity-0 transition-opacity duration-150"></div>
+
     <!-- HUD principal del juego -->
     <div id="hud" class="absolute top-0 left-0 w-full p-3 md:p-4 pointer-events-none z-10 flex justify-between items-start hidden">
         <!-- Panel Izquierdo: Estado del Jugador y Medidor de Velocidad -->
@@ -61,6 +64,17 @@
             <div class="text-xs text-slate-300 flex items-center justify-between">
                 <span><i class="fa-solid fa-skull text-red-400"></i> Muertes: <b id="death-counter" class="text-white">0</b></span>
                 <span id="checkpoint-badge" class="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold">Salida</span>
+            </div>
+
+            <!-- Barra de Salud (HP) estilo Roblox -->
+            <div class="flex flex-col gap-1 bg-slate-900/80 p-2 rounded-xl border border-white/10">
+                <div class="flex items-center justify-between text-[11px] font-bold">
+                    <span class="flex items-center gap-1 text-red-400"><i class="fa-solid fa-heart animate-pulse"></i> Salud:</span>
+                    <span id="hp-text" class="text-emerald-400 font-mono">100 / 100</span>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-white/15">
+                    <div id="hp-bar" class="bg-gradient-to-r from-emerald-500 to-green-400 h-full w-full transition-all duration-150"></div>
+                </div>
             </div>
             
             <!-- Indicador dinámico de +1 Velocidad con Skin Activa -->
@@ -478,6 +492,15 @@
                 gainNode.gain.linearRampToValueAtTime(0, now + 0.15);
                 osc.start(now);
                 osc.stop(now + 0.15);
+            } else if (type === 'hurt') {
+                // Sonido de daño / zap al tocar lásers
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(320, now);
+                osc.frequency.exponentialRampToValueAtTime(90, now + 0.14);
+                gainNode.gain.setValueAtTime(0.28, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.14);
+                osc.start(now);
+                osc.stop(now + 0.14);
             } else if (type === 'bounce') {
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(200, now);
@@ -494,6 +517,41 @@
                 gainNode.gain.linearRampToValueAtTime(0, now + 0.18);
                 osc.start(now);
                 osc.stop(now + 0.18);
+            } else if (type === 'nice_cube_squish') {
+                // Sonido elástico y gelatinoso de compresión de cubo de gel Nice Cube
+                const oscN1 = audioCtx.createOscillator();
+                const oscN2 = audioCtx.createOscillator();
+                const nGain = audioCtx.createGain();
+                oscN1.type = 'sine';
+                oscN1.frequency.setValueAtTime(420, now);
+                oscN1.frequency.exponentialRampToValueAtTime(110, now + 0.16);
+
+                oscN2.type = 'triangle';
+                oscN2.frequency.setValueAtTime(260, now);
+                oscN2.frequency.exponentialRampToValueAtTime(65, now + 0.2);
+
+                oscN1.connect(nGain);
+                oscN2.connect(nGain);
+                nGain.connect(audioCtx.destination);
+                nGain.gain.setValueAtTime(0.24, now);
+                nGain.gain.linearRampToValueAtTime(0, now + 0.2);
+                oscN1.start(now);
+                oscN2.start(now);
+                oscN1.stop(now + 0.2);
+                oscN2.stop(now + 0.2);
+            } else if (type === 'butter_squish') {
+                // Sonido suave de espuma viscoelástica (slow-rising memory foam de mantequilla)
+                const oscB = audioCtx.createOscillator();
+                const bGain = audioCtx.createGain();
+                oscB.type = 'triangle';
+                oscB.frequency.setValueAtTime(240, now);
+                oscB.frequency.linearRampToValueAtTime(95, now + 0.24);
+                oscB.connect(bGain);
+                bGain.connect(audioCtx.destination);
+                bGain.gain.setValueAtTime(0.2, now);
+                bGain.gain.linearRampToValueAtTime(0, now + 0.24);
+                oscB.start(now);
+                oscB.stop(now + 0.24);
             } else if (type === 'needoh_squish') {
                 // Sonido Squishy elástico ultra satisfactorio (NeeDoh Ball)
                 const osc1 = audioCtx.createOscillator();
@@ -690,8 +748,52 @@
             speedBoostTimer: 0,
             // Mecánica de +1 Velocidad
             speedGained: 0,
-            speedSecondTimer: 0
+            speedSecondTimer: 0,
+            // Sistema de Vida (HP) y Daño de Láseres
+            hp: 100,
+            maxHp: 100,
+            invulnerableTimer: 0,
+            regenTimer: 0
         };
+
+        function createTurntableTexture(accentColor) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 256;
+            tempCanvas.height = 256;
+            const ctx = tempCanvas.getContext('2d');
+
+            ctx.fillStyle = '#1e1b2e';
+            ctx.fillRect(0, 0, 256, 256);
+
+            // Sectores de rotación contrastados para identificar claramente el giro estilo Roblox
+            const numSectors = 8;
+            for (let i = 0; i < numSectors; i++) {
+                ctx.beginPath();
+                ctx.moveTo(128, 128);
+                ctx.arc(128, 128, 120, (i * Math.PI * 2) / numSectors, ((i + 1) * Math.PI * 2) / numSectors);
+                ctx.closePath();
+                ctx.fillStyle = i % 2 === 0 ? (accentColor || '#ff007f') : '#2b2640';
+                ctx.fill();
+            }
+
+            // Anillos concéntricos y flechas indicadoras
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.arc(128, 128, 116, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = '#0f0c1b';
+            ctx.beginPath();
+            ctx.arc(128, 128, 45, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#00ffcc';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            return new THREE.CanvasTexture(tempCanvas);
+        }
 
         // Textura dinámica para caras (Estilo Roblox)
         function createFaceTexture(colorEyes, smiles) {
@@ -718,6 +820,140 @@
             }
             ctx.stroke();
             
+            return new THREE.CanvasTexture(tempCanvas);
+        }
+
+        // Generador de textura para el Cubo de Hielo NeeDoh Nice Cube ("Nice Ice Baby")
+        function createNiceCubeTexture(tintColor, labelText = "NeeDoh") {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 256;
+            tempCanvas.height = 256;
+            const ctx = tempCanvas.getContext('2d');
+
+            // Fondo translúcido con brillo de bloque de gelatina / hielo
+            const bgGrad = ctx.createRadialGradient(128, 128, 20, 128, 128, 130);
+            bgGrad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+            bgGrad.addColorStop(0.5, tintColor || '#00d2ff');
+            bgGrad.addColorStop(1, 'rgba(0, 40, 80, 0.9)');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, 256, 256);
+
+            // Borde biselado redondeado de hielo pulido
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.lineWidth = 14;
+            ctx.strokeRect(10, 10, 236, 236);
+
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(20, 20, 216, 216);
+
+            // Micro-burbujas de gel en el interior
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+            for (let b = 0; b < 14; b++) {
+                const bx = 30 + ((b * 37) % 196);
+                const by = 30 + ((b * 53) % 196);
+                ctx.beginPath();
+                ctx.arc(bx, by, 3 + (b % 4), 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Tipografía estilo retro psicodélico de NeeDoh con relieve 3D
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Sombra profunda
+            ctx.font = '900 50px "Arial Black", Impact, sans-serif';
+            ctx.fillStyle = 'rgba(0, 20, 50, 0.7)';
+            ctx.fillText(labelText, 128 + 3, 115 + 4);
+
+            // Relieve brillante
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(labelText, 128 - 2, 115 - 2);
+
+            // Letra principal estilo gel translúcido
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.fillText(labelText, 128, 115);
+
+            // Subtexto oficial "NICE ICE BABY"
+            ctx.font = '900 20px "Segoe UI", Arial, sans-serif';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillText("NICE ICE BABY", 128 + 2, 165 + 2);
+            ctx.fillStyle = '#ffff66';
+            ctx.fillText("NICE ICE BABY", 128, 165);
+
+            return new THREE.CanvasTexture(tempCanvas);
+        }
+
+        // Generador de textura para la Barra de Mantequilla Squishy ("Salted BUTTER 4oz")
+        function createButterTexture(isSide = false) {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 512;
+            tempCanvas.height = 256;
+            const ctx = tempCanvas.getContext('2d');
+
+            // Color base amarillo cremoso de mantequilla
+            ctx.fillStyle = '#fff4a3';
+            ctx.fillRect(0, 0, 512, 256);
+
+            // Borde suave de envoltura
+            ctx.strokeStyle = '#e0c85c';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(6, 6, 500, 244);
+
+            if (!isSide) {
+                // Cara superior con el logo y especificaciones oficiales
+                ctx.fillStyle = '#1e3799';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                ctx.font = 'bold 22px Arial, sans-serif';
+                ctx.fillText('SALTED', 256, 50);
+
+                ctx.font = '900 68px "Arial Black", sans-serif';
+                ctx.fillText('BUTTER', 256, 115);
+
+                ctx.font = 'bold 28px Arial, sans-serif';
+                ctx.fillText('4 oz. NET WT. (113G)', 256, 185);
+
+                // Líneas guía de corte por cucharadas (1 tbsp, 2 tbsp...)
+                ctx.strokeStyle = 'rgba(30, 55, 153, 0.4)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([6, 6]);
+                for (let i = 1; i <= 7; i++) {
+                    const x = (512 / 8) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(x, 215);
+                    ctx.lineTo(x, 250);
+                    ctx.stroke();
+
+                    ctx.font = 'bold 11px Arial, sans-serif';
+                    ctx.fillText(`${i}TBSP`, x, 205);
+                }
+                ctx.setLineDash([]);
+            } else {
+                // Caras laterales con marcas de medida y advertencias de cocina
+                ctx.fillStyle = '#1e3799';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = 'bold 24px Arial, sans-serif';
+                ctx.fillText('FIRST QUALITY • GRADE AA', 256, 75);
+
+                ctx.strokeStyle = '#1e3799';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([8, 6]);
+                for (let i = 1; i <= 7; i++) {
+                    const x = (512 / 8) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(x, 110);
+                    ctx.lineTo(x, 240);
+                    ctx.stroke();
+
+                    ctx.font = 'bold 14px Arial, sans-serif';
+                    ctx.fillText(`${i} Tbsp`, x, 100);
+                }
+                ctx.setLineDash([]);
+            }
+
             return new THREE.CanvasTexture(tempCanvas);
         }
 
@@ -999,7 +1235,7 @@
 
         class Platform {
             constructor(width, height, depth, position, color, type = 'normal', keycapData = null) {
-                this.type = type; // 'normal', 'moving', 'disappearing', 'bounce', 'speed', 'glass_fake', 'keycap', 'roller', 'needoh', 'popit', 'slime', 'dumpling'
+                this.type = type; // 'normal', 'moving', 'spinning', 'disappearing', 'bounce', 'speed', 'glass_fake', 'keycap', 'roller', 'needoh', 'popit', 'slime', 'dumpling', 'nice_cube', 'butter'
                 this.initialPos = position.clone();
                 this.speed = 2.5;
                 this.range = 8;
@@ -1007,16 +1243,26 @@
                 this.active = true;
                 this.timer = 0;
                 this.rotationSpeed = 0;
+                this.rotSpeed = 1.3; // Velocidad angular para plataformas giratorias (rad/s)
+                this.playerStandingOn = false;
                 
                 // Deformación física elástica para squishies NeeDoh (Squash & Stretch)
                 this.squishAmount = 0;
                 this.baseScale = new THREE.Vector3(1, 1, 1);
+                
+                // Sistema de deformación por aplastamiento localizado en la zona pisada
+                this.hasDeformation = false;
+                this.origPositions = null;
+                this.dentCenter = new THREE.Vector2(0, 0);
+                this.dentDepth = 0;
+                this.dentRecoverySpeed = (type === 'butter') ? 1.6 : 3.8; // La mantequilla es slow-rising
                 
                 // Animación y retención de pulsación física de switch mecánico o pop-it
                 this.pressOffset = 0;
                 this.targetPress = 0;
                 this.isBeingPressed = false;
                 this.wasPressed = false;
+                this.hasPlayedPianoKey = false; // Comportamiento de piano: suena una sola vez por pulsación
                 this.pressHoldTimer = 0;
                 this.maxPress = (type === 'keycap' || gameState.mode === 'keyboard') ? 0.45 : 0.25;
 
@@ -1027,6 +1273,32 @@
                     const topTexture = createKeycapTexture(keycapData.label, keycapData.sub, keycapData.skinOverride || skin);
                     const sideMat = new THREE.MeshLambertMaterial({ color: keycapData.sideColor || skin.sideColor });
                     const topMat = new THREE.MeshLambertMaterial({ map: topTexture });
+                    material = [sideMat, sideMat, topMat, sideMat, sideMat, sideMat];
+                } else if (type === 'spinning') {
+                    // Plataforma Giratoria auténtica estilo Roblox con indicador radial
+                    const turnTex = createTurntableTexture(color || skin.accentColor || '#ff007f');
+                    const sideTurnMat = new THREE.MeshStandardMaterial({ color: '#1a1728', roughness: 0.5 });
+                    const topTurnMat = new THREE.MeshStandardMaterial({ map: turnTex, roughness: 0.3 });
+                    material = [sideTurnMat, topTurnMat, sideTurnMat]; // Cylinder mapping
+                } else if (type === 'nice_cube') {
+                    // Cubo translúcido de gel NeeDoh Nice Cube
+                    const cubeTex = createNiceCubeTexture(color || '#00d2ff', "NeeDoh");
+                    material = new THREE.MeshPhysicalMaterial({
+                        map: cubeTex,
+                        color: color || '#00d2ff',
+                        transparent: true,
+                        opacity: 0.88,
+                        roughness: 0.1,
+                        metalness: 0.05,
+                        clearcoat: 0.9,
+                        clearcoatRoughness: 0.1
+                    });
+                } else if (type === 'butter') {
+                    // Barra de Mantequilla Squishy de recuperación lenta
+                    const topTex = createButterTexture(false);
+                    const sideTex = createButterTexture(true);
+                    const topMat = new THREE.MeshStandardMaterial({ map: topTex, roughness: 0.6 });
+                    const sideMat = new THREE.MeshStandardMaterial({ map: sideTex, roughness: 0.6 });
                     material = [sideMat, sideMat, topMat, sideMat, sideMat, sideMat];
                 } else if (type === 'needoh') {
                     // Pelota antiestrés elástica NeeDoh con brillo gomoso
@@ -1074,7 +1346,20 @@
                     material = new THREE.MeshLambertMaterial({ color: color || '#1f2937' });
                 }
 
-                if (type === 'roller') {
+                if (type === 'spinning') {
+                    // Plataforma cilíndrica giratoria tipo disc/turntable Roblox
+                    const discRadius = width / 2;
+                    const cylGeo = new THREE.CylinderGeometry(discRadius, discRadius, height, 32);
+                    this.mesh = new THREE.Mesh(cylGeo, material);
+                    this.rotSpeed = (color === 'reverse') ? -1.4 : 1.4;
+
+                    // Núcleo central con perno metálico
+                    const hubMesh = new THREE.Mesh(
+                        new THREE.CylinderGeometry(discRadius * 0.22, discRadius * 0.25, height + 0.3, 16),
+                        new THREE.MeshStandardMaterial({ color: 0xffcc00, metalness: 0.8, roughness: 0.2 })
+                    );
+                    this.mesh.add(hubMesh);
+                } else if (type === 'roller') {
                     // Rodillo cilíndrico rotatorio de volumen
                     const cylGeo = new THREE.CylinderGeometry(width/2, width/2, depth, 24);
                     this.mesh = new THREE.Mesh(cylGeo, material);
@@ -1099,6 +1384,14 @@
                     const facePlane = new THREE.Mesh(new THREE.PlaneGeometry(width * 0.5, width * 0.5), faceMat);
                     facePlane.position.set(0, 0.1, width * 0.48);
                     this.mesh.add(facePlane);
+                } else if (type === 'nice_cube' || type === 'butter') {
+                    // Geometría subdividida para permitir aplastamiento 3D localizado (deformación de vértices)
+                    const subX = 14;
+                    const subY = 4;
+                    const subZ = 14;
+                    const boxGeo = new THREE.BoxGeometry(width, height, depth, subX, subY, subZ);
+                    this.mesh = new THREE.Mesh(boxGeo, material);
+                    this.origPositions = Float32Array.from(boxGeo.attributes.position.array);
                 } else if (type === 'popit') {
                     // Panel rectangular con botones redondos pop-it que sobresalen
                     this.mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
@@ -1178,7 +1471,81 @@
                 platforms.push(this);
             }
 
+            // Efecto de aplastamiento dinámico localizado donde el jugador pisa
+            indentAt(worldX, worldZ, maxDepth = 0.55, radius = 2.2) {
+                if (!this.origPositions || !this.mesh || !this.mesh.geometry) return;
+                const geom = this.mesh.geometry;
+                const posAttr = geom.attributes.position;
+                const arr = posAttr.array;
+
+                // Convertir la coordenada global del jugador a coordenadas locales del bloque
+                const localX = worldX - this.mesh.position.x;
+                const localZ = worldZ - this.mesh.position.z;
+                const topThreshold = (this.height / 2) * 0.85;
+
+                for (let i = 0; i < arr.length; i += 3) {
+                    const origY = this.origPositions[i + 1];
+                    // Solo deformar la superficie superior donde pisa
+                    if (origY > topThreshold) {
+                        const vx = arr[i];
+                        const vz = arr[i + 2];
+                        const dist = Math.hypot(vx - localX, vz - localZ);
+
+                        if (dist < radius) {
+                            const falloff = Math.cos((dist / radius) * (Math.PI / 2));
+                            const depression = maxDepth * Math.max(0, falloff);
+                            arr[i + 1] = origY - depression;
+                        }
+                    }
+                }
+                posAttr.needsUpdate = true;
+                geom.computeVertexNormals();
+                this.hasDeformation = true;
+            }
+
             update(timeStep, elapsed) {
+                // Rotación de Plataforma Giratoria estilo Roblox y transferencia de rotación al avatar
+                if (this.type === 'spinning') {
+                    const deltaRot = this.rotSpeed * timeStep;
+                    this.mesh.rotation.y += deltaRot;
+
+                    // Si el jugador está sobre la plataforma giratoria, rota su posición orbital alrededor del centro
+                    if (this.playerStandingOn && gameState.isPlaying) {
+                        const pPos = player.mesh.position;
+                        const relX = pPos.x - this.mesh.position.x;
+                        const relZ = pPos.z - this.mesh.position.z;
+                        const cosT = Math.cos(deltaRot);
+                        const sinT = Math.sin(deltaRot);
+                        pPos.x = this.mesh.position.x + (relX * cosT - relZ * sinT);
+                        pPos.z = this.mesh.position.z + (relX * sinT + relZ * cosT);
+                        player.mesh.rotation.y += deltaRot;
+                    }
+                }
+
+                // Recuperación gradual del aplastamiento localizado hacia la forma original
+                if (this.hasDeformation && this.origPositions && this.mesh && this.mesh.geometry) {
+                    const geom = this.mesh.geometry;
+                    const arr = geom.attributes.position.array;
+                    let diffMax = 0;
+                    const recoveryFactor = Math.min(1, timeStep * this.dentRecoverySpeed);
+
+                    for (let i = 0; i < arr.length; i += 3) {
+                        const origY = this.origPositions[i + 1];
+                        const diff = origY - arr[i + 1];
+                        if (Math.abs(diff) > 0.001) {
+                            arr[i + 1] += diff * recoveryFactor;
+                            if (Math.abs(diff) > diffMax) diffMax = Math.abs(diff);
+                        }
+                    }
+                    geom.attributes.position.needsUpdate = true;
+                    if (diffMax < 0.005) {
+                        for (let i = 0; i < arr.length; i++) arr[i] = this.origPositions[i];
+                        geom.attributes.position.needsUpdate = true;
+                        geom.computeVertexNormals();
+                        this.hasDeformation = false;
+                    }
+                }
+
                 // Animación elástica de compresión y rebote squishy (NeeDoh & Dumpling)
                 if (this.type === 'needoh' || this.type === 'dumpling') {
                     if (this.squishAmount > 0) {
@@ -1244,66 +1611,139 @@
                     maxX: pos.x + this.width/2,
                     minY: pos.y - this.height/2,
                     maxY: pos.y + this.height/2,
-                    minZ: pos.z - this.depth/2,
-                    maxZ: pos.z + this.depth/2
-                };
+                minZ: pos.z - this.depth/2,
+                maxZ: pos.z + this.depth/2
+            };
+        }
+    }
+
+    class Hazard {
+        constructor(geometry, position, color, type = 'static', speed = 1.0, damage = 35) {
+            this.type = type; // 'static', 'rotating', 'sliding', 'blinking', 'spinner_arms'
+            this.angle = 0;
+            this.speed = speed;
+            this.initialPos = position.clone();
+            this.direction = 1;
+            this.damage = damage; // Cantidad de daño que inflige (35 = 3 golpes para morir, 100 = muerte instantánea)
+            this.timer = 0;
+            this.active = true;
+
+            this.material = new THREE.MeshBasicMaterial({ color: color || '#ff3b30' });
+
+            // Si es un molinillo de aspas láser múltiples (classic Roblox spinner)
+            if (type === 'spinner_arms') {
+                this.mesh = null;
+                this.numArms = 3;
+                this.armLength = 8.5;
+                this.hubGroup = new THREE.Group();
+                
+                const coreMesh = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.8, 0.8, 1.2, 16),
+                    new THREE.MeshBasicMaterial({ color: 0x222222 })
+                );
+                this.hubGroup.add(coreMesh);
+
+                const beamMat = new THREE.MeshBasicMaterial({ color: color || 0xff0055 });
+                for (let a = 0; a < this.numArms; a++) {
+                    const armRot = (a * Math.PI * 2) / this.numArms;
+                    const armMesh = new THREE.Mesh(new THREE.BoxGeometry(this.armLength, 0.35, 0.35), beamMat);
+                    armMesh.position.set(Math.cos(armRot) * (this.armLength / 2), 0, Math.sin(armRot) * (this.armLength / 2));
+                    armMesh.rotation.y = -armRot;
+                    this.hubGroup.add(armMesh);
+                }
+                this.hubGroup.position.copy(position);
+                scene.add(this.hubGroup);
+            } else {
+                // Prevenir error si geometry es null asignando una geometría predeterminada
+                const geo = geometry || new THREE.BoxGeometry(2, 0.35, 0.35);
+                this.mesh = new THREE.Mesh(geo, this.material);
+                this.mesh.position.copy(position);
+                scene.add(this.mesh);
+            }
+
+            hazards.push(this);
+        }
+
+        update(timeStep) {
+            if (this.type === 'rotating' && this.mesh) {
+                this.angle += this.speed * timeStep;
+                this.mesh.rotation.y = this.angle;
+            } else if (this.type === 'spinner_arms' && this.hubGroup) {
+                this.angle += this.speed * timeStep;
+                this.hubGroup.rotation.y = this.angle;
+            } else if (this.type === 'sliding' && this.mesh) {
+                this.mesh.position.x += this.speed * timeStep * this.direction;
+                if (Math.abs(this.mesh.position.x - this.initialPos.x) > 6.5) {
+                    this.direction *= -1;
+                }
+            } else if (this.type === 'blinking' && this.mesh) {
+                // Láser intermitente que parpadea y descarga daño periódico
+                this.timer += timeStep;
+                const cycle = this.timer % 3.2;
+                if (cycle < 1.6) {
+                    // Activo y letal
+                    this.active = true;
+                    this.material.color.set('#ff0033');
+                    this.mesh.scale.set(1, 1, 1);
+                } else if (cycle < 2.2) {
+                    // Advertencia previa (amarillo suave)
+                    this.active = false;
+                    this.material.color.set('#f39c12');
+                    this.mesh.scale.set(1, 0.3, 0.3);
+                } else {
+                    // Desactivado temporalmente
+                    this.active = false;
+                    this.material.color.set('#333333');
+                    this.mesh.scale.set(1, 0.1, 0.1);
+                }
             }
         }
 
-        class Hazard {
-            constructor(geometry, position, color, type = 'static', speed = 1.0) {
-                this.type = type;
-                this.angle = 0;
-                this.speed = speed;
-                this.initialPos = position.clone();
-                this.direction = 1;
-
-                const material = new THREE.MeshBasicMaterial({ color: color || '#ff3b30' });
-                this.mesh = new THREE.Mesh(geometry, material);
-                this.mesh.position.copy(position);
-                scene.add(this.mesh);
-
-                hazards.push(this);
-            }
-
-            update(timeStep) {
-                if (this.type === 'rotating') {
-                    this.angle += this.speed * timeStep;
-                    this.mesh.rotation.y = this.angle;
-                } else if (this.type === 'sliding') {
-                    this.mesh.position.x += this.speed * timeStep * this.direction;
-                    if (Math.abs(this.mesh.position.x - this.initialPos.x) > 6) {
-                        this.direction *= -1;
-                    }
-                }
-            }
-
-            checkCollision(playerPos, playerRadius, playerHeight) {
-                const hazardPos = this.mesh.position;
-                
-                if (this.type === 'rotating') {
-                    const distToCenter = new THREE.Vector2(playerPos.x - hazardPos.x, playerPos.z - hazardPos.z).length();
-                    if (distToCenter < 12 && Math.abs(playerPos.y - hazardPos.y) < 1.5) {
-                        const relAngle = Math.atan2(playerPos.z - hazardPos.z, playerPos.x - hazardPos.x);
-                        const diffAngle1 = Math.abs((relAngle - this.angle) % Math.PI);
-                        const diffAngle2 = Math.abs((relAngle - (this.angle + Math.PI/2)) % Math.PI);
-                        if (diffAngle1 < 0.25 || diffAngle2 < 0.25 || diffAngle1 > Math.PI - 0.25 || diffAngle2 > Math.PI - 0.25) {
-                            return true;
-                        }
-                    }
-                } else {
-                    const dist = playerPos.distanceTo(hazardPos);
-                    if (dist < playerRadius + 1.2) {
+        checkCollision(playerPos, playerRadius, playerHeight) {
+            if (!this.active) return false;
+            
+            if (this.type === 'spinner_arms' && this.hubGroup) {
+                const hubPos = this.hubGroup.position;
+                const distToHub = new THREE.Vector2(playerPos.x - hubPos.x, playerPos.z - hubPos.z).length();
+                if (distToHub <= this.armLength && Math.abs(playerPos.y - hubPos.y) < 1.4) {
+                    const relAngle = (Math.atan2(playerPos.z - hubPos.z, playerPos.x - hubPos.x) - this.angle) % (Math.PI * 2);
+                    const normAngle = (relAngle + Math.PI * 2) % ((Math.PI * 2) / this.numArms);
+                    if (normAngle < 0.22 || normAngle > ((Math.PI * 2) / this.numArms) - 0.22) {
                         return true;
                     }
                 }
                 return false;
             }
-        }
 
-        function clearMap() {
+            if (!this.mesh) return false;
+            const hazardPos = this.mesh.position;
+
+            if (this.type === 'rotating') {
+                const distToCenter = new THREE.Vector2(playerPos.x - hazardPos.x, playerPos.z - hazardPos.z).length();
+                if (distToCenter < 12 && Math.abs(playerPos.y - hazardPos.y) < 1.5) {
+                    const relAngle = Math.atan2(playerPos.z - hazardPos.z, playerPos.x - hazardPos.x);
+                    const diffAngle1 = Math.abs((relAngle - this.angle) % Math.PI);
+                    const diffAngle2 = Math.abs((relAngle - (this.angle + Math.PI/2)) % Math.PI);
+                    if (diffAngle1 < 0.25 || diffAngle2 < 0.25 || diffAngle1 > Math.PI - 0.25 || diffAngle2 > Math.PI - 0.25) {
+                        return true;
+                    }
+                }
+            } else {
+                const dist = playerPos.distanceTo(hazardPos);
+                if (dist < playerRadius + 1.2) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    function clearMap() {
             platforms.forEach(p => scene.remove(p.mesh));
-            hazards.forEach(h => scene.remove(h.mesh));
+            hazards.forEach(h => {
+                if (h.mesh) scene.remove(h.mesh);
+                if (h.hubGroup) scene.remove(h.hubGroup);
+            });
             checkpoints.forEach(c => scene.remove(c.mesh));
             decorativeObjects.forEach(d => scene.remove(d));
             
@@ -1319,9 +1759,6 @@
             goalPad = null;
         }
 
-        // =========================================================================
-        // 1. MODO: +1 SPEED: ESCAPA DEL TECLADO MULTIVERSO (CON SKINS Y AMBIENTE)
-        // =========================================================================
         function generateKeyboardSpeedMap() {
             clearMap();
             const skin = KEYBOARD_THEMES[gameState.selectedSkin] || KEYBOARD_THEMES['rgb'];
@@ -1397,71 +1834,80 @@
             new Platform(6, 0.4, 10, new THREE.Vector3(0, 0.8, -24), null, 'speed');
             new Platform(6, 0.4, 10, new THREE.Vector3(0, 0.8, -44), null, 'speed');
 
-            // --- ZONA 2: MEGA RAMPA DE TECLAS CON SALTOS SEPARADOS (Nivel 2) ---
+            // --- ZONA 2: MEGA RAMPA CON PLATAFORMA GIRATORIA INTERCALADA ---
             const rampKeys = [
                 { label: "CTRL", sub: "L-CTRL" },
                 { label: "WIN", sub: "SYSTEM" },
-                { label: "ALT", sub: "GR" },
-                { label: "FN", sub: "TURBO" },
-                { label: "SHIFT", sub: "SUPER-SALTO" }
+                { label: "ALT", sub: "GR" }
             ];
             for (let r = 0; r < rampKeys.length; r++) {
-                // Separación clara de 11.5 unidades (brechas de ~5.5 unidades de aire entre teclas)
                 new Platform(8, 1.2, 6.0, new THREE.Vector3(0, r * 1.5, -60 - (r * 11.5)), null, 'keycap', {
                     label: rampKeys[r].label, sub: rampKeys[r].sub, sideColor: skin.sideColor
                 });
             }
-            // Trampolín de despegue al final de la rampa
-            new Platform(8, 1.2, 6.5, new THREE.Vector3(0, 7.8, -122), '#e74c3c', 'bounce');
 
-            // Checkpoint 1: Tecla ENTER Gigante de Aterrizaje Aéreo (Nivel 3)
+            // PLATAFORMA GIRATORIA 1: Turntable con sectores luminosos
+            const spin1 = new Platform(9.5, 1.2, 9.5, new THREE.Vector3(0, 4.5, -96), skin.accentColor, 'spinning');
+            spin1.rotSpeed = 1.6;
+
+            // Molinillo láser de aspas giratorias sobre la plataforma giratoria
+            new Hazard(null, new THREE.Vector3(0, 5.8, -96), '#ff0055', 'spinner_arms', 2.0, 35);
+
+            new Platform(8, 1.2, 6.0, new THREE.Vector3(0, 6.0, -112), null, 'keycap', {
+                label: "SHIFT", sub: "SUPER-SALTO", sideColor: skin.sideColor
+            });
+            new Platform(8, 1.2, 6.5, new THREE.Vector3(0, 7.8, -126), '#e74c3c', 'bounce');
+
+            // Checkpoint 1: Tecla ENTER Gigante de Aterrizaje Aéreo
             const cp1Pos = new THREE.Vector3(0, 8.0, -156);
             const cp1 = new Platform(16, 1.4, 16, cp1Pos, null, 'checkpoint');
             cp1.checkpointId = "Tecla ENTER (Fase 1)";
             cp1.levelNumber = "Zona 2: Salto de Fe";
             checkpoints.push(cp1);
 
-            // --- ZONA 3: TÚNEL LÁSER DE REFLEJOS EN FILA NUMÉRICA [1-0] (Nivel 4) ---
+            // --- ZONA 3: TÚNEL LÁSER DE REFLEJOS EN FILA NUMÉRICA [1-0] ---
             new Platform(12, 1.0, 60, new THREE.Vector3(0, 8.0, -204), null, 'keycap', {
                 label: "[ 1 2 3 4 5 6 7 8 9 0 ]", sub: "TÚNEL DE REFLEJOS", sideColor: skin.sideColor
             });
             
-            // Paredes de teclas laterales
-            const wallL = new Platform(1.5, 4, 60, new THREE.Vector3(-6.8, 10.0, -204), skin.chassisColor);
-            const wallR = new Platform(1.5, 4, 60, new THREE.Vector3(6.8, 10.0, -204), skin.chassisColor);
-
-            // Láseres deslizantes en el túnel
+            // Láseres deslizantes y parpadeantes de alto daño (50 HP)
             const laserBarGeo = new THREE.BoxGeometry(5, 0.35, 0.35);
-            new Hazard(laserBarGeo, new THREE.Vector3(-2, 9.2, -186), '#ff0055', 'sliding', 3.5);
-            new Hazard(laserBarGeo, new THREE.Vector3(2, 9.2, -206), '#00ffcc', 'sliding', 4.0);
-            new Hazard(laserBarGeo, new THREE.Vector3(-2, 9.2, -224), '#ff0055', 'sliding', 4.5);
+            new Hazard(laserBarGeo, new THREE.Vector3(-2, 9.2, -186), '#ff0055', 'sliding', 3.5, 35);
+            
+            // Barrera láser intermitente que parpadea
+            const blinkLaserGeo = new THREE.BoxGeometry(11, 0.4, 0.4);
+            new Hazard(blinkLaserGeo, new THREE.Vector3(0, 9.3, -206), '#ff0033', 'blinking', 1.0, 50);
 
-            // --- ZONA 4: CIRCUITO DE SALTOS EN ZIGZAG DE TECLAS WASD (Nivel 5) ---
-            const wasdKeys = [
-                { label: "W", sub: "FORWARD", x: -7, y: 8.5, z: -250 },
-                { label: "A", sub: "LEFT", x: -16, y: 9.0, z: -268 },
-                { label: "S", sub: "BACK", x: -7, y: 9.5, z: -286 },
-                { label: "D", sub: "RIGHT", x: 6, y: 10.0, z: -304 }
-            ];
-            wasdKeys.forEach(k => {
-                new Platform(7, 1.2, 10, new THREE.Vector3(k.x, k.y, k.z), null, 'keycap', {
-                    label: k.label, sub: k.sub, sideColor: skin.sideColor
-                });
-            });
+            new Hazard(laserBarGeo, new THREE.Vector3(-2, 9.2, -224), '#00ffcc', 'sliding', 4.5, 35);
 
-            // Checkpoint 2: Dial de Switch Rotatorio (Nivel 6)
+            // --- ZONA 4: CIRCUITO DE SALTOS CON PLATAFORMA GIRATORIA WASD ---
+            new Platform(7, 1.2, 10, new THREE.Vector3(-7, 8.5, -250), null, 'keycap', { label: "W", sub: "FORWARD", sideColor: skin.sideColor });
+            
+            // PLATAFORMA GIRATORIA 2: Giro inverso
+            const spin2 = new Platform(9.0, 1.2, 9.0, new THREE.Vector3(-16, 9.0, -268), 'reverse', 'spinning');
+            spin2.rotSpeed = -1.8;
+            new Hazard(null, new THREE.Vector3(-16, 10.2, -268), '#ffcc00', 'spinner_arms', -2.2, 35);
+
+            new Platform(7, 1.2, 10, new THREE.Vector3(-7, 9.5, -286), null, 'keycap', { label: "S", sub: "BACK", sideColor: skin.sideColor });
+            new Platform(7, 1.2, 10, new THREE.Vector3(6, 10.0, -304), null, 'keycap', { label: "D", sub: "RIGHT", sideColor: skin.sideColor });
+
+            // Checkpoint 2: Dial de Switch Rotatorio
             const cp2Pos = new THREE.Vector3(6, 10.5, -326);
             const cp2 = new Platform(14, 1.4, 14, cp2Pos, null, 'checkpoint');
             cp2.checkpointId = "Dial Mecánico (Fase 2)";
             cp2.levelNumber = "Zona 4: Circuito WASD";
             checkpoints.push(cp2);
 
-            // --- ZONA 5: LOS RODILLOS GIRATORIOS DE VOLUMEN (Nivel 7) ---
+            // --- ZONA 5: LOS RODILLOS GIRATORIOS DE VOLUMEN ---
             new Platform(6, 6, 20, new THREE.Vector3(6, 9.5, -352), skin.accentColor, 'roller');
-            new Platform(8, 1.2, 8, new THREE.Vector3(6, 10.5, -374), null, 'keycap', { label: "MUTE", sub: "KNOB", sideColor: skin.sideColor });
+            
+            // PLATAFORMA GIRATORIA 3: Mute Knob
+            const spin3 = new Platform(9.5, 1.2, 9.5, new THREE.Vector3(6, 10.5, -374), skin.keyBorder, 'spinning');
+            spin3.rotSpeed = 1.5;
+
             new Platform(6, 6, 20, new THREE.Vector3(6, 9.5, -396), skin.keyBorder, 'roller');
 
-            // --- ZONA 6: BOSQUE DE SWITCHES MECÁNICOS (CHERRY MX) (Nivel 8) ---
+            // --- ZONA 6: BOSQUE DE SWITCHES MECÁNICOS ---
             const switchKeys = [
                 { label: "BLUE", sub: "CLICKY", pos: [0, 11.5, -420] },
                 { label: "RED", sub: "LINEAR", pos: [-8, 13.0, -438] },
@@ -1474,34 +1920,39 @@
                 });
             });
 
-            // Checkpoint 3: Socket de la Placa Base (Nivel 9)
+            // Checkpoint 3: Socket de la Placa Base
             const cp3Pos = new THREE.Vector3(0, 17.0, -500);
             const cp3 = new Platform(15, 1.4, 15, cp3Pos, null, 'checkpoint');
             cp3.checkpointId = "Socket Placa Base (Fase 3)";
             cp3.levelNumber = "Zona 8: Placa Base";
             checkpoints.push(cp3);
 
-            // --- ZONA 7: TÚNEL DE OVERCLOCK / CABLES DE ALTA TENSIÓN (Nivel 10) ---
+            // --- ZONA 7: TÚNEL DE OVERCLOCK / CABLES DE ALTA TENSIÓN (Daño 100 Instantáneo) ---
             new Platform(10, 1.2, 40, new THREE.Vector3(0, 17.0, -534), null, 'keycap', {
                 label: "OVERCLOCK", sub: "HIGH VOLTAGE", sideColor: skin.sideColor
             });
             const cableRotGeo = new THREE.BoxGeometry(16, 0.4, 0.4);
-            new Hazard(cableRotGeo, new THREE.Vector3(0, 18.5, -524), '#ff0055', 'rotating', 2.0);
-            new Hazard(cableRotGeo, new THREE.Vector3(0, 18.5, -544), '#00ffcc', 'rotating', -2.5);
+            new Hazard(cableRotGeo, new THREE.Vector3(0, 18.5, -524), '#ff0055', 'rotating', 2.0, 100);
+            new Hazard(cableRotGeo, new THREE.Vector3(0, 18.5, -544), '#00ffcc', 'rotating', -2.5, 100);
 
-            // --- ZONA 8: ESCALERA AL PROCESADOR CPU SUPREMO (Nivel 11) ---
+            // --- ZONA 8: ESCALERA AL PROCESADOR CPU SUPREMO CON PLATAFORMAS GIRATORIAS ---
             const fKeys = ["F9", "F10", "F11", "F12"];
             for (let c = 1; c <= 4; c++) {
                 const posX = (c % 2 === 0 ? 6.5 : -6.5);
-                new Platform(6.0, 1.2, 6.0, new THREE.Vector3(posX, 17.0 + c * 2.4, -562 - (c * 14.5)), null, 'keycap', {
-                    label: fKeys[c - 1], sub: "STEP", sideColor: skin.sideColor
-                });
+                if (c === 2) {
+                    const spinF = new Platform(8.5, 1.2, 8.5, new THREE.Vector3(posX, 17.0 + c * 2.4, -562 - (c * 14.5)), skin.accentColor, 'spinning');
+                    spinF.rotSpeed = 1.8;
+                } else {
+                    new Platform(6.0, 1.2, 6.0, new THREE.Vector3(posX, 17.0 + c * 2.4, -562 - (c * 14.5)), null, 'keycap', {
+                        label: fKeys[c - 1], sub: "STEP", sideColor: skin.sideColor
+                    });
+                }
             }
 
             // Trampolín de lanzamiento hacia la gran tecla dorada final
             new Platform(9, 1.2, 9, new THREE.Vector3(0, 28.5, -635), '#e74c3c', 'bounce');
 
-            // --- ZONA 9: LA GRAN META - TECLA ESC SUPREMA (Nivel 12) ---
+            // --- ZONA 9: LA GRAN META - TECLA ESC SUPREMA ---
             const finalPos = new THREE.Vector3(0, 37.0, -675);
             goalPad = new Platform(16, 2.5, 16, finalPos, null, 'goal');
             new Platform(14, 2.0, 14, new THREE.Vector3(finalPos.x, finalPos.y + 0.6, finalPos.z), null, 'keycap', {
@@ -1512,9 +1963,6 @@
             createGoalTrophy(new THREE.Vector3(finalPos.x, finalPos.y + 1.6, finalPos.z));
         }
 
-        // =========================================================================
-        // 2. MODO: Barry's Prison Escape
-        // =========================================================================
         function generateBarrysEscapeMap() {
             clearMap();
             scene.fog.color.set('#0a0f1d');
@@ -1523,10 +1971,16 @@
 
             new Platform(14, 1, 14, new THREE.Vector3(0, 0, 0), '#2ecc71');
 
-            // 4 bloques iniciales con saltos bien definidos (brecha de ~6.2 unidades)
-            for (let i = 1; i <= 4; i++) {
+            for (let i = 1; i <= 2; i++) {
                 new Platform(4.8, 0.8, 4.8, new THREE.Vector3(0, 0.4 * i, -11.0 * i), '#34495e');
             }
+
+            // PLATAFORMA GIRATORIA: Disco de ventilación de prisión
+            const spinPris1 = new Platform(8.5, 0.8, 8.5, new THREE.Vector3(0, 1.2, -33.0), '#e67e22', 'spinning');
+            spinPris1.rotSpeed = 1.5;
+            new Hazard(null, new THREE.Vector3(0, 2.2, -33.0), '#ff3b30', 'spinner_arms', 2.0, 35);
+
+            new Platform(4.8, 0.8, 4.8, new THREE.Vector3(0, 1.6, -45.0), '#34495e');
 
             const check1Pos = new THREE.Vector3(0, 2.0, -58);
             const cp1 = new Platform(10, 0.8, 10, check1Pos, '#3498db', 'checkpoint');
@@ -1537,7 +1991,7 @@
             const laserHubPos1 = new THREE.Vector3(0, 3.2, -78);
             new Platform(5, 2, 5, new THREE.Vector3(0, 2.5, -78), '#1f2937');
             const laserBladeGeo = new THREE.BoxGeometry(14, 0.2, 0.8);
-            new Hazard(laserBladeGeo, laserHubPos1, '#ff3b30', 'rotating');
+            new Hazard(laserBladeGeo, laserHubPos1, '#ff3b30', 'rotating', 1.0, 40);
 
             new Platform(4.8, 0.8, 4.8, new THREE.Vector3(-5.5, 3.0, -96), '#34495e');
             new Platform(4.8, 0.8, 4.8, new THREE.Vector3(5.5, 4.0, -112), '#34495e');
@@ -1555,10 +2009,15 @@
             barryNPC.patrolPointB.set(0, 8.4, -155);
             barryNPC.state = 'patrol';
 
-            // Plataformas que desaparecen con saltos separados
-            for (let i = 0; i < 3; i++) {
-                new Platform(4.8, 0.6, 4.8, new THREE.Vector3(0, 6.0 + i * 1.6, -208 - (i * 12.0)), null, 'disappearing');
-            }
+            // Plataformas que desaparecen intercaladas con plataforma giratoria
+            new Platform(4.8, 0.6, 4.8, new THREE.Vector3(0, 6.0, -208), null, 'disappearing');
+            
+            // PLATAFORMA GIRATORIA: Generador eléctrico giratorio
+            const spinGen = new Platform(9.0, 0.8, 9.0, new THREE.Vector3(0, 7.6, -222), '#ff007f', 'spinning');
+            spinGen.rotSpeed = -1.6;
+            new Hazard(null, new THREE.Vector3(0, 8.8, -222), '#00ffff', 'spinner_arms', -2.2, 40);
+
+            new Platform(4.8, 0.6, 4.8, new THREE.Vector3(0, 9.2, -236), null, 'disappearing');
 
             const check3Pos = new THREE.Vector3(0, 11.0, -256);
             const cp3 = new Platform(10, 0.8, 10, check3Pos, '#3498db', 'checkpoint');
@@ -1568,10 +2027,14 @@
 
             const laserHubPos2 = new THREE.Vector3(0, 12.2, -282);
             new Platform(5, 2, 5, new THREE.Vector3(0, 11.5, -282), '#2c3e50');
-            new Hazard(laserBladeGeo, laserHubPos2, '#00ffcc', 'rotating');
+            new Hazard(laserBladeGeo, laserHubPos2, '#00ffcc', 'rotating', 1.5, 45);
 
             new Platform(5.2, 0.8, 5.2, new THREE.Vector3(-6, 13.0, -304), '#e67e22', 'bounce');
-            new Platform(5.2, 0.8, 5.2, new THREE.Vector3(6, 16.0, -328), '#34495e');
+            
+            // PLATAFORMA GIRATORIA 3: Turbina de escape final
+            const spinPris3 = new Platform(8.5, 0.8, 8.5, new THREE.Vector3(6, 16.0, -328), '#f1c40f', 'spinning');
+            spinPris3.rotSpeed = 1.7;
+
             new Platform(5.2, 0.8, 5.2, new THREE.Vector3(0, 18.0, -352), '#e74c3c', 'moving');
 
             const finalPos = new THREE.Vector3(0, 20.0, -384);
@@ -1579,9 +2042,6 @@
             createGoalTrophy(finalPos);
         }
 
-        // =========================================================================
-        // 3. MODO: Tower of Hell
-        // =========================================================================
         function generateTowerOfHellMap() {
             clearMap();
             scene.fog.color.set('#1b0826');
@@ -1593,7 +2053,6 @@
             const segments = 20;
             const colors = ['#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#ff007f', '#00d2d3'];
 
-            // Radio ampliado y separación helicoidal con brechas de salto claras (~6.5 unidades)
             const radius = 9.2;
             for (let i = 1; i <= segments; i++) {
                 const angle = (i * Math.PI * 0.42);
@@ -1603,19 +2062,24 @@
 
                 const color = colors[i % colors.length];
                 let platType = 'normal';
-                if (i % 6 === 0) platType = 'moving';
+                if (i % 5 === 0) platType = 'spinning'; // Plataformas giratorias en la torre
+                else if (i % 6 === 0) platType = 'moving';
                 else if (i % 8 === 0) platType = 'bounce';
 
-                const plat = new Platform(4.6, 0.7, 4.6, new THREE.Vector3(nextX, nextY, nextZ), color, platType);
+                const plat = new Platform(platType === 'spinning' ? 7.5 : 4.6, 0.7, platType === 'spinning' ? 7.5 : 4.6, new THREE.Vector3(nextX, nextY, nextZ), color, platType);
                 if (platType === 'moving') {
                     plat.range = 3.0;
                     plat.speed = 2.2;
+                } else if (platType === 'spinning') {
+                    plat.rotSpeed = (i % 2 === 0 ? 1.6 : -1.6);
+                    // Molinillo láser en plataformas giratorias de la torre
+                    new Hazard(null, new THREE.Vector3(nextX, nextY + 1.2, nextZ), '#ff0055', 'spinner_arms', 1.8, 35);
                 }
 
                 if (i % 3 === 1) {
                     const laserHeight = nextY + 1.2;
-                    const laserGeo = new THREE.BoxGeometry(1.8, 0.25, 0.25);
-                    new Hazard(laserGeo, new THREE.Vector3(nextX * 0.75, laserHeight, nextZ * 0.75), '#ff3b30');
+                    const laserGeo = new THREE.BoxGeometry(2.0, 0.25, 0.25);
+                    new Hazard(laserGeo, new THREE.Vector3(nextX * 0.75, laserHeight, nextZ * 0.75), '#ff3b30', 'static', 1.0, 40);
                 }
             }
 
@@ -1625,9 +2089,6 @@
             createGoalTrophy(finalPos);
         }
 
-        // =========================================================================
-        // 4. MODO: El Piso es Lava
-        // =========================================================================
         function generateFloorIsLavaMap() {
             clearMap();
             scene.fog.color.set('#2c0b05');
@@ -1643,15 +2104,19 @@
 
             new Platform(14, 1, 14, new THREE.Vector3(0, 0, 0), '#d35400');
 
-            // Sección 1: Saltos espaciados en Z a 12 unidades (brecha de ~7 unidades)
             for (let i = 1; i <= 6; i++) {
-                const type = (i === 3 || i === 6) ? 'bounce' : 'normal';
+                const isSpin = (i === 4);
+                const type = isSpin ? 'spinning' : ((i === 3 || i === 6) ? 'bounce' : 'normal');
                 const pos = new THREE.Vector3(
                     (i % 2 === 0 ? 5.0 : -5.0),
                     i * 2.6,
                     -i * 12.0
                 );
-                new Platform(5.0, 0.8, 5.0, pos, '#e67e22', type);
+                const plat = new Platform(isSpin ? 8.5 : 5.0, 0.8, isSpin ? 8.5 : 5.0, pos, '#e67e22', type);
+                if (isSpin) {
+                    plat.rotSpeed = 1.7;
+                    new Hazard(null, new THREE.Vector3(pos.x, pos.y + 1.2, pos.z), '#ffcc00', 'spinner_arms', 2.0, 35);
+                }
             }
 
             const cp1Pos = new THREE.Vector3(0, 18.0, -84);
@@ -1660,15 +2125,19 @@
             cp1.levelNumber = "Grúa de Acero";
             checkpoints.push(cp1);
 
-            // Sección 2: Escalada sobre magma
             for (let i = 1; i <= 6; i++) {
-                const type = (i === 3) ? 'speed' : (i === 5 ? 'bounce' : 'normal');
+                const isSpin = (i === 2);
+                const type = isSpin ? 'spinning' : ((i === 3) ? 'speed' : (i === 5 ? 'bounce' : 'normal'));
                 const pos = new THREE.Vector3(
                     (i % 2 === 0 ? -5.0 : 5.0),
                     18.0 + i * 2.8,
                     -84 - i * 12.5
                 );
-                new Platform(5.0, 0.8, 5.0, pos, '#d35400', type);
+                const plat = new Platform(isSpin ? 8.5 : 5.0, 0.8, isSpin ? 8.5 : 5.0, pos, '#d35400', type);
+                if (isSpin) {
+                    plat.rotSpeed = -1.6;
+                    new Hazard(null, new THREE.Vector3(pos.x, pos.y + 1.2, pos.z), '#ff0055', 'spinner_arms', -2.2, 40);
+                }
             }
 
             const cp2Pos = new THREE.Vector3(0, 38.0, -172);
@@ -1677,15 +2146,16 @@
             cp2.levelNumber = "Helipuerto";
             checkpoints.push(cp2);
 
-            // Sección 3: Tramo final
             for (let i = 1; i <= 5; i++) {
-                const type = (i === 3) ? 'bounce' : 'normal';
+                const isSpin = (i === 2);
+                const type = isSpin ? 'spinning' : ((i === 3) ? 'bounce' : 'normal');
                 const pos = new THREE.Vector3(
                     (i % 2 === 0 ? 5.0 : -5.0),
                     38.0 + i * 3.0,
                     -172 - i * 13.0
                 );
-                new Platform(4.8, 0.8, 4.8, pos, '#c0392b', type);
+                const plat = new Platform(isSpin ? 8.5 : 4.8, 0.8, isSpin ? 8.5 : 4.8, pos, '#c0392b', type);
+                if (isSpin) plat.rotSpeed = 1.8;
             }
 
             const finalPos = new THREE.Vector3(0, 56, -250);
@@ -1693,9 +2163,6 @@
             createGoalTrophy(finalPos);
         }
 
-        // =========================================================================
-        // 5. MODO: Mega Rainbow Obby
-        // =========================================================================
         function generateRainbowObbyMap() {
             clearMap();
             scene.fog.color.set('#09203f');
@@ -1705,17 +2172,23 @@
             const colors = ['#ff4757', '#ffa502', '#2ed573', '#1e90ff', '#3742fa', '#5352ed', '#e056fd', '#686de0'];
             new Platform(16, 1, 16, new THREE.Vector3(0, 0, 0), '#ffffff');
 
-            // Saltos espaciados a 12.5 unidades con plataforma de 4.8 (brecha de ~7.7 unidades)
             for (let i = 1; i <= 20; i++) {
                 const color = colors[i % colors.length];
-                let type = 'normal';
-                if (i === 3 || i === 9 || i === 16) type = 'bounce';
-                if (i === 5 || i === 12 || i === 18) type = 'speed';
+                const isSpin = (i === 4 || i === 11 || i === 17);
+                let type = isSpin ? 'spinning' : 'normal';
+                if (!isSpin) {
+                    if (i === 3 || i === 9 || i === 16) type = 'bounce';
+                    if (i === 5 || i === 12 || i === 18) type = 'speed';
+                }
 
                 const xOffset = Math.sin(i * 0.7) * 6.5;
                 const pos = new THREE.Vector3(xOffset, i * 1.6, -i * 12.5);
 
-                new Platform(4.8, 0.8, 4.8, pos, color, type);
+                const plat = new Platform(isSpin ? 8.5 : 4.8, 0.8, isSpin ? 8.5 : 4.8, pos, color, type);
+                if (isSpin) {
+                    plat.rotSpeed = (i % 2 === 0 ? 1.5 : -1.5);
+                    new Hazard(null, new THREE.Vector3(pos.x, pos.y + 1.2, pos.z), color, 'spinner_arms', 2.0, 35);
+                }
 
                 if (i === 7) {
                     const cpPos = new THREE.Vector3(xOffset, i * 1.6, -i * 12.5);
@@ -1739,9 +2212,6 @@
             createGoalTrophy(finalPos);
         }
 
-        // =========================================================================
-        // 6. MODO: Puente de Cristal
-        // =========================================================================
         function generateGlassBridgeMap() {
             clearMap();
             scene.fog.color.set('#030c1e');
@@ -1750,14 +2220,27 @@
 
             new Platform(14, 1, 12, new THREE.Vector3(0, 0, 0), '#2c3e50');
 
-            // Separación de 11 unidades con cristales de 4.2 de largo (brecha de salto real de 6.8 unidades)
             const pairs = 18;
             for (let i = 1; i <= pairs; i++) {
                 const z = -i * 11.0;
-                const fakeIsLeft = Math.random() < 0.5;
+                
+                // Plataformas giratorias intermedias que sincronizan el cruce
+                if (i === 4 || i === 10 || i === 15) {
+                    const spinG = new Platform(8.5, 0.8, 8.5, new THREE.Vector3(0, 0, z), '#00d2ff', 'spinning');
+                    spinG.rotSpeed = 1.6;
+                    new Hazard(null, new THREE.Vector3(0, 1.2, z), '#ff007f', 'spinner_arms', 2.2, 35);
+                    continue;
+                }
 
+                const fakeIsLeft = Math.random() < 0.5;
                 new Platform(4.2, 0.35, 4.2, new THREE.Vector3(-3.4, 0, z), null, fakeIsLeft ? 'glass_fake' : 'glass_solid');
                 new Platform(4.2, 0.35, 4.2, new THREE.Vector3(3.4, 0, z), null, fakeIsLeft ? 'glass_solid' : 'glass_fake');
+
+                // Láseres oscilantes entre cristales
+                if (i % 5 === 0) {
+                    const laserCross = new THREE.BoxGeometry(10, 0.25, 0.25);
+                    new Hazard(laserCross, new THREE.Vector3(0, 1.0, z), '#ff0033', 'blinking', 1.0, 45);
+                }
 
                 if (i === 6) {
                     const cpPos = new THREE.Vector3(0, 0, z - 5.5);
@@ -1781,32 +2264,34 @@
             createGoalTrophy(finalPos);
         }
 
-        // =========================================================================
-        // 7. MODO: ASMR NeeDoh Tower (NeeDoh Obby)
-        // =========================================================================
         function generateAsmrNeedohTowerMap() {
             clearMap();
-            // Ambiente relajante pastel violeta y niebla zen en cielo abierto
             scene.fog.color.set('#201435');
             scene.fog.density = 0.005;
             scene.background.set('#201435');
 
-            // Squishies y globos gigantes flotantes decorativos en el fondo
             const pastelColors = ['#fd79a8', '#a29bfe', '#74b9ff', '#55efc4', '#ffeaa7', '#fab1a0'];
-            for (let d = 0; d < 35; d++) {
-                const decType = d % 3;
+            for (let d = 0; d < 36; d++) {
+                const decType = d % 4;
                 let decMesh;
                 const decColor = pastelColors[d % pastelColors.length];
 
                 if (decType === 0) {
+                    const cubeDecTex = createNiceCubeTexture(decColor, "NeeDoh");
                     decMesh = new THREE.Mesh(
-                        new THREE.SphereGeometry(3 + Math.random() * 2, 16, 16),
-                        new THREE.MeshStandardMaterial({ color: decColor, roughness: 0.15 })
+                        new THREE.BoxGeometry(4.5, 4.5, 4.5),
+                        new THREE.MeshPhysicalMaterial({ map: cubeDecTex, color: decColor, transparent: true, opacity: 0.75, transmission: 0.5 })
                     );
                 } else if (decType === 1) {
+                    const butterDecTex = createButterTexture(false);
                     decMesh = new THREE.Mesh(
-                        new THREE.BoxGeometry(4, 4, 4),
-                        new THREE.MeshPhysicalMaterial({ color: decColor, transparent: true, opacity: 0.7, roughness: 0.1 })
+                        new THREE.BoxGeometry(3.5, 2.2, 7.0),
+                        new THREE.MeshStandardMaterial({ map: butterDecTex, roughness: 0.55 })
+                    );
+                } else if (decType === 2) {
+                    decMesh = new THREE.Mesh(
+                        new THREE.SphereGeometry(3.5, 16, 16),
+                        new THREE.MeshStandardMaterial({ color: decColor, roughness: 0.15 })
                     );
                 } else {
                     decMesh = new THREE.Mesh(
@@ -1816,103 +2301,136 @@
                     decMesh.scale.set(1, 0.75, 1);
                 }
 
-                const rad = 32 + Math.random() * 36;
+                const rad = 34 + Math.random() * 38;
                 const ang = Math.random() * Math.PI * 2;
-                decMesh.position.set(Math.cos(ang) * rad, Math.random() * 160, Math.sin(ang) * rad);
+                decMesh.position.set(Math.cos(ang) * rad, Math.random() * 180, Math.sin(ang) * rad);
                 decMesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
                 scene.add(decMesh);
                 decorativeObjects.push(decMesh);
             }
 
-            // --- PISO 1: ZEN LOUNGE & TAPETE DE MEMORY FOAM (Inicio) ---
+            // --- PISO 1: ZEN LOUNGE & TAPETE DE MEMORY FOAM ---
             new Platform(16, 1.2, 16, new THREE.Vector3(0, 0, 0), '#a29bfe');
 
-            // Escalera de Memory Foam suave con saltos definidos
-            for (let f = 1; f <= 4; f++) {
-                new Platform(5.2, 0.8, 5.2, new THREE.Vector3(0, f * 2.0, -6 - (f * 11.5)), '#fd79a8');
-            }
+            new Platform(5.4, 0.8, 5.4, new THREE.Vector3(0, 2.0, -17.5), '#fd79a8');
+            
+            // PLATAFORMA GIRATORIA ASMR: Fidget Spinner Turntable
+            const spinAsmr1 = new Platform(9.0, 1.0, 9.0, new THREE.Vector3(0, 4.5, -29.0), '#55efc4', 'spinning');
+            spinAsmr1.rotSpeed = 1.4;
+            new Hazard(null, new THREE.Vector3(0, 5.8, -29.0), '#fd79a8', 'spinner_arms', 1.8, 35);
 
-            // --- PISO 2: CAMINO CONTINUO DE PELOTAS SQUISHY NEEDOH (Saltos elásticos flotantes) ---
-            const squishyColors = ['#fd79a8', '#ffeaa7', '#55efc4', '#a29bfe', '#74b9ff'];
-            const needohConfigs = [
-                { x: 0, y: 10.5, z: -66 },
-                { x: -5.0, y: 13.0, z: -80 },
-                { x: 5.0, y: 15.5, z: -94 },
-                { x: -4.0, y: 18.0, z: -108 },
-                { x: 0, y: 20.5, z: -122 }
+            new Platform(5.4, 0.8, 5.4, new THREE.Vector3(0, 6.5, -40.5), '#a29bfe');
+
+            // --- PISO 2: SECTOR "NICE ICE BABY" - CUBOS DE HIELO SQUISHY NEEDOH ---
+            const niceCubeColors = ['#00d2ff', '#ff2a8d', '#a29bfe', '#00f2c3'];
+            const niceCubeConfigs = [
+                { x: 0, y: 8.5, z: -54 },
+                { x: -5.0, y: 11.0, z: -68 },
+                { x: 5.0, y: 13.5, z: -82 },
+                { x: -4.5, y: 16.0, z: -96 },
+                { x: 0, y: 18.5, z: -110 }
             ];
 
-            needohConfigs.forEach((cfg, idx) => {
-                new Platform(5.8, 4.0, 5.8, new THREE.Vector3(cfg.x, cfg.y, cfg.z), squishyColors[idx % squishyColors.length], 'needoh');
+            niceCubeConfigs.forEach((cfg, idx) => {
+                new Platform(5.5, 3.2, 5.5, new THREE.Vector3(cfg.x, cfg.y, cfg.z), niceCubeColors[idx % niceCubeColors.length], 'nice_cube');
             });
 
-            // Checkpoint 1: Terraza NeeDoh Glow (Nivel 5)
-            const cp1Pos = new THREE.Vector3(0, 22.5, -138);
+            // Checkpoint 1: Terraza NeeDoh Glow
+            const cp1Pos = new THREE.Vector3(0, 20.5, -126);
             const cp1 = new Platform(12, 1.2, 12, cp1Pos, '#55efc4', 'checkpoint');
-            cp1.checkpointId = "Terraza NeeDoh (Piso 5)";
-            cp1.levelNumber = "Terraza NeeDoh Glow";
+            cp1.checkpointId = "Terraza Nice Cube (Piso 5)";
+            cp1.levelNumber = "Terraza Nice Cube";
             checkpoints.push(cp1);
 
-            // --- PISO 3: PUENTE POP-IT FIDGET ARCOÍRIS CON SALTOS SEPARADOS ---
-            const popitColors = ['#ff7675', '#fdcb6e', '#55efc4', '#0984e3', '#6c5ce7'];
-            for (let p = 0; p < 5; p++) {
-                const posX = (p % 2 === 0 ? -4.0 : 4.0);
-                new Platform(5.5, 0.8, 5.5, new THREE.Vector3(p === 4 ? 0 : posX, 24.5 + p * 2.2, -152 - (p * 12.0)), popitColors[p], 'popit');
+            // --- PISO 3: SECTOR BARRAS DE MANTEQUILLA SQUISHY ---
+            const butterConfigs = [
+                { x: 4.5, y: 22.8, z: -140 },
+                { x: -4.5, y: 25.0, z: -154 }
+            ];
+            butterConfigs.forEach((bCfg) => {
+                new Platform(4.6, 2.0, 6.8, new THREE.Vector3(bCfg.x, bCfg.y, bCfg.z), null, 'butter');
+            });
+
+            // PLATAFORMA GIRATORIA: Fidget giratorio de postres
+            const spinButter = new Platform(8.5, 1.0, 8.5, new THREE.Vector3(4.5, 27.2, -168), '#ffeaa7', 'spinning');
+            spinButter.rotSpeed = -1.6;
+            new Hazard(null, new THREE.Vector3(4.5, 28.4, -168), '#ff7675', 'spinner_arms', -2.0, 35);
+
+            new Platform(4.6, 2.0, 6.8, new THREE.Vector3(-4.5, 29.4, -182), null, 'butter');
+            new Platform(4.6, 2.0, 6.8, new THREE.Vector3(0, 31.6, -196), null, 'butter');
+
+            // --- PISO 4: PUENTE POP-IT FIDGET ARCOÍRIS ---
+            const popitColors = ['#ff7675', '#fdcb6e', '#55efc4', '#0984e3'];
+            for (let p = 0; p < 4; p++) {
+                const posX = (p % 2 === 0 ? -4.5 : 4.5);
+                new Platform(5.5, 0.8, 5.5, new THREE.Vector3(p === 3 ? 0 : posX, 33.8 + p * 2.2, -210 - (p * 12.0)), popitColors[p], 'popit');
             }
 
-            // --- PISO 4: RÍO DE SLIME GELATINOSO TRANSLÚCIDO ---
-            for (let sl = 0; sl < 4; sl++) {
-                const slZ = -222 - (sl * 12.5);
-                const slX = (sl % 2 === 0 ? -4.5 : 4.5);
-                new Platform(5.8, 0.8, 5.8, new THREE.Vector3(slX, 36.0 + sl * 2.2, slZ), sl < 2 ? '#00cec9' : '#74b9ff', 'slime');
-            }
-
-            // Checkpoint 2: Oasis Dumpling Squishy (Nivel 10)
-            const cp2Pos = new THREE.Vector3(0, 46.0, -282);
+            // Checkpoint 2: Oasis Dumpling Squishy
+            const cp2Pos = new THREE.Vector3(0, 43.5, -266);
             const cp2 = new Platform(13, 1.2, 13, cp2Pos, '#a29bfe', 'checkpoint');
             cp2.checkpointId = "Oasis Dumpling (Piso 10)";
             cp2.levelNumber = "Oasis Dumpling";
             checkpoints.push(cp2);
 
-            // --- PISO 5: PASARELA DE NEEDOH DUMPLINGS KAWAII ---
-            for (let d = 0; d < 5; d++) {
-                const dX = (d % 2 === 0 ? -5.0 : 5.0);
-                const dZ = -298 - (d * 12.5);
-                const dY = 48.5 + d * 2.4;
-                new Platform(5.6, 3.5, 5.6, new THREE.Vector3(d === 4 ? 0 : dX, dY, dZ), null, 'dumpling');
-            }
+            // --- PISO 5: PASARELA DE NEEDOH DUMPLINGS KAWAII CON PLATAFORMA GIRATORIA ---
+            new Platform(5.6, 3.5, 5.6, new THREE.Vector3(-5.0, 46.0, -280), null, 'dumpling');
+            
+            // PLATAFORMA GIRATORIA DUMPLING
+            const spinDump = new Platform(9.0, 1.2, 9.0, new THREE.Vector3(5.0, 48.4, -292.5), '#fab1a0', 'spinning');
+            spinDump.rotSpeed = 1.7;
+            new Hazard(null, new THREE.Vector3(5.0, 49.8, -292.5), '#a29bfe', 'spinner_arms', 2.2, 35);
 
-            // --- PISO 6: TORRE DE NEEDOH SUGAR BALLS ASCENDENTES ---
-            for (let b = 0; b < 5; b++) {
-                const bX = (b % 2 === 0 ? 4.5 : -4.5);
-                const bZ = -370 - (b * 13.0);
-                const bY = 62.0 + b * 2.8;
-                new Platform(5.8, 4.0, 5.8, new THREE.Vector3(b === 4 ? 0 : bX, bY, bZ), squishyColors[b % squishyColors.length], 'needoh');
-            }
+            new Platform(5.6, 3.5, 5.6, new THREE.Vector3(-5.0, 50.8, -305), null, 'dumpling');
+            new Platform(5.6, 3.5, 5.6, new THREE.Vector3(0, 53.2, -317.5), null, 'dumpling');
 
-            // Checkpoint 3: Santuario Pop-It Cósmico (Nivel 15)
-            const cp3Pos = new THREE.Vector3(0, 78.0, -446);
+            // --- PISO 6: TORRE HÍBRIDA DE NICE CUBES & PELOTAS NEEDOH ---
+            const hybridSteps = [
+                { type: 'nice_cube', color: '#ff2a8d', x: 4.5, y: 56.5, z: -338 },
+                { type: 'needoh', color: '#ffeaa7', x: -4.5, y: 59.2, z: -352 },
+                { type: 'nice_cube', color: '#00d2ff', x: 4.5, y: 62.0, z: -366 },
+                { type: 'butter', color: null, x: -4.5, y: 64.6, z: -380 },
+                { type: 'needoh', color: '#fd79a8', x: 0, y: 67.2, z: -394 }
+            ];
+
+            hybridSteps.forEach(st => {
+                if (st.type === 'butter') {
+                    new Platform(4.6, 2.0, 6.8, new THREE.Vector3(st.x, st.y, st.z), null, 'butter');
+                } else if (st.type === 'nice_cube') {
+                    new Platform(5.5, 3.2, 5.5, new THREE.Vector3(st.x, st.y, st.z), st.color, 'nice_cube');
+                } else {
+                    new Platform(5.8, 4.0, 5.8, new THREE.Vector3(st.x, st.y, st.z), st.color, 'needoh');
+                }
+            });
+
+            // Checkpoint 3: Santuario Pop-It Cósmico
+            const cp3Pos = new THREE.Vector3(0, 71.0, -412);
             const cp3 = new Platform(14, 1.2, 14, cp3Pos, '#fd79a8', 'checkpoint');
             cp3.checkpointId = "Santuario Pop-It (Piso 15)";
             cp3.levelNumber = "Santuario Pop-It";
             checkpoints.push(cp3);
 
-            // --- PISO 7: CAMINO DE NUBES Y SLIME FINAL ---
+            // --- PISO 7: CAMINO DE RÍO DE SLIME FINAL ---
             for (let j = 1; j <= 3; j++) {
                 const jX = (j % 2 === 0 ? 5.0 : -5.0);
-                const jY = 80.5 + j * 2.6;
-                const jZ = -446 - (j * 12.5);
+                const jY = 73.5 + j * 2.6;
+                const jZ = -412 - (j * 12.5);
                 new Platform(5.8, 0.8, 5.8, new THREE.Vector3(jX, jY, jZ), '#74b9ff', 'slime');
             }
 
-            // Súper Trampolín NeeDoh de lanzamiento final
-            new Platform(8.5, 1.2, 8.5, new THREE.Vector3(0, 91.0, -495), '#e74c3c', 'bounce');
+            // Trampolín Nice Cube elástico
+            new Platform(7.0, 2.8, 7.0, new THREE.Vector3(0, 83.0, -462), '#00d2ff', 'nice_cube');
 
-            // --- PISO 8: LA CIMA SUPREMA - TEMPLO CORONA ASMR NEEDOH ---
-            const finalPos = new THREE.Vector3(0, 108.0, -525);
-            goalPad = new Platform(16, 2.0, 16, finalPos, '#fdcb6e', 'goal');
+            // Pasarela final continua de squishies conectada y accesible hacia la meta
+            new Platform(6.0, 1.0, 6.0, new THREE.Vector3(-4.5, 85.5, -476), '#55efc4', 'popit');
+            new Platform(4.8, 2.0, 7.0, new THREE.Vector3(4.5, 87.8, -490), null, 'butter');
+            new Platform(6.0, 3.0, 6.0, new THREE.Vector3(0, 90.2, -504), '#ff2a8d', 'nice_cube');
+            new Platform(6.5, 1.0, 6.5, new THREE.Vector3(0, 92.0, -518), '#a29bfe', 'popit');
+
+            // --- PISO 8: LA CIMA SUPREMA - TEMPLO CORONA ASMR NEEDOH (META TOTALMENTE ALCANZABLE) ---
+            const finalPos = new THREE.Vector3(0, 93.5, -536);
+            goalPad = new Platform(20, 2.5, 20, finalPos, '#fdcb6e', 'goal');
             
-            // Halo brillante sobre el podio de victoria
             const haloGeo = new THREE.TorusGeometry(6, 0.4, 16, 32);
             const haloMesh = new THREE.Mesh(haloGeo, new THREE.MeshBasicMaterial({ color: 0xff7675 }));
             haloMesh.rotation.x = Math.PI / 2;
@@ -1920,7 +2438,7 @@
             scene.add(haloMesh);
             decorativeObjects.push(haloMesh);
 
-            createGoalTrophy(finalPos);
+            createGoalTrophy(new THREE.Vector3(finalPos.x, finalPos.y + 1.25, finalPos.z));
         }
 
         // --- Controles de Teclado y Mobile ---
@@ -2066,6 +2584,21 @@
         function updatePhysics(timeStep) {
             if (!gameState.isPlaying) return;
 
+            // Regeneración pasiva de vida estilo Roblox (+5 HP/s si no recibe daño durante 3s)
+            if (gameState.invulnerableTimer > 0) {
+                gameState.invulnerableTimer -= timeStep;
+                // Efecto de parpadeo del avatar durante invulnerabilidad
+                player.mesh.visible = Math.floor(gameState.timerElapsed * 15) % 2 === 0;
+            } else {
+                player.mesh.visible = true;
+            }
+
+            gameState.regenTimer += timeStep;
+            if (gameState.regenTimer >= 3.0 && gameState.hp < gameState.maxHp) {
+                gameState.hp = Math.min(gameState.maxHp, gameState.hp + 6 * timeStep);
+                updateHpUI();
+            }
+
             // En el modo Teclado: ganancia de velocidad más pausada (cada 2.5s) y suave
             const SPEED_STEP_INTERVAL = 2.5;
             if (gameState.mode === 'keyboard') {
@@ -2078,7 +2611,6 @@
                     gameState.speedSecondTimer -= SPEED_STEP_INTERVAL;
                     gameState.speedGained += 1;
                     document.getElementById('speed-counter').textContent = (baseSpeed + gameState.speedGained) + " (+" + gameState.speedGained + ")";
-                    playSound('key_click');
                 }
             }
 
@@ -2139,14 +2671,13 @@
             const pRadius = 0.75;
             const pHeight = 2.1;
 
-            // Eje X: Deslizamiento suave contra paredes sin atascos
+            // Eje X: Deslizamiento suave contra paredes
             pos.x += velocity.x * timeStep;
             for (let platform of platforms) {
                 const b = platform.getBounds();
                 if (!b) continue;
                 const feetY = pos.y - pHeight;
                 const headY = pos.y + pHeight;
-                // Verificar que estemos a la altura de la pared (sin chocar con la plataforma sobre la que pisamos)
                 if (feetY < b.maxY - 0.2 && headY > b.minY + 0.2) {
                     if (pos.z + (pRadius - 0.1) > b.minZ && pos.z - (pRadius - 0.1) < b.maxZ) {
                         if (velocity.x > 0 && pos.x + pRadius > b.minX && pos.x < b.minX) {
@@ -2160,7 +2691,7 @@
                 }
             }
 
-            // Eje Z: Deslizamiento suave contra paredes sin atascos
+            // Eje Z: Deslizamiento suave contra paredes
             pos.z += velocity.z * timeStep;
             for (let platform of platforms) {
                 const b = platform.getBounds();
@@ -2183,30 +2714,49 @@
             // Eje Y: Movimiento vertical seguro
             pos.y += velocity.y * timeStep;
             let onGround = false;
+            let landedPlatform = null;
+
+            // Reset del estado de soporte sobre plataformas
+            for (let p of platforms) p.playerStandingOn = false;
 
             for (let platform of platforms) {
                 const b = platform.getBounds();
                 if (!b) continue;
                 
-                // Margen horizontal interno para determinar si estamos verdaderamente sobre la plataforma
                 const inHorizontal = (pos.x + 0.65 > b.minX) && (pos.x - 0.65 < b.maxX) &&
                                      (pos.z + 0.65 > b.minZ) && (pos.z - 0.65 < b.maxZ);
 
                 if (!inHorizontal) continue;
 
-                // 1. Aterrizaje firme sobre una plataforma (cuando caemos o nos movemos hacia abajo)
+                // 1. Aterrizaje firme sobre una plataforma
                 if (velocity.y <= 0) {
                     if (prevY - pHeight >= b.maxY - 0.6 && pos.y - pHeight <= b.maxY) {
                         pos.y = b.maxY + pHeight;
                         velocity.y = 0;
                         onGround = true;
+                        landedPlatform = platform;
 
                         platform.isBeingPressed = true;
                         platform.pressHoldTimer = 0.25;
+                        platform.playerStandingOn = true; // Activa transferencia de giro en plataformas giratorias
 
-                        if (!platform.wasPressed && platform.pressOffset < 0.15) {
+                        // Comportamiento idéntico al de un piano: suena exactamente una vez por pulsación
+                        if (!platform.hasPlayedPianoKey) {
                             playSound('key_click');
-                            platform.wasPressed = true;
+                            platform.hasPlayedPianoKey = true;
+                        }
+
+                        if (platform.type === 'nice_cube') {
+                            platform.indentAt(pos.x, pos.z, 0.65, 2.4);
+                            velocity.y = jumpForce * 1.35;
+                            onGround = false;
+                            playSound('nice_cube_squish');
+                        }
+
+                        if (platform.type === 'butter') {
+                            platform.indentAt(pos.x, pos.z, 0.5, 2.0);
+                            velocity.y = jumpForce * 0.95;
+                            playSound('butter_squish');
                         }
 
                         if (platform.type === 'needoh') {
@@ -2251,15 +2801,22 @@
                         }
                     }
                 } 
-                // 2. Colisión de techo: ÚNICAMENTE si la cabeza venía por debajo del fondo del bloque
+                // 2. Colisión de techo
                 else if (velocity.y > 0) {
                     if (prevY + pHeight <= b.minY + 0.4 && pos.y + pHeight >= b.minY) {
                         pos.y = b.minY - pHeight;
-                        velocity.y = -1; // Frenar ascenso sin teletransportar al vacío
+                        velocity.y = -1;
                     }
                 }
             }
             isGrounded = onGround;
+
+            // Restablecer el flag de sonido solo en plataformas de las que el jugador se haya bajado
+            for (let platform of platforms) {
+                if (platform !== landedPlatform) {
+                    platform.hasPlayedPianoKey = false;
+                }
+            }
 
             // Muerte por caída al vacío
             if (pos.y < -15) {
@@ -2272,50 +2829,95 @@
             }
         }
 
-        // Barry AI
-        function updateBarryAI(timeStep) {
-            if (!barryNPC || !gameState.isPlaying) return;
+    function updateBarryAI(timeStep) {
+        if (!barryNPC || !gameState.isPlaying) return;
 
-            const bPos = barryNPC.mesh.position;
-            const pPos = player.mesh.position;
-            const distance = bPos.distanceTo(pPos);
+        const bPos = barryNPC.mesh.position;
+        const pPos = player.mesh.position;
+        const distance = bPos.distanceTo(pPos);
 
-            if (gameState.mode === 'barry') {
-                const AGGRO_RANGE = 18;
-                const KILL_RANGE = 3.5;
+        if (gameState.mode === 'barry') {
+            const AGGRO_RANGE = 18;
+            const KILL_RANGE = 3.5;
 
-                if (distance < AGGRO_RANGE) {
-                    barryNPC.state = 'chase';
-                    
-                    const dir = new THREE.Vector3().subVectors(pPos, bPos);
-                    const targetAngle = Math.atan2(dir.x, dir.z);
-                    barryNPC.mesh.rotation.y = targetAngle;
+            if (distance < AGGRO_RANGE) {
+                barryNPC.state = 'chase';
+                
+                const dir = new THREE.Vector3().subVectors(pPos, bPos);
+                const targetAngle = Math.atan2(dir.x, dir.z);
+                barryNPC.mesh.rotation.y = targetAngle;
 
-                    const moveDir = new THREE.Vector3(dir.x, 0, dir.z).normalize();
-                    bPos.add(moveDir.multiplyScalar(barryNPC.speed * timeStep));
+                const moveDir = new THREE.Vector3(dir.x, 0, dir.z).normalize();
+                bPos.add(moveDir.multiplyScalar(barryNPC.speed * timeStep));
 
-                    if (distance <= KILL_RANGE) {
-                        killPlayer();
-                    }
-                } else {
-                    if (barryNPC.state === 'chase') {
-                        barryNPC.state = 'patrol';
-                        barryNPC.targetPatrol = barryNPC.patrolPointA;
-                    }
-
-                    if (!barryNPC.targetPatrol) {
-                        barryNPC.targetPatrol = barryNPC.patrolPointA;
-                    }
-
-                    const dirPatrol = new THREE.Vector3().subVectors(barryNPC.targetPatrol, bPos);
-                    if (dirPatrol.length() < 1) {
-                        barryNPC.targetPatrol = (barryNPC.targetPatrol === barryNPC.patrolPointA) ? barryNPC.patrolPointB : barryNPC.patrolPointA;
-                    } else {
-                        const moveDir = dirPatrol.normalize();
-                        barryNPC.mesh.rotation.y = Math.atan2(moveDir.x, moveDir.z);
-                        bPos.add(moveDir.multiplyScalar((barryNPC.speed * 0.5) * timeStep));
-                    }
+                if (distance <= KILL_RANGE) {
+                    damagePlayer(100);
                 }
+            } else {
+                if (barryNPC.state === 'chase') {
+                    barryNPC.state = 'patrol';
+                    barryNPC.targetPatrol = barryNPC.patrolPointA;
+                }
+
+                if (!barryNPC.targetPatrol) {
+                    barryNPC.targetPatrol = barryNPC.patrolPointA;
+                }
+
+                const dirPatrol = new THREE.Vector3().subVectors(barryNPC.targetPatrol, bPos);
+                if (dirPatrol.length() < 1) {
+                    barryNPC.targetPatrol = (barryNPC.targetPatrol === barryNPC.patrolPointA) ? barryNPC.patrolPointB : barryNPC.patrolPointA;
+                } else {
+                    const moveDir = dirPatrol.normalize();
+                    barryNPC.mesh.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+                    bPos.add(moveDir.multiplyScalar((barryNPC.speed * 0.5) * timeStep));
+                }
+            }
+        }
+    }
+
+    function updateHpUI() {
+        const hpBar = document.getElementById('hp-bar');
+            const hpText = document.getElementById('hp-text');
+            if (!hpBar || !hpText) return;
+
+            const pct = Math.max(0, Math.min(100, (gameState.hp / gameState.maxHp) * 100));
+            hpBar.style.width = `${pct}%`;
+            hpText.textContent = `${Math.round(gameState.hp)} / 100`;
+
+            if (pct > 50) {
+                hpBar.className = 'bg-gradient-to-r from-emerald-500 to-green-400 h-full transition-all duration-150';
+                hpText.className = 'text-emerald-400 font-mono';
+            } else if (pct > 25) {
+                hpBar.className = 'bg-gradient-to-r from-yellow-500 to-amber-400 h-full transition-all duration-150';
+                hpText.className = 'text-yellow-400 font-mono';
+            } else {
+                hpBar.className = 'bg-gradient-to-r from-red-600 to-rose-500 h-full transition-all duration-150';
+                hpText.className = 'text-red-400 font-mono animate-pulse';
+            }
+        }
+
+        function damagePlayer(amount) {
+            if (!gameState.isPlaying || gameState.invulnerableTimer > 0) return;
+
+            gameState.hp = Math.max(0, gameState.hp - amount);
+            gameState.invulnerableTimer = 0.55; // Ventana de invulnerabilidad temporal
+            gameState.regenTimer = 0; // Reinicia contador de regeneración
+
+            playSound('hurt');
+
+            // Flash de impacto rojo en pantalla
+            const flash = document.getElementById('damage-flash');
+            if (flash) {
+                flash.style.opacity = '0.7';
+                setTimeout(() => {
+                    if (flash) flash.style.opacity = '0';
+                }, 160);
+            }
+
+            updateHpUI();
+
+            if (gameState.hp <= 0) {
+                killPlayer();
             }
         }
 
@@ -2335,7 +2937,11 @@
 
             for (let hazard of hazards) {
                 if (hazard.checkCollision(pPos, player.radius, player.height)) {
-                    killPlayer();
+                    if (hazard.damage >= 100) {
+                        killPlayer();
+                    } else {
+                        damagePlayer(hazard.damage);
+                    }
                     return;
                 }
             }
@@ -2352,6 +2958,9 @@
                         }
                         playSound('checkpoint');
                         cp.mesh.material.color.set('#2ecc71');
+                        // Restaurar vida completa en checkpoint
+                        gameState.hp = gameState.maxHp;
+                        updateHpUI();
                     }
                 }
             }
@@ -2371,12 +2980,13 @@
             playSound('death');
             
             gameState.isPlaying = false;
+            player.mesh.visible = true;
             const overDesc = document.getElementById('over-desc');
             if (overDesc) {
                 if (gameState.mode === 'lava') {
                     overDesc.textContent = "¡La lava te consumió! Tu progreso y el nivel del magma se han reiniciado desde el inicio.";
                 } else {
-                    overDesc.textContent = "Caíste al vacío entre las teclas o tocaste un peligro eléctrico.";
+                    overDesc.textContent = "Caíste al vacío o la descarga de los láseres agotó toda tu salud.";
                 }
             }
             document.getElementById('game-over-screen').classList.remove('hidden');
@@ -2385,8 +2995,12 @@
         function respawnPlayer() {
             document.getElementById('game-over-screen').classList.add('hidden');
             
+            // Restablecer salud al 100%
+            gameState.hp = gameState.maxHp;
+            gameState.invulnerableTimer = 0.8;
+            updateHpUI();
+
             if (gameState.mode === 'lava') {
-                // Modo Lava Hardcore: la muerte reinicia todo el progreso al inicio y baja la lava
                 gameState.activeCheckpoint = null;
                 const badge = document.getElementById('checkpoint-badge');
                 if (badge) badge.textContent = "Salida";
@@ -2547,7 +3161,11 @@
             gameState.speedBoostTimer = 0;
             gameState.speedGained = 0;
             gameState.speedSecondTimer = 0;
+            gameState.hp = gameState.maxHp;
+            gameState.invulnerableTimer = 0;
+            gameState.regenTimer = 0;
 
+            updateHpUI();
             document.getElementById('death-counter').textContent = "0";
             const badge = document.getElementById('checkpoint-badge');
             if (badge) badge.textContent = "Salida";
