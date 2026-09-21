@@ -243,6 +243,62 @@
                         Memoria y Salto Preciso
                     </div>
                 </button>
+
+                <!-- 7. Speed Run 4 -->
+                <button id="mode-speedrun4" class="bg-gradient-to-b from-amber-950/60 to-slate-900 border border-amber-500/30 hover:border-amber-400 p-4 rounded-2xl flex flex-col items-center text-center transition-all hover:scale-[1.02] shadow-lg group">
+                    <div class="w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center mb-2 text-amber-400 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-bolt-lightning text-xl"></i>
+                    </div>
+                    <span class="font-bold text-base mb-1">Speed Run 4 ⚡</span>
+                    <span class="text-xs text-slate-400 leading-snug">
+                        Carrera a hipervelocidad a través de 4 dimensiones: Césped, Neón, Hielo y Galaxia.
+                    </span>
+                    <div class="mt-3 px-2.5 py-1 bg-amber-500/10 text-amber-300 rounded-full text-[9px] font-bold tracking-widest uppercase">
+                        Velocidad Turbo Base
+                    </div>
+                </button>
+
+                <!-- 8. Mega Fun Obby -->
+                <button id="mode-megafun" class="bg-gradient-to-b from-teal-950/60 to-slate-900 border border-teal-500/30 hover:border-teal-400 p-4 rounded-2xl flex flex-col items-center text-center transition-all hover:scale-[1.02] shadow-lg group">
+                    <div class="w-12 h-12 bg-teal-500/20 rounded-full flex items-center justify-center mb-2 text-teal-400 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-shapes text-xl"></i>
+                    </div>
+                    <span class="font-bold text-base mb-1">Mega Fun Obby 🎪</span>
+                    <span class="text-xs text-slate-400 leading-snug">
+                        El clásico parque temático con esferas flotantes, vigas cruzadas y caminos de ajedrez.
+                    </span>
+                    <div class="mt-3 px-2.5 py-1 bg-teal-500/10 text-teal-300 rounded-full text-[9px] font-bold tracking-widest uppercase">
+                        Parkour Clásico Roblox
+                    </div>
+                </button>
+
+                <!-- 9. Escapa del Profe Malvado -->
+                <button id="mode-teacher" class="bg-gradient-to-b from-rose-950/60 to-slate-900 border border-rose-500/30 hover:border-rose-400 p-4 rounded-2xl flex flex-col items-center text-center transition-all hover:scale-[1.02] shadow-lg group">
+                    <div class="w-12 h-12 bg-rose-500/20 rounded-full flex items-center justify-center mb-2 text-rose-400 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-graduation-cap text-xl"></i>
+                    </div>
+                    <span class="font-bold text-base mb-1">Escapa del Profe 🍎</span>
+                    <span class="text-xs text-slate-400 leading-snug">
+                        Escapa de la escuela esquivando pupitres gigantes, reglas y la furia del profesor.
+                    </span>
+                    <div class="mt-3 px-2.5 py-1 bg-rose-500/10 text-rose-300 rounded-full text-[9px] font-bold tracking-widest uppercase">
+                        Profesor NPC / Aventura
+                    </div>
+                </button>
+
+                <!-- 10. Color Block Party -->
+                <button id="mode-colorblock" class="bg-gradient-to-b from-fuchsia-950/60 to-slate-900 border border-fuchsia-500/30 hover:border-fuchsia-400 p-4 rounded-2xl flex flex-col items-center text-center transition-all hover:scale-[1.02] shadow-lg group">
+                    <div class="w-12 h-12 bg-fuchsia-500/20 rounded-full flex items-center justify-center mb-2 text-fuchsia-400 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-compact-disc text-xl"></i>
+                    </div>
+                    <span class="font-bold text-base mb-1">Color Block Party 🪩</span>
+                    <span class="text-xs text-slate-400 leading-snug">
+                        Pistas disco de baldosas resplandecientes, molinillos láser y música rítmica.
+                    </span>
+                    <div class="mt-3 px-2.5 py-1 bg-fuchsia-500/10 text-fuchsia-300 rounded-full text-[9px] font-bold tracking-widest uppercase">
+                        Pista de Baile & Ritmo
+                    </div>
+                </button>
             </div>
 
             <!-- Botón directo para seleccionar Skin de Teclado -->
@@ -552,6 +608,28 @@
                 bGain.gain.linearRampToValueAtTime(0, now + 0.24);
                 oscB.start(now);
                 oscB.stop(now + 0.24);
+            } else if (type === 'flan_wobble') {
+                // Sonido ASMR de gelatina de flan tambaleante y jugosa
+                const oscF1 = audioCtx.createOscillator();
+                const oscF2 = audioCtx.createOscillator();
+                const fGain = audioCtx.createGain();
+                oscF1.type = 'sine';
+                oscF1.frequency.setValueAtTime(360, now);
+                oscF1.frequency.exponentialRampToValueAtTime(140, now + 0.22);
+
+                oscF2.type = 'triangle';
+                oscF2.frequency.setValueAtTime(520, now);
+                oscF2.frequency.exponentialRampToValueAtTime(180, now + 0.16);
+
+                oscF1.connect(fGain);
+                oscF2.connect(fGain);
+                fGain.connect(audioCtx.destination);
+                fGain.gain.setValueAtTime(0.26, now);
+                fGain.gain.linearRampToValueAtTime(0, now + 0.22);
+                oscF1.start(now);
+                oscF2.start(now);
+                oscF1.stop(now + 0.22);
+                oscF2.stop(now + 0.22);
             } else if (type === 'needoh_squish') {
                 // Sonido Squishy elástico ultra satisfactorio (NeeDoh Ball)
                 const osc1 = audioCtx.createOscillator();
@@ -821,6 +899,54 @@
             ctx.stroke();
             
             return new THREE.CanvasTexture(tempCanvas);
+        }
+
+        // Generador de textura kawaii para los Dumplings Squishy
+        function createDumplingFaceTexture() {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 256;
+            tempCanvas.height = 128;
+            const ctx = tempCanvas.getContext('2d');
+            ctx.clearRect(0, 0, 256, 128);
+
+            // Ojos negros tiernos semicirculares o brillantes
+            ctx.fillStyle = '#1e272e';
+            ctx.beginPath();
+            ctx.arc(80, 52, 10, 0, Math.PI * 2);
+            ctx.arc(176, 52, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Brillo blanco en los ojos
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(77, 49, 3.5, 0, Math.PI * 2);
+            ctx.arc(173, 49, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Mejillas sonrosadas rosas kawaii
+            ctx.fillStyle = 'rgba(255, 107, 129, 0.7)';
+            ctx.beginPath();
+            ctx.ellipse(60, 68, 16, 10, 0, 0, Math.PI * 2);
+            ctx.ellipse(196, 68, 16, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Sonrisa alegre abierta
+            ctx.fillStyle = '#1e272e';
+            ctx.beginPath();
+            ctx.arc(128, 64, 18, 0, Math.PI, false);
+            ctx.closePath();
+            ctx.fill();
+
+            // Lengüita rosa en la boca
+            ctx.fillStyle = '#ff6b81';
+            ctx.beginPath();
+            ctx.arc(128, 73, 10, 0, Math.PI, false);
+            ctx.closePath();
+            ctx.fill();
+
+            const tex = new THREE.CanvasTexture(tempCanvas);
+            tex.transparent = true;
+            return tex;
         }
 
         // Generador de textura para el Cubo de Hielo NeeDoh Nice Cube ("Nice Ice Baby")
@@ -1140,13 +1266,14 @@
             };
         }
 
-        function createBarryMesh() {
+        function createBarryMesh(isTeacher = false) {
             const group = new THREE.Group();
             
-            const faceTex = createFaceTexture('#990000', false);
+            const faceTex = createFaceTexture(isTeacher ? '#ff0000' : '#990000', false);
             const headMaterial = new THREE.MeshLambertMaterial({ map: faceTex });
-            const uniformMaterial = new THREE.MeshLambertMaterial({ color: '#2c3e50' });
-            const accentMaterial = new THREE.MeshLambertMaterial({ color: '#f39c12' });
+            // Traje de Barry (guardia azul marino) o Profe Malvado (saco marrón/vino con corbata y gafas)
+            const uniformMaterial = new THREE.MeshLambertMaterial({ color: isTeacher ? '#4a1525' : '#2c3e50' });
+            const accentMaterial = new THREE.MeshLambertMaterial({ color: isTeacher ? '#e74c3c' : '#f39c12' });
             const skinMaterial = new THREE.MeshLambertMaterial({ color: '#ffb97b' });
 
             const head = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.6, 1.6), [
@@ -1155,43 +1282,82 @@
             head.position.y = 2.5;
             group.add(head);
 
-            const hatBase = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.3, 2.0), uniformMaterial);
-            hatBase.position.y = 3.4;
-            group.add(hatBase);
-            const hatGold = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.2, 2.1), accentMaterial);
-            hatGold.position.set(0, 3.4, 0.1);
-            group.add(hatGold);
+            if (isTeacher) {
+                // Gafas cuadradas de maestro enojado
+                const glassesMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+                const glassesFrame = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.35, 0.2), glassesMat);
+                glassesFrame.position.set(0, 2.65, 0.82);
+                group.add(glassesFrame);
+
+                // Peinado formal castaño de profesor
+                const hairMat = new THREE.MeshLambertMaterial({ color: 0x2c1d11 });
+                const hair = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.45, 1.7), hairMat);
+                hair.position.y = 3.35;
+                group.add(hair);
+            } else {
+                // Gorra de policía de Barry
+                const hatBase = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.3, 2.0), uniformMaterial);
+                hatBase.position.y = 3.4;
+                group.add(hatBase);
+                const hatGold = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.2, 2.1), accentMaterial);
+                hatGold.position.set(0, 3.4, 0.1);
+                group.add(hatGold);
+            }
 
             const torso = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.5, 1.4), uniformMaterial);
             torso.position.y = 0.5;
+            torso.castShadow = true;
             group.add(torso);
+
+            // Corbata distintiva
+            const tieMat = new THREE.MeshLambertMaterial({ color: isTeacher ? 0xffbb00 : 0xe67e22 });
+            const tie = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.6, 0.15), tieMat);
+            tie.position.set(0, 0.6, 0.72);
+            group.add(tie);
 
             const armGeo = new THREE.BoxGeometry(0.8, 2.2, 0.8);
             const armLeft = new THREE.Mesh(armGeo, skinMaterial);
             armLeft.position.set(-1.7, 0.6, 0);
+            armLeft.castShadow = true;
             group.add(armLeft);
 
             const armRight = new THREE.Mesh(armGeo, skinMaterial);
             armRight.position.set(1.7, 0.6, 0);
+            armRight.castShadow = true;
             group.add(armRight);
+
+            // Regla de madera gigante que sostiene el profesor en la mano derecha
+            if (isTeacher) {
+                const rulerMat = new THREE.MeshStandardMaterial({ color: 0xd4a373, roughness: 0.6 });
+                const ruler = new THREE.Mesh(new THREE.BoxGeometry(0.3, 3.2, 0.1), rulerMat);
+                ruler.position.set(0, -0.6, 0.4);
+                ruler.rotation.x = Math.PI / 6;
+                armRight.add(ruler);
+            }
 
             const legGeo = new THREE.BoxGeometry(1.0, 2.2, 1.0);
             const legLeft = new THREE.Mesh(legGeo, uniformMaterial);
             legLeft.position.set(-0.7, -1.8, 0);
+            legLeft.castShadow = true;
             group.add(legLeft);
 
             const legRight = new THREE.Mesh(legGeo, uniformMaterial);
             legRight.position.set(0.7, -1.8, 0);
+            legRight.castShadow = true;
             group.add(legRight);
 
-            group.scale.set(1.5, 1.5, 1.5);
+            group.scale.set(1.4, 1.4, 1.4);
             scene.add(group);
             return {
                 mesh: group,
+                armLeft,
+                armRight,
+                legLeft,
+                legRight,
                 patrolPointA: new THREE.Vector3(),
                 patrolPointB: new THREE.Vector3(),
                 state: 'patrol',
-                speed: 5.0
+                speed: isTeacher ? 6.8 : 5.0
             };
         }
 
@@ -1235,7 +1401,7 @@
 
         class Platform {
             constructor(width, height, depth, position, color, type = 'normal', keycapData = null) {
-                this.type = type; // 'normal', 'moving', 'spinning', 'disappearing', 'bounce', 'speed', 'glass_fake', 'keycap', 'roller', 'needoh', 'popit', 'slime', 'dumpling', 'nice_cube', 'butter'
+                this.type = type; // 'normal', 'moving', 'spinning', 'disappearing', 'bounce', 'speed', 'glass_fake', 'keycap', 'roller', 'needoh', 'popit', 'slime', 'dumpling', 'flan', 'nice_cube', 'butter'
                 this.initialPos = position.clone();
                 this.speed = 2.5;
                 this.range = 8;
@@ -1248,6 +1414,7 @@
                 
                 // Deformación física elástica para squishies NeeDoh (Squash & Stretch)
                 this.squishAmount = 0;
+                this.wobbleTimer = 0;
                 this.baseScale = new THREE.Vector3(1, 1, 1);
                 
                 // Sistema de deformación por aplastamiento localizado en la zona pisada
@@ -1323,10 +1490,21 @@
                         clearcoat: 0.9
                     });
                 } else if (type === 'dumpling') {
-                    // Squishy tipo dumpling suave y cremoso
+                    // Squishy tipo dumpling de diferentes colores perlados/glitter
                     material = new THREE.MeshStandardMaterial({ 
-                        color: '#fffbf0', 
-                        roughness: 0.4 
+                        color: color || '#fffbf0', 
+                        roughness: 0.25,
+                        metalness: 0.15
+                    });
+                } else if (type === 'flan') {
+                    // Flan squishy: pudín amarillo traslúcido con brillo gelatinoso
+                    material = new THREE.MeshPhysicalMaterial({ 
+                        color: color || '#fbc531', 
+                        transparent: true, 
+                        opacity: 0.92,
+                        roughness: 0.08,
+                        clearcoat: 1.0,
+                        clearcoatRoughness: 0.08
                     });
                 } else if (type === 'disappearing') {
                     material = new THREE.MeshLambertMaterial({ color: '#ff2d55', transparent: true, opacity: 1 });
@@ -1372,18 +1550,79 @@
                     this.mesh.scale.set(1, 0.88, 1);
                     this.height = width * 0.88; // Altura exacta de contacto
                 } else if (type === 'dumpling') {
-                    // Dumpling squishy: forma redondeada con remolino superior
-                    const dumpGeo = new THREE.SphereGeometry(width / 2, 20, 16);
-                    this.mesh = new THREE.Mesh(dumpGeo, material);
-                    this.mesh.scale.set(1.1, 0.75, 1.1);
-                    this.height = width * 0.75; // Altura exacta de contacto
+                    // Dumpling squishy: forma redondeada con remolino superior y carita sonriente
+                    const dumplingGroup = new THREE.Group();
+                    const bunGeo = new THREE.SphereGeometry(width / 2, 24, 20);
+                    const bunMesh = new THREE.Mesh(bunGeo, material);
+                    bunMesh.scale.set(1.08, 0.78, 1.08);
+                    bunMesh.position.y = (width * 0.78) / 2;
+                    bunMesh.castShadow = true;
+                    bunMesh.receiveShadow = true;
+                    dumplingGroup.add(bunMesh);
+                    this.bunMesh = bunMesh;
 
-                    // Carita kawaii en el dumpling
-                    const faceTex = createFaceTexture('#e17055', true);
-                    const faceMat = new THREE.MeshBasicMaterial({ map: faceTex, transparent: true });
-                    const facePlane = new THREE.Mesh(new THREE.PlaneGeometry(width * 0.5, width * 0.5), faceMat);
-                    facePlane.position.set(0, 0.1, width * 0.48);
-                    this.mesh.add(facePlane);
+                    // Remolino/pliegue superior de masa del dumpling
+                    const swirlMat = new THREE.MeshStandardMaterial({
+                        color: new THREE.Color(color || '#fffbf0').offsetHSL(0, 0.05, 0.08),
+                        roughness: 0.3
+                    });
+                    const swirlMesh = new THREE.Mesh(new THREE.ConeGeometry(width * 0.2, height * 0.45, 12), swirlMat);
+                    swirlMesh.position.y = width * 0.78 + 0.1;
+                    dumplingGroup.add(swirlMesh);
+
+                    // Cestita de bambú vaporera como base auténtica
+                    const basketMat = new THREE.MeshStandardMaterial({ color: '#dfb784', roughness: 0.7 });
+                    const basketMesh = new THREE.Mesh(new THREE.CylinderGeometry(width * 0.58, width * 0.55, height * 0.55, 24), basketMat);
+                    basketMesh.position.y = (height * 0.55) / 2;
+                    basketMesh.receiveShadow = true;
+                    dumplingGroup.add(basketMesh);
+
+                    // Carita kawaii sonriente con mejillas
+                    const faceMat = new THREE.MeshBasicMaterial({ map: createDumplingFaceTexture(), transparent: true });
+                    const facePlane = new THREE.Mesh(new THREE.PlaneGeometry(width * 0.75, width * 0.38), faceMat);
+                    facePlane.position.set(0, (width * 0.78) * 0.52, (width / 2) * 1.08 + 0.05);
+                    dumplingGroup.add(facePlane);
+
+                    this.mesh = dumplingGroup;
+                    this.height = width * 0.78 + 0.2;
+                } else if (type === 'flan') {
+                    // Flan Squishy (Purin): tronco cónico de crema con cubierta de caramelo fundido y tambaleo
+                    const flanGroup = new THREE.Group();
+                    const radiusTop = (width / 2) * 0.76;
+                    const radiusBottom = width / 2;
+                    const flanGeo = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, 28);
+                    const custardMesh = new THREE.Mesh(flanGeo, material);
+                    custardMesh.position.y = height / 2;
+                    custardMesh.castShadow = true;
+                    custardMesh.receiveShadow = true;
+                    flanGroup.add(custardMesh);
+                    this.custardMesh = custardMesh;
+
+                    // Capa superior brillante de caramelo líquido oscuro fundido
+                    const caramelMat = new THREE.MeshPhysicalMaterial({
+                        color: '#4e2003',
+                        transparent: true,
+                        opacity: 0.95,
+                        roughness: 0.05,
+                        clearcoat: 1.0,
+                        clearcoatRoughness: 0.05
+                    });
+                    const caramelTop = new THREE.Mesh(new THREE.CylinderGeometry(radiusTop + 0.06, radiusTop * 0.98, height * 0.28, 28), caramelMat);
+                    caramelTop.position.y = height - (height * 0.28) / 2 + 0.02;
+                    flanGroup.add(caramelTop);
+
+                    // Gotas de caramelo cayendo por los costados del flan
+                    for (let g = 0; g < 4; g++) {
+                        const dripAngle = (g * Math.PI) / 2 + 0.4;
+                        const dripGeo = new THREE.CylinderGeometry(0.2, 0.08, height * 0.4, 8);
+                        const dripMesh = new THREE.Mesh(dripGeo, caramelMat);
+                        const dripRadius = radiusTop * 0.94;
+                        dripMesh.position.set(Math.cos(dripAngle) * dripRadius, height * 0.65, Math.sin(dripAngle) * dripRadius);
+                        flanGroup.add(dripMesh);
+                    }
+
+                    this.mesh = flanGroup;
+                    this.height = height;
                 } else if (type === 'nice_cube' || type === 'butter') {
                     // Geometría subdividida para permitir aplastamiento 3D localizado (deformación de vértices)
                     const subX = 14;
@@ -1546,15 +1785,37 @@
                     }
                 }
 
-                // Animación elástica de compresión y rebote squishy (NeeDoh & Dumpling)
-                if (this.type === 'needoh' || this.type === 'dumpling') {
+                // Animación elástica de compresión y rebote squishy (NeeDoh)
+                if (this.type === 'needoh') {
                     if (this.squishAmount > 0) {
                         this.squishAmount -= timeStep * 3.5;
                         if (this.squishAmount < 0) this.squishAmount = 0;
                     }
-                    const squashY = (this.type === 'dumpling' ? 0.75 : 0.88) - this.squishAmount * 0.4;
+                    const squashY = 0.88 - this.squishAmount * 0.4;
                     const stretchXZ = 1.0 + this.squishAmount * 0.35;
                     this.mesh.scale.set(stretchXZ, squashY, stretchXZ);
+                }
+
+                // Animación elástica y compresión suave para Dumplings
+                if (this.type === 'dumpling' && this.bunMesh) {
+                    if (this.squishAmount > 0) {
+                        this.squishAmount -= timeStep * 3.2;
+                        if (this.squishAmount < 0) this.squishAmount = 0;
+                    }
+                    const squashY = 0.78 - this.squishAmount * 0.32;
+                    const stretchXZ = 1.08 + this.squishAmount * 0.28;
+                    this.bunMesh.scale.set(stretchXZ, squashY, stretchXZ);
+                }
+
+                // Tambaleo elástico gelatinoso del Flan Squishy (Jiggle Wobble)
+                if (this.type === 'flan') {
+                    if (this.wobbleTimer > 0) {
+                        this.wobbleTimer -= timeStep;
+                        const wobbleFactor = Math.sin(this.wobbleTimer * 25) * Math.min(0.25, this.wobbleTimer);
+                        this.mesh.scale.set(1.0 + wobbleFactor, 1.0 - wobbleFactor * 0.8, 1.0 + wobbleFactor);
+                    } else {
+                        this.mesh.scale.set(1, 1, 1);
+                    }
                 }
 
                 // Mantener la tecla presionada de forma estable mientras el jugador esté sobre ella
@@ -1654,9 +1915,7 @@
                 this.hubGroup.position.copy(position);
                 scene.add(this.hubGroup);
             } else {
-                // Prevenir error si geometry es null asignando una geometría predeterminada
-                const geo = geometry || new THREE.BoxGeometry(2, 0.35, 0.35);
-                this.mesh = new THREE.Mesh(geo, this.material);
+                this.mesh = new THREE.Mesh(geometry || new THREE.BoxGeometry(2, 0.4, 0.4), this.material);
                 this.mesh.position.copy(position);
                 scene.add(this.mesh);
             }
@@ -1665,36 +1924,26 @@
         }
 
         update(timeStep) {
-            if (this.type === 'rotating' && this.mesh) {
+            if (this.type === 'rotating') {
                 this.angle += this.speed * timeStep;
-                this.mesh.rotation.y = this.angle;
+                if (this.mesh) this.mesh.rotation.y = this.angle;
             } else if (this.type === 'spinner_arms' && this.hubGroup) {
                 this.angle += this.speed * timeStep;
                 this.hubGroup.rotation.y = this.angle;
-            } else if (this.type === 'sliding' && this.mesh) {
-                this.mesh.position.x += this.speed * timeStep * this.direction;
-                if (Math.abs(this.mesh.position.x - this.initialPos.x) > 6.5) {
-                    this.direction *= -1;
+            } else if (this.type === 'sliding') {
+                if (this.mesh) {
+                    this.mesh.position.x += this.speed * timeStep * this.direction;
+                    if (Math.abs(this.mesh.position.x - this.initialPos.x) > 6) {
+                        this.direction *= -1;
+                    }
                 }
-            } else if (this.type === 'blinking' && this.mesh) {
-                // Láser intermitente que parpadea y descarga daño periódico
+            } else if (this.type === 'blinking') {
                 this.timer += timeStep;
-                const cycle = this.timer % 3.2;
-                if (cycle < 1.6) {
-                    // Activo y letal
-                    this.active = true;
-                    this.material.color.set('#ff0033');
-                    this.mesh.scale.set(1, 1, 1);
-                } else if (cycle < 2.2) {
-                    // Advertencia previa (amarillo suave)
-                    this.active = false;
-                    this.material.color.set('#f39c12');
-                    this.mesh.scale.set(1, 0.3, 0.3);
-                } else {
-                    // Desactivado temporalmente
-                    this.active = false;
-                    this.material.color.set('#333333');
-                    this.mesh.scale.set(1, 0.1, 0.1);
+                const cycle = this.timer % 2.5;
+                this.active = (cycle < 1.4);
+                if (this.mesh) {
+                    this.mesh.material.opacity = this.active ? 1.0 : 0.15;
+                    this.mesh.material.transparent = true;
                 }
             }
         }
@@ -2373,62 +2622,54 @@
             cp2.levelNumber = "Oasis Dumpling";
             checkpoints.push(cp2);
 
-            // --- PISO 5: PASARELA DE NEEDOH DUMPLINGS KAWAII CON PLATAFORMA GIRATORIA ---
-            new Platform(5.6, 3.5, 5.6, new THREE.Vector3(-5.0, 46.0, -280), null, 'dumpling');
+            // --- PISO 5: PASARELA DE DUMPLINGS MULTICOLORES KAWAII CON VAPORERA Y CARITAS ---
+            // Dumpling Rosa Glitter
+            new Platform(5.8, 3.2, 5.8, new THREE.Vector3(-5.0, 46.0, -280), '#ff9ff3', 'dumpling');
             
-            // PLATAFORMA GIRATORIA DUMPLING
-            const spinDump = new Platform(9.0, 1.2, 9.0, new THREE.Vector3(5.0, 48.4, -292.5), '#fab1a0', 'spinning');
+            // PLATAFORMA GIRATORIA DUMPLING (Té Matcha Verde)
+            const spinDump = new Platform(9.0, 1.2, 9.0, new THREE.Vector3(5.0, 48.4, -293.0), '#1dd1a1', 'spinning');
             spinDump.rotSpeed = 1.7;
-            new Hazard(null, new THREE.Vector3(5.0, 49.8, -292.5), '#a29bfe', 'spinner_arms', 2.2, 35);
+            new Hazard(null, new THREE.Vector3(5.0, 49.8, -293.0), '#a29bfe', 'spinner_arms', 2.2, 35);
 
-            new Platform(5.6, 3.5, 5.6, new THREE.Vector3(-5.0, 50.8, -305), null, 'dumpling');
-            new Platform(5.6, 3.5, 5.6, new THREE.Vector3(0, 53.2, -317.5), null, 'dumpling');
+            // Dumpling Azul Celestial Glaseado
+            new Platform(5.8, 3.2, 5.8, new THREE.Vector3(-5.0, 50.8, -306), '#54a0ff', 'dumpling');
+            // Dumpling Limón Amarillo Suave
+            new Platform(5.8, 3.2, 5.8, new THREE.Vector3(0, 53.2, -319), '#feca57', 'dumpling');
+            // Dumpling Blanco Perlado Shimmer
+            new Platform(5.8, 3.2, 5.8, new THREE.Vector3(5.0, 55.4, -332), '#f5f6fa', 'dumpling');
 
-            // --- PISO 6: TORRE HÍBRIDA DE NICE CUBES & PELOTAS NEEDOH ---
-            const hybridSteps = [
-                { type: 'nice_cube', color: '#ff2a8d', x: 4.5, y: 56.5, z: -338 },
-                { type: 'needoh', color: '#ffeaa7', x: -4.5, y: 59.2, z: -352 },
-                { type: 'nice_cube', color: '#00d2ff', x: 4.5, y: 62.0, z: -366 },
-                { type: 'butter', color: null, x: -4.5, y: 64.6, z: -380 },
-                { type: 'needoh', color: '#fd79a8', x: 0, y: 67.2, z: -394 }
-            ];
+            // --- PISO 6: SECTOR FLANES SQUISHY DE CARAMELO JIGGLY (PURIN) ---
+            // Flan 1 de Vainilla & Caramelo Brillante
+            new Platform(5.6, 3.6, 5.6, new THREE.Vector3(0, 57.8, -346), '#ffc048', 'flan');
+            // Flan 2 de Crema Dorada
+            new Platform(5.6, 3.6, 5.6, new THREE.Vector3(-5.0, 60.2, -360), '#ffa801', 'flan');
+            // Flan 3 de Caramelo Tostado
+            new Platform(5.6, 3.6, 5.6, new THREE.Vector3(5.0, 62.6, -374), '#fbc531', 'flan');
 
-            hybridSteps.forEach(st => {
-                if (st.type === 'butter') {
-                    new Platform(4.6, 2.0, 6.8, new THREE.Vector3(st.x, st.y, st.z), null, 'butter');
-                } else if (st.type === 'nice_cube') {
-                    new Platform(5.5, 3.2, 5.5, new THREE.Vector3(st.x, st.y, st.z), st.color, 'nice_cube');
-                } else {
-                    new Platform(5.8, 4.0, 5.8, new THREE.Vector3(st.x, st.y, st.z), st.color, 'needoh');
-                }
-            });
-
-            // Checkpoint 3: Santuario Pop-It Cósmico
-            const cp3Pos = new THREE.Vector3(0, 71.0, -412);
+            // Checkpoint 3: Santuario Pop-It & Pelotas NeeDoh
+            const cp3Pos = new THREE.Vector3(0, 65.0, -390);
             const cp3 = new Platform(14, 1.2, 14, cp3Pos, '#fd79a8', 'checkpoint');
             cp3.checkpointId = "Santuario Pop-It (Piso 15)";
             cp3.levelNumber = "Santuario Pop-It";
             checkpoints.push(cp3);
 
-            // --- PISO 7: CAMINO DE RÍO DE SLIME FINAL ---
-            for (let j = 1; j <= 3; j++) {
-                const jX = (j % 2 === 0 ? 5.0 : -5.0);
-                const jY = 73.5 + j * 2.6;
-                const jZ = -412 - (j * 12.5);
-                new Platform(5.8, 0.8, 5.8, new THREE.Vector3(jX, jY, jZ), '#74b9ff', 'slime');
-            }
-
+            // --- PISO 7: CIRCUITO HÍBRIDO FLANES, DUMPLINGS Y SLIME ---
+            // Flan de Caramelo con rebote jugoso
+            new Platform(5.6, 3.6, 5.6, new THREE.Vector3(-4.5, 67.5, -404), '#ffc048', 'flan');
+            // Dumpling Oro Purpurina
+            new Platform(5.8, 3.2, 5.8, new THREE.Vector3(4.5, 70.0, -418), '#eccc68', 'dumpling');
+            // Pelota NeeDoh Squishy Rosa
+            new Platform(5.8, 4.0, 5.8, new THREE.Vector3(-4.5, 72.5, -432), '#fd79a8', 'needoh');
             // Trampolín Nice Cube elástico
-            new Platform(7.0, 2.8, 7.0, new THREE.Vector3(0, 83.0, -462), '#00d2ff', 'nice_cube');
+            new Platform(7.0, 2.8, 7.0, new THREE.Vector3(0, 75.2, -446), '#00d2ff', 'nice_cube');
 
-            // Pasarela final continua de squishies conectada y accesible hacia la meta
-            new Platform(6.0, 1.0, 6.0, new THREE.Vector3(-4.5, 85.5, -476), '#55efc4', 'popit');
-            new Platform(4.8, 2.0, 7.0, new THREE.Vector3(4.5, 87.8, -490), null, 'butter');
-            new Platform(6.0, 3.0, 6.0, new THREE.Vector3(0, 90.2, -504), '#ff2a8d', 'nice_cube');
-            new Platform(6.5, 1.0, 6.5, new THREE.Vector3(0, 92.0, -518), '#a29bfe', 'popit');
+            // Pasarela de flan y dumplings hacia la meta
+            new Platform(5.6, 3.6, 5.6, new THREE.Vector3(-4.5, 77.8, -460), '#ffa801', 'flan');
+            new Platform(5.8, 3.2, 5.8, new THREE.Vector3(4.5, 80.2, -474), '#ff9ff3', 'dumpling');
+            new Platform(6.0, 1.0, 6.0, new THREE.Vector3(0, 82.5, -488), '#55efc4', 'popit');
 
-            // --- PISO 8: LA CIMA SUPREMA - TEMPLO CORONA ASMR NEEDOH (META TOTALMENTE ALCANZABLE) ---
-            const finalPos = new THREE.Vector3(0, 93.5, -536);
+            // --- PISO 8: LA CIMA SUPREMA - TEMPLO CORONA ASMR NEEDOH (TOTALMENTE ALCANZABLE) ---
+            const finalPos = new THREE.Vector3(0, 84.5, -504);
             goalPad = new Platform(20, 2.5, 20, finalPos, '#fdcb6e', 'goal');
             
             const haloGeo = new THREE.TorusGeometry(6, 0.4, 16, 32);
@@ -2439,6 +2680,334 @@
             decorativeObjects.push(haloMesh);
 
             createGoalTrophy(new THREE.Vector3(finalPos.x, finalPos.y + 1.25, finalPos.z));
+        }
+
+        function generateSpeedRun4Map() {
+            clearMap();
+            scene.fog.color.set('#0b132b');
+            scene.fog.density = 0.0035;
+            scene.background.set('#0b132b');
+
+            new Platform(18, 1, 18, new THREE.Vector3(0, 0, 0), '#1c2541');
+
+            // Dimensión 1: Grassland Turbo
+            for (let i = 1; i <= 6; i++) {
+                const z = -i * 18;
+                new Platform(9, 0.8, 14, new THREE.Vector3(0, i * 0.8, z), '#2ecc71');
+                new Platform(5, 0.3, 7, new THREE.Vector3(0, i * 0.8 + 0.45, z), null, 'speed');
+            }
+
+            const cp1Pos = new THREE.Vector3(0, 5.8, -126);
+            const cp1 = new Platform(14, 1, 14, cp1Pos, '#3a86ff', 'checkpoint');
+            cp1.checkpointId = "Dimensión Neón (Nivel 2)";
+            cp1.levelNumber = "Dimensión 2: Neón Synthwave";
+            checkpoints.push(cp1);
+
+            // Dimensión 2: Neon Synthwave con molinillos láser
+            for (let i = 1; i <= 6; i++) {
+                const z = -126 - (i * 18);
+                const x = (i % 2 === 0 ? 6.5 : -6.5);
+                new Platform(8, 0.8, 13, new THREE.Vector3(x, 6.0 + i * 1.0, z), '#ff007f');
+                if (i % 2 === 1) {
+                    new Hazard(null, new THREE.Vector3(x, 7.5 + i * 1.0, z), '#00ffff', 'spinner_arms', 2.6, 35);
+                }
+            }
+
+            const cp2Pos = new THREE.Vector3(0, 13.0, -252);
+            const cp2 = new Platform(14, 1, 14, cp2Pos, '#00f2fe', 'checkpoint');
+            cp2.checkpointId = "Tundra de Hielo (Nivel 3)";
+            cp2.levelNumber = "Dimensión 3: Tundra de Hielo";
+            checkpoints.push(cp2);
+
+            // Dimensión 3: Tundra de Hielo y Super Salto
+            for (let i = 1; i <= 5; i++) {
+                const z = -252 - (i * 19);
+                const type = (i === 3) ? 'bounce' : 'normal';
+                new Platform(8, 0.8, 13, new THREE.Vector3(0, 13.0 + i * 1.5, z), '#a8ff78', type);
+            }
+
+            // Dimensión 4: Galaxy Void (Nuevo nivel de hiperespacio cósmico)
+            const cp3Pos = new THREE.Vector3(0, 21.5, -366);
+            const cp3 = new Platform(15, 1, 15, cp3Pos, '#9b59b6', 'checkpoint');
+            cp3.checkpointId = "Vacío Galáctico (Nivel 4)";
+            cp3.levelNumber = "Dimensión 4: Vacío Galáctico";
+            checkpoints.push(cp3);
+
+            for (let i = 1; i <= 6; i++) {
+                const z = -366 - (i * 20);
+                const x = Math.sin(i * 1.2) * 8.0;
+                const isSpin = (i === 3);
+                const type = isSpin ? 'spinning' : 'speed';
+                const plat = new Platform(isSpin ? 9.5 : 8.0, 0.8, isSpin ? 9.5 : 13.0, new THREE.Vector3(x, 21.5 + i * 1.8, z), '#6c5ce7', type);
+                if (isSpin) {
+                    plat.rotSpeed = 2.2;
+                    new Hazard(null, new THREE.Vector3(x, 22.8 + i * 1.8, z), '#e056fd', 'spinner_arms', 2.8, 35);
+                }
+            }
+
+            const finalPos = new THREE.Vector3(0, 35.0, -505);
+            goalPad = new Platform(20, 1.5, 20, finalPos, '#ffd700', 'goal');
+            createGoalTrophy(finalPos);
+        }
+
+        function generateMegaFunObbyMap() {
+            clearMap();
+            scene.fog.color.set('#1a1a2e');
+            scene.fog.density = 0.005;
+            scene.background.set('#1a1a2e');
+
+            new Platform(16, 1, 16, new THREE.Vector3(0, 0, 0), '#e94560');
+
+            const funColors = ['#f39c12', '#e74c3c', '#9b59b6', '#3498db', '#2ecc71', '#1abc9c', '#fd79a8', '#00cec9'];
+            
+            // FASE 1: Esferas y vigas coloridas (Niveles 1 a 6)
+            for (let i = 1; i <= 6; i++) {
+                const z = -i * 12;
+                const x = Math.sin(i * 0.8) * 6.5;
+                const type = (i % 3 === 0) ? 'bounce' : 'normal';
+                new Platform(5.2, 0.8, 5.2, new THREE.Vector3(x, i * 1.2, z), funColors[i % funColors.length], type);
+            }
+
+            const cp1 = new Platform(12, 1, 12, new THREE.Vector3(0, 7.5, -84), '#2ecc71', 'checkpoint');
+            cp1.checkpointId = "Etapa Bolas (Nivel 6)";
+            cp1.levelNumber = "Etapa 6: Bolas Coloridas";
+            checkpoints.push(cp1);
+
+            // FASE 2: Pasarela de Ajedrez y vigas giratorias (Niveles 7 a 13)
+            for (let i = 1; i <= 6; i++) {
+                const z = -84 - (i * 12.5);
+                const x = (i % 2 === 0 ? 5.5 : -5.5);
+                const isSpin = (i === 3 || i === 5);
+                const type = isSpin ? 'spinning' : (i % 2 === 0 ? 'disappearing' : 'normal');
+                const plat = new Platform(isSpin ? 8.5 : 5.0, 0.8, isSpin ? 8.5 : 5.0, new THREE.Vector3(x, 7.5 + i * 1.3, z), funColors[(i + 2) % funColors.length], type);
+                if (isSpin) {
+                    plat.rotSpeed = 1.7;
+                    new Hazard(null, new THREE.Vector3(x, 8.8 + i * 1.3, z), '#ff0055', 'spinner_arms', 2.2, 35);
+                }
+            }
+
+            const cp2 = new Platform(12, 1, 12, new THREE.Vector3(0, 16.0, -170), '#2ecc71', 'checkpoint');
+            cp2.checkpointId = "Etapa Ajedrez (Nivel 13)";
+            cp2.levelNumber = "Etapa 13: Vigas en Cruz";
+            checkpoints.push(cp2);
+
+            // FASE 3: Molinillos Disco y Rodillos de Equilibrio (Niveles 14 a 20)
+            for (let i = 1; i <= 6; i++) {
+                const z = -170 - (i * 13);
+                const x = Math.sin(i * 1.1) * 7.0;
+                const isSpin = (i === 2 || i === 4);
+                const type = isSpin ? 'spinning' : (i === 3 ? 'bounce' : 'normal');
+                const plat = new Platform(isSpin ? 9.0 : 5.2, 0.8, isSpin ? 9.0 : 5.2, new THREE.Vector3(x, 16.0 + i * 1.4, z), funColors[(i + 4) % funColors.length], type);
+                if (isSpin) {
+                    plat.rotSpeed = (i % 2 === 0 ? 1.8 : -1.8);
+                    new Hazard(null, new THREE.Vector3(x, 17.3 + i * 1.4, z), '#ffcc00', 'spinner_arms', 2.4, 35);
+                }
+            }
+
+            const cp3 = new Platform(13, 1, 13, new THREE.Vector3(0, 25.5, -260), '#2ecc71', 'checkpoint');
+            cp3.checkpointId = "Etapa Molinillos (Nivel 20)";
+            cp3.levelNumber = "Etapa 20: Parque de Molinillos";
+            checkpoints.push(cp3);
+
+            // FASE 4: Escalones aéreos hacia el castillo de golosinas (Niveles 21 a 26)
+            for (let i = 1; i <= 5; i++) {
+                const z = -260 - (i * 13.5);
+                const x = (i % 2 === 0 ? -6.0 : 6.0);
+                new Platform(5.0, 0.8, 5.0, new THREE.Vector3(x, 25.5 + i * 1.5, z), funColors[i % funColors.length], 'normal');
+            }
+
+            const finalPos = new THREE.Vector3(0, 35.0, -345);
+            goalPad = new Platform(18, 1.4, 18, finalPos, '#f1c40f', 'goal');
+            createGoalTrophy(finalPos);
+        }
+
+        function generateEscapeTeacherMap() {
+            clearMap();
+            scene.fog.color.set('#1e1014');
+            scene.fog.density = 0.006;
+            scene.background.set('#1e1014');
+
+            // ZONA 1: Pupitre gigante de entrada (Aula 101)
+            new Platform(16, 1.2, 16, new THREE.Vector3(0, 0, 0), '#8d6e63');
+
+            // Reglas de madera y lápices flotantes
+            for (let i = 1; i <= 5; i++) {
+                const z = -i * 12.5;
+                new Platform(5.2, 0.8, 7.5, new THREE.Vector3((i % 2 === 0 ? 4.5 : -4.5), i * 1.1, z), '#d7ccc8');
+            }
+
+            // SPAWN / CHECKPOINT 1: Mesa del Delegado
+            const cp1Pos = new THREE.Vector3(0, 6.5, -78);
+            const cp1 = new Platform(12, 1, 12, cp1Pos, '#3498db', 'checkpoint');
+            cp1.checkpointId = "Mesa Delegado (Nivel 5)";
+            cp1.levelNumber = "Aula 101: Mesa del Delegado";
+            checkpoints.push(cp1);
+
+            // ZONA 2: Laboratorio Químico y Tubos de Ácido
+            for (let i = 1; i <= 5; i++) {
+                const z = -78 - (i * 13.0);
+                const x = (i % 2 === 0 ? -5.5 : 5.5);
+                const isSpin = (i === 3);
+                const plat = new Platform(isSpin ? 8.5 : 5.6, 0.8, isSpin ? 8.5 : 5.6, new THREE.Vector3(x, 6.5 + i * 1.3, z), '#76ff03', isSpin ? 'spinning' : 'normal');
+                if (isSpin) {
+                    plat.rotSpeed = 1.9;
+                    new Hazard(null, new THREE.Vector3(x, 7.8 + i * 1.3, z), '#ff0033', 'spinner_arms', 2.3, 40);
+                }
+            }
+
+            // SPAWN / CHECKPOINT 2: Salida de Emergencia de Ciencias
+            const cp2Pos = new THREE.Vector3(0, 14.0, -155);
+            const cp2 = new Platform(13, 1, 13, cp2Pos, '#3498db', 'checkpoint');
+            cp2.checkpointId = "Lab Ciencias (Nivel 10)";
+            cp2.levelNumber = "Laboratorio: Salida de Emergencia";
+            checkpoints.push(cp2);
+
+            // ZONA 3: Pasillo de Detención Escolar con el PROFESOR MALVADO PATRULLANDO Y PERSIGUIENDO
+            new Platform(18, 1, 60, new THREE.Vector3(0, 14.0, -195), '#3e2723');
+
+            // Casilleros escolares en las paredes
+            for (let loc = 0; loc < 4; loc++) {
+                const lockerMat = new THREE.MeshLambertMaterial({ color: 0x34495e });
+                const lockerL = new THREE.Mesh(new THREE.BoxGeometry(1.2, 5.0, 6.0), lockerMat);
+                lockerL.position.set(-8.4, 16.5, -175 - loc * 12);
+                scene.add(lockerL);
+                decorativeObjects.push(lockerL);
+
+                const lockerR = new THREE.Mesh(new THREE.BoxGeometry(1.2, 5.0, 6.0), lockerMat);
+                lockerR.position.set(8.4, 16.5, -175 - loc * 12);
+                scene.add(lockerR);
+                decorativeObjects.push(lockerR);
+            }
+
+            // Instanciar el Profesor Malvado con traje, gafas y regla en mano
+            barryNPC = createBarryMesh(true);
+            barryNPC.mesh.position.set(0, 16.8, -195);
+            barryNPC.patrolPointA.set(0, 16.8, -215);
+            barryNPC.patrolPointB.set(0, 16.8, -175);
+            barryNPC.speed = 6.8; // Más rápido que Barry para un escape tenso y divertido
+            barryNPC.state = 'patrol';
+
+            // SPAWN / CHECKPOINT 3: Entrada al Gimnasio Escolar
+            const cp3Pos = new THREE.Vector3(0, 14.5, -235);
+            const cp3 = new Platform(14, 1, 14, cp3Pos, '#3498db', 'checkpoint');
+            cp3.checkpointId = "Gimnasio (Nivel 15)";
+            cp3.levelNumber = "Gimnasio: Entrada";
+            checkpoints.push(cp3);
+
+            // ZONA 4: Gimnasio Escolar con trampolines de Dodgeball y vigas altas
+            for (let g = 1; g <= 5; g++) {
+                const z = -235 - (g * 13.5);
+                const x = (g % 2 === 0 ? 6.0 : -6.0);
+                const type = (g === 2 || g === 4) ? 'bounce' : 'normal';
+                new Platform(5.5, 0.8, 5.5, new THREE.Vector3(x, 14.5 + g * 1.8, z), '#ff793f', type);
+            }
+
+            // SPAWN / CHECKPOINT 4: Puerta Trasera de la Escuela
+            const cp4Pos = new THREE.Vector3(0, 24.5, -315);
+            const cp4 = new Platform(13, 1, 13, cp4Pos, '#2ecc71', 'checkpoint');
+            cp4.checkpointId = "Patio Escolar (Nivel 20)";
+            cp4.levelNumber = "Patio Escolar: Salida al Bus";
+            checkpoints.push(cp4);
+
+            // ZONA 5: Pasarela hacia el Autobús Escolar Amarillo
+            for (let p = 1; p <= 3; p++) {
+                new Platform(6.0, 0.8, 6.0, new THREE.Vector3(0, 24.5 + p * 1.2, -315 - p * 12.0), '#f1c40f', 'normal');
+            }
+
+            // Meta Final: Autobús Escolar Amarillo de la Libertad
+            const busPos = new THREE.Vector3(0, 29.0, -370);
+            goalPad = new Platform(18, 1.4, 20, busPos, '#ffd700', 'goal');
+
+            // Maqueta 3D del Autobús Escolar Amarillo
+            const busGroup = new THREE.Group();
+            const busBodyMat = new THREE.MeshLambertMaterial({ color: 0xffcc00 });
+            const busBody = new THREE.Mesh(new THREE.BoxGeometry(6.5, 4.0, 14.0), busBodyMat);
+            busBody.position.y = 2.5;
+            busGroup.add(busBody);
+
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.1 });
+            const busWindows = new THREE.Mesh(new THREE.BoxGeometry(6.6, 1.2, 12.0), glassMat);
+            busWindows.position.y = 3.2;
+            busGroup.add(busWindows);
+
+            busGroup.position.set(busPos.x, busPos.y + 0.7, busPos.z);
+            scene.add(busGroup);
+            decorativeObjects.push(busGroup);
+
+            createGoalTrophy(new THREE.Vector3(busPos.x, busPos.y + 5.5, busPos.z));
+        }
+
+        function generateColorBlockMap() {
+            clearMap();
+            scene.fog.color.set('#120524');
+            scene.fog.density = 0.0055;
+            scene.background.set('#120524');
+
+            new Platform(18, 1, 18, new THREE.Vector3(0, 0, 0), '#833ab4');
+
+            const discoColors = ['#ff007f', '#00f2fe', '#f9d423', '#4facfe', '#00f260', '#ff0844', '#a29bfe'];
+            
+            // PISTA 1: Neon Dance Steps (Niveles 1 a 6)
+            for (let i = 1; i <= 6; i++) {
+                const z = -i * 12.0;
+                const isSpin = (i === 3);
+                const type = isSpin ? 'spinning' : ((i % 3 === 0) ? 'bounce' : 'normal');
+                const plat = new Platform(isSpin ? 9.0 : 5.5, 0.8, isSpin ? 9.0 : 5.5, new THREE.Vector3((i % 2 === 0 ? 5.5 : -5.5), i * 1.3, z), discoColors[i % discoColors.length], type);
+                
+                if (isSpin) {
+                    plat.rotSpeed = 1.8;
+                    new Hazard(null, new THREE.Vector3((i % 2 === 0 ? 5.5 : -5.5), i * 1.3 + 1.2, z), '#ff007f', 'spinner_arms', 2.3, 35);
+                }
+            }
+
+            // SPAWN / CHECKPOINT 1: Pista VIP 1
+            const cp1 = new Platform(13, 1, 13, new THREE.Vector3(0, 8.5, -84), '#2ecc71', 'checkpoint');
+            cp1.checkpointId = "Pista VIP 1 (Nivel 7)";
+            cp1.levelNumber = "Pista VIP 1: Neón Beat";
+            checkpoints.push(cp1);
+
+            // PISTA 2: Estroboscópica y Molinillos Láser (Niveles 7 a 13)
+            for (let i = 1; i <= 6; i++) {
+                const z = -84 - (i * 12.5);
+                const isSpin = (i === 2 || i === 5);
+                const type = isSpin ? 'spinning' : (i % 2 === 0 ? 'bounce' : 'normal');
+                const plat = new Platform(isSpin ? 9.0 : 5.5, 0.8, isSpin ? 9.0 : 5.5, new THREE.Vector3((i % 2 === 0 ? -5.5 : 5.5), 8.5 + i * 1.3, z), discoColors[(i + 2) % discoColors.length], type);
+                if (isSpin) {
+                    plat.rotSpeed = (i % 2 === 0 ? 1.9 : -1.9);
+                    new Hazard(null, new THREE.Vector3((i % 2 === 0 ? -5.5 : 5.5), 9.8 + i * 1.3, z), '#00f2fe', 'spinner_arms', 2.5, 35);
+                }
+            }
+
+            // SPAWN / CHECKPOINT 2: Pista VIP 2 (Lounge)
+            const cp2 = new Platform(13, 1, 13, new THREE.Vector3(0, 17.0, -170), '#2ecc71', 'checkpoint');
+            cp2.checkpointId = "Pista VIP 2 (Nivel 14)";
+            cp2.levelNumber = "Pista VIP 2: Disco Lounge";
+            checkpoints.push(cp2);
+
+            // PISTA 3: Ascenso rítmico hacia la Bola de Discoteca Suprema
+            for (let i = 1; i <= 6; i++) {
+                const z = -170 - (i * 13.0);
+                const isSpin = (i === 3);
+                const type = isSpin ? 'spinning' : 'normal';
+                const plat = new Platform(isSpin ? 9.5 : 5.5, 0.8, isSpin ? 9.5 : 5.5, new THREE.Vector3((i % 2 === 0 ? 6.0 : -6.0), 17.0 + i * 1.4, z), discoColors[(i + 4) % discoColors.length], type);
+                if (isSpin) {
+                    plat.rotSpeed = 2.1;
+                    new Hazard(null, new THREE.Vector3((i % 2 === 0 ? 6.0 : -6.0), 18.4 + i * 1.4, z), '#ff0844', 'spinner_arms', 2.6, 35);
+                }
+            }
+
+            const finalPos = new THREE.Vector3(0, 27.5, -265);
+            goalPad = new Platform(18, 1.4, 18, finalPos, '#ffd700', 'goal');
+
+            // Bola de Discoteca Gigante en la Meta
+            const discoGeo = new THREE.SphereGeometry(3.5, 16, 16);
+            const discoMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.95, roughness: 0.1 });
+            const discoBall = new THREE.Mesh(discoGeo, discoMat);
+            discoBall.position.set(finalPos.x, finalPos.y + 8.0, finalPos.z);
+            scene.add(discoBall);
+            decorativeObjects.push(discoBall);
+
+            createGoalTrophy(finalPos);
         }
 
         // --- Controles de Teclado y Mobile ---
@@ -2778,9 +3347,16 @@
 
                         if (platform.type === 'dumpling') {
                             platform.squishAmount = 1.0;
-                            velocity.y = jumpForce * 1.35;
+                            velocity.y = jumpForce * 1.38;
                             onGround = false;
                             playSound('needoh_squish');
+                        }
+
+                        if (platform.type === 'flan') {
+                            platform.wobbleTimer = 0.55;
+                            velocity.y = jumpForce * 1.45;
+                            onGround = false;
+                            playSound('flan_wobble');
                         }
 
                         if (platform.type === 'bounce') {
@@ -2829,78 +3405,102 @@
             }
         }
 
-    function updateBarryAI(timeStep) {
-        if (!barryNPC || !gameState.isPlaying) return;
+        function updateBarryAI(timeStep) {
+            if (!barryNPC || !gameState.isPlaying) return;
 
-        const bPos = barryNPC.mesh.position;
-        const pPos = player.mesh.position;
-        const distance = bPos.distanceTo(pPos);
+            const bPos = barryNPC.mesh.position;
+            const pPos = player.mesh.position;
+            const distance = bPos.distanceTo(pPos);
 
-        if (gameState.mode === 'barry') {
-            const AGGRO_RANGE = 18;
-            const KILL_RANGE = 3.5;
+            // Activar IA tanto para Barry como para el Profe Malvado
+            if (gameState.mode === 'barry' || gameState.mode === 'teacher') {
+                const isTeacher = (gameState.mode === 'teacher');
+                const AGGRO_RANGE = isTeacher ? 26 : 18;
+                const KILL_RANGE = 3.6;
 
-            if (distance < AGGRO_RANGE) {
-                barryNPC.state = 'chase';
-                
-                const dir = new THREE.Vector3().subVectors(pPos, bPos);
-                const targetAngle = Math.atan2(dir.x, dir.z);
-                barryNPC.mesh.rotation.y = targetAngle;
+                if (distance < AGGRO_RANGE) {
+                    barryNPC.state = 'chase';
+                    
+                    const dir = new THREE.Vector3().subVectors(pPos, bPos);
+                    const targetAngle = Math.atan2(dir.x, dir.z);
+                    barryNPC.mesh.rotation.y = targetAngle;
 
-                const moveDir = new THREE.Vector3(dir.x, 0, dir.z).normalize();
-                bPos.add(moveDir.multiplyScalar(barryNPC.speed * timeStep));
+                    const moveDir = new THREE.Vector3(dir.x, 0, dir.z).normalize();
+                    bPos.add(moveDir.multiplyScalar(barryNPC.speed * timeStep));
 
-                if (distance <= KILL_RANGE) {
-                    damagePlayer(100);
-                }
-            } else {
-                if (barryNPC.state === 'chase') {
-                    barryNPC.state = 'patrol';
-                    barryNPC.targetPatrol = barryNPC.patrolPointA;
-                }
+                    // Animación de carrera rápida y agresiva
+                    if (barryNPC.armLeft && barryNPC.armRight) {
+                        const runFreq = isTeacher ? 16 : 13;
+                        const swing = Math.sin(gameState.timerElapsed * runFreq) * 0.95;
+                        barryNPC.armLeft.rotation.x = swing;
+                        barryNPC.armRight.rotation.x = -swing;
+                        if (barryNPC.legLeft && barryNPC.legRight) {
+                            barryNPC.legLeft.rotation.x = -swing;
+                            barryNPC.legRight.rotation.x = swing;
+                        }
+                    }
 
-                if (!barryNPC.targetPatrol) {
-                    barryNPC.targetPatrol = barryNPC.patrolPointA;
-                }
-
-                const dirPatrol = new THREE.Vector3().subVectors(barryNPC.targetPatrol, bPos);
-                if (dirPatrol.length() < 1) {
-                    barryNPC.targetPatrol = (barryNPC.targetPatrol === barryNPC.patrolPointA) ? barryNPC.patrolPointB : barryNPC.patrolPointA;
+                    if (distance <= KILL_RANGE) {
+                        damagePlayer(100);
+                    }
                 } else {
-                    const moveDir = dirPatrol.normalize();
-                    barryNPC.mesh.rotation.y = Math.atan2(moveDir.x, moveDir.z);
-                    bPos.add(moveDir.multiplyScalar((barryNPC.speed * 0.5) * timeStep));
+                    if (barryNPC.state === 'chase') {
+                        barryNPC.state = 'patrol';
+                        barryNPC.targetPatrol = barryNPC.patrolPointA;
+                    }
+
+                    if (!barryNPC.targetPatrol) {
+                        barryNPC.targetPatrol = barryNPC.patrolPointA;
+                    }
+
+                    const dirPatrol = new THREE.Vector3().subVectors(barryNPC.targetPatrol, bPos);
+                    if (dirPatrol.length() < 1.2) {
+                        barryNPC.targetPatrol = (barryNPC.targetPatrol === barryNPC.patrolPointA) ? barryNPC.patrolPointB : barryNPC.patrolPointA;
+                    } else {
+                        const moveDir = dirPatrol.normalize();
+                        barryNPC.mesh.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+                        bPos.add(moveDir.multiplyScalar((barryNPC.speed * 0.55) * timeStep));
+
+                        // Animación de caminata al patrullar
+                        if (barryNPC.armLeft && barryNPC.armRight) {
+                            const walkSwing = Math.sin(gameState.timerElapsed * 7.5) * 0.5;
+                            barryNPC.armLeft.rotation.x = walkSwing;
+                            barryNPC.armRight.rotation.x = -walkSwing;
+                            if (barryNPC.legLeft && barryNPC.legRight) {
+                                barryNPC.legLeft.rotation.x = -walkSwing;
+                                barryNPC.legRight.rotation.x = walkSwing;
+                            }
+                        }
+                    }
                 }
             }
         }
-    }
 
-    function updateHpUI() {
-        const hpBar = document.getElementById('hp-bar');
+        function updateHpUI() {
+            const hpBar = document.getElementById('hp-bar');
             const hpText = document.getElementById('hp-text');
-            if (!hpBar || !hpText) return;
-
             const pct = Math.max(0, Math.min(100, (gameState.hp / gameState.maxHp) * 100));
-            hpBar.style.width = `${pct}%`;
-            hpText.textContent = `${Math.round(gameState.hp)} / 100`;
 
-            if (pct > 50) {
-                hpBar.className = 'bg-gradient-to-r from-emerald-500 to-green-400 h-full transition-all duration-150';
-                hpText.className = 'text-emerald-400 font-mono';
-            } else if (pct > 25) {
-                hpBar.className = 'bg-gradient-to-r from-yellow-500 to-amber-400 h-full transition-all duration-150';
-                hpText.className = 'text-yellow-400 font-mono';
-            } else {
-                hpBar.className = 'bg-gradient-to-r from-red-600 to-rose-500 h-full transition-all duration-150';
-                hpText.className = 'text-red-400 font-mono animate-pulse';
+            if (hpBar) {
+                hpBar.style.width = `${pct}%`;
+                if (pct > 50) {
+                    hpBar.className = 'bg-gradient-to-r from-emerald-500 to-green-400 h-full transition-all duration-150';
+                } else if (pct > 25) {
+                    hpBar.className = 'bg-gradient-to-r from-yellow-500 to-amber-400 h-full transition-all duration-150';
+                } else {
+                    hpBar.className = 'bg-gradient-to-r from-red-600 to-rose-500 h-full transition-all duration-150';
+                }
+            }
+
+            if (hpText) {
+                hpText.textContent = `${Math.ceil(gameState.hp)} / ${gameState.maxHp}`;
             }
         }
 
         function damagePlayer(amount) {
             if (!gameState.isPlaying || gameState.invulnerableTimer > 0) return;
-
             gameState.hp = Math.max(0, gameState.hp - amount);
-            gameState.invulnerableTimer = 0.55; // Ventana de invulnerabilidad temporal
+            gameState.invulnerableTimer = 0.55;
             gameState.regenTimer = 0; // Reinicia contador de regeneración
 
             playSound('hurt');
@@ -3087,7 +3687,11 @@
                 'lava': "El Piso es Lava",
                 'rainbow': "Mega Rainbow Obby",
                 'glass': "Puente de Cristal",
-                'asmr': "ASMR NeeDoh Tower 🎧"
+                'asmr': "ASMR NeeDoh Tower 🎧",
+                'speedrun4': "Speed Run 4 ⚡",
+                'megafun': "Mega Fun Obby 🎪",
+                'teacher': "Escapa del Profe Malvado 🍎",
+                'colorblock': "Color Block Party 🪩"
             };
 
             document.getElementById('stat-mode').textContent = modeNames[gameState.mode] || "Obby Challenge";
@@ -3100,6 +3704,9 @@
             if (gameState.mode === 'keyboard') {
                 statSpeedRow.classList.remove('hidden');
                 document.getElementById('stat-speed').textContent = (baseSpeed + gameState.speedGained) + " (+" + gameState.speedGained + " vel)";
+            } else if (gameState.mode === 'speedrun4') {
+                statSpeedRow.classList.remove('hidden');
+                document.getElementById('stat-speed').textContent = "26 (Turbo Speed Run)";
             } else {
                 statSpeedRow.classList.add('hidden');
             }
@@ -3165,11 +3772,18 @@
             gameState.invulnerableTimer = 0;
             gameState.regenTimer = 0;
 
+            // Ajustar velocidad base según el modo
+            if (mode === 'speedrun4') {
+                baseSpeed = 26; // Ultra velocidad auténtica de Speed Run 4
+            } else {
+                baseSpeed = 14;
+            }
+
             updateHpUI();
             document.getElementById('death-counter').textContent = "0";
             const badge = document.getElementById('checkpoint-badge');
             if (badge) badge.textContent = "Salida";
-            document.getElementById('level-counter').textContent = mode === 'keyboard' ? "Zona 1: Pista de Despegue" : "Nivel 1 / 20";
+            document.getElementById('level-counter').textContent = mode === 'keyboard' ? "Zona 1: Pista de Despegue" : (mode === 'speedrun4' ? "Dimensión 1: Grassland" : "Nivel 1 / 20");
 
             const modeTitles = {
                 'keyboard': "Modo: +1 Speed Teclado",
@@ -3178,7 +3792,11 @@
                 'lava': "Modo: El Piso es Lava",
                 'rainbow': "Modo: Rainbow Obby",
                 'glass': "Modo: Puente Cristal",
-                'asmr': "Modo: ASMR NeeDoh Tower 🎧"
+                'asmr': "Modo: ASMR NeeDoh Tower 🎧",
+                'speedrun4': "Modo: Speed Run 4 ⚡",
+                'megafun': "Modo: Mega Fun Obby 🎪",
+                'teacher': "Modo: Escapa del Profe 🍎",
+                'colorblock': "Modo: Color Block Party 🪩"
             };
 
             document.getElementById('game-mode-text').textContent = modeTitles[mode];
@@ -3208,6 +3826,10 @@
             else if (mode === 'rainbow') generateRainbowObbyMap();
             else if (mode === 'glass') generateGlassBridgeMap();
             else if (mode === 'asmr') generateAsmrNeedohTowerMap();
+            else if (mode === 'speedrun4') generateSpeedRun4Map();
+            else if (mode === 'megafun') generateMegaFunObbyMap();
+            else if (mode === 'teacher') generateEscapeTeacherMap();
+            else if (mode === 'colorblock') generateColorBlockMap();
 
             document.getElementById('main-menu').classList.add('hidden');
             document.getElementById('skin-modal').classList.add('hidden');
@@ -3317,6 +3939,10 @@
         document.getElementById('mode-lava').addEventListener('click', () => startGame('lava'));
         document.getElementById('mode-rainbow').addEventListener('click', () => startGame('rainbow'));
         document.getElementById('mode-glass').addEventListener('click', () => startGame('glass'));
+        document.getElementById('mode-speedrun4').addEventListener('click', () => startGame('speedrun4'));
+        document.getElementById('mode-megafun').addEventListener('click', () => startGame('megafun'));
+        document.getElementById('mode-teacher').addEventListener('click', () => startGame('teacher'));
+        document.getElementById('mode-colorblock').addEventListener('click', () => startGame('colorblock'));
         
         // Listeners de Skins de Teclado
         document.getElementById('btn-open-skin-modal').addEventListener('click', () => {
