@@ -94,11 +94,31 @@
     </div>
 
     <!-- UI: Subir de Nivel / Elección Inicial -->
-    <div id="level-up-screen" class="ui-layer interactive items-center justify-center bg-black/85 hidden">
-        <div class="text-center w-full max-w-5xl px-4 h-[90vh] overflow-y-auto py-8 custom-scrollbar">
-            <h2 id="draft-title" class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500 mb-2">¡ELIGE TU PODER!</h2>
-            <p id="draft-subtitle" class="text-gray-300 mb-8 font-medium">Selecciona una mejora estratégica para tu arsenal</p>
-            <div id="draft-options" class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+    <div id="level-up-screen" class="ui-layer interactive items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+        <!-- Blooket Stone Container -->
+        <div class="relative bg-[#2e3746] border-4 border-[#1c232f] shadow-[0_12px_0_#131922,0_25px_35px_rgba(0,0,0,0.8)] rounded-[28px] p-6 sm:p-7 text-center max-w-md sm:max-w-lg w-full mx-4 max-h-[92vh] overflow-y-auto custom-scrollbar">
+            
+            <div id="draft-inventory-status" class="flex justify-center items-center gap-3 mb-2 text-[11px] font-black uppercase tracking-wider text-slate-400">
+                <span id="ui-inv-weapons" class="bg-[#1c232f] px-3 py-1 rounded-full border border-slate-600 text-cyan-300">Armas: 0/6</span>
+                <span id="ui-inv-passives" class="bg-[#1c232f] px-3 py-1 rounded-full border border-slate-600 text-purple-300">Pasivas: 0/6</span>
+            </div>
+
+            <p id="draft-subtitle" class="text-slate-300 text-xs sm:text-sm font-black tracking-wide mb-0.5">Choose an Upgrade</p>
+            <h2 id="draft-title" class="text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow-[0_4px_0_#1a222d] mb-5">Level Up</h2>
+            
+            <!-- CONTENEDOR DE PREGUNTAS (BLOOKET TRIVIA ENGINE) -->
+            <div id="quiz-container" class="hidden max-w-md mx-auto bg-[#1a202c] p-5 rounded-2xl border-2 border-cyan-500/50 shadow-xl mb-4">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-xs font-bold tracking-widest text-cyan-400 uppercase">Validación de Nivel</span>
+                    <span id="quiz-step-counter" class="text-xs font-black text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-600/40">1/1</span>
+                </div>
+                <div id="quiz-question" class="text-lg font-black text-white mb-4">¿Pregunta?</div>
+                <div id="quiz-answers" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <!-- Opciones de respuesta inyectadas por JS -->
+                </div>
+            </div>
+
+            <div id="draft-options" class="flex flex-col gap-3 w-full">
                 <!-- Inyectado por JS -->
             </div>
         </div>
@@ -229,6 +249,244 @@ function getXpForLevel(lvl) {
     return 100;
 }
 
+const WEAPON_UPGRADES = {
+    horseshoe: {
+        1: "Base (5 daño) + 1 herradura en órbita.",
+        2: "+1 herradura.",
+        3: "+5 daño.",
+        4: "+1 herradura.",
+        5: "Steel Upgrade: Aumenta tamaño y velocidad de giro.",
+        6: "+Duración del efecto / rotación.",
+        7: "+1 herradura.",
+        8: "+10 daño.",
+        9: "+1 herradura.",
+        10: "Obsidian Upgrade: Aumenta masivamente tamaño y velocidad."
+    },
+    cards: {
+        1: "Base (3 daño) + dispara 1 carta frontal.",
+        2: "+2 daño.",
+        3: "Atraviesa 2 enemigos adicionales (+2 Pierce).",
+        4: "Dispara con mayor frecuencia (+Attack Speed).",
+        5: "Four Suits: Dispara 4 cartas en direcciones cardinales.",
+        6: "+3 daño.",
+        7: "Atraviesa 3 enemigos adicionales.",
+        8: "+Velocidad de ataque.",
+        9: "+Cartas adicionales al abanico.",
+        10: "Full Deck: Disparo masivo continuo en abanico con perforación infinita."
+    },
+    lasers: {
+        1: "Base (2 daño) + 1 haz láser continuo frontal.",
+        2: "+1 daño (+Damage).",
+        3: "+1 rayo láser en paralelo (+1 Projectile).",
+        4: "+Cadencia continua (+Attack Speed).",
+        5: "+2 daño.",
+        6: "+1 rayo láser adicional.",
+        7: "+Cadencia de disparo.",
+        8: "+3 daño.",
+        9: "+1 rayo láser adicional.",
+        10: "Laser Cannon: Transforma el disparo en un cañón de plasma gigante (+15 daño plano)."
+    },
+    darkenergy: {
+        1: "Base (5 daño) + 1 orbe cósmico protector.",
+        2: "+2 daño (Permite eliminar slimes iniciales de 1 golpe).",
+        3: "+1 orbe oscuro a la órbita.",
+        4: "+Radio del círculo de defensa (+Area of Effect).",
+        5: "+10 daño (Elimina al segundo tipo de enemigo al instante).",
+        6: "+1 orbe oscuro.",
+        7: "+Velocidad de giro orbital.",
+        8: "+Radio de área.",
+        9: "+1 orbe oscuro.",
+        10: "Singularity: Orbes oscuros gigantescos continuos con daño masivo de contacto."
+    },
+    bubbles: {
+        1: "Base (2 daño) + burbujas aleatorias flotantes.",
+        2: "+1 burbuja simultánea (+1 Bubble).",
+        3: "+3 daño de explosión (+Damage).",
+        4: "+Radio de estallido (+Explosion Radius).",
+        5: "+1 burbuja simultánea.",
+        6: "+5 daño de explosión.",
+        7: "+Radio de estallido.",
+        8: "+1 burbuja simultánea.",
+        9: "+Velocidad de generación.",
+        10: "Mega Blast: Ráfagas de burbujas gigantescas que generan ondas expansivas enormes."
+    },
+    syrup: {
+        1: "Base (10 daño por segundo) + charco teledirigido.",
+        2: "+Tamaño de la mancha de jarabe (+Puddle Size).",
+        3: "+Efecto de ralentización (+Slowdown Effect).",
+        4: "+5 DPS continuo (+Damage over Time).",
+        5: "+1 charco simultáneo.",
+        6: "+Tamaño de la trampa en el suelo.",
+        7: "+Ralentización máxima.",
+        8: "+8 DPS continuo.",
+        9: "+1 charco simultáneo.",
+        10: "Honey Lake: Charcos masivos gigantes que paralizan casi por completo y causan 40 DPS."
+    },
+    bees: {
+        1: "Base (3 daño) + 2 abejas teledirigidas automáticas.",
+        2: "+1 abeja al enjambre (+1 Bee).",
+        3: "+2 daño de picadura (+Damage).",
+        4: "+Velocidad de vuelo y persecución (+Homing Speed).",
+        5: "+1 abeja al enjambre.",
+        6: "+3 daño de picadura.",
+        7: "+1 abeja al enjambre.",
+        8: "Las abejas atraviesan a 1 enemigo adicional (+Pierce).",
+        9: "+Velocidad de vuelo.",
+        10: "Mega Swarm: Más de 8 abejas hiperveloces con daño alto y perforación múltiple."
+    },
+    arrows: {
+        1: "Base (5 daño) + 1 saeta lineal perforante.",
+        2: "Atraviesa 2 enemigos más (+Pierce Count).",
+        3: "+3 daño (+Damage).",
+        4: "+1 flecha paralela (+1 Arrow).",
+        5: "+Velocidad del proyectil (+Arrow Speed).",
+        6: "+5 daño.",
+        7: "Atraviesa a 3 enemigos adicionales.",
+        8: "+1 flecha paralela.",
+        9: "+Cadencia de disparo (+Fire Rate).",
+        10: "Enchanted Ballista: Dispara saetas gigantes que cruzan toda la pantalla con perforación infinita."
+    },
+    slimyballs: {
+        1: "Base (4 daño) + 1 bola verde rebotante.",
+        2: "+2 rebotes antes de destruirse (+Bounces).",
+        3: "+Tamaño de la bola (+Ball Size).",
+        4: "+3 daño por golpe (+Damage).",
+        5: "+1 bola simultánea (+1 Ball).",
+        6: "+2 rebotes adicionales.",
+        7: "+5 daño por golpe.",
+        8: "+Tamaño de la bola.",
+        9: "+1 bola simultánea.",
+        10: "Bouncy Havoc: Múltiples bolas de slime gigantescas que rebotan continuamente sin salir de la pantalla."
+    },
+    shell: {
+        1: "Base (5 daño) + 1 caparazón teledirigido.",
+        2: "+2 rebotes guiados entre monstruos (+Bounces).",
+        3: "+3 daño (+Damage).",
+        4: "+Velocidad de movimiento teledirigido (+Projectile Speed).",
+        5: "+3 rebotes guiados.",
+        6: "+5 daño.",
+        7: "+Efecto de retroceso (+Knockback).",
+        8: "+5 rebotes guiados.",
+        9: "+Velocidad de impacto.",
+        10: "Destruction Shell: Caparazón masivo e hiperveloz que rebota de forma casi infinita eliminando grupos enteros."
+    },
+    rapideggs: {
+        1: "Base (2 daño) + ametralladora frontal de huevos.",
+        2: "+Velocidad de ráfaga (+Attack Speed).",
+        3: "+1 daño (+Damage).",
+        4: "+Fuerza de empuje físico (+Knockback).",
+        5: "+Cadencia de disparo.",
+        6: "+2 daño.",
+        7: "Dispara una hilera doble paralela de huevos (+1 Projectile).",
+        8: "+Velocidad de proyectil.",
+        9: "+3 daño.",
+        10: "Egg Gatling: Flujo continuo e ininterrumpido de huevos gigantes a máxima velocidad de disparo."
+    },
+    feathers: {
+        1: "Base (2 daño) + abanico frontal de plumas.",
+        2: "+1 ave / ráfaga de plumas (+1 Projectile).",
+        3: "+1 daño (+Damage).",
+        4: "Atraviesa a 1 enemigo más (+Pierce).",
+        5: "+1 ave / ráfaga de plumas.",
+        6: "+2 daño.",
+        7: "+Velocidad de las plumas.",
+        8: "Atraviesa a 2 enemigos más.",
+        9: "+1 ave / ráfaga de plumas.",
+        10: "Feather Tempest: Torbellino masivo frontal de plumas que barre a los enemigos a su paso."
+    },
+    acorns: {
+        1: "Base (6 daño) + caen bellotas explosivas al azar.",
+        2: "+1 bellota por oleada (+1 Acorn).",
+        3: "+Radio de la explosión (+Blast Radius).",
+        4: "+3 daño de detonación (+Damage).",
+        5: "+1 bellota por oleada.",
+        6: "+Radio de la explosión.",
+        7: "+5 daño de detonación.",
+        8: "+Frecuencia de caída.",
+        9: "+1 bellota por oleada.",
+        10: "Acorn Artillery: Lluvia continua de bellotas colosales que saturan el mapa con explosiones masivas."
+    },
+    horseshoe: {
+        1: "Base (5 daño) + 3 herraduras en órbita.",
+        2: "+1 herradura.",
+        3: "+5 daño.",
+        4: "+1 herradura.",
+        5: "Steel Upgrade: Aumenta tamaño y velocidad de giro.",
+        6: "+Duración del efecto / rotación.",
+        7: "+1 herradura.",
+        8: "+10 daño.",
+        9: "+1 herradura.",
+        10: "Obsidian Upgrade: Aumenta masivamente tamaño y velocidad."
+    },
+    pizza: {
+        1: "Base (4 daño) + rebanada de ida y vuelta.",
+        2: "+Distancia de viaje lineal (+Travel Distance).",
+        3: "+Tamaño de la rebanada (+Size).",
+        4: "+3 daño (+Damage).",
+        5: "+Velocidad de ida y regreso.",
+        6: "+Tamaño de la rebanada.",
+        7: "+5 daño.",
+        8: "+Distancia de recorrido.",
+        9: "Atraviesa más enemigos en el retorno.",
+        10: "Giant Pizza Blade: Rebanada de pizza colosal que cubre media pantalla y corta dos veces con daño masivo."
+    },
+    banana: {
+        1: "Base (3 daño) + proyectiles en arco curvo.",
+        2: "+1 banana simultánea (+1 Banana).",
+        3: "+Radio del arco de giro (+Curve Radius).",
+        4: "+2 daño (+Damage).",
+        5: "+1 banana simultánea.",
+        6: "+Velocidad de rotación.",
+        7: "+4 daño.",
+        8: "+1 banana simultánea.",
+        9: "+Radio de curvatura.",
+        10: "Banana Spiral: Enjambre de bananas gigantes que describen espirales veloces alrededor de toda la pantalla."
+    },
+    jugglingspheres: {
+        1: "Base (8 daño) + ráfaga de esferas malabares.",
+        2: "+1 esfera malabar (+1 Sphere).",
+        3: "+3 daño (+Damage).",
+        4: "+Velocidad y oscilación (+Attack Speed).",
+        5: "+1 esfera malabar.",
+        6: "+4 daño.",
+        7: "+Cadencia continua.",
+        8: "+1 esfera malabar.",
+        9: "+4 daño.",
+        10: "Juggling Cascade: Cascada masiva de 6 esferas neón con 40 daño."
+    },
+    bones: {
+        1: "Base (5 daño) + 6 huesos en espiral.",
+        2: "+2 huesos a la espiral (+2 Bones).",
+        3: "+3 daño (+Damage).",
+        4: "+Velocidad de expansión (+Speed).",
+        5: "+3 huesos adicionales.",
+        6: "+4 daño.",
+        7: "+Tamaño de los huesos.",
+        8: "+Frecuencia de lanzamiento.",
+        9: "+3 huesos.",
+        10: "Bone Cyclone: 16 huesos gigantes omnidireccionales con 38 daño."
+    },
+    peacock: {
+        1: "Base (6 daño) + 5 plumas protectoras en abanico.",
+        2: "+2 plumas al abanico (+2 Feathers).",
+        3: "+3 daño (+Damage).",
+        4: "+Ángulo del abanico (+Spread).",
+        5: "+3 plumas exóticas.",
+        6: "+5 daño.",
+        7: "+Velocidad de impacto.",
+        8: "+2 plumas al abanico.",
+        9: "+7 daño.",
+        10: "Royal Peacock Shield: Barrera colosal de 13 plumas reales con 50 daño."
+    }
+};
+
+function getWeaponUpgradeText(id, level) {
+    if (WEAPON_UPGRADES[id] && WEAPON_UPGRADES[id][level]) {
+        return WEAPON_UPGRADES[id][level];
+    }
+    return `Nivel ${level} de habilidad`;
+}
+
 const WEAPON_DAMAGE_TABLES = {
     lasers:          [0, 2, 3, 4, 5, 6, 8, 10, 12, 14, 26],
     syrup:           [0, 10, 12, 15, 18, 22, 25, 28, 32, 35, 40],
@@ -294,29 +552,201 @@ function initEnvironmentProps() {
             x: px, y: py,
             size: isRock ? 55 + Math.random() * 30 : 45 + Math.random() * 35,
             type: isRock ? 'rock' : 'bush',
-            rotation: (Math.random() - 0.5) * 0.2
+            rotation: (Math.random() - 0.5) * 0.25,
+            variant: Math.floor(Math.random() * 3),
+            berryColor: Math.random() < 0.65 ? '#ef4444' : '#38bdf8'
         });
     }
 }
 initEnvironmentProps();
 
-function drawSnowyRock(ctxCanvas, size) {
+function drawSnowyRock(ctxCanvas, size, variant = 0) {
     const s = size;
-    ctxCanvas.save(); ctxCanvas.scale(s / 64, s / 64);
-    ctxCanvas.fillStyle = 'rgba(0, 0, 0, 0.25)';
-    ctxCanvas.beginPath(); ctxCanvas.ellipse(0, 24, 28, 8, 0, 0, Math.PI * 2); ctxCanvas.fill();
-    ctxCanvas.fillStyle = '#2b3848';
+    ctxCanvas.save();
+    ctxCanvas.scale(s / 64, s / 64);
+
+    // Sombra de contacto suave en la nieve
+    ctxCanvas.fillStyle = 'rgba(15, 23, 42, 0.38)';
     ctxCanvas.beginPath();
-    ctxCanvas.moveTo(-28, 12); ctxCanvas.quadraticCurveTo(-32, -6, -20, -18);
-    ctxCanvas.quadraticCurveTo(-8, -28, 10, -26); ctxCanvas.quadraticCurveTo(28, -20, 30, 2);
-    ctxCanvas.quadraticCurveTo(32, 22, 18, 28); ctxCanvas.quadraticCurveTo(-10, 32, -28, 12);
-    ctxCanvas.closePath(); ctxCanvas.fill();
-    ctxCanvas.fillStyle = '#e8f4fc';
+    ctxCanvas.ellipse(0, 24, 30, 10, 0, 0, Math.PI * 2);
+    ctxCanvas.fill();
+
+    // Pequeño canto rodado lateral secundario para asimetría realista
+    ctxCanvas.fillStyle = '#1e293b';
     ctxCanvas.beginPath();
-    ctxCanvas.moveTo(-20, -18); ctxCanvas.quadraticCurveTo(-10, -30, 10, -28);
-    ctxCanvas.quadraticCurveTo(28, -22, 30, -4); ctxCanvas.quadraticCurveTo(22, 4, 16, -2);
-    ctxCanvas.quadraticCurveTo(8, -12, -2, -6); ctxCanvas.quadraticCurveTo(-12, 0, -20, -18);
+    ctxCanvas.ellipse(22, 16, 12, 8, 0.2, 0, Math.PI * 2);
+    ctxCanvas.fill();
+    ctxCanvas.fillStyle = '#334155';
+    ctxCanvas.beginPath();
+    ctxCanvas.ellipse(21, 15, 10, 7, 0.2, 0, Math.PI * 2);
+    ctxCanvas.fill();
+    // Nieve en la roca secundaria
+    ctxCanvas.fillStyle = '#e2e8f0';
+    ctxCanvas.beginPath();
+    ctxCanvas.ellipse(20, 11, 8, 4, 0.1, 0, Math.PI * 2);
+    ctxCanvas.fill();
+
+    // Roca principal: Base y sombras facetadas oscuras
+    ctxCanvas.fillStyle = '#1e293b';
+    ctxCanvas.beginPath();
+    ctxCanvas.moveTo(-29, 14); ctxCanvas.lineTo(-33, -3); ctxCanvas.lineTo(-22, -21);
+    ctxCanvas.lineTo(-7, -29); ctxCanvas.lineTo(13, -27); ctxCanvas.lineTo(31, -17);
+    ctxCanvas.lineTo(33, 4); ctxCanvas.lineTo(24, 26); ctxCanvas.lineTo(-11, 29);
     ctxCanvas.closePath(); ctxCanvas.fill();
+
+    // Cuerpo de la roca (piedra pizarra iluminada)
+    ctxCanvas.fillStyle = '#334155';
+    ctxCanvas.beginPath();
+    ctxCanvas.moveTo(-27, 12); ctxCanvas.lineTo(-30, -2); ctxCanvas.lineTo(-20, -18);
+    ctxCanvas.lineTo(-5, -26); ctxCanvas.lineTo(11, -24); ctxCanvas.lineTo(28, -15);
+    ctxCanvas.lineTo(29, 3); ctxCanvas.lineTo(21, 23); ctxCanvas.lineTo(-9, 26);
+    ctxCanvas.closePath(); ctxCanvas.fill();
+
+    // Facetas y aristas iluminadas para textura rocosa
+    ctxCanvas.fillStyle = '#475569';
+    ctxCanvas.beginPath();
+    ctxCanvas.moveTo(-20, -18); ctxCanvas.lineTo(-6, -4); ctxCanvas.lineTo(-12, 14);
+    ctxCanvas.lineTo(-27, 12); ctxCanvas.closePath(); ctxCanvas.fill();
+
+    ctxCanvas.fillStyle = '#64748b';
+    ctxCanvas.beginPath();
+    ctxCanvas.moveTo(-5, -26); ctxCanvas.lineTo(11, -24); ctxCanvas.lineTo(18, -4);
+    ctxCanvas.lineTo(4, 5); ctxCanvas.lineTo(-6, -4); ctxCanvas.closePath(); ctxCanvas.fill();
+
+    // Grietas y fisuras detalladas
+    ctxCanvas.strokeStyle = '#0f172a';
+    ctxCanvas.lineWidth = 1.6;
+    ctxCanvas.beginPath();
+    ctxCanvas.moveTo(-6, -4); ctxCanvas.lineTo(4, 5); ctxCanvas.lineTo(1, 19);
+    ctxCanvas.moveTo(4, 5); ctxCanvas.lineTo(18, -4); ctxCanvas.lineTo(29, 3);
+    ctxCanvas.stroke();
+
+    // Manto de nieve espesa acumulada en la cumbre
+    ctxCanvas.fillStyle = '#cbd5e1';
+    ctxCanvas.beginPath();
+    ctxCanvas.moveTo(-23, -17);
+    ctxCanvas.quadraticCurveTo(-15, -11, -6, -4);
+    ctxCanvas.quadraticCurveTo(5, -1, 18, -4);
+    ctxCanvas.quadraticCurveTo(25, -9, 29, -15);
+    ctxCanvas.lineTo(11, -25);
+    ctxCanvas.lineTo(-5, -27);
+    ctxCanvas.closePath(); ctxCanvas.fill();
+
+    // Capa de nieve fresca blanca brillante con relieve
+    ctxCanvas.fillStyle = '#f8fafc';
+    ctxCanvas.beginPath();
+    ctxCanvas.moveTo(-22, -19);
+    ctxCanvas.quadraticCurveTo(-14, -13, -7, -7);
+    ctxCanvas.quadraticCurveTo(4, -4, 16, -7);
+    ctxCanvas.quadraticCurveTo(23, -11, 28, -16);
+    ctxCanvas.quadraticCurveTo(14, -28, -7, -29);
+    ctxCanvas.closePath(); ctxCanvas.fill();
+
+    // Destello de escarcha
+    ctxCanvas.fillStyle = '#ffffff';
+    ctxCanvas.beginPath();
+    ctxCanvas.arc(-10, -22, 2.5, 0, Math.PI * 2);
+    ctxCanvas.arc(3, -20, 2, 0, Math.PI * 2);
+    ctxCanvas.arc(14, -16, 2, 0, Math.PI * 2);
+    ctxCanvas.fill();
+
+    ctxCanvas.restore();
+}
+
+function drawSnowyBush(ctxCanvas, size, variant = 0, berryColor = '#ef4444') {
+    const s = size;
+    ctxCanvas.save();
+    ctxCanvas.scale(s / 64, s / 64);
+
+    // Sombra del arbusto proyectada en la nieve
+    ctxCanvas.fillStyle = 'rgba(15, 23, 42, 0.32)';
+    ctxCanvas.beginPath();
+    ctxCanvas.ellipse(0, 22, 28, 9, 0, 0, Math.PI * 2);
+    ctxCanvas.fill();
+
+    // Ramas de madera oscura visibles en la base
+    ctxCanvas.strokeStyle = '#451a03';
+    ctxCanvas.lineWidth = 3;
+    ctxCanvas.lineCap = 'round';
+    ctxCanvas.beginPath();
+    ctxCanvas.moveTo(-8, 22); ctxCanvas.lineTo(-4, 10); ctxCanvas.lineTo(-14, 0);
+    ctxCanvas.moveTo(4, 22); ctxCanvas.lineTo(2, 8); ctxCanvas.lineTo(12, -2);
+    ctxCanvas.stroke();
+
+    // Capa 1: Follaje base oscuro profundo
+    ctxCanvas.fillStyle = '#064e3b';
+    ctxCanvas.beginPath();
+    ctxCanvas.arc(-14, 8, 16, 0, Math.PI * 2);
+    ctxCanvas.arc(14, 8, 16, 0, Math.PI * 2);
+    ctxCanvas.arc(0, 10, 18, 0, Math.PI * 2);
+    ctxCanvas.arc(-10, -8, 17, 0, Math.PI * 2);
+    ctxCanvas.arc(10, -8, 17, 0, Math.PI * 2);
+    ctxCanvas.arc(0, -14, 17, 0, Math.PI * 2);
+    ctxCanvas.fill();
+
+    // Capa 2: Follaje verde pino invernal vibrante
+    ctxCanvas.fillStyle = '#059669';
+    ctxCanvas.beginPath();
+    ctxCanvas.arc(-12, 6, 14, 0, Math.PI * 2);
+    ctxCanvas.arc(12, 6, 14, 0, Math.PI * 2);
+    ctxCanvas.arc(0, 8, 15, 0, Math.PI * 2);
+    ctxCanvas.arc(-9, -8, 14, 0, Math.PI * 2);
+    ctxCanvas.arc(9, -8, 14, 0, Math.PI * 2);
+    ctxCanvas.arc(0, -13, 14, 0, Math.PI * 2);
+    ctxCanvas.fill();
+
+    // Capa 3: Hojas superiores iluminadas
+    ctxCanvas.fillStyle = '#10b981';
+    ctxCanvas.beginPath();
+    ctxCanvas.arc(-10, 3, 10, 0, Math.PI * 2);
+    ctxCanvas.arc(10, 3, 10, 0, Math.PI * 2);
+    ctxCanvas.arc(-7, -9, 10, 0, Math.PI * 2);
+    ctxCanvas.arc(7, -9, 10, 0, Math.PI * 2);
+    ctxCanvas.arc(0, -14, 10, 0, Math.PI * 2);
+    ctxCanvas.fill();
+
+    // Frutos silvestres de invierno (bayas brillantes)
+    ctxCanvas.fillStyle = berryColor;
+    const berries = [
+        { x: -16, y: 3 }, { x: -12, y: 7 }, { x: -8, y: 15 },
+        { x: 12, y: 5 }, { x: 17, y: 2 }, { x: 9, y: 14 },
+        { x: -1, y: 4 }, { x: 3, y: 6 }
+    ];
+    for (let b of berries) {
+        ctxCanvas.beginPath();
+        ctxCanvas.arc(b.x, b.y, 2.8, 0, Math.PI * 2);
+        ctxCanvas.fill();
+    }
+    // Brillo blanco en las bayas
+    ctxCanvas.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    for (let b of berries) {
+        ctxCanvas.beginPath();
+        ctxCanvas.arc(b.x - 0.9, b.y - 0.9, 0.9, 0, Math.PI * 2);
+        ctxCanvas.fill();
+    }
+
+    // Capa 4: Montículos de nieve fresca en la cima de los lóbulos
+    ctxCanvas.fillStyle = '#cbd5e1';
+    ctxCanvas.beginPath();
+    ctxCanvas.arc(0, -21, 10, 0, Math.PI * 2);
+    ctxCanvas.arc(-11, -16, 9, 0, Math.PI * 2);
+    ctxCanvas.arc(11, -16, 9, 0, Math.PI * 2);
+    ctxCanvas.fill();
+
+    ctxCanvas.fillStyle = '#ffffff';
+    ctxCanvas.beginPath();
+    ctxCanvas.arc(0, -22, 9, 0, Math.PI * 2);
+    ctxCanvas.arc(-11, -17, 8, 0, Math.PI * 2);
+    ctxCanvas.arc(11, -17, 8, 0, Math.PI * 2);
+    ctxCanvas.fill();
+
+    // Gotas de carámbano colgantes sobre las hojas
+    ctxCanvas.fillStyle = '#e0f2fe';
+    ctxCanvas.beginPath();
+    ctxCanvas.moveTo(-6, -11); ctxCanvas.lineTo(-4, -5); ctxCanvas.lineTo(-2, -11);
+    ctxCanvas.moveTo(2, -11); ctxCanvas.lineTo(4, -5); ctxCanvas.lineTo(6, -11);
+    ctxCanvas.fill();
+
     ctxCanvas.restore();
 }
 
@@ -372,7 +802,7 @@ class ObjectPool {
     release(obj) { this.pool.push(obj); }
 }
 
-function getClosestEnemy(source, maxRange = 600) {
+function getClosestEnemy(source, maxRange = 1000) {
     let closest = null, minDistSq = maxRange * maxRange;
     for (let e of enemies) {
         if (!e.active) continue;
@@ -394,6 +824,11 @@ class Player {
         this.facingAngle = 0;
         this.weapons = [];
         this.pendingLevels = 0;
+        this.passives = []; // { id, name, level, icon, desc, applyUpgrade }
+        this.slotLock = false;
+        this.fusions = new Set();
+        this.magnetRadius = 110;
+        this.damageReduction = 0;
     }
     update(dt) {
         let dx = 0, dy = 0;
@@ -426,6 +861,42 @@ class Player {
         const bounce = 1 + Math.sin(animationTime * 12) * 0.05;
         ctxCanvas.save();
         ctxCanvas.translate(px, py);
+
+        // Si la fusión de Huevos + Plumas está activa, dibujar los Pollos Gigantes orbitando como torretas
+        if (this.fusions && this.fusions.has('eggs_feathers')) {
+            const chickenCount = 2;
+            for (let i = 0; i < chickenCount; i++) {
+                const angle = animationTime * 3 + (i * Math.PI);
+                const cDist = 65;
+                const cx = Math.cos(angle) * cDist;
+                const cy = Math.sin(angle) * cDist;
+                ctxCanvas.save();
+                ctxCanvas.translate(cx, cy);
+                const cBounce = Math.sin(animationTime * 15 + i) * 3;
+                // Sombra del pollo
+                ctxCanvas.fillStyle = 'rgba(0,0,0,0.3)';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(0, 14, 14, 5, 0, 0, Math.PI * 2); ctxCanvas.fill();
+                // Cuerpo del pollo gigante (Lava Chicken)
+                ctxCanvas.fillStyle = '#ef4444';
+                drawRoundedRect(ctxCanvas, -14, -14 + cBounce, 28, 28, 8); ctxCanvas.fill();
+                // Cresta roja
+                ctxCanvas.fillStyle = '#b91c1c';
+                ctxCanvas.beginPath();
+                ctxCanvas.arc(-4, -16 + cBounce, 4, 0, Math.PI * 2);
+                ctxCanvas.arc(3, -17 + cBounce, 4.5, 0, Math.PI * 2);
+                ctxCanvas.arc(9, -15 + cBounce, 3.5, 0, Math.PI * 2); ctxCanvas.fill();
+                // Pico naranja
+                ctxCanvas.fillStyle = '#f97316';
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(12, -2 + cBounce); ctxCanvas.lineTo(20, 3 + cBounce); ctxCanvas.lineTo(12, 8 + cBounce); ctxCanvas.closePath(); ctxCanvas.fill();
+                // Ojo
+                ctxCanvas.fillStyle = '#ffffff'; ctxCanvas.beginPath(); ctxCanvas.arc(5, -4 + cBounce, 4, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#0f172a'; ctxCanvas.beginPath(); ctxCanvas.arc(6, -4 + cBounce, 2, 0, Math.PI * 2); ctxCanvas.fill();
+                // Alas amarillas
+                ctxCanvas.fillStyle = '#facc15';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-7, 3 + cBounce, 7, 5, -0.2, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.restore();
+            }
+        }
 
         if (this.hitFlash > 0) {
             ctxCanvas.fillStyle = 'rgba(239, 68, 68, 0.4)';
@@ -462,17 +933,25 @@ class Player {
         if (this.hp <= 0) gameOver();
     }
     addXp(amount) {
+        if (this.level >= 60) return; // Nivel 60: Detención del bucle de XP
         this.xp += amount;
         let leveled = false;
-        while (this.xp >= this.maxXp) {
+        while (this.xp >= this.maxXp && this.level < 60) {
             this.xp -= this.maxXp;
             this.level++;
             this.maxXp = getXpForLevel(this.level + 1);
             this.hp = Math.min(this.maxHp, this.hp + 20);
             this.pendingLevels = (this.pendingLevels || 0) + 1;
             leveled = true;
+
+            // Nivel 60: Detener experiencia y preguntas, invocar Yeti
+            if (this.level >= 60) {
+                this.pendingLevels = 0;
+                this.xp = 0;
+                break;
+            }
         }
-        if (leveled && currentState === GAME_STATE.PLAYING) {
+        if (leveled && currentState === GAME_STATE.PLAYING && this.level < 60) {
             this.pendingLevels--;
             triggerDraft();
         }
@@ -546,13 +1025,23 @@ class FloatingText {
 
 // 1. Rapid-Fire Lasers
 class RapidFireLasersWeapon {
-    constructor(p) { this.player = p; this.id = 'lasers'; this.name = "Rapid-Fire Lasers"; this.level = 1; this.cooldown = 0.25; this.timer = 0; this.baseDamage = getWeaponDamage('lasers', 1); }
+    constructor(p) {
+        this.player = p; this.id = 'lasers'; this.name = "Rapid-Fire Lasers";
+        this.level = 1; this.cooldown = 0.25; this.timer = 0;
+        this.baseDamage = 2; this.beams = 1; this.laserCannon = false;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        this.baseDamage = getWeaponDamage('lasers', lvl);
-        if (lvl >= 10) { this.cooldown = 0.10; }
-        else if (lvl >= 5) { this.cooldown = 0.16; }
-        else { this.cooldown = Math.max(0.18, 0.25 - lvl * 0.015); }
+        if (lvl === 1) { this.baseDamage = 2; this.beams = 1; this.cooldown = 0.25; }
+        else if (lvl === 2) { this.baseDamage = 3; }
+        else if (lvl === 3) { this.beams = 2; }
+        else if (lvl === 4) { this.cooldown = 0.20; }
+        else if (lvl === 5) { this.baseDamage = 5; }
+        else if (lvl === 6) { this.beams = 3; }
+        else if (lvl === 7) { this.cooldown = 0.15; }
+        else if (lvl === 8) { this.baseDamage = 8; }
+        else if (lvl === 9) { this.beams = 4; }
+        else if (lvl >= 10) { this.baseDamage = 26; this.laserCannon = true; this.cooldown = 0.10; }
     }
     update(dt) {
         this.timer -= dt;
@@ -560,7 +1049,32 @@ class RapidFireLasersWeapon {
             this.timer = this.cooldown;
             let ang = this.player.facingAngle, vx = Math.cos(ang), vy = Math.sin(ang), perpX = -vy, perpY = vx;
             let lvl = this.level;
-            if (lvl >= 10) {
+            const isFused = this.player.fusions && this.player.fusions.has('lasers_cards');
+
+            if (isFused) {
+                const beamCount = 7;
+                const fanSpread = 1.35;
+                for (let i = 0; i < beamCount; i++) {
+                    const bAngle = ang - fanSpread / 2 + (fanSpread / (beamCount - 1)) * i;
+                    const bvx = Math.cos(bAngle), bvy = Math.sin(bAngle);
+                    let proj = projectilePool.get();
+                    proj.spawn(this.player.x, this.player.y, bvx, bvy, 1200, this.baseDamage * 2.5 * this.player.baseDamageMult, 26, '#ef4444', true, 999);
+                    proj.customDraw = (c, cx, cy) => {
+                        c.save(); c.translate(proj.x - cx, proj.y - cy);
+                        c.strokeStyle = 'rgba(239, 68, 68, 0.35)'; c.lineWidth = 36;
+                        c.beginPath(); c.moveTo(-bvx * 80, -bvy * 80); c.lineTo(0, 0); c.stroke();
+                        c.strokeStyle = '#ff0055'; c.lineWidth = 20; c.shadowColor = '#ff0033'; c.shadowBlur = 22;
+                        c.beginPath(); c.moveTo(-bvx * 80, -bvy * 80); c.lineTo(0, 0); c.stroke();
+                        c.strokeStyle = '#ffffff'; c.lineWidth = 10;
+                        c.beginPath(); c.moveTo(-bvx * 80, -bvy * 80); c.lineTo(0, 0); c.stroke();
+                        c.rotate(bAngle);
+                        c.fillStyle = '#ffffff'; c.fillRect(-8, -12, 16, 24);
+                        c.strokeStyle = '#dc2626'; c.lineWidth = 2; c.strokeRect(-8, -12, 16, 24);
+                        c.restore();
+                    };
+                    projectiles.push(proj);
+                }
+            } else if (this.laserCannon || lvl >= 10) {
                 let proj = projectilePool.get();
                 proj.spawn(this.player.x, this.player.y, vx, vy, 1100, this.baseDamage * this.player.baseDamageMult, 25, '#ef4444', Math.random()<this.player.critChance, 999);
                 proj.customDraw = (c, cx, cy) => {
@@ -574,30 +1088,23 @@ class RapidFireLasersWeapon {
                     c.restore();
                 };
                 projectiles.push(proj);
-            } else if (lvl >= 5) {
-                for (let off of [-14, 0, 14]) {
+            } else {
+                let bCount = this.beams || 1;
+                let step = 14;
+                for (let b = 0; b < bCount; b++) {
+                    let off = (b - (bCount - 1) / 2) * step;
                     let proj = projectilePool.get();
-                    proj.spawn(this.player.x + perpX * off, this.player.y + perpY * off, vx, vy, 950, this.baseDamage * this.player.baseDamageMult, 7, '#ef4444', Math.random()<this.player.critChance, 3);
+                    proj.spawn(this.player.x + perpX * off, this.player.y + perpY * off, vx, vy, 920, this.baseDamage * this.player.baseDamageMult, 5, '#ef4444', Math.random()<this.player.critChance, 2);
                     proj.customDraw = (c, cx, cy) => {
                         c.save(); c.translate(proj.x - cx, proj.y - cy);
-                        c.strokeStyle = '#ff0055'; c.lineWidth = 9; c.shadowColor = '#ff0044'; c.shadowBlur = 14;
-                        c.beginPath(); c.moveTo(-vx*45, -vy*45); c.lineTo(0,0); c.stroke();
-                        c.strokeStyle = '#ffffff'; c.lineWidth = 3;
-                        c.beginPath(); c.moveTo(-vx*45, -vy*45); c.lineTo(0,0); c.stroke();
+                        c.strokeStyle = '#ff0055'; c.lineWidth = 7; c.shadowColor = '#ff0044'; c.shadowBlur = 12;
+                        c.beginPath(); c.moveTo(-vx*40, -vy*40); c.lineTo(0,0); c.stroke();
+                        c.strokeStyle = '#ffffff'; c.lineWidth = 2.5;
+                        c.beginPath(); c.moveTo(-vx*40, -vy*40); c.lineTo(0,0); c.stroke();
                         c.restore();
                     };
                     projectiles.push(proj);
                 }
-            } else {
-                let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, vx, vy, 900, this.baseDamage * this.player.baseDamageMult, 4, '#ef4444', Math.random()<this.player.critChance, 2);
-                proj.customDraw = (c, cx, cy) => {
-                    c.save(); c.translate(proj.x - cx, proj.y - cy);
-                    c.strokeStyle = '#ff2255'; c.lineWidth = 5; c.shadowColor = '#ff0033'; c.shadowBlur = 10;
-                    c.beginPath(); c.moveTo(-vx*35, -vy*35); c.lineTo(0,0); c.stroke();
-                    c.restore();
-                };
-                projectiles.push(proj);
             }
         }
     }
@@ -605,29 +1112,48 @@ class RapidFireLasersWeapon {
 
 // 2. Slicing Cards
 class SlicingCardsWeapon {
-    constructor(p) { this.player = p; this.id = 'cards'; this.name = "Slicing Cards"; this.level = 1; this.cooldown = 0.9; this.timer = 0; this.count = 3; }
+    constructor(p) {
+        this.player = p; this.id = 'cards'; this.name = "Slicing Cards";
+        this.level = 1; this.cooldown = 0.85; this.timer = 0;
+        this.count = 1; this.baseDamage = 3; this.pierce = 1; this.pattern = 'front';
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) { this.count = 7; this.cooldown = 0.45; }
-        else if (lvl >= 5) { this.count = 4; this.cooldown = 0.65; }
-        else { this.count = 3 + Math.floor(lvl / 3); this.cooldown = Math.max(0.7, 0.9 - lvl * 0.04); }
+        if (lvl === 1) { this.baseDamage = 3; this.count = 1; this.pierce = 1; this.cooldown = 0.85; this.pattern = 'front'; }
+        else if (lvl === 2) { this.baseDamage = 5; }
+        else if (lvl === 3) { this.pierce = 3; }
+        else if (lvl === 4) { this.cooldown = 0.65; }
+        else if (lvl === 5) { this.pattern = 'cardinal'; this.count = 4; }
+        else if (lvl === 6) { this.baseDamage = 8; }
+        else if (lvl === 7) { this.pierce = 6; }
+        else if (lvl === 8) { this.cooldown = 0.50; }
+        else if (lvl === 9) { this.pattern = 'fan'; this.count = 6; }
+        else if (lvl >= 10) { this.pattern = 'fan'; this.count = 9; this.pierce = 999; this.baseDamage = 18; this.cooldown = 0.35; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
             let baseAng = this.player.facingAngle, lvl = this.level;
-            let spread = lvl >= 10 ? Math.PI : (lvl >= 5 ? 1.0 : 0.55);
-            let count = this.count;
+            let dmg = this.baseDamage * this.player.baseDamageMult;
             let cardW = lvl >= 10 ? 24 : (lvl >= 5 ? 18 : 14);
             let cardH = lvl >= 10 ? 36 : (lvl >= 5 ? 26 : 20);
-            let pierceCount = lvl >= 10 ? 15 : (lvl >= 5 ? 5 : 2);
-            let dmg = getWeaponDamage('cards', lvl) * this.player.baseDamageMult;
 
-            for (let i = 0; i < count; i++) {
-                let ang = count === 1 ? baseAng : baseAng - spread/2 + (spread / (count - 1)) * i;
+            let angles = [];
+            if (this.pattern === 'cardinal') {
+                angles = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
+            } else if (this.pattern === 'fan' || this.count > 1) {
+                let spread = lvl >= 10 ? Math.PI : 0.8;
+                for (let i = 0; i < this.count; i++) {
+                    angles.push(baseAng - spread / 2 + (spread / (this.count - 1)) * i);
+                }
+            } else {
+                angles = [baseAng];
+            }
+
+            for (let ang of angles) {
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), lvl >= 10 ? 650 : 520, dmg, cardH / 2, '#ffffff', Math.random()<this.player.critChance, pierceCount);
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), lvl >= 10 ? 650 : 520, dmg, cardH / 2, '#ffffff', Math.random()<this.player.critChance, this.pierce);
                 proj.rot = ang;
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(proj.rot + animationTime * 12);
@@ -644,18 +1170,30 @@ class SlicingCardsWeapon {
 
 // 3. Dark Energy
 class DarkEnergyWeapon {
-    constructor(p) { this.player = p; this.id = 'darkenergy'; this.name = "Dark Energy"; this.level = 1; this.radius = 70; this.dps = getWeaponDamage('darkenergy', 1); this.orbCount = 2; }
+    constructor(p) {
+        this.player = p; this.id = 'darkenergy'; this.name = "Dark Energy";
+        this.level = 1; this.radius = 65; this.baseDamage = 5; this.dps = 5;
+        this.orbCount = 1; this.orbitSpeed = 4;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        this.dps = getWeaponDamage('darkenergy', lvl);
-        if (lvl >= 10) { this.radius = 135; this.orbCount = 6; }
-        else if (lvl >= 5) { this.radius = 95; this.orbCount = 4; }
-        else { this.radius = 70 + lvl * 5; this.orbCount = 2 + Math.floor(lvl / 2); }
+        if (lvl === 1) { this.baseDamage = 5; this.dps = 5; this.orbCount = 1; this.radius = 65; this.orbitSpeed = 4; }
+        else if (lvl === 2) { this.dps = 7; this.baseDamage = 7; }
+        else if (lvl === 3) { this.orbCount = 2; }
+        else if (lvl === 4) { this.radius = 85; }
+        else if (lvl === 5) { this.dps = 17; this.baseDamage = 17; }
+        else if (lvl === 6) { this.orbCount = 3; }
+        else if (lvl === 7) { this.orbitSpeed = 7; }
+        else if (lvl === 8) { this.radius = 110; }
+        else if (lvl === 9) { this.orbCount = 4; }
+        else if (lvl >= 10) { this.dps = 35; this.baseDamage = 35; this.orbCount = 6; this.radius = 140; this.orbitSpeed = 9; }
     }
     update(dt) {
         let currentRadius = this.radius;
+        const isFused = this.player.fusions && this.player.fusions.has('dark_bubbles');
+        if (isFused) currentRadius = 160;
         let nearby = enemyGrid.getNearby(this.player.x, this.player.y, currentRadius + 35);
-        let dmgThisFrame = this.dps * this.player.baseDamageMult * dt;
+        let dmgThisFrame = this.dps * (isFused ? 2.5 : 1.0) * this.player.baseDamageMult * dt;
         for (let e of nearby) {
             if (e.active && distSq(this.player.x, this.player.y, e.x, e.y) < (currentRadius + e.radius)**2) {
                 e.takeDamage(dmgThisFrame, false, 0, 0, false);
@@ -665,24 +1203,27 @@ class DarkEnergyWeapon {
     drawOrbital(c, cx, cy) {
         let px = this.player.x - cx, py = this.player.y - cy;
         let r = this.radius, lvl = this.level;
+        const isFused = this.player.fusions && this.player.fusions.has('dark_bubbles');
+        if (isFused) r = 160;
         let pulse = Math.sin(animationTime * (lvl >= 10 ? 10 : 6)) * (lvl >= 10 ? 6 : 3);
         let activeR = r + pulse;
 
         c.save(); c.translate(px, py);
         let grad = c.createRadialGradient(0, 0, activeR * 0.2, 0, 0, activeR);
-        grad.addColorStop(0, 'rgba(88, 28, 135, 0.1)');
-        grad.addColorStop(0.7, 'rgba(147, 51, 234, 0.35)');
-        grad.addColorStop(1, 'rgba(192, 132, 252, 0.8)');
+        grad.addColorStop(0, isFused ? 'rgba(59, 7, 100, 0.35)' : 'rgba(88, 28, 135, 0.1)');
+        grad.addColorStop(0.7, isFused ? 'rgba(126, 34, 206, 0.55)' : 'rgba(147, 51, 234, 0.35)');
+        grad.addColorStop(1, isFused ? 'rgba(192, 132, 252, 0.95)' : 'rgba(192, 132, 252, 0.8)');
         c.fillStyle = grad; c.beginPath(); c.arc(0, 0, activeR, 0, Math.PI * 2); c.fill();
 
-        c.strokeStyle = lvl >= 10 ? '#e9d5ff' : '#c084fc';
-        c.lineWidth = lvl >= 10 ? 5 : 3; c.shadowColor = '#a855f7'; c.shadowBlur = 16;
+        c.strokeStyle = isFused ? '#f3e8ff' : (lvl >= 10 ? '#e9d5ff' : '#c084fc');
+        c.lineWidth = isFused ? 7 : (lvl >= 10 ? 5 : 3); c.shadowColor = '#a855f7'; c.shadowBlur = isFused ? 30 : 16;
         c.beginPath(); c.arc(0, 0, activeR, 0, Math.PI * 2); c.stroke();
 
-        let orbsCount = this.orbCount;
-        let orbSize = lvl >= 10 ? 12 : (lvl >= 5 ? 7 : 4.5);
+        let orbsCount = isFused ? 8 : this.orbCount;
+        let orbSize = isFused ? 15 : (lvl >= 10 ? 13 : (lvl >= 5 ? 8 : 5));
+        let speed = this.orbitSpeed || 4;
         for (let i = 0; i < orbsCount; i++) {
-            let angle = animationTime * 4 + (i / orbsCount) * Math.PI * 2;
+            let angle = animationTime * speed + (i / orbsCount) * Math.PI * 2;
             let ox = Math.cos(angle) * (activeR * 0.88), oy = Math.sin(angle) * (activeR * 0.88);
             c.fillStyle = '#f3e8ff'; c.beginPath(); c.arc(ox, oy, orbSize, 0, Math.PI * 2); c.fill();
             c.fillStyle = '#581c87'; c.beginPath(); c.arc(ox, oy, orbSize * 0.5, 0, Math.PI * 2); c.fill();
@@ -693,36 +1234,62 @@ class DarkEnergyWeapon {
 
 // 4. Booming Bubbles
 class BoomingBubblesWeapon {
-    constructor(p) { this.player = p; this.id = 'bubbles'; this.name = "Booming Bubbles"; this.level = 1; this.cooldown = 1.2; this.timer = 0; }
+    constructor(p) {
+        this.player = p; this.id = 'bubbles'; this.name = "Booming Bubbles";
+        this.level = 1; this.cooldown = 1.2; this.timer = 0;
+        this.baseDamage = 2; this.count = 1; this.aoeRadius = 60;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.cooldown = 0.4;
-        else if (lvl >= 5) this.cooldown = 0.75;
-        else this.cooldown = Math.max(0.85, 1.2 - lvl * 0.05);
+        if (lvl === 1) { this.baseDamage = 2; this.count = 1; this.aoeRadius = 60; this.cooldown = 1.2; }
+        else if (lvl === 2) { this.count = 2; }
+        else if (lvl === 3) { this.baseDamage = 5; }
+        else if (lvl === 4) { this.aoeRadius = 85; }
+        else if (lvl === 5) { this.count = 3; }
+        else if (lvl === 6) { this.baseDamage = 10; }
+        else if (lvl === 7) { this.aoeRadius = 120; }
+        else if (lvl === 8) { this.count = 4; }
+        else if (lvl === 9) { this.cooldown = 0.70; }
+        else if (lvl >= 10) { this.count = 6; this.baseDamage = 22; this.aoeRadius = 180; this.cooldown = 0.40; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let lvl = this.level, spawnCount = lvl >= 10 ? 5 : (lvl >= 5 ? 3 : 1);
-            let bSize = lvl >= 10 ? 24 : (lvl >= 5 ? 18 : 14);
-            let maxAoe = lvl >= 10 ? 170 : (lvl >= 5 ? 100 : 60 + lvl*5);
-            let dmg = getWeaponDamage('bubbles', lvl) * this.player.baseDamageMult;
+            let lvl = this.level;
+            const isFused = this.player.fusions && this.player.fusions.has('dark_bubbles');
+            let spawnCount = isFused ? 6 : this.count;
+            let bSize = isFused ? 32 : (lvl >= 10 ? 24 : (lvl >= 5 ? 18 : 14));
+            let maxAoe = isFused ? 240 : this.aoeRadius;
+            let dmg = (isFused ? 50 : this.baseDamage) * this.player.baseDamageMult;
+
+            let target = getClosestEnemy(this.player, 1000);
+            let baseAng = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : Math.random() * Math.PI * 2;
+            let spread = spawnCount > 1 ? (Math.PI / 4) : 0;
 
             for (let i = 0; i < spawnCount; i++) {
-                let ang = Math.random() * Math.PI * 2;
+                let ang = spawnCount === 1 ? baseAng : baseAng - spread/2 + (spread / (spawnCount - 1)) * i;
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 190, dmg, bSize, '#38bdf8', false, 1);
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 210, dmg, bSize, isFused ? '#a855f7' : '#38bdf8', false, 1);
                 proj.life = 2.0;
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy);
-                    c.fillStyle = 'rgba(186, 230, 253, 0.55)'; c.beginPath(); c.arc(0,0,proj.radius,0,Math.PI*2); c.fill();
-                    c.strokeStyle = '#7dd3fc'; c.lineWidth = 2.5; c.stroke();
-                    c.fillStyle = '#ffffff'; c.beginPath(); c.arc(-proj.radius*0.35, -proj.radius*0.35, proj.radius*0.25, 0, Math.PI*2); c.fill();
+                    if (isFused) {
+                        c.fillStyle = 'rgba(88, 28, 135, 0.65)'; c.beginPath(); c.arc(0,0,proj.radius,0,Math.PI*2); c.fill();
+                        c.strokeStyle = '#c084fc'; c.lineWidth = 4; c.shadowColor = '#9333ea'; c.shadowBlur = 18; c.stroke();
+                        c.fillStyle = '#f3e8ff'; c.beginPath(); c.arc(-proj.radius*0.35, -proj.radius*0.35, proj.radius*0.28, 0, Math.PI*2); c.fill();
+                    } else {
+                        c.fillStyle = 'rgba(186, 230, 253, 0.55)'; c.beginPath(); c.arc(0,0,proj.radius,0,Math.PI*2); c.fill();
+                        c.strokeStyle = '#7dd3fc'; c.lineWidth = 2.5; c.stroke();
+                        c.fillStyle = '#ffffff'; c.beginPath(); c.arc(-proj.radius*0.35, -proj.radius*0.35, proj.radius*0.25, 0, Math.PI*2); c.fill();
+                    }
                     c.restore();
                 };
                 proj.onExpire = () => {
-                    aoeExplosions.push({ x: proj.x, y: proj.y, radius: 0, maxRadius: maxAoe, damage: proj.damage, color: 'rgba(56, 189, 248, 0.7)' });
+                    aoeExplosions.push({
+                        x: proj.x, y: proj.y, radius: 0, maxRadius: maxAoe, damage: proj.damage,
+                        color: isFused ? 'rgba(147, 51, 234, 0.85)' : 'rgba(56, 189, 248, 0.7)'
+                    });
                 };
                 projectiles.push(proj);
             }
@@ -732,35 +1299,69 @@ class BoomingBubblesWeapon {
 
 // 5. Rapid Eggs
 class RapidEggsWeapon {
-    constructor(p) { this.player = p; this.id = 'rapideggs'; this.name = "Rapid Eggs"; this.level = 1; this.cooldown = 0.5; this.timer = 0; this.baseDamage = getWeaponDamage('rapideggs', 1); }
+    constructor(p) {
+        this.player = p; this.id = 'rapideggs'; this.name = "Rapid Eggs";
+        this.level = 1; this.cooldown = 0.45; this.timer = 0;
+        this.baseDamage = 2; this.streams = 1; this.speed = 620; this.knockback = 1.0;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        this.baseDamage = getWeaponDamage('rapideggs', lvl);
-        if (lvl >= 10) { this.cooldown = 0.07; }
-        else if (lvl >= 5) { this.cooldown = 0.16; }
-        else { this.cooldown = Math.max(0.25, 0.5 - lvl * 0.04); }
+        if (lvl === 1) { this.baseDamage = 2; this.cooldown = 0.45; this.streams = 1; this.speed = 620; this.knockback = 1.0; }
+        else if (lvl === 2) { this.cooldown = 0.34; }
+        else if (lvl === 3) { this.baseDamage = 3; }
+        else if (lvl === 4) { this.knockback = 2.0; }
+        else if (lvl === 5) { this.cooldown = 0.22; }
+        else if (lvl === 6) { this.baseDamage = 5; }
+        else if (lvl === 7) { this.streams = 2; }
+        else if (lvl === 8) { this.speed = 800; }
+        else if (lvl === 9) { this.baseDamage = 8; }
+        else if (lvl >= 10) { this.streams = 3; this.cooldown = 0.07; this.baseDamage = 15; this.speed = 850; this.knockback = 3.0; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let closest = getClosestEnemy(this.player, 600);
+            let closest = getClosestEnemy(this.player, 1000);
             let vx = closest ? (closest.x - this.player.x) : Math.cos(this.player.facingAngle);
             let vy = closest ? (closest.y - this.player.y) : Math.sin(this.player.facingAngle);
             let d = Math.sqrt(vx*vx + vy*vy) || 1; vx /= d; vy /= d;
             let perpX = -vy, perpY = vx, lvl = this.level;
-            let offsets = lvl >= 10 ? [-10, 0, 10] : (lvl >= 5 ? [-7, 7] : [0]);
+            const isFused = this.player.fusions && this.player.fusions.has('eggs_feathers');
+
+            let offsets = isFused ? [-15, -5, 5, 15] : (this.streams === 3 ? [-10, 0, 10] : (this.streams === 2 ? [-7, 7] : [0]));
 
             for (let off of offsets) {
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x + perpX * off, this.player.y + perpY * off, vx, vy, 600, this.baseDamage * this.player.baseDamageMult, 8, '#fef08a', Math.random()<this.player.critChance, lvl >= 10 ? 3 : 1);
+                proj.spawn(this.player.x + perpX * off, this.player.y + perpY * off, vx, vy, this.speed, this.baseDamage * (isFused ? 2.5 : 1) * this.player.baseDamageMult, isFused ? 12 : 8, '#fef08a', Math.random()<this.player.critChance, lvl >= 10 ? 4 : 1);
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(Math.atan2(vy, vx));
-                    c.fillStyle = '#ffffff'; c.beginPath(); c.ellipse(0,0, 9, 6, 0, 0, Math.PI*2); c.fill();
-                    c.strokeStyle = '#fef08a'; c.lineWidth = 1.5; c.stroke();
+                    c.fillStyle = isFused ? '#fef08a' : '#ffffff'; c.beginPath(); c.ellipse(0,0, isFused ? 14 : 9, isFused ? 9 : 6, 0, 0, Math.PI*2); c.fill();
+                    c.strokeStyle = isFused ? '#f59e0b' : '#fef08a'; c.lineWidth = 2; c.stroke();
                     c.restore();
                 };
                 projectiles.push(proj);
+            }
+
+            if (isFused) {
+                for (let i = 0; i < 2; i++) {
+                    const angle = animationTime * 3 + (i * Math.PI);
+                    const chX = this.player.x + Math.cos(angle) * 65;
+                    const chY = this.player.y + Math.sin(angle) * 65;
+                    let targetE = getClosestEnemy({ x: chX, y: chY }, 600);
+                    let cvx = targetE ? (targetE.x - chX) : vx;
+                    let cvy = targetE ? (targetE.y - chY) : vy;
+                    let cd = Math.sqrt(cvx * cvx + cvy * cvy) || 1; cvx /= cd; cvy /= cd;
+
+                    let cProj = projectilePool.get();
+                    cProj.spawn(chX, chY, cvx, cvy, 750, this.baseDamage * 2.5 * this.player.baseDamageMult, 11, '#fef08a', true, 3);
+                    cProj.customDraw = (c, cx, cy) => {
+                        c.save(); c.translate(cProj.x - cx, cProj.y - cy); c.rotate(Math.atan2(cvy, cvx));
+                        c.fillStyle = '#ffedd5'; c.beginPath(); c.ellipse(0,0, 12, 8, 0, 0, Math.PI*2); c.fill();
+                        c.strokeStyle = '#ea580c'; c.lineWidth = 2; c.stroke();
+                        c.restore();
+                    };
+                    projectiles.push(cProj);
+                }
             }
         }
     }
@@ -768,26 +1369,37 @@ class RapidEggsWeapon {
 
 // 6. Flying Feathers
 class FlyingFeathersWeapon {
-    constructor(p) { this.player = p; this.id = 'feathers'; this.name = "Flying Feathers"; this.level = 1; this.cooldown = 0.8; this.timer = 0; }
+    constructor(p) {
+        this.player = p; this.id = 'feathers'; this.name = "Flying Feathers";
+        this.level = 1; this.cooldown = 0.8; this.timer = 0;
+        this.baseDamage = 2; this.count = 4; this.pierce = 1; this.speed = 440;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.cooldown = 0.28;
-        else if (lvl >= 5) this.cooldown = 0.45;
-        else this.cooldown = Math.max(0.55, 0.8 - lvl * 0.05);
+        if (lvl === 1) { this.baseDamage = 2; this.count = 4; this.pierce = 1; this.speed = 440; this.cooldown = 0.8; }
+        else if (lvl === 2) { this.count = 5; }
+        else if (lvl === 3) { this.baseDamage = 3; }
+        else if (lvl === 4) { this.pierce = 2; }
+        else if (lvl === 5) { this.count = 6; }
+        else if (lvl === 6) { this.baseDamage = 5; }
+        else if (lvl === 7) { this.speed = 560; }
+        else if (lvl === 8) { this.pierce = 4; }
+        else if (lvl === 9) { this.count = 7; }
+        else if (lvl >= 10) { this.count = 12; this.baseDamage = 15; this.pierce = 6; this.speed = 650; this.cooldown = 0.28; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let lvl = this.level, count = lvl >= 10 ? 12 : (lvl >= 5 ? 7 : 4 + Math.floor(lvl / 2));
+            let lvl = this.level, count = this.count;
             let spread = lvl >= 10 ? 1.4 : (lvl >= 5 ? 0.9 : 0.6);
             let fLength = lvl >= 10 ? 24 : (lvl >= 5 ? 16 : 10);
-            let dmg = getWeaponDamage('feathers', lvl) * this.player.baseDamageMult;
+            let dmg = this.baseDamage * this.player.baseDamageMult;
 
             for (let i = 0; i < count; i++) {
                 let ang = this.player.facingAngle - spread/2 + (spread / count) * i;
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), lvl >= 10 ? 580 : 440, dmg, fLength/2, '#ffffff', false, lvl >= 10 ? 4 : 2);
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), this.speed, dmg, fLength/2, '#ffffff', false, this.pierce);
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
                     c.fillStyle = '#f8fafc'; c.beginPath();
@@ -803,29 +1415,71 @@ class FlyingFeathersWeapon {
 
 // 7. Sticky Syrup
 class StickySyrupWeapon {
-    constructor(p) { this.player = p; this.id = 'syrup'; this.name = "Sticky Syrup"; this.level = 1; this.cooldown = 2.0; this.timer = 0; }
+    constructor(p) {
+        this.player = p; this.id = 'syrup'; this.name = "Sticky Syrup";
+        this.level = 1; this.cooldown = 2.0; this.timer = 0;
+        this.baseDamage = 10; this.dps = 10; this.puddles = 1; this.puddleRadius = 50; this.slow = 0.4;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.cooldown = 0.7;
-        else if (lvl >= 5) this.cooldown = 1.2;
-        else this.cooldown = Math.max(1.4, 2.0 - lvl * 0.1);
+        if (lvl === 1) { this.baseDamage = 10; this.dps = 10; this.puddles = 1; this.puddleRadius = 50; this.slow = 0.4; this.cooldown = 2.0; }
+        else if (lvl === 2) { this.puddleRadius = 70; }
+        else if (lvl === 3) { this.slow = 0.60; }
+        else if (lvl === 4) { this.dps = 15; this.baseDamage = 15; }
+        else if (lvl === 5) { this.puddles = 2; }
+        else if (lvl === 6) { this.puddleRadius = 95; }
+        else if (lvl === 7) { this.slow = 0.80; }
+        else if (lvl === 8) { this.dps = 23; this.baseDamage = 23; }
+        else if (lvl === 9) { this.puddles = 3; }
+        else if (lvl >= 10) { this.puddles = 4; this.puddleRadius = 135; this.slow = 0.90; this.dps = 40; this.baseDamage = 40; this.cooldown = 1.0; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let lvl = this.level, puddleCount = lvl >= 10 ? 4 : (lvl >= 5 ? 3 : 1);
-            let pRadius = lvl >= 10 ? 110 : (lvl >= 5 ? 68 : 45 + lvl * 4);
-            let dpsVal = getWeaponDamage('syrup', lvl) * this.player.baseDamageMult;
+            let lvl = this.level;
+            const isFused = this.player.fusions && this.player.fusions.has('syrup_bees');
+            let puddleCount = isFused ? 4 : this.puddles;
+            let pRadius = isFused ? 130 : this.puddleRadius;
+            let dpsVal = (isFused ? 60 : this.dps) * this.player.baseDamageMult;
+            let slowVal = isFused ? 0.95 : this.slow;
 
+            let target = getClosestEnemy(this.player, 1000);
             for (let i = 0; i < puddleCount; i++) {
-                let target = getClosestEnemy(this.player, 450);
-                let px = (target && Math.random()<0.7) ? target.x + randRange(-30,30) : this.player.x + randRange(-120, 120);
-                let py = (target && Math.random()<0.7) ? target.y + randRange(-30,30) : this.player.y + randRange(-120, 120);
+                let px = target ? target.x + randRange(-20, 20) : this.player.x + randRange(-120, 120);
+                let py = target ? target.y + randRange(-20, 20) : this.player.y + randRange(-120, 120);
+
                 groundPuddles.push({
                     x: px, y: py, radius: pRadius, duration: 6.0, maxDuration: 6.0,
-                    dps: dpsVal, color: lvl >= 10 ? 'rgba(217, 119, 6, 0.75)' : 'rgba(217, 119, 6, 0.55)'
+                    dps: dpsVal, slow: slowVal, color: isFused ? 'rgba(245, 158, 11, 0.85)' : (lvl >= 10 ? 'rgba(217, 119, 6, 0.75)' : 'rgba(217, 119, 6, 0.55)')
                 });
+
+                if (isFused) {
+                    for (let b = 0; b < 5; b++) {
+                        let bProj = projectilePool.get();
+                        let beeDmg = 35 * this.player.baseDamageMult;
+                        bProj.spawn(px, py, 0, 0, 560, beeDmg, 9, '#f59e0b', true, 1);
+                        bProj.target = getClosestEnemy({ x: px, y: py }, 1000);
+                        bProj.customUpdate = (dtSec) => {
+                            if (!bProj.target || !bProj.target.active) bProj.target = getClosestEnemy(bProj, 1000);
+                            let tx = bProj.target ? bProj.target.x : bProj.x + Math.cos(animationTime * 8) * 70;
+                            let ty = bProj.target ? bProj.target.y : bProj.y + Math.sin(animationTime * 8) * 70;
+                            let dx = tx - bProj.x, dy = ty - bProj.y, dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                            bProj.vx = dx/dist + Math.sin(animationTime * 22) * 0.4;
+                            bProj.vy = dy/dist + Math.cos(animationTime * 22) * 0.4;
+                            bProj.x += bProj.vx * bProj.speed * dtSec; bProj.y += bProj.vy * bProj.speed * dtSec;
+                            bProj.life -= dtSec; if (bProj.life <= 0) bProj.active = false;
+                        };
+                        bProj.customDraw = (c, cx, cy) => {
+                            c.save(); c.translate(bProj.x - cx, bProj.y - cy);
+                            c.fillStyle = '#f59e0b'; c.beginPath(); c.ellipse(0, 0, 9, 6, 0, 0, Math.PI*2); c.fill();
+                            c.fillStyle = '#000000'; c.fillRect(-2, -6, 4, 12);
+                            c.fillStyle = 'rgba(255,255,255,0.9)'; c.beginPath(); c.arc(-3, -7, 5, 0, Math.PI*2); c.fill();
+                            c.restore();
+                        };
+                        projectiles.push(bProj);
+                    }
+                }
             }
         }
     }
@@ -833,26 +1487,37 @@ class StickySyrupWeapon {
 
 // 8. Buzzing Bees
 class BuzzingBeesWeapon {
-    constructor(p) { this.player = p; this.id = 'bees'; this.name = "Buzzing Bees"; this.level = 1; this.cooldown = 1.0; this.timer = 0; }
+    constructor(p) {
+        this.player = p; this.id = 'bees'; this.name = "Buzzing Bees";
+        this.level = 1; this.cooldown = 1.1; this.timer = 0;
+        this.baseDamage = 3; this.count = 2; this.speed = 380; this.pierce = 1;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.cooldown = 0.22;
-        else if (lvl >= 5) this.cooldown = 0.5;
-        else this.cooldown = Math.max(0.6, 1.0 - lvl * 0.07);
+        if (lvl === 1) { this.baseDamage = 3; this.count = 2; this.speed = 380; this.pierce = 1; this.cooldown = 1.1; }
+        else if (lvl === 2) { this.count = 3; }
+        else if (lvl === 3) { this.baseDamage = 5; }
+        else if (lvl === 4) { this.speed = 480; }
+        else if (lvl === 5) { this.count = 4; }
+        else if (lvl === 6) { this.baseDamage = 8; }
+        else if (lvl === 7) { this.count = 5; }
+        else if (lvl === 8) { this.pierce = 2; }
+        else if (lvl === 9) { this.speed = 580; }
+        else if (lvl >= 10) { this.count = 8; this.speed = 650; this.pierce = 3; this.baseDamage = 18; this.cooldown = 0.45; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let lvl = this.level, beeCount = lvl >= 10 ? 4 : (lvl >= 5 ? 2 : 1);
-            let dmg = getWeaponDamage('bees', lvl) * this.player.baseDamageMult;
+            let beeCount = this.count;
+            let dmg = this.baseDamage * this.player.baseDamageMult;
 
             for (let b = 0; b < beeCount; b++) {
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, 0, 0, lvl >= 10 ? 520 : 400, dmg, 8, '#facc15', false, 1);
-                proj.target = getClosestEnemy(this.player, 700);
+                proj.spawn(this.player.x, this.player.y, 0, 0, this.speed, dmg, 8, '#facc15', false, this.pierce);
+                proj.target = getClosestEnemy(this.player, 1000);
                 proj.customUpdate = (dtSec) => {
-                    if (!proj.target || !proj.target.active) proj.target = getClosestEnemy(proj, 700);
+                    if (!proj.target || !proj.target.active) proj.target = getClosestEnemy(proj, 1000);
                     let tx = proj.target ? proj.target.x : proj.x + Math.cos(animationTime*6)*60;
                     let ty = proj.target ? proj.target.y : proj.y + Math.sin(animationTime*6)*60;
                     let dx = tx - proj.x, dy = ty - proj.y, dist = Math.sqrt(dx*dx + dy*dy) || 1;
@@ -876,27 +1541,40 @@ class BuzzingBeesWeapon {
 
 // 9. Slimy Balls
 class SlimyBallsWeapon {
-    constructor(p) { this.player = p; this.id = 'slimyballs'; this.name = "Slimy Balls"; this.level = 1; this.cooldown = 1.1; this.timer = 0; }
+    constructor(p) {
+        this.player = p; this.id = 'slimyballs'; this.name = "Slimy Balls";
+        this.level = 1; this.cooldown = 1.1; this.timer = 0;
+        this.baseDamage = 4; this.count = 1; this.bounces = 4; this.radius = 12;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.cooldown = 0.45;
-        else if (lvl >= 5) this.cooldown = 0.75;
-        else this.cooldown = Math.max(0.8, 1.1 - lvl * 0.07);
+        if (lvl === 1) { this.baseDamage = 4; this.count = 1; this.bounces = 4; this.radius = 12; this.cooldown = 1.1; }
+        else if (lvl === 2) { this.bounces = 6; }
+        else if (lvl === 3) { this.radius = 16; }
+        else if (lvl === 4) { this.baseDamage = 7; }
+        else if (lvl === 5) { this.count = 2; }
+        else if (lvl === 6) { this.bounces = 8; }
+        else if (lvl === 7) { this.baseDamage = 12; }
+        else if (lvl === 8) { this.radius = 22; }
+        else if (lvl === 9) { this.count = 3; }
+        else if (lvl >= 10) { this.count = 4; this.bounces = 99; this.radius = 28; this.baseDamage = 22; this.cooldown = 0.45; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let lvl = this.level, count = lvl >= 10 ? 4 : (lvl >= 5 ? 2 : 1);
-            let sRadius = lvl >= 10 ? 28 : (lvl >= 5 ? 18 : 12);
-            let maxBounces = lvl >= 10 ? 99 : (lvl >= 5 ? 8 : 5);
-            let dmg = getWeaponDamage('slimyballs', lvl) * this.player.baseDamageMult;
+            let count = this.count, sRadius = this.radius, maxBounces = this.bounces;
+            let dmg = this.baseDamage * this.player.baseDamageMult;
+
+            let target = getClosestEnemy(this.player, 1000);
+            let baseAng = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : Math.random() * Math.PI * 2;
+            let spread = count > 1 ? 0.35 : 0;
 
             for (let i = 0; i < count; i++) {
-                let ang = Math.random() * Math.PI * 2;
+                let ang = count === 1 ? baseAng : baseAng - spread/2 + (spread / (count - 1)) * i;
                 let proj = projectilePool.get();
                 proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 480, dmg, sRadius, '#22c55e', false, maxBounces);
-                proj.life = lvl >= 10 ? 8.0 : 4.5;
+                proj.life = this.level >= 10 ? 8.0 : 4.5;
                 proj.customUpdate = (dtSec) => {
                     proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
                     if (Math.abs(proj.x) >= MAP_LIMIT - 30) proj.vx *= -1;
@@ -917,12 +1595,23 @@ class SlimyBallsWeapon {
 
 // 10. Speeding Arrows
 class SpeedingArrowsWeapon {
-    constructor(p) { this.player = p; this.id = 'arrows'; this.name = "Speeding Arrows"; this.level = 1; this.cooldown = 0.7; this.timer = 0; }
+    constructor(p) {
+        this.player = p; this.id = 'arrows'; this.name = "Speeding Arrows";
+        this.level = 1; this.cooldown = 0.75; this.timer = 0;
+        this.baseDamage = 5; this.arrows = 1; this.pierce = 3; this.speed = 720;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.cooldown = 0.35;
-        else if (lvl >= 5) this.cooldown = 0.5;
-        else this.cooldown = Math.max(0.55, 0.7 - lvl * 0.05);
+        if (lvl === 1) { this.baseDamage = 5; this.arrows = 1; this.pierce = 3; this.speed = 720; this.cooldown = 0.75; }
+        else if (lvl === 2) { this.pierce = 5; }
+        else if (lvl === 3) { this.baseDamage = 8; }
+        else if (lvl === 4) { this.arrows = 2; }
+        else if (lvl === 5) { this.speed = 880; }
+        else if (lvl === 6) { this.baseDamage = 13; }
+        else if (lvl === 7) { this.pierce = 8; }
+        else if (lvl === 8) { this.arrows = 3; }
+        else if (lvl === 9) { this.cooldown = 0.45; }
+        else if (lvl >= 10) { this.arrows = 1; this.baseDamage = 25; this.pierce = 999; this.speed = 1050; this.cooldown = 0.35; }
     }
     update(dt) {
         this.timer -= dt;
@@ -930,41 +1619,78 @@ class SpeedingArrowsWeapon {
             this.timer = this.cooldown;
             let ang = this.player.facingAngle, lvl = this.level;
             let perpX = -Math.sin(ang), perpY = Math.cos(ang);
-            let dmg = getWeaponDamage('arrows', lvl) * this.player.baseDamageMult;
+            const isFused = this.player.fusions && this.player.fusions.has('arrows_slime');
+            let dmg = this.baseDamage * (isFused ? 2.5 : 1) * this.player.baseDamageMult;
 
-            if (lvl >= 10) {
-                let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 950, dmg, 12, '#a16207', true, 999);
-                proj.life = 3.0;
-                proj.customDraw = (c, cx, cy) => {
-                    c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
-                    c.strokeStyle = '#451a03'; c.lineWidth = 6; c.beginPath(); c.moveTo(-35,0); c.lineTo(25,0); c.stroke();
-                    c.fillStyle = '#64748b'; c.beginPath(); c.moveTo(25,-10); c.lineTo(40,0); c.lineTo(25,10); c.fill();
-                    c.restore();
-                };
-                projectiles.push(proj);
-            } else if (lvl >= 5) {
-                for (let off of [-12, 0, 12]) {
+            if (isFused) {
+                for (let off of [-16, 0, 16]) {
                     let proj = projectilePool.get();
-                    proj.spawn(this.player.x + perpX*off, this.player.y + perpY*off, Math.cos(ang), Math.sin(ang), 800, dmg, 7, '#a16207', false, 6);
+                    proj.spawn(this.player.x + perpX * off, this.player.y + perpY * off, Math.cos(ang), Math.sin(ang), 950, dmg, 12, '#22c55e', true, 999);
+                    proj.target = getClosestEnemy(this.player, 700);
+                    proj.customUpdate = (dtSec) => {
+                        if (proj.target && proj.target.active) {
+                            let tdx = proj.target.x - proj.x, tdy = proj.target.y - proj.y, td = Math.sqrt(tdx*tdx + tdy*tdy) || 1;
+                            proj.vx = proj.vx * 0.85 + (tdx/td) * 0.15;
+                            proj.vy = proj.vy * 0.85 + (tdy/td) * 0.15;
+                            let n = Math.sqrt(proj.vx * proj.vx + proj.vy * proj.vy) || 1;
+                            proj.vx /= n; proj.vy /= n;
+                        }
+                        proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
+                        proj.life -= dtSec; if (proj.life <= 0) proj.active = false;
+                    };
                     proj.customDraw = (c, cx, cy) => {
-                        c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
-                        c.strokeStyle = '#78350f'; c.lineWidth = 3; c.beginPath(); c.moveTo(-18,0); c.lineTo(12,0); c.stroke();
-                        c.fillStyle = '#94a3b8'; c.beginPath(); c.moveTo(12,-6); c.lineTo(20,0); c.lineTo(12,6); c.fill();
+                        c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(Math.atan2(proj.vy, proj.vx));
+                        c.strokeStyle = '#15803d'; c.lineWidth = 5; c.beginPath(); c.moveTo(-25,0); c.lineTo(18,0); c.stroke();
+                        c.fillStyle = '#4ade80'; c.beginPath(); c.moveTo(18,-8); c.lineTo(30,0); c.lineTo(18,8); c.fill();
                         c.restore();
                     };
                     projectiles.push(proj);
                 }
-            } else {
+
+                const slimeBalls = projectiles.filter(p => p.active && p.color === '#22c55e' && p.radius >= 12);
+                slimeBalls.forEach(sb => {
+                    let sTarget = getClosestEnemy(sb, 500);
+                    let svx = sTarget ? (sTarget.x - sb.x) : Math.cos(ang);
+                    let svy = sTarget ? (sTarget.y - sb.y) : Math.sin(ang);
+                    let sd = Math.sqrt(svx*svx + svy*svy) || 1; svx /= sd; svy /= sd;
+
+                    let sProj = projectilePool.get();
+                    sProj.spawn(sb.x, sb.y, svx, svy, 850, dmg * 0.8, 10, '#22c55e', true, 4);
+                    sProj.customDraw = (c, cx, cy) => {
+                        c.save(); c.translate(sProj.x - cx, sProj.y - cy); c.rotate(Math.atan2(svy, svx));
+                        c.strokeStyle = '#166534'; c.lineWidth = 4; c.beginPath(); c.moveTo(-18,0); c.lineTo(12,0); c.stroke();
+                        c.fillStyle = '#86efac'; c.beginPath(); c.moveTo(12,-6); c.lineTo(22,0); c.lineTo(12,6); c.fill();
+                        c.restore();
+                    };
+                    projectiles.push(sProj);
+                });
+
+            } else if (lvl >= 10) {
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 750, dmg, 5, '#a16207', false, 4 + lvl);
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), this.speed, dmg, 14, '#a16207', true, 999);
+                proj.life = 3.0;
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
-                    c.strokeStyle = '#78350f'; c.lineWidth = 2; c.beginPath(); c.moveTo(-12,0); c.lineTo(8,0); c.stroke();
-                    c.fillStyle = '#94a3b8'; c.beginPath(); c.moveTo(8,-4); c.lineTo(14,0); c.lineTo(8,4); c.fill();
+                    c.strokeStyle = '#451a03'; c.lineWidth = 7; c.beginPath(); c.moveTo(-40,0); c.lineTo(28,0); c.stroke();
+                    c.fillStyle = '#64748b'; c.beginPath(); c.moveTo(28,-12); c.lineTo(46,0); c.lineTo(28,12); c.fill();
                     c.restore();
                 };
                 projectiles.push(proj);
+            } else {
+                let aCount = this.arrows || 1;
+                let step = 14;
+                for (let a = 0; a < aCount; a++) {
+                    let off = (a - (aCount - 1) / 2) * step;
+                    let proj = projectilePool.get();
+                    proj.spawn(this.player.x + perpX*off, this.player.y + perpY*off, Math.cos(ang), Math.sin(ang), this.speed, dmg, 6, '#a16207', false, this.pierce);
+                    proj.customDraw = (c, cx, cy) => {
+                        c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
+                        c.strokeStyle = '#78350f'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(-15,0); c.lineTo(10,0); c.stroke();
+                        c.fillStyle = '#94a3b8'; c.beginPath(); c.moveTo(10,-5); c.lineTo(16,0); c.lineTo(10,5); c.fill();
+                        c.restore();
+                    };
+                    projectiles.push(proj);
+                }
             }
         }
     }
@@ -972,29 +1698,59 @@ class SpeedingArrowsWeapon {
 
 // 11. Rebounding Shell
 class ReboundingShellWeapon {
-    constructor(p) { this.player = p; this.id = 'shell'; this.name = "Rebounding Shell"; this.level = 1; this.cooldown = 1.4; this.timer = 0; }
+    constructor(p) {
+        this.player = p; this.id = 'shell'; this.name = "Rebounding Shell";
+        this.level = 1; this.cooldown = 1.4; this.timer = 0;
+        this.baseDamage = 5; this.bounces = 4; this.speed = 420; this.radius = 12; this.knockback = 1.0;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.cooldown = 0.55;
-        else if (lvl >= 5) this.cooldown = 0.95;
-        else this.cooldown = Math.max(1.0, 1.4 - lvl * 0.08);
+        if (lvl === 1) { this.baseDamage = 5; this.bounces = 4; this.speed = 420; this.radius = 12; this.knockback = 1.0; this.cooldown = 1.4; }
+        else if (lvl === 2) { this.bounces = 6; }
+        else if (lvl === 3) { this.baseDamage = 8; }
+        else if (lvl === 4) { this.speed = 520; }
+        else if (lvl === 5) { this.bounces = 9; }
+        else if (lvl === 6) { this.baseDamage = 13; }
+        else if (lvl === 7) { this.knockback = 2.5; }
+        else if (lvl === 8) { this.bounces = 14; }
+        else if (lvl === 9) { this.speed = 620; }
+        else if (lvl >= 10) { this.bounces = 50; this.baseDamage = 30; this.radius = 24; this.speed = 720; this.knockback = 3.5; this.cooldown = 0.55; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let lvl = this.level, target = getClosestEnemy(this.player, 600);
-            let vx = target ? (target.x - this.player.x) : 1, vy = target ? (target.y - this.player.y) : 0;
+            let target = getClosestEnemy(this.player, 1000);
+            let vx = target ? (target.x - this.player.x) : Math.cos(this.player.facingAngle);
+            let vy = target ? (target.y - this.player.y) : Math.sin(this.player.facingAngle);
             let d = Math.sqrt(vx*vx + vy*vy) || 1; vx /= d; vy /= d;
-            let sRadius = lvl >= 10 ? 24 : (lvl >= 5 ? 16 : 12);
-            let bounces = lvl >= 10 ? 40 : (lvl >= 5 ? 10 : 6 + Math.floor(lvl/2));
-            let dmg = getWeaponDamage('shell', lvl) * this.player.baseDamageMult;
+            let dmg = this.baseDamage * this.player.baseDamageMult;
 
             let proj = projectilePool.get();
-            proj.spawn(this.player.x, this.player.y, vx, vy, lvl >= 10 ? 600 : 450, dmg, sRadius, '#16a34a', false, bounces);
+            proj.spawn(this.player.x, this.player.y, vx, vy, this.speed, dmg, this.radius, '#16a34a', false, this.bounces);
+            proj.target = target;
+            proj.customUpdate = (dtSec) => {
+                if (!proj.target || !proj.target.active) {
+                    proj.target = getClosestEnemy(proj, 1000);
+                }
+                if (proj.target && proj.target.active) {
+                    let tdx = proj.target.x - proj.x, tdy = proj.target.y - proj.y;
+                    let td = Math.sqrt(tdx * tdx + tdy * tdy) || 1;
+                    proj.vx = proj.vx * 0.85 + (tdx / td) * 0.15;
+                    proj.vy = proj.vy * 0.85 + (tdy / td) * 0.15;
+                    let vlen = Math.sqrt(proj.vx * proj.vx + proj.vy * proj.vy) || 1;
+                    proj.vx /= vlen; proj.vy /= vlen;
+                }
+                proj.x += proj.vx * proj.speed * dtSec;
+                proj.y += proj.vy * proj.speed * dtSec;
+                if (Math.abs(proj.x) >= MAP_LIMIT - 30) proj.vx *= -1;
+                if (Math.abs(proj.y) >= MAP_LIMIT - 30) proj.vy *= -1;
+                proj.life -= dtSec;
+                if (proj.life <= 0) proj.active = false;
+            };
             proj.customDraw = (c, cx, cy) => {
-                c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(animationTime * (lvl >= 10 ? 16 : 8));
-                c.fillStyle = lvl >= 10 ? '#4ade80' : '#16a34a'; c.beginPath(); c.arc(0,0, proj.radius, 0, Math.PI*2); c.fill();
+                c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(animationTime * (this.level >= 10 ? 16 : 8));
+                c.fillStyle = this.level >= 10 ? '#4ade80' : '#16a34a'; c.beginPath(); c.arc(0,0, proj.radius, 0, Math.PI*2); c.fill();
                 c.strokeStyle = '#14532d'; c.lineWidth = 3; c.stroke();
                 c.restore();
             };
@@ -1005,24 +1761,36 @@ class ReboundingShellWeapon {
 
 // 12. Crazy Acorns
 class CrazyAcornsWeapon {
-    constructor(p) { this.player = p; this.id = 'acorns'; this.name = "Crazy Acorns"; this.level = 1; this.cooldown = 1.2; this.timer = 0; }
+    constructor(p) {
+        this.player = p; this.id = 'acorns'; this.name = "Crazy Acorns";
+        this.level = 1; this.cooldown = 1.2; this.timer = 0;
+        this.baseDamage = 6; this.count = 1; this.blastRadius = 55;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.cooldown = 0.35;
-        else if (lvl >= 5) this.cooldown = 0.75;
-        else this.cooldown = Math.max(0.8, 1.2 - lvl * 0.07);
+        if (lvl === 1) { this.baseDamage = 6; this.count = 1; this.blastRadius = 55; this.cooldown = 1.2; }
+        else if (lvl === 2) { this.count = 2; }
+        else if (lvl === 3) { this.blastRadius = 75; }
+        else if (lvl === 4) { this.baseDamage = 9; }
+        else if (lvl === 5) { this.count = 3; }
+        else if (lvl === 6) { this.blastRadius = 105; }
+        else if (lvl === 7) { this.baseDamage = 14; }
+        else if (lvl === 8) { this.cooldown = 0.70; }
+        else if (lvl === 9) { this.count = 4; }
+        else if (lvl >= 10) { this.count = 6; this.baseDamage = 28; this.blastRadius = 150; this.cooldown = 0.35; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let lvl = this.level, dropCount = lvl >= 10 ? 5 : (lvl >= 5 ? 3 : 1);
-            let aoeSize = lvl >= 10 ? 140 : (lvl >= 5 ? 85 : 55 + lvl*4);
-            let dmg = getWeaponDamage('acorns', lvl) * this.player.baseDamageMult;
+            let dropCount = this.count;
+            let aoeSize = this.blastRadius;
+            let dmg = this.baseDamage * this.player.baseDamageMult;
 
+            let target = getClosestEnemy(this.player, 1000);
             for (let i = 0; i < dropCount; i++) {
-                let dropX = this.player.x + randRange(-160, 160);
-                let dropY = this.player.y + randRange(-160, 160);
+                let dropX = target ? target.x + (i > 0 ? randRange(-40, 40) : 0) : this.player.x + randRange(-140, 140);
+                let dropY = target ? target.y + (i > 0 ? randRange(-40, 40) : 0) : this.player.y + randRange(-140, 140);
                 let proj = projectilePool.get();
                 proj.spawn(dropX, dropY, 0, 0, 0, dmg, 12, '#a16207', false, 1);
                 proj.fuse = 0.6;
@@ -1047,17 +1815,27 @@ class CrazyAcornsWeapon {
 
 // 13. Revolving Horseshoe
 class RevolvingHorseshoeWeapon {
-    constructor(p) { this.player = p; this.id = 'horseshoe'; this.name = "Revolving Horseshoe"; this.level = 1; this.count = 2; }
+    constructor(p) {
+        this.player = p; this.id = 'horseshoe'; this.name = "Revolving Horseshoe";
+        this.level = 1; this.count = 3; this.baseDamage = 5;
+        this.hSize = 9; this.speed = 6; this.radius = 48;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.count = 5;
-        else if (lvl >= 5) this.count = 3;
-        else this.count = 2 + Math.floor(lvl / 3);
+        if (lvl === 1) { this.baseDamage = 5; this.count = 3; this.hSize = 9; this.speed = 6; this.radius = 48; }
+        else if (lvl === 2) { this.count = 4; }
+        else if (lvl === 3) { this.baseDamage = 10; }
+        else if (lvl === 4) { this.count = 5; }
+        else if (lvl === 5) { this.hSize = 13; this.speed = 9; }
+        else if (lvl === 6) { this.radius = 58; this.speed = 10; }
+        else if (lvl === 7) { this.count = 6; }
+        else if (lvl === 8) { this.baseDamage = 20; }
+        else if (lvl === 9) { this.count = 7; }
+        else if (lvl >= 10) { this.count = 8; this.baseDamage = 30; this.hSize = 16; this.speed = 14; }
     }
     update(dt) {
-        let lvl = this.level, radius = lvl >= 10 ? 65 : 48;
-        let speed = lvl >= 10 ? 12 : 7;
-        let dmg = getWeaponDamage('horseshoe', lvl) * this.player.baseDamageMult;
+        let radius = this.radius, speed = this.speed;
+        let dmg = this.baseDamage * this.player.baseDamageMult;
 
         for (let i = 0; i < this.count; i++) {
             let ang = animationTime * speed + (i / this.count) * Math.PI * 2;
@@ -1072,14 +1850,14 @@ class RevolvingHorseshoeWeapon {
         }
     }
     drawOrbital(c, cx, cy) {
-        let lvl = this.level, radius = lvl >= 10 ? 65 : 48, speed = lvl >= 10 ? 12 : 7;
-        let hSize = lvl >= 10 ? 14 : 9;
+        let radius = this.radius, speed = this.speed, hSize = this.hSize;
         for (let i = 0; i < this.count; i++) {
             let ang = animationTime * speed + (i / this.count) * Math.PI * 2;
             let hx = this.player.x + Math.cos(ang) * radius - cx;
             let hy = this.player.y + Math.sin(ang) * radius - cy;
             c.save(); c.translate(hx, hy); c.rotate(ang + Math.PI/2);
-            c.strokeStyle = lvl >= 10 ? '#1e1b4b' : '#94a3b8'; c.lineWidth = lvl >= 10 ? 6 : 4;
+            c.strokeStyle = this.level >= 10 ? '#1e1b4b' : (this.level >= 5 ? '#475569' : '#94a3b8');
+            c.lineWidth = this.level >= 10 ? 6 : 4;
             c.beginPath(); c.arc(0,0, hSize, Math.PI*0.2, Math.PI*1.8); c.stroke();
             c.restore();
         }
@@ -1088,24 +1866,34 @@ class RevolvingHorseshoeWeapon {
 
 // 14. Boomerang Pizza
 class BoomerangPizzaWeapon {
-    constructor(p) { this.player = p; this.id = 'pizza'; this.name = "Boomerang Pizza"; this.level = 1; this.cooldown = 1.3; this.timer = 0; }
+    constructor(p) {
+        this.player = p; this.id = 'pizza'; this.name = "Boomerang Pizza";
+        this.level = 1; this.cooldown = 1.3; this.timer = 0;
+        this.baseDamage = 4; this.maxDist = 320; this.scale = 1.0; this.speed = 450;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.cooldown = 0.55;
-        else if (lvl >= 5) this.cooldown = 0.9;
-        else this.cooldown = Math.max(0.95, 1.3 - lvl * 0.08);
+        if (lvl === 1) { this.baseDamage = 4; this.maxDist = 320; this.scale = 1.0; this.speed = 450; this.cooldown = 1.3; }
+        else if (lvl === 2) { this.maxDist = 420; }
+        else if (lvl === 3) { this.scale = 1.4; }
+        else if (lvl === 4) { this.baseDamage = 7; }
+        else if (lvl === 5) { this.speed = 560; }
+        else if (lvl === 6) { this.scale = 1.8; }
+        else if (lvl === 7) { this.baseDamage = 12; }
+        else if (lvl === 8) { this.maxDist = 550; }
+        else if (lvl === 9) { this.speed = 640; }
+        else if (lvl >= 10) { this.scale = 2.6; this.baseDamage = 24; this.maxDist = 650; this.speed = 700; this.cooldown = 0.55; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let ang = this.player.facingAngle, lvl = this.level;
-            let scale = lvl >= 10 ? 2.5 : (lvl >= 5 ? 1.8 : 1.0);
-            let maxDist = lvl >= 10 ? 550 : 380;
-            let dmg = getWeaponDamage('pizza', lvl) * this.player.baseDamageMult;
+            let ang = this.player.facingAngle;
+            let scale = this.scale, maxDist = this.maxDist;
+            let dmg = this.baseDamage * this.player.baseDamageMult;
 
             let proj = projectilePool.get();
-            proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 450, dmg, 14 * scale, '#eab308', false, 99);
+            proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), this.speed, dmg, 14 * scale, '#eab308', false, 99);
             proj.state = 'out'; proj.distTraveled = 0;
             proj.customUpdate = (dtSec) => {
                 if (proj.state === 'out') {
@@ -1131,28 +1919,40 @@ class BoomerangPizzaWeapon {
 
 // 15. Curving Banana
 class CurvingBananaWeapon {
-    constructor(p) { this.player = p; this.id = 'banana'; this.name = "Curving Banana"; this.level = 1; this.cooldown = 0.8; this.timer = 0; }
+    constructor(p) {
+        this.player = p; this.id = 'banana'; this.name = "Curving Banana";
+        this.level = 1; this.cooldown = 0.8; this.timer = 0;
+        this.baseDamage = 3; this.count = 1; this.curveRate = 3.2; this.bScale = 1.0;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.cooldown = 0.25;
-        else if (lvl >= 5) this.cooldown = 0.45;
-        else this.cooldown = Math.max(0.55, 0.8 - lvl * 0.05);
+        if (lvl === 1) { this.baseDamage = 3; this.count = 1; this.curveRate = 3.2; this.bScale = 1.0; this.cooldown = 0.8; }
+        else if (lvl === 2) { this.count = 2; }
+        else if (lvl === 3) { this.curveRate = 4.0; }
+        else if (lvl === 4) { this.baseDamage = 5; }
+        else if (lvl === 5) { this.count = 3; }
+        else if (lvl === 6) { this.curveRate = 5.0; }
+        else if (lvl === 7) { this.baseDamage = 9; }
+        else if (lvl === 8) { this.count = 4; }
+        else if (lvl === 9) { this.curveRate = 6.0; }
+        else if (lvl >= 10) { this.count = 6; this.baseDamage = 20; this.bScale = 2.0; this.curveRate = 7.0; this.cooldown = 0.25; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let lvl = this.level, bananaCount = lvl >= 10 ? 6 : (lvl >= 5 ? 3 : 1);
-            let bScale = lvl >= 10 ? 2.0 : (lvl >= 5 ? 1.4 : 1.0);
-            let dmg = getWeaponDamage('banana', lvl) * this.player.baseDamageMult;
+            let bananaCount = this.count;
+            let bScale = this.bScale;
+            let dmg = this.baseDamage * this.player.baseDamageMult;
+            let curveSpeed = this.curveRate;
 
             for (let i = 0; i < bananaCount; i++) {
                 let ang = this.player.facingAngle + (i * (Math.PI * 2 / bananaCount));
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 400, dmg, 10 * bScale, '#facc15', false, lvl >= 10 ? 6 : 3);
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 400, dmg, 10 * bScale, '#facc15', false, this.level >= 10 ? 6 : 3);
                 proj.curveAng = ang; proj.curveDir = i % 2 === 0 ? 1 : -1;
                 proj.customUpdate = (dtSec) => {
-                    proj.curveAng += dtSec * (lvl >= 10 ? 5.5 : 3.8) * proj.curveDir;
+                    proj.curveAng += dtSec * curveSpeed * proj.curveDir;
                     proj.vx = Math.cos(proj.curveAng); proj.vy = Math.sin(proj.curveAng);
                     proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
                     proj.life -= dtSec; if (proj.life <= 0) proj.active = false;
@@ -1173,23 +1973,33 @@ class JugglingSpheresWeapon {
     constructor(p) {
         this.player = p; this.id = 'jugglingspheres'; this.name = "Juggling Spheres";
         this.level = 1; this.cooldown = 0.58; this.timer = 0;
+        this.baseDamage = 8; this.count = 2; this.sRadius = 9;
         this.colors = ['#f43f5e', '#3b82f6', '#eab308', '#22c55e', '#a855f7', '#06b6d4'];
         this.colorCounter = 0;
     }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.cooldown = 0.20;
-        else if (lvl >= 5) this.cooldown = 0.35;
-        else this.cooldown = Math.max(0.40, 0.58 - lvl * 0.04);
+        if (lvl === 1) { this.baseDamage = 8; this.count = 2; this.sRadius = 9; this.cooldown = 0.58; }
+        else if (lvl === 2) { this.count = 3; }
+        else if (lvl === 3) { this.baseDamage = 11; }
+        else if (lvl === 4) { this.cooldown = 0.45; }
+        else if (lvl === 5) { this.count = 4; }
+        else if (lvl === 6) { this.baseDamage = 15; }
+        else if (lvl === 7) { this.cooldown = 0.35; }
+        else if (lvl === 8) { this.count = 5; }
+        else if (lvl === 9) { this.baseDamage = 20; }
+        else if (lvl >= 10) { this.count = 6; this.baseDamage = 40; this.sRadius = 18; this.cooldown = 0.20; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let lvl = this.level, baseAng = this.player.facingAngle;
-            let count = lvl >= 10 ? 6 : (lvl >= 5 ? 3 : 2);
-            let sRadius = lvl >= 10 ? 18 : (lvl >= 5 ? 12 : 9);
-            let dmg = getWeaponDamage('jugglingspheres', lvl) * this.player.baseDamageMult;
+            let target = getClosestEnemy(this.player, 1000);
+            let baseAng = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : this.player.facingAngle;
+            let lvl = this.level;
+            let count = this.count;
+            let sRadius = this.sRadius;
+            let dmg = this.baseDamage * this.player.baseDamageMult;
             let speed = lvl >= 10 ? 560 : 460;
             let pierceCount = lvl >= 10 ? 12 : (lvl >= 5 ? 5 : 3);
 
@@ -1233,19 +2043,30 @@ class JugglingSpheresWeapon {
 
 // 17. Whirling Bones
 class WhirlingBonesWeapon {
-    constructor(p) { this.player = p; this.id = 'bones'; this.name = "Whirling Bones"; this.level = 1; this.cooldown = 1.0; this.timer = 0; }
+    constructor(p) {
+        this.player = p; this.id = 'bones'; this.name = "Whirling Bones";
+        this.level = 1; this.cooldown = 1.0; this.timer = 0;
+        this.baseDamage = 5; this.count = 6;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.cooldown = 0.45;
-        else if (lvl >= 5) this.cooldown = 0.7;
-        else this.cooldown = Math.max(0.75, 1.0 - lvl * 0.06);
+        if (lvl === 1) { this.baseDamage = 5; this.count = 6; this.cooldown = 1.0; }
+        else if (lvl === 2) { this.count = 8; }
+        else if (lvl === 3) { this.baseDamage = 8; }
+        else if (lvl === 4) { this.cooldown = 0.85; }
+        else if (lvl === 5) { this.count = 11; }
+        else if (lvl === 6) { this.baseDamage = 12; }
+        else if (lvl === 7) { this.cooldown = 0.70; }
+        else if (lvl === 8) { this.count = 13; }
+        else if (lvl === 9) { this.baseDamage = 16; }
+        else if (lvl >= 10) { this.count = 16; this.baseDamage = 38; this.cooldown = 0.45; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let lvl = this.level, count = lvl >= 10 ? 16 : (lvl >= 5 ? 9 : 6);
-            let dmg = getWeaponDamage('bones', lvl) * this.player.baseDamageMult;
+            let lvl = this.level, count = this.count;
+            let dmg = this.baseDamage * this.player.baseDamageMult;
 
             for (let i = 0; i < count; i++) {
                 let ang = (i / count) * Math.PI * 2;
@@ -1272,22 +2093,35 @@ class WhirlingBonesWeapon {
 
 // 18. Peacock Feathers
 class PeacockFeathersWeapon {
-    constructor(p) { this.player = p; this.id = 'peacock'; this.name = "Peacock Feathers"; this.level = 1; this.cooldown = 1.5; this.timer = 0; }
+    constructor(p) {
+        this.player = p; this.id = 'peacock'; this.name = "Peacock Feathers";
+        this.level = 1; this.cooldown = 1.5; this.timer = 0;
+        this.baseDamage = 6; this.count = 5; this.spread = 0.8; this.fLength = 12;
+    }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl >= 10) this.cooldown = 0.55;
-        else if (lvl >= 5) this.cooldown = 0.95;
-        else this.cooldown = Math.max(1.0, 1.5 - lvl * 0.09);
+        if (lvl === 1) { this.baseDamage = 6; this.count = 5; this.spread = 0.8; this.fLength = 12; this.cooldown = 1.5; }
+        else if (lvl === 2) { this.count = 7; }
+        else if (lvl === 3) { this.baseDamage = 9; }
+        else if (lvl === 4) { this.spread = 1.2; }
+        else if (lvl === 5) { this.count = 10; }
+        else if (lvl === 6) { this.baseDamage = 14; }
+        else if (lvl === 7) { this.cooldown = 1.1; }
+        else if (lvl === 8) { this.count = 12; }
+        else if (lvl === 9) { this.baseDamage = 21; }
+        else if (lvl >= 10) { this.count = 13; this.baseDamage = 50; this.spread = 2.4; this.fLength = 26; this.cooldown = 0.55; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let baseAng = this.player.facingAngle, lvl = this.level;
-            let count = lvl >= 10 ? 13 : (lvl >= 5 ? 8 : 5);
-            let spread = lvl >= 10 ? 2.4 : (lvl >= 5 ? 1.5 : 0.8);
-            let fLength = lvl >= 10 ? 26 : (lvl >= 5 ? 18 : 12);
-            let dmg = getWeaponDamage('peacock', lvl) * this.player.baseDamageMult;
+            let target = getClosestEnemy(this.player, 1000);
+            let baseAng = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : this.player.facingAngle;
+            let lvl = this.level;
+            let count = this.count;
+            let spread = this.spread;
+            let fLength = this.fLength;
+            let dmg = this.baseDamage * this.player.baseDamageMult;
 
             for (let i = 0; i < count; i++) {
                 let ang = baseAng - spread/2 + (spread / count) * i;
@@ -1335,6 +2169,98 @@ function getWeaponDescription(id) {
         'peacock': 'Abanico exótico de plumas protectoras de alto impacto.'
     };
     return descriptions[id] || 'Poderosa habilidad para tu arsenal.';
+}
+
+const PASSIVES_CATALOG = [
+    {
+        id: 'magnet', name: 'Imán Cósmico (Magnet)', icon: '🧲',
+        desc: 'Aumenta el radio de atracción de orbes de experiencia.',
+        apply: (p, lvl) => { p.magnetRadius += 45; }
+    },
+    {
+        id: 'speed', name: 'Botas Aladas (Speed)', icon: '⚡',
+        desc: 'Aumenta la velocidad de movimiento un +12%.',
+        apply: (p, lvl) => { p.speed *= 1.12; }
+    },
+    {
+        id: 'hp', name: 'Corazón de Titán (HP)', icon: '❤️',
+        desc: 'Aumenta la salud máxima +35 HP y cura 35 HP.',
+        apply: (p, lvl) => { p.maxHp += 35; p.hp = Math.min(p.maxHp, p.hp + 35); }
+    },
+    {
+        id: 'might', name: 'Fuerza Bruta (Might)', icon: '💪',
+        desc: 'Incrementa el daño global de todas tus armas un +15%.',
+        apply: (p, lvl) => { p.baseDamageMult += 0.15; }
+    },
+    {
+        id: 'armor', name: 'Armadura Helada (Armor)', icon: '🛡️',
+        desc: 'Reduce todo el daño recibido un 10%.',
+        apply: (p, lvl) => { p.damageReduction = Math.min(0.65, (p.damageReduction || 0) + 0.10); }
+    },
+    {
+        id: 'crit', name: 'Ojo Certero (Crit)', icon: '🎯',
+        desc: 'Aumenta la probabilidad de impacto crítico un +8%.',
+        apply: (p, lvl) => { p.critChance += 0.08; }
+    }
+];
+
+const TRIVIA_QUESTIONS = [
+    { q: '¿Cuánto es 12 + 15?', a: ['27', '25', '29', '26'], c: 0 },
+    { q: '¿Cuál es el planeta más cercano al Sol?', a: ['Marte', 'Mercurio', 'Venus', 'Tierra'], c: 1 },
+    { q: '¿Cuánto es 9 x 7?', a: ['56', '64', '63', '72'], c: 2 },
+    { q: '¿Cuál es el océano más grande del mundo?', a: ['Atlántico', 'Índico', 'Ártico', 'Pacífico'], c: 3 },
+    { q: '¿Cuánto es 80 / 4?', a: ['20', '25', '18', '22'], c: 0 },
+    { q: '¿Qué animal es conocido como el rey de la selva?', a: ['Tigre', 'León', 'Elefante', 'Oso'], c: 1 },
+    { q: '¿Cuánto es 14 x 3?', a: ['38', '40', '42', '46'], c: 2 },
+    { q: '¿Cuál es el elemento químico del agua?', a: ['CO2', 'NaCl', 'O2', 'H2O'], c: 3 },
+    { q: '¿Cuántos días tiene un año bisiesto?', a: ['366', '365', '364', '360'], c: 0 },
+    { q: '¿Cuánto es 100 - 37?', a: ['73', '63', '53', '67'], c: 1 }
+];
+
+let quizRequiredCount = 0;
+let quizAnsweredCount = 0;
+
+function startQuizValidation(requiredSuccesses, onPassed) {
+    quizRequiredCount = requiredSuccesses;
+    quizAnsweredCount = 0;
+    const quizBox = document.getElementById('quiz-container');
+    const draftOptions = document.getElementById('draft-options');
+    
+    quizBox.classList.remove('hidden');
+    draftOptions.classList.add('hidden');
+
+    function renderNextQuestion() {
+        document.getElementById('quiz-step-counter').innerText = `${quizAnsweredCount + 1}/${quizRequiredCount}`;
+        const qData = TRIVIA_QUESTIONS[Math.floor(Math.random() * TRIVIA_QUESTIONS.length)];
+        document.getElementById('quiz-question').innerText = qData.q;
+        const answersContainer = document.getElementById('quiz-answers');
+        answersContainer.innerHTML = '';
+
+        qData.a.forEach((optText, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-600 font-bold p-3 rounded-xl text-white transition text-center cursor-pointer';
+            btn.innerText = optText;
+            btn.onclick = () => {
+                if (index === qData.c) {
+                    quizAnsweredCount++;
+                    if (quizAnsweredCount >= quizRequiredCount) {
+                        quizBox.classList.add('hidden');
+                        draftOptions.classList.remove('hidden');
+                        onPassed();
+                    } else {
+                        renderNextQuestion();
+                    }
+                } else {
+                    // Si falla una respuesta consecutiva en Lv 30+, reinicia la racha a 0
+                    quizAnsweredCount = 0;
+                    renderNextQuestion();
+                }
+            };
+            answersContainer.appendChild(btn);
+        });
+    }
+
+    renderNextQuestion();
 }
 
 const ENEMY_CATALOG = [
@@ -1486,519 +2412,418 @@ class Enemy {
         }
 
         const r = this.radius;
-        const c = ctxCanvas;
 
         switch (this.drawType) {
             case 'slime': {
-                // Blook cuadrado redondeado de hielo
-                c.fillStyle = '#29a8e2';
-                drawRoundedRect(c, -r, -r, r * 2, r * 2, r * 0.28); c.fill();
-
-                // Faceta superior clara
-                c.fillStyle = '#6fd5fc';
-                drawRoundedRect(c, -r * 0.78, -r * 0.78, r * 1.56, r * 0.65, r * 0.2); c.fill();
-
-                // Burbujas de brillo
-                c.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                c.beginPath(); c.arc(-r * 0.45, -r * 0.48, r * 0.2, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.arc(-r * 0.15, -r * 0.65, r * 0.1, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.arc(r * 0.62, r * 0.45, r * 0.09, 0, Math.PI * 2); c.fill();
-
-                // Borde inferior / labio redondeado
-                c.fillStyle = '#1c82be';
-                drawRoundedRect(c, -r * 0.88, r * 0.22, r * 1.76, r * 0.58, r * 0.25); c.fill();
-
-                // Cejas oscuras e inclinadas
-                c.fillStyle = '#004b87';
-                c.beginPath(); c.moveTo(-r * 0.65, -r * 0.26); c.lineTo(-r * 0.24, -r * 0.12); c.lineTo(-r * 0.28, -r * 0.36); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.65, -r * 0.26); c.lineTo(r * 0.24, -r * 0.12); c.lineTo(r * 0.28, -r * 0.36); c.closePath(); c.fill();
-
-                // Ojos negros rasgados
-                c.fillStyle = '#0b192c';
-                c.beginPath(); c.ellipse(-r * 0.46, -r * 0.08, r * 0.22, r*0.25, -0.22, 0, Math.PI*2); c.fill();
-                c.beginPath(); c.ellipse(r * 0.46, -r * 0.08, r * 0.22, r*0.25, 0.22, 0, Math.PI*2); c.fill();
-
-                // Puntos blancos de brillo en ojos
-                c.fillStyle = '#ffffff';
-                c.beginPath(); c.arc(-r * 0.4, -r * 0.1, r * 0.075, 0, Math.PI*2); c.fill();
-                c.beginPath(); c.arc(r * 0.52, -r * 0.1, r * 0.075, 0, Math.PI*2); c.fill();
-
-                // Boca oscura con dientes triangulares
-                c.fillStyle = '#0b192c';
-                c.beginPath(); c.arc(0, r * 0.48, r * 0.26, Math.PI, 0); c.closePath(); c.fill();
-                c.fillStyle = '#ffffff';
-                c.beginPath();
-                c.moveTo(-r * 0.26, r * 0.48); c.lineTo(-r * 0.19, r * 0.32); c.lineTo(-r * 0.13, r * 0.48);
-                c.lineTo(-r * 0.06, r * 0.32); c.lineTo(0, r * 0.48);
-                c.lineTo(r * 0.06, r * 0.32); c.lineTo(r * 0.13, r * 0.48);
-                c.lineTo(r * 0.19, r * 0.32); c.lineTo(r * 0.26, r * 0.48);
-                c.closePath(); c.fill();
+                // 1. Ice Slime (Blooket auténtico)
+                drawRoundedRect(ctxCanvas, -r, -r, r * 2, r * 2, 10);
+                ctxCanvas.fillStyle = '#38bdf8'; ctxCanvas.fill();
+                // Franja inferior redondeada
+                drawRoundedRect(ctxCanvas, -r + 2, r * 0.3, (r - 2) * 2, r * 0.6, 8);
+                ctxCanvas.fillStyle = '#0284c7'; ctxCanvas.fill();
+                // Destellos de hielo / burbujas
+                ctxCanvas.fillStyle = 'rgba(255, 255, 255, 0.55)';
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.52, -r * 0.6, r * 0.26, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.12, -r * 0.75, r * 0.15, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(r * 0.72, r * 0.6, r * 0.1, 0, Math.PI * 2); ctxCanvas.fill();
+                // Cejas anguladas
+                ctxCanvas.fillStyle = '#0284c7';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.42, -r * 0.16, r * 0.36, r * 0.2, -0.4, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.42, -r * 0.16, r * 0.36, r * 0.2, 0.4, 0, Math.PI * 2); ctxCanvas.fill();
+                // Ojos oscuros con brillo
+                ctxCanvas.fillStyle = '#0f172a';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.42, -r * 0.08, r * 0.3, r * 0.22, -0.3, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.42, -r * 0.08, r * 0.3, r * 0.22, 0.3, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.34, -r * 0.12, r * 0.09, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(r * 0.5, -r * 0.12, r * 0.09, 0, Math.PI * 2); ctxCanvas.fill();
+                // Boca abierta con dientes afilados
+                ctxCanvas.fillStyle = '#0f172a';
+                ctxCanvas.beginPath(); ctxCanvas.arc(0, r * 0.52, r * 0.28, Math.PI, 0, false); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(-r * 0.25, r * 0.52);
+                ctxCanvas.lineTo(-r * 0.17, r * 0.38); ctxCanvas.lineTo(-r * 0.09, r * 0.52);
+                ctxCanvas.lineTo(-0.01, r * 0.38); ctxCanvas.lineTo(r * 0.08, r * 0.52);
+                ctxCanvas.lineTo(r * 0.16, r * 0.38); ctxCanvas.lineTo(r * 0.24, r * 0.52);
+                ctxCanvas.fill();
                 break;
             }
             case 'red_slime_boss': {
-                let glow = c.createRadialGradient(0, 0, r * 0.3, 0, 0, r * 1.6);
+                // Red Slime Monster (Jefe Nivel 10)
+                let glow = ctxCanvas.createRadialGradient(0, 0, r * 0.3, 0, 0, r * 1.5);
                 glow.addColorStop(0, 'rgba(239, 68, 68, 0.85)'); glow.addColorStop(1, 'rgba(239, 68, 68, 0)');
-                c.fillStyle = glow; c.beginPath(); c.arc(0, 0, r * 1.6, 0, Math.PI * 2); c.fill();
-
-                c.fillStyle = '#dc2626'; drawRoundedRect(c, -r, -r, r * 2, r * 2, r * 0.28); c.fill();
-                c.fillStyle = '#ef4444'; drawRoundedRect(c, -r * 0.78, -r * 0.78, r * 1.56, r * 0.65, r * 0.2); c.fill();
-
-                c.fillStyle = 'rgba(255, 255, 255, 0.85)';
-                c.beginPath(); c.arc(-r * 0.45, -r * 0.48, r * 0.2, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.arc(r * 0.62, r * 0.45, r * 0.09, 0, Math.PI * 2); c.fill();
-
-                c.fillStyle = '#991b1b'; drawRoundedRect(c, -r * 0.88, r * 0.22, r * 1.76, r * 0.58, r * 0.25); c.fill();
-
-                c.fillStyle = '#7f1d1d';
-                c.beginPath(); c.moveTo(-r * 0.65, -r * 0.26); c.lineTo(-r * 0.24, -r * 0.12); c.lineTo(-r * 0.28, -r * 0.36); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.65, -r * 0.26); c.lineTo(r * 0.24, -r * 0.12); c.lineTo(r * 0.28, -r * 0.36); c.closePath(); c.fill();
-
-                c.fillStyle = '#0b192c';
-                c.beginPath(); c.ellipse(-r * 0.46, -r * 0.08, r * 0.22, r*0.25, -0.22, 0, Math.PI*2); c.fill();
-                c.beginPath(); c.ellipse(r * 0.46, -r * 0.08, r * 0.22, r*0.25, 0.22, 0, Math.PI*2); c.fill();
-
-                c.fillStyle = '#fef08a';
-                c.beginPath(); c.arc(-r * 0.4, -r * 0.1, r * 0.08, 0, Math.PI*2); c.fill();
-                c.beginPath(); c.arc(r * 0.52, -r * 0.1, r * 0.08, 0, Math.PI*2); c.fill();
-
-                c.fillStyle = '#0b192c';
-                c.beginPath(); c.arc(0, r * 0.48, r * 0.26, Math.PI, 0); c.closePath(); c.fill();
-                c.fillStyle = '#ffffff';
-                c.beginPath();
-                c.moveTo(-r * 0.26, r * 0.48); c.lineTo(-r * 0.19, r * 0.32); c.lineTo(-r * 0.13, r * 0.48);
-                c.lineTo(-r * 0.06, r * 0.32); c.lineTo(0, r * 0.48);
-                c.lineTo(r * 0.06, r * 0.32); c.lineTo(r * 0.13, r * 0.48);
-                c.lineTo(r * 0.19, r * 0.32); c.lineTo(r * 0.26, r * 0.48);
-                c.closePath(); c.fill();
+                ctxCanvas.fillStyle = glow; ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, r * 1.5, 0, Math.PI * 2); ctxCanvas.fill();
+                drawRoundedRect(ctxCanvas, -r, -r, r * 2, r * 2, 14);
+                ctxCanvas.fillStyle = '#ef4444'; ctxCanvas.fill();
+                drawRoundedRect(ctxCanvas, -r + 3, r * 0.3, (r - 3) * 2, r * 0.6, 10);
+                ctxCanvas.fillStyle = '#b91c1c'; ctxCanvas.fill();
+                // Destellos de magma
+                ctxCanvas.fillStyle = 'rgba(254, 240, 138, 0.6)';
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.52, -r * 0.6, r * 0.24, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.12, -r * 0.75, r * 0.14, 0, Math.PI * 2); ctxCanvas.fill();
+                // Cejas y ojos rojos/amarillos
+                ctxCanvas.fillStyle = '#7f1d1d';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.42, -r * 0.16, r * 0.36, r * 0.2, -0.4, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.42, -r * 0.16, r * 0.36, r * 0.2, 0.4, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#450a0a';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.42, -r * 0.08, r * 0.3, r * 0.22, -0.3, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.42, -r * 0.08, r * 0.3, r * 0.22, 0.3, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#fef08a';
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.34, -r * 0.12, r * 0.1, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(r * 0.5, -r * 0.12, r * 0.1, 0, Math.PI * 2); ctxCanvas.fill();
+                // Boca amenazante con colmillos
+                ctxCanvas.fillStyle = '#450a0a';
+                ctxCanvas.beginPath(); ctxCanvas.arc(0, r * 0.52, r * 0.28, Math.PI, 0, false); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(-r * 0.25, r * 0.52);
+                ctxCanvas.lineTo(-r * 0.17, r * 0.38); ctxCanvas.lineTo(-r * 0.09, r * 0.52);
+                ctxCanvas.lineTo(-0.01, r * 0.38); ctxCanvas.lineTo(r * 0.08, r * 0.52);
+                ctxCanvas.lineTo(r * 0.16, r * 0.38); ctxCanvas.lineTo(r * 0.24, r * 0.52);
+                ctxCanvas.fill();
                 break;
             }
             case 'bat': {
-                let flap = Math.sin(animationTime * 14 + this.animPhase) * (r * 0.18);
-                
-                // Alas exteriores azules oscuras
-                c.fillStyle = '#1e40af';
-                c.beginPath(); c.moveTo(-r * 0.35, 0); c.quadraticCurveTo(-r * 1.35, -r * 1.1 + flap, -r * 1.85, -r * 0.25 + flap); c.quadraticCurveTo(-r * 1.35, r * 0.8, -r * 0.35, r * 0.6); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.35, 0); c.quadraticCurveTo(r * 1.35, -r * 1.1 + flap, r * 1.85, -r * 0.25 + flap); c.quadraticCurveTo(r * 1.35, r * 0.8, r * 0.35, r * 0.6); c.closePath(); c.fill();
-
-                // Membrana interior de las alas
-                c.fillStyle = '#60a5fa';
-                c.beginPath(); c.moveTo(-r * 0.45, 0); c.quadraticCurveTo(-r * 1.15, -r * 0.8 + flap, -r * 1.55, -r * 0.2 + flap); c.quadraticCurveTo(-r * 1.1, r * 0.55, -r * 0.45, r * 0.4); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.45, 0); c.quadraticCurveTo(r * 1.15, -r * 0.8 + flap, r * 1.55, -r * 0.2 + flap); c.quadraticCurveTo(r * 1.1, r * 0.55, r * 0.45, r * 0.4); c.closePath(); c.fill();
-
+                // 2. Ice Bat (Blooket con alas extendidas, orejas y colmillos)
+                let flap = Math.sin(animationTime * 16 + this.animPhase) * (r * 0.22);
+                // Alas arqueadas azules
+                ctxCanvas.fillStyle = '#1d4ed8';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(0, 0);
+                ctxCanvas.quadraticCurveTo(-r * 1.5, -r * 1.3 + flap, -r * 2.3, -r * 0.1 + flap);
+                ctxCanvas.quadraticCurveTo(-r * 1.3, r * 0.8, 0, r * 0.6);
+                ctxCanvas.moveTo(0, 0);
+                ctxCanvas.quadraticCurveTo(r * 1.5, -r * 1.3 + flap, r * 2.3, -r * 0.1 + flap);
+                ctxCanvas.quadraticCurveTo(r * 1.3, r * 0.8, 0, r * 0.6);
+                ctxCanvas.fill();
+                // Cuerpo cúbico del murciélago
+                drawRoundedRect(ctxCanvas, -r * 0.85, -r * 0.85, r * 1.7, r * 1.7, 10);
+                ctxCanvas.fillStyle = '#3b82f6'; ctxCanvas.fill();
                 // Orejas puntiagudas
-                c.fillStyle = '#1e3a8a';
-                c.beginPath(); c.moveTo(-r * 0.65, -r * 0.35); c.lineTo(-r * 0.85, -r * 1.15); c.lineTo(-r * 0.25, -r * 0.65); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.65, -r * 0.35); c.lineTo(r * 0.85, -r * 1.15); c.lineTo(r * 0.25, -r * 0.65); c.closePath(); c.fill();
-                c.fillStyle = '#93c5fd';
-                c.beginPath(); c.moveTo(-r * 0.6, -r * 0.42); c.lineTo(-r * 0.78, -r * 1.0); c.lineTo(-r * 0.32, -r * 0.65); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.6, -r * 0.42); c.lineTo(r * 0.78, -r * 1.0); c.lineTo(r * 0.32, -r * 0.65); c.closePath(); c.fill();
-
-                // Cuerpo central
-                c.fillStyle = '#2563eb'; drawRoundedRect(c, -r * 0.75, -r * 0.75, r * 1.5, r * 1.5, r * 0.25); c.fill();
-                c.fillStyle = '#3b82f6'; c.beginPath(); c.arc(0, r * 0.05, r * 0.55, 0, Math.PI * 2); c.fill();
-
-                // Ojos
-                c.fillStyle = '#0f172a';
-                c.beginPath(); c.arc(-r * 0.3, -r * 0.14, r * 0.14, 0, Math.PI * 2); c.arc(r * 0.3, -r * 0.14, r * 0.14, 0, Math.PI * 2); c.fill();
-                c.fillStyle = '#ffffff';
-                c.beginPath(); c.arc(-r * 0.26, -r * 0.18, r * 0.05, 0, Math.PI * 2); c.arc(r * 0.34, -r * 0.18, r * 0.05, 0, Math.PI * 2); c.fill();
-
+                ctxCanvas.fillStyle = '#1d4ed8';
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(-r * 0.65, -r * 0.8); ctxCanvas.lineTo(-r * 0.8, -r * 1.4); ctxCanvas.lineTo(-r * 0.35, -r * 0.85); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(r * 0.65, -r * 0.8); ctxCanvas.lineTo(r * 0.8, -r * 1.4); ctxCanvas.lineTo(r * 0.35, -r * 0.85); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#93c5fd';
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(-r * 0.62, -r * 0.82); ctxCanvas.lineTo(-r * 0.74, -r * 1.25); ctxCanvas.lineTo(-r * 0.42, -r * 0.85); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(r * 0.62, -r * 0.82); ctxCanvas.lineTo(r * 0.74, -r * 1.25); ctxCanvas.lineTo(r * 0.42, -r * 0.85); ctxCanvas.fill();
+                // Ojos pequeños intensos
+                ctxCanvas.fillStyle = '#0f172a';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.28, -r * 0.15, r * 0.18, r * 0.22, 0.15, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.28, -r * 0.15, r * 0.18, r * 0.22, -0.15, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.24, -r * 0.2, r * 0.06, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(r * 0.32, -r * 0.2, r * 0.06, 0, Math.PI * 2); ctxCanvas.fill();
                 // Hocico con fosas nasales
-                c.fillStyle = '#93c5fd';
-                c.beginPath(); c.ellipse(0, r * 0.2, r * 0.32, r * 0.22, 0, 0, Math.PI * 2); c.fill();
-                c.fillStyle = '#1e293b';
-                c.beginPath(); c.ellipse(-r * 0.1, r * 0.2, r * 0.065, r * 0.1, 0, 0, Math.PI * 2); c.ellipse(r * 0.1, r * 0.2, r * 0.065, r * 0.1, 0, 0, Math.PI * 2); c.fill();
-
+                ctxCanvas.fillStyle = '#93c5fd';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(0, r * 0.2, r * 0.32, r * 0.24, 0, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#1e3a8a';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.1, r * 0.18, r * 0.07, r * 0.11, -0.15, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.1, r * 0.18, r * 0.07, r * 0.11, 0.15, 0, Math.PI * 2); ctxCanvas.fill();
                 // Colmillos de vampiro
-                c.fillStyle = '#ffffff';
-                c.beginPath(); c.moveTo(-r * 0.18, r * 0.38); c.lineTo(-r * 0.12, r * 0.54); c.lineTo(-r * 0.06, r * 0.38); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.06, r * 0.38); c.lineTo(r * 0.12, r * 0.54); c.lineTo(r * 0.18, r * 0.38); c.closePath(); c.fill();
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(-r * 0.18, r * 0.38); ctxCanvas.lineTo(-r * 0.12, r * 0.56); ctxCanvas.lineTo(-r * 0.06, r * 0.38); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(r * 0.06, r * 0.38); ctxCanvas.lineTo(r * 0.12, r * 0.56); ctxCanvas.lineTo(r * 0.18, r * 0.38); ctxCanvas.fill();
                 break;
             }
             case 'fossil': {
-                // Bloque de hielo translúcido
-                c.fillStyle = '#7dd3fc'; drawRoundedRect(c, -r, -r, r * 2, r * 2, r * 0.22); c.fill();
-                c.strokeStyle = '#bae6fd'; c.lineWidth = 2; drawRoundedRect(c, -r, -r, r * 2, r * 2, r * 0.22); c.stroke();
-
-                // Capa de nieve superior
-                c.fillStyle = '#ffffff';
-                c.beginPath();
-                c.arc(-r * 0.65, -r * 0.85, r * 0.3, 0, Math.PI * 2);
-                c.arc(-r * 0.15, -r * 0.92, r * 0.38, 0, Math.PI * 2);
-                c.arc(r * 0.4, -r * 0.88, r * 0.34, 0, Math.PI * 2);
-                c.arc(r * 0.75, -r * 0.82, r * 0.25, 0, Math.PI * 2);
-                c.fill();
-                c.fillRect(-r, -r, r * 2, r * 0.24);
-
-                // Cráneo fósil de dinosaurio dentro del hielo
-                c.save(); c.rotate(-0.25);
-                c.fillStyle = '#64748b';
-                c.beginPath();
-                c.moveTo(-r * 0.5, -r * 0.2);
-                c.quadraticCurveTo(-r * 0.4, -r * 0.6, r * 0.1, -r * 0.45);
-                c.quadraticCurveTo(r * 0.8, -r * 0.2, r * 0.85, 0);
-                c.lineTo(r * 0.4, r * 0.15);
-                c.lineTo(-r * 0.3, r * 0.2);
-                c.closePath(); c.fill();
-
-                // Cuenca ocular vacía
-                c.fillStyle = '#1e293b'; c.beginPath(); c.arc(-r * 0.05, -r * 0.25, r * 0.18, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.arc(r * 0.65, -r * 0.1, r * 0.06, 0, Math.PI * 2); c.fill();
-
-                // Mandíbula inferior y dientes
-                c.fillStyle = '#475569';
-                c.beginPath(); c.moveTo(-r * 0.2, r * 0.15); c.lineTo(r * 0.75, 0.05); c.lineTo(r * 0.7, r * 0.2); c.lineTo(-r * 0.15, r * 0.3); c.closePath(); c.fill();
-                c.fillStyle = '#e2e8f0';
-                for (let ti = 0; ti < 5; ti++) {
-                    let tx = r * 0.15 + ti * r * 0.11;
-                    c.beginPath(); c.moveTo(tx, r * 0.05); c.lineTo(tx + r * 0.05, -r * 0.05); c.lineTo(tx + r * 0.1, r * 0.05); c.closePath(); c.fill();
+                // 3. Frozen Fossil (Cubo de hielo translúcido con cráneo de dinosaurio y grietas)
+                drawRoundedRect(ctxCanvas, -r, -r, r * 2, r * 2, 10);
+                ctxCanvas.fillStyle = '#93c5fd'; ctxCanvas.fill();
+                // Capa de nieve superior esponjosa
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(-r, -r + 6);
+                ctxCanvas.quadraticCurveTo(-r * 0.6, -r - 4, -r * 0.3, -r + 6);
+                ctxCanvas.quadraticCurveTo(0, -r - 5, r * 0.4, -r + 7);
+                ctxCanvas.quadraticCurveTo(r * 0.8, -r - 3, r, -r + 5);
+                ctxCanvas.lineTo(r, -r); ctxCanvas.lineTo(-r, -r); ctxCanvas.closePath(); ctxCanvas.fill();
+                // Cráneo fósil gris incrustado
+                ctxCanvas.fillStyle = '#64748b';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(-r * 0.7, -r * 0.1);
+                ctxCanvas.quadraticCurveTo(-r * 0.5, -r * 0.6, 0, -r * 0.4);
+                ctxCanvas.lineTo(r * 0.75, r * 0.25);
+                ctxCanvas.quadraticCurveTo(r * 0.8, r * 0.45, r * 0.5, r * 0.5);
+                ctxCanvas.lineTo(-r * 0.1, r * 0.35);
+                ctxCanvas.quadraticCurveTo(-r * 0.6, r * 0.3, -r * 0.7, -r * 0.1); ctxCanvas.fill();
+                // Cuenca ocular fósil
+                ctxCanvas.fillStyle = '#334155';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.1, -r * 0.05, r * 0.22, r * 0.2, 0, 0, Math.PI * 2); ctxCanvas.fill();
+                // Dientes del fósil
+                ctxCanvas.fillStyle = '#cbd5e1';
+                for (let i = 0; i < 4; i++) {
+                    let tx = r * 0.2 + i * (r * 0.13);
+                    ctxCanvas.beginPath(); ctxCanvas.moveTo(tx, r * 0.33); ctxCanvas.lineTo(tx + r * 0.06, r * 0.46); ctxCanvas.lineTo(tx + r * 0.12, r * 0.33); ctxCanvas.fill();
                 }
-                c.restore();
-
-                // Grietas blancas del hielo en primer plano
-                c.strokeStyle = 'rgba(255, 255, 255, 0.9)'; c.lineWidth = 2.5;
-                c.beginPath();
-                c.moveTo(-r * 0.7, r * 0.8); c.lineTo(-r * 0.2, r * 0.2); c.lineTo(-r * 0.3, -r * 0.1); c.lineTo(r * 0.1, -r * 0.5); c.lineTo(r * 0.4, -r * 0.8);
-                c.stroke();
-                c.beginPath();
-                c.moveTo(-r * 0.2, r * 0.2); c.lineTo(r * 0.5, r * 0.4); c.lineTo(r * 0.8, r * 0.3);
-                c.stroke();
-                break;
-            }
-            case 'bug': {
-                // Alas traseras vibrantes
-                let bWing = Math.sin(animationTime * 25 + this.animPhase) * (r * 0.1);
-                c.fillStyle = 'rgba(186, 230, 253, 0.75)';
-                c.beginPath(); c.ellipse(-r * 0.85, -r * 0.45 + bWing, r * 0.35, r * 0.2, -0.6, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.ellipse(r * 0.85, -r * 0.45 - bWing, r * 0.35, r * 0.2, 0.6, 0, Math.PI * 2); c.fill();
-
-                // Cuerpo gris pizarra
-                c.fillStyle = '#475569'; drawRoundedRect(c, -r * 0.85, -r * 0.8, r * 1.7, r * 1.6, r * 0.35); c.fill();
-
-                // Cuerno/Cresta azul en V en la cabeza
-                c.fillStyle = '#2563eb';
-                c.beginPath();
-                c.moveTo(0, -r * 0.2); c.lineTo(-r * 0.75, -r * 1.15); c.lineTo(-r * 0.2, -r * 0.75);
-                c.lineTo(0, -r * 0.5); c.lineTo(r * 0.2, -r * 0.75); c.lineTo(r * 0.75, -r * 1.15);
-                c.closePath(); c.fill();
-                c.fillStyle = '#60a5fa';
-                c.beginPath(); c.moveTo(0, -r * 0.2); c.lineTo(-r * 0.65, -r * 1.05); c.lineTo(-r * 0.35, -r * 0.75); c.closePath(); c.fill();
-
-                // Pinzas/mandíbulas azules en las mejillas
-                c.fillStyle = '#2563eb';
-                c.beginPath(); c.arc(-r * 0.65, r * 0.35, r * 0.32, 0.3, Math.PI * 1.2); c.lineTo(-r * 0.55, r * 0.65); c.closePath(); c.fill();
-                c.beginPath(); c.arc(r * 0.65, r * 0.35, r * 0.32, -Math.PI * 0.2, Math.PI * 0.7); c.lineTo(r * 0.55, r * 0.65); c.closePath(); c.fill();
-                c.fillStyle = '#38bdf8';
-                c.beginPath(); c.ellipse(-r * 0.7, r * 0.35, r * 0.12, r * 0.2, -0.4, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.ellipse(r * 0.7, r * 0.35, r * 0.12, r * 0.2, 0.4, 0, Math.PI * 2); c.fill();
-
-                // Hocico redondeado gris claro
-                c.fillStyle = '#94a3b8';
-                c.beginPath(); c.arc(-r * 0.15, r * 0.3, r * 0.22, 0, Math.PI * 2); c.arc(r * 0.15, r * 0.3, r * 0.22, 0, Math.PI * 2); c.fill();
-
-                // Ojos grandes negros con DOBLE brillo blanco
-                c.fillStyle = '#0f172a';
-                c.beginPath(); c.ellipse(-r * 0.45, -r * 0.05, r * 0.24, r * 0.28, -0.2, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.ellipse(r * 0.45, -r * 0.05, r * 0.24, r * 0.28, 0.2, 0, Math.PI * 2); c.fill();
-                c.fillStyle = '#ffffff';
-                c.beginPath(); c.arc(-r * 0.38, -r * 0.12, r * 0.08, 0, Math.PI * 2); c.arc(-r * 0.52, r * 0.04, r * 0.045, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.arc(r * 0.52, -r * 0.12, r * 0.08, 0, Math.PI * 2); c.arc(r * 0.38, r * 0.04, r * 0.045, 0, Math.PI * 2); c.fill();
+                // Grietas de hielo blancas
+                ctxCanvas.strokeStyle = 'rgba(255, 255, 255, 0.85)'; ctxCanvas.lineWidth = 2.5;
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(-r * 0.85, r * 0.4); ctxCanvas.lineTo(-r * 0.2, -r * 0.3); ctxCanvas.lineTo(r * 0.3, -r * 0.7);
+                ctxCanvas.moveTo(-r * 0.2, -r * 0.3); ctxCanvas.lineTo(r * 0.5, r * 0.75);
+                ctxCanvas.stroke();
                 break;
             }
             case 'bush': {
-                // Arbusto esponjoso verde
-                c.fillStyle = '#22c55e';
-                c.beginPath();
-                c.arc(-r * 0.5, -r * 0.4, r * 0.55, 0, Math.PI * 2); c.arc(r * 0.5, -r * 0.4, r * 0.55, 0, Math.PI * 2);
-                c.arc(-r * 0.65, r * 0.1, r * 0.5, 0, Math.PI * 2); c.arc(r * 0.65, r * 0.1, r * 0.5, 0, Math.PI * 2);
-                c.arc(0, -r * 0.55, r * 0.55, 0, Math.PI * 2); c.arc(0, r * 0.2, r * 0.7, 0, Math.PI * 2); c.fill();
-                drawRoundedRect(c, -r * 0.8, r * 0.3, r * 1.6, r * 0.6, r * 0.25); c.fill();
-
-                // Tallo de madera y hoja superior derecha
-                c.fillStyle = '#78350f';
-                c.beginPath(); c.moveTo(r * 0.25, -r * 0.75); c.lineTo(r * 0.45, -r * 1.15); c.lineTo(r * 0.58, -r * 1.1); c.lineTo(r * 0.35, -r * 0.7); c.closePath(); c.fill();
-                c.fillStyle = '#4ade80';
-                c.beginPath(); c.ellipse(r * 0.35, -r * 1.2, r * 0.25, r * 0.12, -0.6, 0, Math.PI * 2); c.fill();
-
-                // Cejas en forma de hojas
-                c.fillStyle = '#16a34a';
-                c.beginPath(); c.ellipse(-r * 0.35, -r * 0.15, r * 0.3, r * 0.15, -0.35, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.ellipse(r * 0.35, -r * 0.15, r * 0.3, r * 0.15, 0.35, 0, Math.PI * 2); c.fill();
-
-                // Ojos oscuros oblicuos
-                c.fillStyle = '#0f172a';
-                c.beginPath(); c.ellipse(-r * 0.35, -r * 0.02, r * 0.22, r * 0.18, -0.2, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.ellipse(r * 0.35, -r * 0.02, r * 0.22, r * 0.18, 0.2, 0, Math.PI * 2); c.fill();
-
-                // Gran bigote de hojas y boca sonriente
-                c.strokeStyle = '#052e16'; c.lineWidth = 4;
-                c.beginPath(); c.arc(0, r * 0.35, r * 0.55, 0.2, Math.PI - 0.2); c.stroke();
-
-                c.fillStyle = '#16a34a';
-                c.beginPath();
-                c.moveTo(-r * 0.75, r * 0.3); c.quadraticCurveTo(-r * 0.35, r * 0.15, 0, r * 0.32);
-                c.quadraticCurveTo(r * 0.35, r * 0.15, r * 0.75, r * 0.3); c.quadraticCurveTo(r * 0.4, r * 0.62, 0, r * 0.45);
-                c.quadraticCurveTo(-r * 0.4, r * 0.62, -r * 0.75, r * 0.3); c.closePath(); c.fill();
-
-                c.fillStyle = '#4ade80';
-                c.beginPath();
-                c.moveTo(-r * 0.65, r * 0.3); c.quadraticCurveTo(-r * 0.3, r * 0.22, 0, r * 0.34);
-                c.quadraticCurveTo(r * 0.3, r * 0.22, r * 0.65, r * 0.3); c.quadraticCurveTo(r * 0.35, r * 0.5, 0, r * 0.4);
-                c.quadraticCurveTo(-r * 0.35, r * 0.5, -r * 0.65, r * 0.3); c.closePath(); c.fill();
+                // 4. Snowy Bush Monster (Arbusto verde con tallo, hoja superior, cejas de hoja y bigote)
+                // Cuerpo lobulado verde
+                ctxCanvas.fillStyle = '#22c55e';
+                ctxCanvas.beginPath();
+                ctxCanvas.arc(0, r * 0.2, r * 0.85, 0, Math.PI * 2);
+                ctxCanvas.arc(-r * 0.45, -r * 0.3, r * 0.55, 0, Math.PI * 2);
+                ctxCanvas.arc(r * 0.45, -r * 0.2, r * 0.52, 0, Math.PI * 2);
+                ctxCanvas.arc(0, -r * 0.45, r * 0.58, 0, Math.PI * 2);
+                ctxCanvas.fill();
+                // Tallo de madera y hoja superior
+                ctxCanvas.fillStyle = '#78350f';
+                ctxCanvas.beginPath(); ctxCanvas.rect(r * 0.1, -r * 1.25, r * 0.15, r * 0.45); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#86efac';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.32, -r * 1.25, r * 0.22, r * 0.12, 0.5, 0, Math.PI * 2); ctxCanvas.fill();
+                // Cejas frondosas
+                ctxCanvas.fillStyle = '#15803d';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.35, -r * 0.15, r * 0.28, r * 0.16, -0.3, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.35, -r * 0.15, r * 0.28, r * 0.16, 0.3, 0, Math.PI * 2); ctxCanvas.fill();
+                // Ojos oscuros ovalados
+                ctxCanvas.fillStyle = '#0f172a';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.35, -r * 0.08, r * 0.22, r * 0.18, 0, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.35, -r * 0.08, r * 0.22, r * 0.18, 0, 0, Math.PI * 2); ctxCanvas.fill();
+                // Bigote tupido curvado
+                ctxCanvas.fillStyle = '#16a34a';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(-r * 0.65, r * 0.35);
+                ctxCanvas.quadraticCurveTo(-r * 0.35, r * 0.1, 0, r * 0.3);
+                ctxCanvas.quadraticCurveTo(r * 0.35, r * 0.1, r * 0.65, r * 0.35);
+                ctxCanvas.quadraticCurveTo(0, r * 0.65, -r * 0.65, r * 0.35);
+                ctxCanvas.fill();
+                break;
+            }
+            case 'bug': {
+                // 5. Ice Bug (Insecto gris azulado con gran cresta en V y pinzas)
+                // Alas traseras translúcidas
+                ctxCanvas.fillStyle = 'rgba(186, 230, 253, 0.7)';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.9, -r * 0.6, r * 0.35, r * 0.6, -0.6, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.9, -r * 0.6, r * 0.35, r * 0.6, 0.6, 0, Math.PI * 2); ctxCanvas.fill();
+                // Cuerpo redondeado grafito
+                drawRoundedRect(ctxCanvas, -r, -r * 0.8, r * 2, r * 1.7, 14);
+                ctxCanvas.fillStyle = '#64748b'; ctxCanvas.fill();
+                // Cresta frontal en V azul brillante
+                ctxCanvas.fillStyle = '#2563eb';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(0, r * 0.15);
+                ctxCanvas.lineTo(-r * 0.75, -r * 1.15);
+                ctxCanvas.lineTo(-r * 0.2, -r * 1.15);
+                ctxCanvas.lineTo(0, -r * 0.6);
+                ctxCanvas.lineTo(r * 0.2, -r * 1.15);
+                ctxCanvas.lineTo(r * 0.75, -r * 1.15);
+                ctxCanvas.closePath(); ctxCanvas.fill();
+                // Ojos enormes con doble brillo Blooket
+                ctxCanvas.fillStyle = '#0f172a';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.45, 0, r * 0.32, r * 0.26, -0.2, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.45, 0, r * 0.32, r * 0.26, 0.2, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.38, -r * 0.08, r * 0.1, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.52, r * 0.08, r * 0.05, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(r * 0.52, -r * 0.08, r * 0.1, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(r * 0.38, r * 0.08, r * 0.05, 0, Math.PI * 2); ctxCanvas.fill();
+                // Mandíbulas inferiores azules
+                ctxCanvas.fillStyle = '#3b82f6';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.65, r * 0.45, r * 0.15, r * 0.3, 0.4, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.65, r * 0.45, r * 0.15, r * 0.3, -0.4, 0, Math.PI * 2); ctxCanvas.fill();
+                // Hocico / pico gris claro
+                ctxCanvas.fillStyle = '#94a3b8';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(0, r * 0.32, r * 0.28, r * 0.22, 0, 0, Math.PI * 2); ctxCanvas.fill();
+                break;
+            }
+            case 'crab': {
+                // 6. Ice Crab & Giant Ice Crab (Cangrejo turquesa con garras nevadas y tiara de cristal)
+                let clawWave = Math.sin(animationTime * 7 + this.animPhase) * 3;
+                // Patas inferiores
+                ctxCanvas.fillStyle = '#0284c7';
+                for (let i = -2; i <= 2; i++) {
+                    if (i === 0) continue;
+                    ctxCanvas.beginPath(); ctxCanvas.ellipse(i * (r * 0.35), r * 0.75, r * 0.1, r * 0.25, i * 0.2, 0, Math.PI * 2); ctxCanvas.fill();
+                }
+                // Cuerpo redondeado
+                drawRoundedRect(ctxCanvas, -r, -r * 0.6, r * 2, r * 1.35, 12);
+                ctxCanvas.fillStyle = '#38bdf8'; ctxCanvas.fill();
+                // Vientre azul claro
+                ctxCanvas.fillStyle = '#bae6fd';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(0, r * 0.3, r * 0.75, r * 0.35, 0, 0, Math.PI * 2); ctxCanvas.fill();
+                // Tiara de cristal de hielo en la cabeza
+                ctxCanvas.fillStyle = '#e0f2fe';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(-r * 0.25, -r * 0.6); ctxCanvas.lineTo(-r * 0.15, -r * 0.95); ctxCanvas.lineTo(0, -r * 0.75);
+                ctxCanvas.lineTo(r * 0.15, -r * 0.95); ctxCanvas.lineTo(r * 0.25, -r * 0.6); ctxCanvas.closePath(); ctxCanvas.fill();
+                // Garras levantadas cubiertas de nieve
+                ctxCanvas.fillStyle = '#0284c7';
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.8, -r * 0.5 + clawWave, r * 0.35, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(r * 0.8, -r * 0.5 - clawWave, r * 0.35, 0, Math.PI * 2); ctxCanvas.fill();
+                // Nieve sobre las garras con carámbanos
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.8, -r * 0.75 + clawWave, r * 0.38, r * 0.18, 0, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.8, -r * 0.75 - clawWave, r * 0.38, r * 0.18, 0, 0, Math.PI * 2); ctxCanvas.fill();
+                // Ojos pequeños negros y pecas
+                ctxCanvas.fillStyle = '#0f172a';
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.3, -r * 0.25, r * 0.08, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(r * 0.3, -r * 0.25, r * 0.08, 0, Math.PI * 2); ctxCanvas.fill();
+                // Boca chevron
+                ctxCanvas.strokeStyle = '#0f172a'; ctxCanvas.lineWidth = 2.5; ctxCanvas.beginPath();
+                ctxCanvas.moveTo(-r * 0.1, -r * 0.05); ctxCanvas.lineTo(0, -r * 0.12); ctxCanvas.lineTo(r * 0.1, -r * 0.05); ctxCanvas.stroke();
                 break;
             }
             case 'ding':
             case 'donk': {
-                const isDonk = this.drawType === 'donk';
-                if (this.isBoss) {
-                    let aura = c.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 1.5);
-                    aura.addColorStop(0, 'rgba(147, 51, 234, 0.75)'); aura.addColorStop(1, 'rgba(147, 51, 234, 0)');
-                    c.fillStyle = aura; c.beginPath(); c.arc(0, 0, r * 1.5, 0, Math.PI * 2); c.fill();
-                }
-
+                // 7. Ding & Donk (Duendes púrpuras con cuernos, mechón blanco rizado, párpados caídos y colmillos)
+                let isDonk = (this.drawType === 'donk');
+                let mainPurple = isDonk ? '#7e22ce' : '#a855f7';
+                let darkPurple = isDonk ? '#581c87' : '#6b21a8';
                 // Cuernos superiores
-                c.fillStyle = isDonk ? '#581c87' : '#6d28d9';
-                c.beginPath(); c.moveTo(-r * 0.8, -r * 0.4); c.lineTo(-r * 0.95, -r * 1.15); c.lineTo(-r * 0.5, -r * 0.7); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.8, -r * 0.4); c.lineTo(r * 0.95, -r * 1.15); c.lineTo(r * 0.5, -r * 0.7); c.closePath(); c.fill();
-
-                // Cuerpo morado
-                c.fillStyle = isDonk ? '#7e22ce' : '#a855f7';
-                drawRoundedRect(c, -r * 0.85, -r * 0.85, r * 1.7, r * 1.7, r * 0.3); c.fill();
-
-                // Pelo lanudo blanco en la frente
-                c.fillStyle = isDonk ? '#f3e8ff' : '#ffffff';
-                c.beginPath();
-                c.arc(0, -r * 0.75, r * 0.38, 0, Math.PI * 2);
-                c.arc(-r * 0.28, -r * 0.65, r * 0.28, 0, Math.PI * 2);
-                c.arc(r * 0.28, -r * 0.65, r * 0.28, 0, Math.PI * 2);
-                c.fill();
-
-                // Mejillas
-                c.fillStyle = 'rgba(192, 132, 252, 0.45)';
-                c.beginPath(); c.arc(-r * 0.55, r * 0.25, r * 0.18, 0, Math.PI * 2); c.arc(r * 0.55, r * 0.25, r * 0.18, 0, Math.PI * 2); c.fill();
-
-                // Hocico con poros oscuros
-                c.fillStyle = isDonk ? '#a855f7' : '#c084fc';
-                c.beginPath(); c.ellipse(0, r * 0.26, r * 0.36, r * 0.24, 0, 0, Math.PI * 2); c.fill();
-                c.fillStyle = isDonk ? '#581c87' : '#7e22ce';
-                c.beginPath();
-                c.arc(-r * 0.12, r * 0.22, r * 0.04, 0, Math.PI * 2); c.arc(r * 0.12, r * 0.22, r * 0.04, 0, Math.PI * 2);
-                c.arc(0, r * 0.32, r * 0.035, 0, Math.PI * 2);
-                c.arc(-r * 0.06, r * 0.32, r * 0.03, 0, Math.PI * 2); c.arc(r * 0.06, r * 0.32, r * 0.03, 0, Math.PI * 2);
-                c.fill();
-
-                // Colmillos que apuntan HACIA ARRIBA
-                c.fillStyle = '#ffffff';
-                c.beginPath(); c.moveTo(-r * 0.4, r * 0.32); c.lineTo(-r * 0.25, -r * 0.05); c.lineTo(-r * 0.16, r * 0.28); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.4, r * 0.32); c.lineTo(r * 0.25, -r * 0.05); c.lineTo(r * 0.16, r * 0.28); c.closePath(); c.fill();
-
+                ctxCanvas.fillStyle = darkPurple;
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(-r * 0.7, -r * 0.7); ctxCanvas.lineTo(-r * 0.9, -r * 1.3); ctxCanvas.lineTo(-r * 0.4, -r * 0.8); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(r * 0.7, -r * 0.7); ctxCanvas.lineTo(r * 0.9, -r * 1.3); ctxCanvas.lineTo(r * 0.4, -r * 0.8); ctxCanvas.fill();
+                // Cuerpo cúbico
+                drawRoundedRect(ctxCanvas, -r, -r * 0.8, r * 2, r * 1.7, 14);
+                ctxCanvas.fillStyle = mainPurple; ctxCanvas.fill();
+                // Mechón de pelo rizado blanco en la frente
+                ctxCanvas.fillStyle = '#f8fafc';
+                ctxCanvas.beginPath();
+                ctxCanvas.arc(0, -r * 0.7, r * 0.4, 0, Math.PI * 2);
+                ctxCanvas.arc(-r * 0.25, -r * 0.6, r * 0.28, 0, Math.PI * 2);
+                ctxCanvas.arc(r * 0.25, -r * 0.6, r * 0.28, 0, Math.PI * 2);
+                ctxCanvas.fill();
+                // Ojos grandes con párpados caídos
+                ctxCanvas.fillStyle = '#0f172a';
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.4, 0, r * 0.25, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(r * 0.4, 0, r * 0.25, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.35, -r * 0.05, r * 0.1, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(r * 0.45, -r * 0.05, r * 0.1, 0, Math.PI * 2); ctxCanvas.fill();
+                // Párpados caídos
+                ctxCanvas.fillStyle = darkPurple;
+                ctxCanvas.beginPath(); ctxCanvas.rect(-r * 0.68, -r * 0.28, r * 0.56, r * 0.18); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.rect(r * 0.12, -r * 0.28, r * 0.56, r * 0.18); ctxCanvas.fill();
+                // Hocico con poros y colmillos hacia arriba
+                ctxCanvas.fillStyle = '#c084fc';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(0, r * 0.28, r * 0.32, r * 0.22, 0, 0, Math.PI * 2); ctxCanvas.fill();
+                // Colmillos que salen hacia arriba
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(-r * 0.38, r * 0.3); ctxCanvas.lineTo(-r * 0.28, r * 0.05); ctxCanvas.lineTo(-r * 0.18, r * 0.3); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(r * 0.18, r * 0.3); ctxCanvas.lineTo(r * 0.28, r * 0.05); ctxCanvas.lineTo(r * 0.38, r * 0.3); ctxCanvas.fill();
                 // Barba blanca en la barbilla
-                c.fillStyle = isDonk ? '#f3e8ff' : '#ffffff';
-                c.beginPath(); c.moveTo(-r * 0.28, r * 0.62); c.lineTo(-r * 0.2, r * 0.82); c.lineTo(0, r * 0.9); c.lineTo(r * 0.2, r * 0.82); c.lineTo(r * 0.28, r * 0.62); c.closePath(); c.fill();
-
-                // Ojos con párpados pesados caídos (expresión desganada)
-                c.fillStyle = '#0f172a';
-                c.beginPath(); c.arc(-r * 0.38, -r * 0.08, r * 0.22, 0, Math.PI * 2); c.arc(r * 0.38, -r * 0.08, r * 0.22, 0, Math.PI * 2); c.fill();
-                c.fillStyle = '#ffffff';
-                c.beginPath(); c.arc(-r * 0.34, -r * 0.05, r * 0.08, 0, Math.PI * 2); c.arc(r * 0.42, -r * 0.05, r * 0.08, 0, Math.PI * 2); c.fill();
-
-                c.fillStyle = isDonk ? '#581c87' : '#7e22ce';
-                c.beginPath(); c.rect(-r * 0.65, -r * 0.32, r * 0.55, r * 0.24); c.fill();
-                c.beginPath(); c.rect(r * 0.1, -r * 0.32, r * 0.55, r * 0.24); c.fill();
-                break;
-            }
-            case 'rock': {
-                if (this.isBoss) {
-                    let aura = c.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 1.55);
-                    aura.addColorStop(0, 'rgba(56, 189, 248, 0.5)'); aura.addColorStop(1, 'rgba(56, 189, 248, 0)');
-                    c.fillStyle = aura; c.beginPath(); c.arc(0, 0, r * 1.55, 0, Math.PI * 2); c.fill();
-                }
-
-                // Cristales de hielo cyan en la coronilla
-                c.fillStyle = '#0284c7';
-                c.beginPath(); c.moveTo(-r * 0.65, -r * 0.7); c.lineTo(-r * 0.45, -r * 1.25); c.lineTo(-r * 0.15, -r * 0.7); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(-r * 0.15, -r * 0.7); c.lineTo(0.05, -r * 1.38); c.lineTo(r * 0.35, -r * 0.7); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.3, -r * 0.7); c.lineTo(r * 0.65, -r * 1.15); c.lineTo(r * 0.75, -r * 0.65); c.closePath(); c.fill();
-
-                c.fillStyle = '#38bdf8';
-                c.beginPath(); c.moveTo(-r * 0.5, -r * 0.75); c.lineTo(-r * 0.45, -r * 1.2); c.lineTo(-r * 0.25, -r * 0.72); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(-r * 0.05, -r * 0.75); c.lineTo(0.05, -r * 1.3); c.lineTo(r * 0.25, -r * 0.72); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.35, -r * 0.75); c.lineTo(r * 0.6, -r * 1.05); c.lineTo(r * 0.65, -r * 0.68); c.closePath(); c.fill();
-
-                // Cabeza de roca pizarra oscura
-                c.fillStyle = '#334155'; drawRoundedRect(c, -r * 0.85, -r * 0.75, r * 1.7, r * 1.55, r * 0.28); c.fill();
-
-                // Cuencas oculares oscuras y profundas
-                c.fillStyle = '#0f172a';
-                c.beginPath(); c.ellipse(-r * 0.4, -r * 0.12, r * 0.25, r * 0.22, -0.15, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.ellipse(r * 0.4, -r * 0.12, r * 0.25, r * 0.22, 0.15, 0, Math.PI * 2); c.fill();
-
-                // Morro de roca con poros circulares
-                c.fillStyle = '#475569'; drawRoundedRect(c, -r * 0.92, r * 0.1, r * 1.84, r * 0.65, r * 0.3); c.fill();
-                c.fillStyle = '#1e293b';
-                for (let p of [[-0.4, 0.28, 0.08], [0.4, 0.28, 0.08], [-0.15, 0.42, 0.09], [0.18, 0.45, 0.07], [0, 0.25, 0.06], [-0.55, 0.5, 0.06], [0.55, 0.48, 0.06]]) {
-                    c.beginPath(); c.arc(r * p[0], r * p[1], r * p[2], 0, Math.PI * 2); c.fill();
-                }
+                ctxCanvas.fillStyle = '#f8fafc';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(-r * 0.22, r * 0.55); ctxCanvas.lineTo(0, r * 0.85); ctxCanvas.lineTo(r * 0.22, r * 0.55);
+                ctxCanvas.closePath(); ctxCanvas.fill();
                 break;
             }
             case 'elemental': {
-                // Diamantes de hielo flotando sobre la cabeza
-                let floatY = Math.sin(animationTime * 6 + this.animPhase) * (r * 0.15);
-                c.fillStyle = '#38bdf8';
-                c.save(); c.translate(-r * 0.45, -r * 1.3 + floatY); c.rotate(0.3); c.fillRect(-r * 0.1, -r * 0.1, r * 0.2, r * 0.2); c.restore();
-                c.save(); c.translate(0, -r * 1.45 + floatY); c.rotate(animationTime * 2); c.fillRect(-r * 0.12, -r * 0.12, r * 0.24, r * 0.24); c.restore();
-                c.save(); c.translate(r * 0.45, -r * 1.3 + floatY); c.rotate(-0.3); c.fillRect(-r * 0.1, -r * 0.1, r * 0.2, r * 0.2); c.restore();
-
-                // Picos de hielo del cuerpo
-                c.fillStyle = '#0284c7';
-                c.beginPath(); c.moveTo(-r * 0.8, r * 0.6); c.lineTo(-r * 0.7, -r * 0.7); c.lineTo(0, -r * 1.2); c.lineTo(r * 0.7, -r * 0.7); c.lineTo(r * 0.8, r * 0.6); c.closePath(); c.fill();
-                c.fillStyle = '#38bdf8';
-                c.beginPath(); c.moveTo(0, -r * 1.2); c.lineTo(r * 0.7, -r * 0.7); c.lineTo(r * 0.75, r * 0.6); c.lineTo(0, r * 0.8); c.closePath(); c.fill();
-                c.fillStyle = '#bae6fd';
-                c.beginPath(); c.moveTo(0, -r * 1.1); c.lineTo(r * 0.15, -r * 0.6); c.lineTo(0, r * 0.7); c.closePath(); c.fill();
-
-                // Cejas y ojos enfadados
-                c.fillStyle = '#0369a1';
-                c.beginPath(); c.moveTo(-r * 0.55, -r * 0.25); c.lineTo(-r * 0.15, -r * 0.1); c.lineTo(-r * 0.2, -r * 0.35); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.55, -r * 0.25); c.lineTo(r * 0.15, -r * 0.1); c.lineTo(r * 0.2, -r * 0.35); c.closePath(); c.fill();
-
-                c.fillStyle = '#0b1329';
-                c.beginPath(); c.ellipse(-r * 0.38, -r * 0.02, r * 0.24, r * 0.28, -0.22, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.ellipse(r * 0.38, -r * 0.02, r * 0.24, r * 0.28, 0.22, 0, Math.PI * 2); c.fill();
-
-                // Boca de enfado
-                c.strokeStyle = '#0b1329'; c.lineWidth = 4;
-                c.beginPath(); c.arc(0, r * 0.48, r * 0.22, Math.PI * 1.1, Math.PI * 1.9); c.stroke();
-
-                // Garras de hielo en los costados
-                c.fillStyle = '#38bdf8';
-                c.beginPath(); c.moveTo(-r * 0.95, r * 0.5); c.lineTo(-r * 0.65, r * 0.35); c.lineTo(-r * 0.55, r * 0.75); c.lineTo(-r * 0.85, r * 0.8); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.95, r * 0.5); c.lineTo(r * 0.65, r * 0.35); c.lineTo(r * 0.55, r * 0.75); c.lineTo(r * 0.85, r * 0.8); c.closePath(); c.fill();
+                // 8. Ice Elemental (Agujas montañosas de hielo cristalino y diamantes flotantes)
+                // Picos de hielo angulados
+                ctxCanvas.fillStyle = '#38bdf8';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(-r, r * 0.8); ctxCanvas.lineTo(-r * 0.6, -r * 0.9); ctxCanvas.lineTo(-r * 0.15, -r * 0.2);
+                ctxCanvas.lineTo(0, -r * 1.3); ctxCanvas.lineTo(r * 0.15, -r * 0.2);
+                ctxCanvas.lineTo(r * 0.6, -r * 0.9); ctxCanvas.lineTo(r, r * 0.8);
+                ctxCanvas.closePath(); ctxCanvas.fill();
+                // Faceta interna brillante
+                ctxCanvas.fillStyle = '#bae6fd';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(0, -r * 1.25); ctxCanvas.lineTo(-r * 0.3, 0); ctxCanvas.lineTo(0, r * 0.7); ctxCanvas.lineTo(r * 0.3, 0);
+                ctxCanvas.closePath(); ctxCanvas.fill();
+                // Cristales de diamante flotando arriba
+                let crystalBob = Math.sin(animationTime * 5 + this.animPhase) * 4;
+                ctxCanvas.fillStyle = '#e0f2fe';
+                for (let off of [-r * 0.5, 0, r * 0.5]) {
+                    ctxCanvas.save(); ctxCanvas.translate(off, -r * 1.35 + crystalBob);
+                    ctxCanvas.beginPath(); ctxCanvas.moveTo(0, -7); ctxCanvas.lineTo(4, 0); ctxCanvas.lineTo(0, 7); ctxCanvas.lineTo(-4, 0); ctxCanvas.fill();
+                    ctxCanvas.restore();
+                }
+                // Ojos oscuros angulados penetrantes
+                ctxCanvas.fillStyle = '#0f172a';
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(-r * 0.45, -r * 0.05); ctxCanvas.lineTo(-r * 0.15, 0); ctxCanvas.lineTo(-r * 0.35, r * 0.18); ctxCanvas.closePath(); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(r * 0.45, -r * 0.05); ctxCanvas.lineTo(r * 0.15, 0); ctxCanvas.lineTo(r * 0.35, r * 0.18); ctxCanvas.closePath(); ctxCanvas.fill();
                 break;
             }
-            case 'crab': {
-                let clawMove = Math.sin(animationTime * 6 + this.animPhase) * (r * 0.12);
-
-                if (this.isBoss) {
-                    let aura = c.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 1.6);
-                    aura.addColorStop(0, 'rgba(56, 189, 248, 0.7)'); aura.addColorStop(1, 'rgba(56, 189, 248, 0)');
-                    c.fillStyle = aura; c.beginPath(); c.arc(0, 0, r * 1.6, 0, Math.PI * 2); c.fill();
-                }
-
-                // Patas caminantes inferiores animadas
-                c.strokeStyle = '#0284c7'; c.lineWidth = Math.max(3, r * 0.09); c.lineCap = 'round';
-                let legW = Math.sin(animationTime * 10 + this.animPhase) * 4;
-                for (let side of [-1, 1]) {
-                    for (let li = 0; li < 3; li++) {
-                        let lx = side * (r * 0.3 + li * r * 0.22);
-                        let ldx = side * (r * 0.4 + li * r * 0.28);
-                        let ldy = r * 0.95 + (li % 2 === 0 ? legW : -legW);
-                        c.beginPath(); c.moveTo(lx, r * 0.55); c.quadraticCurveTo(ldx * 0.9, ldy * 0.7, ldx, ldy); c.stroke();
-                    }
-                }
-
-                // Pinzas levantadas
-                c.fillStyle = '#0284c7';
-                c.beginPath(); c.arc(-r * 0.75, -r * 0.85 + clawMove, r * 0.48, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.arc(r * 0.75, -r * 0.85 - clawMove, r * 0.48, 0, Math.PI * 2); c.fill();
-
-                // Montículos de nieve en las pinzas con témpanos de hielo
-                c.fillStyle = '#f8fafc';
-                c.beginPath(); c.ellipse(-r * 0.75, -r * 1.15 + clawMove, r * 0.45, r * 0.22, 0, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.moveTo(-r * 0.95, -r * 1.0 + clawMove); c.lineTo(-r * 0.85, -r * 0.65 + clawMove); c.lineTo(-r * 0.75, -r * 1.0 + clawMove); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(-r * 0.75, -r * 1.0 + clawMove); c.lineTo(-r * 0.65, -r * 0.7 + clawMove); c.lineTo(-r * 0.55, -r * 1.0 + clawMove); c.closePath(); c.fill();
-
-                c.beginPath(); c.ellipse(r * 0.75, -r * 1.15 - clawMove, r * 0.45, r * 0.22, 0, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.moveTo(r * 0.55, -r * 1.0 - clawMove); c.lineTo(r * 0.65, -r * 0.7 - clawMove); c.lineTo(r * 0.75, -r * 1.0 - clawMove); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.75, -r * 1.0 - clawMove); c.lineTo(r * 0.85, -r * 0.65 - clawMove); c.lineTo(r * 0.95, -r * 1.0 - clawMove); c.closePath(); c.fill();
-
-                // Caparazón del cangrejo
-                c.fillStyle = '#0ea5e9'; drawRoundedRect(c, -r * 0.9, -r * 0.5, r * 1.8, r * 1.25, r * 0.4); c.fill();
-                c.fillStyle = '#bae6fd'; c.beginPath(); c.ellipse(0, r * 0.25, r * 0.68, r * 0.35, 0, 0, Math.PI * 2); c.fill();
-
-                // Tiara/corona de hielo central
-                c.fillStyle = '#e0f2fe';
-                c.beginPath();
-                c.moveTo(-r * 0.28, -r * 0.5); c.lineTo(-r * 0.2, -r * 0.85); c.lineTo(0, -r * 0.55);
-                c.lineTo(r * 0.2, -r * 0.85); c.lineTo(r * 0.28, -r * 0.5); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(-r * 0.12, -r * 0.52); c.lineTo(0, -r * 1.0); c.lineTo(r * 0.12, -r * 0.52); c.closePath(); c.fill();
-                c.fillStyle = '#38bdf8'; c.beginPath(); c.arc(0, -r * 0.7, r * 0.06, 0, Math.PI * 2); c.fill();
-
-                // Ojos oscuros y pecas
-                c.fillStyle = '#0f172a';
-                c.beginPath(); c.arc(-r * 0.38, -r * 0.28, r * 0.1, 0, Math.PI * 2); c.arc(r * 0.38, -r * 0.28, r * 0.1, 0, Math.PI * 2); c.fill();
-                c.fillStyle = '#ffffff';
-                c.beginPath(); c.arc(-r * 0.35, -r * 0.31, r * 0.035, 0, Math.PI * 2); c.arc(r * 0.41, -r * 0.31, r * 0.035, 0, Math.PI * 2); c.fill();
-
-                c.fillStyle = '#0284c7';
-                c.beginPath(); c.arc(-r * 0.52, -r * 0.15, r * 0.045, 0, Math.PI * 2); c.arc(-r * 0.42, -r * 0.12, r * 0.045, 0, Math.PI * 2); c.arc(-r * 0.32, -r * 0.16, r * 0.045, 0, Math.PI * 2); c.fill();
-                c.beginPath(); c.arc(r * 0.52, -r * 0.15, r * 0.045, 0, Math.PI * 2); c.arc(r * 0.42, -r * 0.12, r * 0.045, 0, Math.PI * 2); c.arc(r * 0.32, -r * 0.16, r * 0.045, 0, Math.PI * 2); c.fill();
-
-                // Boca en chevrón ^
-                c.strokeStyle = '#0f172a'; c.lineWidth = 3; c.lineCap = 'round'; c.lineJoin = 'round';
-                c.beginPath(); c.moveTo(-r * 0.12, -r * 0.02); c.lineTo(0, -r * 0.1); c.lineTo(r * 0.12, -r * 0.02); c.stroke();
+            case 'rock': {
+                // 9. Rock Monster & Giant Rock Monster (Piedra oscura con cresta mohawk de cristales cian)
+                // Cabeza de roca oscura
+                drawRoundedRect(ctxCanvas, -r, -r * 0.75, r * 2, r * 1.6, 12);
+                ctxCanvas.fillStyle = '#334155'; ctxCanvas.fill();
+                // Cresta mohawk de cristales de hielo cian en la parte superior
+                ctxCanvas.fillStyle = '#38bdf8';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(-r * 0.6, -r * 0.75); ctxCanvas.lineTo(-r * 0.4, -r * 1.25); ctxCanvas.lineTo(-r * 0.2, -r * 0.75);
+                ctxCanvas.lineTo(0, -r * 1.45); ctxCanvas.lineTo(r * 0.2, -r * 0.75);
+                ctxCanvas.lineTo(r * 0.4, -r * 1.25); ctxCanvas.lineTo(r * 0.6, -r * 0.75);
+                ctxCanvas.closePath(); ctxCanvas.fill();
+                // Faceta interna brillante en el cristal central
+                ctxCanvas.fillStyle = '#bae6fd';
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(0, -r * 1.4); ctxCanvas.lineTo(r * 0.1, -r * 0.8); ctxCanvas.lineTo(-r * 0.05, -r * 0.8); ctxCanvas.fill();
+                // Cuencas oculares profundas y oscuras
+                ctxCanvas.fillStyle = '#0f172a';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(-r * 0.38, -r * 0.1, r * 0.26, r * 0.22, 0, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(r * 0.38, -r * 0.1, r * 0.26, r * 0.22, 0, 0, Math.PI * 2); ctxCanvas.fill();
+                // Hocico pedregoso con cráteres
+                drawRoundedRect(ctxCanvas, -r * 0.8, r * 0.1, r * 1.6, r * 0.65, 8);
+                ctxCanvas.fillStyle = '#475569'; ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#1e293b';
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.4, r * 0.4, r * 0.1, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(0, r * 0.45, r * 0.08, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(r * 0.38, r * 0.38, r * 0.11, 0, Math.PI * 2); ctxCanvas.fill();
                 break;
             }
             case 'yeti': {
-                let aura = c.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 1.6);
+                // 10. Yeti (Jefe Final Nivel 60 - Blooket auténtico con cuernos rayados, pelaje azul, nariz y 4 colmillos)
+                let aura = ctxCanvas.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 1.6);
                 aura.addColorStop(0, 'rgba(56, 189, 248, 0.85)'); aura.addColorStop(1, 'rgba(56, 189, 248, 0)');
-                c.fillStyle = aura; c.beginPath(); c.arc(0, 0, r * 1.6, 0, Math.PI * 2); c.fill();
-
-                // Cuernos rayados curvados
-                c.fillStyle = '#78350f';
-                c.beginPath(); c.moveTo(-r * 0.5, -r * 0.6); c.quadraticCurveTo(-r * 1.1, -r * 1.4, -r * 1.2, -r * 0.6); c.quadraticCurveTo(-r * 0.9, -r * 1.1, -r * 0.4, -r * 0.45); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.5, -r * 0.6); c.quadraticCurveTo(r * 1.1, -r * 1.4, r * 1.2, -r * 0.6); c.quadraticCurveTo(r * 0.9, -r * 1.1, r * 0.4, -r * 0.45); c.closePath(); c.fill();
-
-                c.fillStyle = '#451a03';
-                c.fillRect(-r * 0.92, -r * 1.1, r * 0.12, r * 0.2); c.fillRect(-r * 1.12, -r * 0.9, r * 0.12, r * 0.18);
-                c.fillRect(r * 0.8, -r * 1.1, r * 0.12, r * 0.2); c.fillRect(r * 1.0, -r * 0.9, r * 0.12, r * 0.18);
-
-                // Pelaje y mechones de las mejillas
-                c.fillStyle = '#93c5fd'; drawRoundedRect(c, -r * 0.85, -r * 0.75, r * 1.7, r * 1.55, r * 0.35); c.fill();
-                c.beginPath(); c.moveTo(-r * 0.85, -r * 0.1); c.lineTo(-r * 1.15, r * 0.1); c.lineTo(-r * 0.85, r * 0.25); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(-r * 0.85, r * 0.2); c.lineTo(-r * 1.1, r * 0.4); c.lineTo(-r * 0.85, r * 0.55); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.85, -r * 0.1); c.lineTo(r * 1.15, r * 0.1); c.lineTo(r * 0.85, r* 0.25); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.85, r * 0.2); c.lineTo(r * 1.1, r * 0.4); c.lineTo(r * 0.85, r * 0.55); c.closePath(); c.fill();
-
-                // Pelo blanco en la frente
-                c.fillStyle = '#f8fafc';
-                c.beginPath();
-                c.arc(0, -r * 0.6, r * 0.38, 0, Math.PI * 2);
-                c.arc(-r * 0.35, -r * 0.5, r * 0.26, 0, Math.PI * 2);
-                c.arc(r * 0.35, -r * 0.5, r * 0.26, 0, Math.PI * 2);
-                c.fill();
-
-                // Máscara azul facial
-                c.fillStyle = '#60a5fa'; c.beginPath(); c.arc(0, r * 0.05, r * 0.62, 0, Math.PI * 2); c.fill();
-
-                // Cejas azules
-                c.fillStyle = '#1d4ed8';
-                c.beginPath(); c.moveTo(-r * 0.55, -r * 0.22); c.lineTo(-r * 0.15, -r * 0.08); c.lineTo(-r * 0.22, -r * 0.32); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.55, -r * 0.22); c.lineTo(r * 0.15, -r * 0.08); c.lineTo(r * 0.22, -r * 0.32); c.closePath(); c.fill();
-
-                // Ojos brillantes con pupila y destello
-                c.fillStyle = '#ffffff';
-                c.beginPath(); c.arc(-r * 0.36, -r * 0.02, r * 0.24, 0, Math.PI * 2); c.arc(r * 0.36, -r * 0.02, r * 0.24, 0, Math.PI * 2); c.fill();
-                c.fillStyle = '#0f172a';
-                c.beginPath(); c.arc(-r * 0.34, -r * 0.02, r * 0.15, 0, Math.PI * 2); c.arc(r * 0.38, -r * 0.02, r * 0.15, 0, Math.PI * 2); c.fill();
-                c.fillStyle = '#ffffff';
-                c.beginPath(); c.arc(-r * 0.38, -r * 0.06, r * 0.065, 0, Math.PI * 2); c.arc(r * 0.34, -r * 0.06, r * 0.065, 0, Math.PI * 2); c.fill();
-
-                // Nariz azul
-                c.fillStyle = '#1d4ed8'; c.beginPath(); c.ellipse(0, r * 0.2, r * 0.22, r * 0.15, 0, 0, Math.PI * 2); c.fill();
-
-                // Boca con 4 colmillos feroces (2 superiores hacia abajo, 2 inferiores hacia arriba)
-                c.fillStyle = '#0f172a'; drawRoundedRect(c, -r * 0.55, r * 0.38, r * 1.1, r * 0.32, r * 0.12); c.fill();
-                c.fillStyle = '#ffffff';
-                c.beginPath(); c.moveTo(-r * 0.42, r * 0.38); c.lineTo(-r * 0.34, r * 0.56); c.lineTo(-r * 0.26, r * 0.38); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.26, r * 0.38); c.lineTo(r * 0.34, r * 0.56); c.lineTo(r * 0.42, r * 0.38); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(-r * 0.22, r * 0.7); c.lineTo(-r * 0.14, r * 0.5); c.lineTo(-r * 0.06, r * 0.7); c.closePath(); c.fill();
-                c.beginPath(); c.moveTo(r * 0.06, r * 0.7); c.lineTo(r * 0.14, r * 0.5); c.lineTo(r * 0.22, r * 0.7); c.closePath(); c.fill();
+                ctxCanvas.fillStyle = aura; ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, r * 1.6, 0, Math.PI * 2); ctxCanvas.fill();
+                // Cuernos curvados marrones con rayas
+                ctxCanvas.fillStyle = '#78350f';
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(-r * 0.65, -r * 0.6); ctxCanvas.quadraticCurveTo(-r * 1.35, -r * 1.15, -r * 0.7, -r * 1.45); ctxCanvas.quadraticCurveTo(-r * 0.4, -r * 0.9, -r * 0.35, -r * 0.6); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.moveTo(r * 0.65, -r * 0.6); ctxCanvas.quadraticCurveTo(r * 1.35, -r * 1.15, r * 0.7, -r * 1.45); ctxCanvas.quadraticCurveTo(r * 0.4, -r * 0.9, r * 0.35, -r * 0.6); ctxCanvas.fill();
+                ctxCanvas.strokeStyle = '#451a03'; ctxCanvas.lineWidth = 3;
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(-r * 0.8, -r * 0.85); ctxCanvas.lineTo(-r * 0.55, -r * 0.75);
+                ctxCanvas.moveTo(-r * 0.95, -r * 1.1); ctxCanvas.lineTo(-r * 0.65, -r * 1.05);
+                ctxCanvas.moveTo(r * 0.8, -r * 0.85); ctxCanvas.lineTo(r * 0.55, -r * 0.75);
+                ctxCanvas.moveTo(r * 0.95, -r * 1.1); ctxCanvas.lineTo(r * 0.65, -r * 1.05);
+                ctxCanvas.stroke();
+                // Cuerpo cúbico de pelaje azul
+                drawRoundedRect(ctxCanvas, -r, -r * 0.8, r * 2, r * 1.7, 16);
+                ctxCanvas.fillStyle = '#60a5fa'; ctxCanvas.fill();
+                // Cabello esponjoso blanco en la frente
+                ctxCanvas.fillStyle = '#f8fafc';
+                ctxCanvas.beginPath();
+                ctxCanvas.arc(0, -r * 0.6, r * 0.45, 0, Math.PI * 2);
+                ctxCanvas.arc(-r * 0.35, -r * 0.5, r * 0.32, 0, Math.PI * 2);
+                ctxCanvas.arc(r * 0.35, -r * 0.5, r * 0.32, 0, Math.PI * 2);
+                ctxCanvas.fill();
+                // Ojos grandes con brillo blanco
+                ctxCanvas.fillStyle = '#0f172a';
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.42, -r * 0.05, r * 0.28, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(r * 0.42, -r * 0.05, r * 0.28, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath(); ctxCanvas.arc(-r * 0.36, -r * 0.12, r * 0.12, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(r * 0.48, -r * 0.12, r * 0.12, 0, Math.PI * 2); ctxCanvas.fill();
+                // Nariz azul redonda
+                ctxCanvas.fillStyle = '#1d4ed8';
+                ctxCanvas.beginPath(); ctxCanvas.ellipse(0, r * 0.18, r * 0.22, r * 0.16, 0, 0, Math.PI * 2); ctxCanvas.fill();
+                // Boca feroz con 4 colmillos puntiagudos
+                ctxCanvas.fillStyle = '#1e293b';
+                ctxCanvas.beginPath(); ctxCanvas.arc(0, r * 0.42, r * 0.45, 0.2, Math.PI - 0.2, false); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath();
+                // 4 colmillos
+                ctxCanvas.moveTo(-r * 0.35, r * 0.42); ctxCanvas.lineTo(-r * 0.26, r * 0.62); ctxCanvas.lineTo(-r * 0.17, r * 0.42);
+                ctxCanvas.moveTo(-r * 0.12, r * 0.42); ctxCanvas.lineTo(-r * 0.05, r * 0.58); ctxCanvas.lineTo(r * 0.02, r * 0.42);
+                ctxCanvas.moveTo(r * 0.08, r * 0.42); ctxCanvas.lineTo(r * 0.15, r * 0.58); ctxCanvas.lineTo(r * 0.22, r * 0.42);
+                ctxCanvas.moveTo(r * 0.27, r * 0.42); ctxCanvas.lineTo(r * 0.36, r * 0.62); ctxCanvas.lineTo(r * 0.45, r * 0.42);
+                ctxCanvas.fill();
                 break;
             }
             default: {
-                c.fillStyle = this.color;
-                c.beginPath(); c.arc(0, 0, this.radius, 0, Math.PI * 2); c.fill();
+                ctxCanvas.fillStyle = this.color;
+                ctxCanvas.beginPath(); ctxCanvas.arc(0, 0, this.radius, 0, Math.PI * 2); ctxCanvas.fill();
                 break;
             }
         }
@@ -2103,11 +2928,103 @@ function spawnFloatingText(x, y, text, isCrit) {
     floatingTexts.push(ft);
 }
 
+function getSkillIconSVG(id, isFusion) {
+    if (isFusion) {
+        return `<svg viewBox="0 0 48 48" class="w-9 h-9"><circle cx="24" cy="24" r="18" fill="url(#g-fuse)"/><defs><radialGradient id="g-fuse"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#dc2626"/></radialGradient></defs><path d="M24 10 L28 20 L38 24 L28 28 L24 38 L20 28 L10 24 L20 20 Z" fill="#ffffff"/></svg>`;
+    }
+    switch (id) {
+        case 'darkenergy':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><defs><radialGradient id="de-g" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#3b0764"/><stop offset="100%" stop-color="#1e1b4b"/></radialGradient></defs><circle cx="24" cy="24" r="18" fill="url(#de-g)"/><circle cx="24" cy="24" r="14" stroke="#c084fc" stroke-width="3" stroke-dasharray="4 2" fill="none"/><circle cx="24" cy="24" r="8" fill="#a855f7" opacity="0.8"/><circle cx="24" cy="24" r="3" fill="#ffffff"/><circle cx="24" cy="10" r="2.5" fill="#e9d5ff"/><circle cx="36" cy="18" r="2" fill="#e9d5ff"/><circle cx="34" cy="30" r="2.5" fill="#e9d5ff"/><circle cx="16" cy="34" r="2" fill="#e9d5ff"/><circle cx="12" cy="20" r="2.5" fill="#e9d5ff"/></svg>`;
+        case 'lasers':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><rect x="6" y="21" width="36" height="6" rx="3" fill="#ef4444"/><rect x="12" y="23" width="24" height="2" rx="1" fill="#ffffff"/><line x1="8" y1="12" x2="40" y2="12" stroke="#f87171" stroke-width="3" stroke-linecap="round"/><line x1="8" y1="36" x2="40" y2="36" stroke="#f87171" stroke-width="3" stroke-linecap="round"/></svg>`;
+        case 'cards':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><rect x="10" y="8" width="20" height="28" rx="2" fill="#ffffff" stroke="#dc2626" stroke-width="2" transform="rotate(-15 20 22)"/><rect x="18" y="12" width="20" height="28" rx="2" fill="#ffffff" stroke="#1e293b" stroke-width="2" transform="rotate(15 28 26)"/><circle cx="28" cy="26" r="3" fill="#dc2626"/></svg>`;
+        case 'bubbles':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><circle cx="24" cy="24" r="16" fill="rgba(56,189,248,0.5)" stroke="#38bdf8" stroke-width="2.5"/><circle cx="19" cy="19" r="4" fill="#ffffff"/><circle cx="34" cy="14" r="6" fill="rgba(56,189,248,0.4)" stroke="#7dd3fc" stroke-width="1.5"/></svg>`;
+        case 'rapideggs':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><ellipse cx="24" cy="25" rx="13" ry="17" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/><ellipse cx="20" cy="20" rx="3" ry="5" fill="#ffffff" transform="rotate(-20 20 20)"/></svg>`;
+        case 'feathers':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><path d="M12 36 Q18 20 36 12 Q32 28 16 36 Z" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/><line x1="12" y1="36" x2="32" y2="16" stroke="#cbd5e1" stroke-width="2"/></svg>`;
+        case 'syrup':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><path d="M24 8 C24 8 12 24 12 32 C12 38 17 42 24 42 C31 42 36 38 36 32 C36 24 24 8 24 8 Z" fill="#d97706" stroke="#78350f" stroke-width="2"/><circle cx="20" cy="30" r="3" fill="#fbbf24"/></svg>`;
+        case 'bees':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><ellipse cx="24" cy="26" rx="12" ry="9" fill="#facc15"/><rect x="18" y="17" width="3" height="18" fill="#1e293b"/><rect x="25" y="17" width="3" height="18" fill="#1e293b"/><ellipse cx="19" cy="16" rx="6" ry="4" fill="rgba(255,255,255,0.85)"/><ellipse cx="27" cy="16" rx="6" ry="4" fill="rgba(255,255,255,0.85)"/></svg>`;
+        case 'slimyballs':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><circle cx="24" cy="24" r="15" fill="#22c55e" stroke="#15803d" stroke-width="2"/><circle cx="19" cy="19" r="4.5" fill="#86efac"/></svg>`;
+        case 'arrows':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><line x1="10" y1="38" x2="34" y2="14" stroke="#78350f" stroke-width="3.5"/><polygon points="38,10 26,14 34,22" fill="#64748b"/><polygon points="8,40 14,38 10,34" fill="#94a3b8"/></svg>`;
+        case 'shell':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><ellipse cx="24" cy="24" rx="16" ry="14" fill="#16a34a" stroke="#14532d" stroke-width="2.5"/><circle cx="24" cy="24" r="7" stroke="#14532d" stroke-width="2" fill="none"/></svg>`;
+        case 'acorns':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><path d="M14 20 Q24 38 34 20 Z" fill="#a16207"/><rect x="12" y="15" width="24" height="6" rx="3" fill="#451a03"/><rect x="23" y="10" width="3" height="6" rx="1.5" fill="#451a03"/></svg>`
+        case 'horseshoe':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><path d="M14 12 V26 C14 32 18 36 24 36 C30 36 34 32 34 26 V12" stroke="#94a3b8" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="17" cy="28" r="1.5" fill="#475569"/><circle cx="31" cy="28" r="1.5" fill="#475569"/></svg>`;
+        case 'pizza':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><polygon points="24,38 10,12 38,12" fill="#facc15"/><rect x="8" y="10" width="32" height="4" rx="2" fill="#b45309"/><circle cx="22" cy="22" r="3" fill="#dc2626"/><circle cx="28" cy="28" r="2.5" fill="#dc2626"/></svg>`;
+        case 'banana':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><path d="M14 32 Q20 36 30 28 Q34 22 36 14 Q30 18 20 22 Q14 26 14 32 Z" fill="#facc15" stroke="#ca8a04" stroke-width="2"/></svg>`;
+        case 'jugglingspheres':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><circle cx="16" cy="28" r="7" fill="#f43f5e"/><circle cx="32" cy="28" r="7" fill="#3b82f6"/><circle cx="24" cy="14" r="7" fill="#eab308"/></svg>`;
+        case 'bones':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><rect x="14" y="21" width="20" height="6" rx="2" fill="#f8fafc"/><circle cx="14" cy="19" r="3.5" fill="#f8fafc"/><circle cx="14" cy="29" r="3.5" fill="#f8fafc"/><circle cx="34" cy="19" r="3.5" fill="#f8fafc"/><circle cx="34" cy="29" r="3.5" fill="#f8fafc"/></svg>`;
+        case 'peacock':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><ellipse cx="24" cy="24" rx="10" ry="16" fill="#0284c7"/><circle cx="24" cy="20" r="6" fill="#facc15"/><circle cx="24" cy="20" r="3" fill="#38bdf8"/></svg>`;
+        case 'magnet':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><path d="M14 12 V24 C14 30 18 34 24 34 C30 34 34 30 34 24 V12" stroke="#ef4444" stroke-width="5" fill="none"/><line x1="14" y1="12" x2="14" y2="17" stroke="#cbd5e1" stroke-width="5"/><line x1="34" y1="12" x2="34" y2="17" stroke="#cbd5e1" stroke-width="5"/></svg>`;
+        case 'speed':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><polygon points="26,8 14,24 24,24 22,40 34,22 24,22" fill="#facc15" stroke="#ca8a04" stroke-width="1.5"/></svg>`;
+        case 'hp':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><path d="M24 38 C24 38 10 26 10 18 C10 13 14 10 18 10 C21 10 23 12 24 14 C25 12 27 10 30 10 C34 10 38 13 38 18 C38 26 24 38 24 38 Z" fill="#ef4444"/></svg>`;
+        case 'might':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><polygon points="34,10 38,14 20,32 16,28" fill="#eab308"/><rect x="14" y="30" width="8" height="3" rx="1.5" fill="#ca8a04" transform="rotate(45 18 31.5)"/><rect x="10" y="34" width="6" height="3" rx="1.5" fill="#78350f" transform="rotate(45 13 35.5)"/></svg>`;
+        case 'armor':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><path d="M24 10 L36 14 V24 C36 32 24 38 24 38 C24 38 12 32 12 24 V14 Z" fill="#3b82f6" stroke="#1d4ed8" stroke-width="2"/><polygon points="24,14 32,18 32,24 C32,29 24,34 24,34 Z" fill="#60a5fa"/></svg>`;
+        case 'crit':
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><circle cx="24" cy="24" r="14" stroke="#ef4444" stroke-width="2.5" fill="none"/><circle cx="24" cy="24" r="8" stroke="#ef4444" stroke-width="2" fill="none"/><circle cx="24" cy="24" r="3" fill="#ef4444"/><line x1="24" y1="6" x2="24" y2="42" stroke="#ef4444" stroke-width="2"/><line x1="6" y1="24" x2="42" y2="24" stroke="#ef4444" stroke-width="2"/></svg>`;
+        default:
+            return `<svg viewBox="0 0 48 48" class="w-8 h-8"><circle cx="24" cy="24" r="14" fill="#facc15"/><text x="24" y="30" font-size="18" text-anchor="middle" font-weight="bold" fill="#78350f">★</text></svg>`;
+    }
+}
+
+function createUpgradeCard({ name, levelBadge, statText, id, isFusion, apply }) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `upgrade-card group relative w-full bg-[#1e2532] hover:bg-[#283243] active:translate-y-0.5 border-2 ${isFusion ? 'border-amber-400/80 hover:border-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)]' : 'border-[#141b25] hover:border-[#38bdf8]'} rounded-2xl p-3 sm:p-3.5 flex items-center gap-3.5 transition-all shadow-md text-left cursor-pointer`;
+    
+    const iconSvg = getSkillIconSVG(id, isFusion);
+    
+    btn.innerHTML = `
+        <div class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-b from-[#37475d] to-[#1f2937] border-2 border-[#475b75] flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
+            <div class="absolute top-1 left-1.5 w-2 h-2 bg-white/30 rounded-full pointer-events-none"></div>
+            <div class="absolute bottom-1 right-1.5 w-1 h-1 bg-white/20 rounded-full pointer-events-none"></div>
+            <div class="flex items-center justify-center transform group-hover:scale-110 transition-transform">
+                ${iconSvg}
+            </div>
+            <div class="absolute bottom-0 inset-x-0 bg-black/80 text-[10px] sm:text-[11px] font-black text-center text-white py-0.5 tracking-wider border-t border-white/10">
+                ${levelBadge}
+            </div>
+        </div>
+        <div class="flex-1 min-w-0 pr-1">
+            <div class="text-base sm:text-lg font-black text-white group-hover:text-cyan-300 transition-colors truncate">
+                ${name}
+            </div>
+            <div class="text-xs sm:text-sm font-bold text-slate-300 truncate mt-0.5">
+                ${statText}
+            </div>
+        </div>
+    `;
+    btn.onclick = apply;
+    return btn;
+}
+
 function triggerInitialDraft() {
     currentState = GAME_STATE.LEVEL_UP;
-    document.getElementById('draft-title').innerText = "¡ELIGE TU PODER INICIAL!";
-    document.getElementById('draft-subtitle').innerText = "Selecciona 1 de las 3 habilidades aleatorias para comenzar";
+    document.getElementById('quiz-container').classList.add('hidden');
+    document.getElementById('draft-options').classList.remove('hidden');
+    document.getElementById('draft-subtitle').innerText = "Choose an Upgrade";
+    document.getElementById('draft-title').innerText = "Level Up";
     document.getElementById('level-up-screen').classList.remove('hidden');
+    updateInventoryDisplay();
 
     let shuffled = [...WEAPONS_CATALOG].sort(() => 0.5 - Math.random());
     let choices = shuffled.slice(0, 3);
@@ -2117,88 +3034,263 @@ function triggerInitialDraft() {
 
     choices.forEach(WClass => {
         let tempWeapon = new WClass(player);
-        const btn = document.createElement('button');
-        btn.className = `glass-panel p-6 rounded-2xl hover:bg-gray-800/90 transition-all text-left border-2 border-transparent hover:border-amber-400 cursor-pointer shadow-xl flex flex-col justify-between transform hover:-translate-y-1 duration-200`;
-        btn.innerHTML = `
-            <div>
-                <div class="text-xs font-black text-amber-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                    <span>⚡</span> HABILIDAD INICIAL
-                </div>
-                <h3 class="text-2xl font-extrabold text-white mb-2">${tempWeapon.name}</h3>
-                <p class="text-gray-300 text-sm leading-relaxed mb-4">${getWeaponDescription(tempWeapon.id)}</p>
-            </div>
-            <span class="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black rounded-xl text-center text-sm uppercase tracking-wide shadow-md">Elegir Habilidad</span>
-        `;
-        btn.onclick = () => {
-            player.weapons.push(tempWeapon);
-            updateHUD();
-            document.getElementById('level-up-screen').classList.add('hidden');
-            currentState = GAME_STATE.PLAYING;
-            lastTime = performance.now();
-        };
-        container.appendChild(btn);
+        const card = createUpgradeCard({
+            name: tempWeapon.name,
+            levelBadge: 'Lvl 1',
+            statText: getWeaponUpgradeText(tempWeapon.id, 1),
+            id: tempWeapon.id,
+            isFusion: false,
+            apply: () => {
+                player.weapons.push(tempWeapon);
+                updateInventoryDisplay();
+                updateHUD();
+                document.getElementById('level-up-screen').classList.add('hidden');
+                currentState = GAME_STATE.PLAYING;
+                lastTime = performance.now();
+            }
+        });
+        container.appendChild(card);
     });
 }
 
+function updateInventoryDisplay() {
+    const wCount = player.weapons ? player.weapons.length : 0;
+    const pCount = player.passives ? player.passives.length : 0;
+    const elW = document.getElementById('ui-inv-weapons');
+    const elP = document.getElementById('ui-inv-passives');
+    if (elW) elW.innerText = `Armas: ${wCount}/6`;
+    if (elP) elP.innerText = `Pasivas: ${pCount}/6`;
+}
+
 function triggerDraft() {
+    if (player.level >= 60) return; // Nivel 60: no se abren más ruletas
+
     currentState = GAME_STATE.LEVEL_UP;
-    document.getElementById('draft-title').innerText = "¡NIVEL ALCANZADO!";
-    document.getElementById('draft-subtitle').innerText = "Selecciona una mejora estratégica para tu arsenal";
     document.getElementById('level-up-screen').classList.remove('hidden');
+    updateInventoryDisplay();
+
+    // Verificación de validación de preguntas según el nivel
+    let requiredQuestions = 0;
+    if (player.level >= 30) {
+        // Nivel 30+: Exige obligatoriamente 2 respuestas correctas consecutivas
+        requiredQuestions = 2;
+    } else if (player.level >= 17) {
+        // Nivel 17 al 29: Exige exactamente 1 respuesta correcta
+        requiredQuestions = 1;
+    }
+
+    if (requiredQuestions > 0) {
+        startQuizValidation(requiredQuestions, generateRouletteCards);
+    } else {
+        document.getElementById('quiz-container').classList.add('hidden');
+        document.getElementById('draft-options').classList.remove('hidden');
+        generateRouletteCards();
+    }
+}
+
+function generateRouletteCards() {
+    const lvl = player.level;
+    document.getElementById('draft-subtitle').innerText = "Choose an Upgrade";
+    document.getElementById('draft-title').innerText = "Level Up";
+
+    // Slot_Lock activado si ya tenemos 6 armas
+    if (player.weapons.length >= 6) {
+        player.slotLock = true;
+    }
+    // Nivel 16: Activación forzada de bloqueo de ID (elimina permanentemente armas base no equipadas)
+    if (lvl >= 16) {
+        player.slotLock = true;
+    }
+
     let draftPool = [];
 
+    // CATÁLOGO DE LAS 5 FUSIONES PROGRAMADAS
+    const FUSION_PAIRS = [
+        {
+            key: 'dark_bubbles',
+            a: 'darkenergy', b: 'bubbles',
+            title: 'Dark Energy + Booming Bubbles',
+            desc: '🌌 Fusión Nivel 11: Zonas Cósmicas Masivas'
+        },
+        {
+            key: 'syrup_bees',
+            a: 'syrup', b: 'bees',
+            title: 'Sticky Syrup + Buzzing Bees',
+            desc: '🐝 Fusión Nivel 11: Enjambre y Miel Máxima'
+        },
+        {
+            key: 'lasers_cards',
+            a: 'lasers', b: 'cards',
+            title: 'Rapid-Fire Lasers + Slicing Cards',
+            desc: '⚡ Fusión Nivel 11: Abanico de Láseres Gigantes'
+        },
+        {
+            key: 'eggs_feathers',
+            a: 'rapideggs', b: 'feathers',
+            title: 'Rapid Eggs + Flying Feathers',
+            desc: '🐔 Fusión Nivel 11: Torretas Lava Chicken'
+        },
+        {
+            key: 'arrows_slime',
+            a: 'arrows', b: 'slimyballs',
+            title: 'Speeding Arrows + Slimy Balls',
+            desc: '🏹 Fusión Nivel 11: Flechas Teledirigidas de Slime'
+        }
+    ];
+
+    // Nivel 40+: Disparador de Fusión Nivel 11 con MÁXIMA PRIORIDAD para las 5 combinaciones
+    if (lvl >= 40) {
+        FUSION_PAIRS.forEach(pair => {
+            const weaponA = player.weapons.find(w => w.id === pair.a);
+            const weaponB = player.weapons.find(w => w.id === pair.b);
+            if (weaponA && weaponB && weaponA.level >= 10 && weaponB.level >= 10 && !player.fusions.has(pair.key)) {
+                draftPool.push({
+                    name: pair.title,
+                    levelBadge: 'Lvl 11',
+                    statText: pair.desc,
+                    id: pair.a,
+                    isFusion: true,
+                    priority: true,
+                    apply: () => {
+                        player.fusions.add(pair.key);
+                        weaponA.applyUpgrade(11);
+                        weaponB.applyUpgrade(11);
+                    }
+                });
+            }
+        });
+    }
+
+    // Actualización de armas existentes (Depuración por tope: desaparecen si llegan a Lv 10 o 11)
     player.weapons.forEach(w => {
         if (w.level < 10) {
             let nextLvl = w.level + 1;
+            let statText = getWeaponUpgradeText(w.id, nextLvl);
+
             draftPool.push({
-                title: `✨ ${w.name} (Nvl ${nextLvl})`,
-                desc: `Incrementa potencia y efectividad de ${w.name}.`,
+                name: w.name,
+                levelBadge: `Lvl ${nextLvl}`,
+                statText: statText,
+                id: w.id,
+                isFusion: false,
                 apply: () => w.applyUpgrade(nextLvl)
             });
         }
     });
 
-    WEAPONS_CATALOG.forEach(WClass => {
-        let temp = new WClass(player);
-        if (!player.weapons.some(w => w.id === temp.id)) {
-            draftPool.push({
-                title: `🆕 Desbloquear ${temp.name}`,
-                desc: getWeaponDescription(temp.id),
-                apply: () => player.weapons.push(temp)
-            });
-        }
-    });
+    // Nuevas armas base (sólo si no hay bloqueo de ranura y es menor al Nivel 16)
+    if (!player.slotLock && lvl < 16 && player.weapons.length < 6) {
+        WEAPONS_CATALOG.forEach(WClass => {
+            let temp = new WClass(player);
+            if (!player.weapons.some(w => w.id === temp.id)) {
+                draftPool.push({
+                    name: temp.name,
+                    levelBadge: 'Lvl 1',
+                    statText: getWeaponUpgradeText(temp.id, 1),
+                    id: temp.id,
+                    isFusion: false,
+                    apply: () => {
+                        player.weapons.push(temp);
+                        if (player.weapons.length >= 6) player.slotLock = true;
+                    }
+                });
+            }
+        });
+    }
 
-    draftPool.push({ title: '💪 Daño General +20%', desc: 'Incrementa el daño total de todas tus armas.', apply: () => player.baseDamageMult += 0.2 });
-    draftPool.push({ title: '🎯 Prob. Crítico +10%', desc: 'Aumenta la probabilidad de asestar golpes críticos.', apply: () => player.critChance += 0.1 });
-    draftPool.push({ title: '⚡ Velocidad +15%', desc: 'Aumenta la velocidad de movimiento de tu personaje.', apply: () => player.speed *= 1.15 });
+    // Habilidades Pasivas (Inyectadas a partir de Nivel 5)
+    if (lvl >= 5) {
+        PASSIVES_CATALOG.forEach(pDef => {
+            let currentPassive = player.passives.find(p => p.id === pDef.id);
+            if (currentPassive) {
+                if (currentPassive.level < 10) {
+                    let nextLvl = currentPassive.level + 1;
+                    draftPool.push({
+                        name: pDef.name.replace(/\s*\(.*?\)\s*/g, ''),
+                        levelBadge: `Lvl ${nextLvl}`,
+                        statText: pDef.desc,
+                        id: pDef.id,
+                        isFusion: false,
+                        apply: () => {
+                            currentPassive.level = nextLvl;
+                            pDef.apply(player, nextLvl);
+                        }
+                    });
+                }
+            } else if (player.passives.length < 6) {
+                draftPool.push({
+                    name: pDef.name.replace(/\s*\(.*?\)\s*/g, ''),
+                    levelBadge: 'Lvl 1',
+                    statText: pDef.desc,
+                    id: pDef.id,
+                    isFusion: false,
+                    apply: () => {
+                        let newP = { id: pDef.id, name: pDef.name, level: 1 };
+                        player.passives.push(newP);
+                        pDef.apply(player, 1);
+                    }
+                });
+            }
+        });
+    }
 
-    let choices = draftPool.sort(() => 0.5 - Math.random()).slice(0, 3);
+    // Nivel 56 al 59: Vaciado de Mazo (Fallback a curaciones o monedas si no hay opciones)
+    if (draftPool.length === 0) {
+        draftPool.push({
+            name: 'Elixir de Vida Menor',
+            levelBadge: 'Item',
+            statText: '+30 puntos de salud',
+            id: 'hp',
+            isFusion: false,
+            apply: () => { player.hp = Math.min(player.maxHp, player.hp + 30); }
+        });
+        draftPool.push({
+            name: 'Bolsa de Monedas',
+            levelBadge: 'Item',
+            statText: '+150 puntos para la Tienda',
+            id: 'might',
+            isFusion: false,
+            apply: () => { totalPoints += 150; }
+        });
+        draftPool.push({
+            name: 'Coraza Temporal',
+            levelBadge: 'Item',
+            statText: '+15 salud máxima permanente',
+            id: 'armor',
+            isFusion: false,
+            apply: () => { player.maxHp += 15; player.hp += 15; }
+        });
+    }
+
+    // Si hay una carta de fusión prioritaria (Nivel 40), garantizarla en primer lugar
+    let priorityCard = draftPool.find(c => c.priority);
+    let remainingPool = draftPool.filter(c => !c.priority).sort(() => 0.5 - Math.random());
+    let choices = priorityCard ? [priorityCard, ...remainingPool.slice(0, 2)] : remainingPool.slice(0, 3);
+
     const container = document.getElementById('draft-options');
     container.innerHTML = '';
     choices.forEach(choice => {
-        const btn = document.createElement('button');
-        btn.className = `glass-panel p-6 rounded-2xl hover:bg-gray-800/90 transition-all text-left border-2 border-transparent hover:border-amber-400 cursor-pointer shadow-xl flex flex-col justify-between`;
-        btn.innerHTML = `
-            <div>
-                <h3 class="text-xl font-extrabold text-white mb-2">${choice.title}</h3>
-                <p class="text-gray-300 text-sm mb-4">${choice.desc}</p>
-            </div>
-            <span class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-center text-xs uppercase tracking-wide">Elegir</span>
-        `;
-        btn.onclick = () => {
-            choice.apply(); 
-            updateHUD();
-            if (player.pendingLevels && player.pendingLevels > 0) {
-                player.pendingLevels--;
-                triggerDraft();
-            } else {
-                document.getElementById('level-up-screen').classList.add('hidden');
-                currentState = GAME_STATE.PLAYING; 
-                lastTime = performance.now();
+        const card = createUpgradeCard({
+            name: choice.name,
+            levelBadge: choice.levelBadge,
+            statText: choice.statText,
+            id: choice.id,
+            isFusion: choice.isFusion,
+            apply: () => {
+                choice.apply(); 
+                updateInventoryDisplay();
+                updateHUD();
+                if (player.pendingLevels && player.pendingLevels > 0 && player.level < 60) {
+                    player.pendingLevels--;
+                    triggerDraft();
+                } else {
+                    document.getElementById('level-up-screen').classList.add('hidden');
+                    currentState = GAME_STATE.PLAYING; 
+                    lastTime = performance.now();
+                }
             }
-        };
-        container.appendChild(btn);
+        });
+        container.appendChild(card);
     });
 }
 
@@ -2345,6 +3437,7 @@ function gameLoop(timestamp) {
                 if (e.active && !p.hitTargets.has(e) && distSq(p.x, p.y, e.x, e.y) < (p.radius + e.radius)**2) {
                     p.hitTargets.add(e);
                     e.takeDamage(p.damage, p.isCrit, p.vx, p.vy, true);
+                    p.target = null; // Re-target next closest enemy for homing projectiles (Shells, Bees)
                     p.pierce--; 
                     if (p.pierce <= 0) { 
                         p.active = false; 
@@ -2379,13 +3472,16 @@ function gameLoop(timestamp) {
                 continue;
             }
             let dSq = distSq(o.x, o.y, player.x, player.y);
-            if (dSq < 12000) {
+            let magnetR = player.magnetRadius || 110;
+            if (dSq < magnetR * magnetR) {
                 let dist = Math.sqrt(dSq) || 1;
-                o.x += ((player.x - o.x)/dist) * 380 * dt; 
-                o.y += ((player.y - o.y)/dist) * 380 * dt;
+                o.x += ((player.x - o.x)/dist) * 420 * dt; 
+                o.y += ((player.y - o.y)/dist) * 420 * dt;
             }
             if (dSq < (player.radius + o.radius)**2) { 
-                player.addXp(o.value); 
+                if (player.level < 60) {
+                    player.addXp(o.value); 
+                }
                 o.active = false; 
             }
         }
@@ -2436,8 +3532,8 @@ function gameLoop(timestamp) {
             if (prop.x >= minVX && prop.x <= maxVX && prop.y >= minVY && prop.y <= maxVY) {
                 let px = prop.x - camX, py = prop.y - camY;
                 ctx.save(); ctx.translate(px, py); ctx.rotate(prop.rotation);
-                if (prop.type === 'rock') drawSnowyRock(ctx, prop.size);
-                else { ctx.fillStyle = '#15803d'; ctx.beginPath(); ctx.arc(0, 0, prop.size/2, 0, Math.PI*2); ctx.fill(); }
+                if (prop.type === 'rock') drawSnowyRock(ctx, prop.size, prop.variant);
+                else drawSnowyBush(ctx, prop.size, prop.variant, prop.berryColor);
                 ctx.restore();
             }
         }
