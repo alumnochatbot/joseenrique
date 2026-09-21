@@ -2,929 +2,1798 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>¡Quiero Queque! - Edición Extrema</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>¡Quiero Queque! - Arcade Multiverse</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #0f172a; font-family: 'Inter', sans-serif; user-select: none; }
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #090d16; 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            user-select: none; 
+            -webkit-tap-highlight-color: transparent;
+        }
         canvas { display: block; }
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .skin-btn.active {
+        .arcade-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .arcade-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 20px 30px -10px rgba(236, 72, 153, 0.4);
+        }
+        .skin-tab.active {
             border-color: #ec4899 !important;
-            background-color: rgba(236, 72, 153, 0.25) !important;
-            opacity: 1 !important;
-            transform: scale(1.08);
+            background-color: rgba(236, 72, 153, 0.3) !important;
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.6);
+            transform: scale(1.05);
+        }
+        .retro-glow {
+            text-shadow: 0 0 15px rgba(236, 72, 153, 0.75), 0 0 30px rgba(239, 68, 68, 0.5);
         }
     </style>
 </head>
-<body>
+<body class="text-white">
 
-    <div id="ui-layer" class="flex flex-col justify-between p-4 md:p-6 text-white select-none z-10">
-        <!-- Barra superior de estado (HUD) -->
-        <div class="flex justify-between items-center w-full">
-            <div class="flex flex-col gap-1">
-                <h1 class="text-2xl md:text-4xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 drop-shadow">
-                    ¡QUIERO QUEQUE!
-                </h1>
-                <span id="mode-badge" class="text-xs font-semibold bg-red-600 text-white px-2 py-0.5 rounded-full w-max shadow-md">MODO EXTREMO</span>
+    <!-- Contenedor de precarga para imágenes fiables en Canvas -->
+    <div id="image-cache" class="hidden" aria-hidden="true">
+        <img id="advincula-cache-img" 
+             src="https://lh3.googleusercontent.com/d/1fZjpAbwjE8Q4yuG5IS0zkMMskPSaLZ5L" 
+             onerror="this.src='https://images.weserv.nl/?url=drive.google.com/uc?id=1fZjpAbwjE8Q4yuG5IS0zkMMskPSaLZ5L'"
+             alt="Advíncula Cache">
+    </div>
+
+    <!-- LOBBY PRINCIPAL: ARCADE SELECTION HUB -->
+    <div id="arcade-lobby" class="fixed inset-0 z-40 overflow-y-auto bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-950 via-slate-950 to-black p-4 md:p-8 flex flex-col justify-between items-center">
+        
+        <!-- Encabezado del Arcade -->
+        <header class="text-center max-w-2xl mt-2 mb-6">
+            <div class="inline-flex items-center gap-2 bg-pink-500/20 border border-pink-500/40 px-4 py-1 rounded-full text-pink-400 text-xs md:text-sm font-bold tracking-widest uppercase mb-2">
+                <span>🕹️ ARCADE MULTIVERSE</span>
             </div>
+            <h1 class="text-4xl md:text-6xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 retro-glow">
+                ¡QUIERO QUEQUE!
+            </h1>
+            <p class="text-sm md:text-base text-gray-300 mt-2">
+                Selecciona tu juego favorito, equipa tu skin de La Cobra y derrota al brócoli de Advíncula.
+            </p>
+        </header>
+
+        <!-- Selector Global de Skins con Miniaturas Circulares -->
+        <section class="w-full max-w-2xl bg-gray-900/80 backdrop-blur-md p-4 rounded-3xl border border-white/10 shadow-2xl mb-6">
+            <div class="flex items-center justify-between mb-3 px-2">
+                <span class="text-xs font-black tracking-wider text-gray-300 uppercase flex items-center gap-1.5">
+                    <span>👑</span> SKIN DE LA COBRA:
+                </span>
+                <span id="active-skin-label" class="text-xs font-extrabold text-pink-400">Clásico</span>
+            </div>
+            <div class="grid grid-cols-4 gap-2 md:gap-4" id="lobby-skins-container">
+                <!-- Se inyecta dinámicamente por JavaScript -->
+            </div>
+        </section>
+
+        <!-- Tarjetas de Selección de Minijuegos -->
+        <main class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
             
-            <div class="flex gap-3 md:gap-4 items-center">
-                <!-- Vidas -->
-                <div id="lives-container" class="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/10 shadow-lg">
-                    <!-- Los corazones SVG se insertan dinámicamente -->
+            <!-- JUEGO 1: Atrapa-Queques Original -->
+            <div class="arcade-card bg-gradient-to-b from-gray-900/90 to-gray-950/90 p-5 rounded-3xl border border-pink-500/30 flex flex-col justify-between shadow-xl">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-pink-600/30 border border-pink-500/50 text-pink-300 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">JUEGO 1</span>
+                        <span class="text-xl">🍰</span>
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-black italic text-pink-400 mb-1">¡Quiero Queque!</h2>
+                    <p class="text-xs text-gray-400 leading-relaxed mb-4">
+                        El clásico. Atrapa queques con La Cobra, esquiva bombas, chiles y sobrevive a Advíncula.
+                    </p>
                 </div>
+                <button onclick="openDifficultyModal()" class="w-full py-3 bg-gradient-to-r from-pink-500 to-rose-600 hover:brightness-110 active:scale-95 font-black text-sm rounded-2xl shadow-lg transition flex items-center justify-center gap-2">
+                    <span>JUGAR AHORA</span>
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+            </div>
+
+            <!-- JUEGO 2: Flappy Cobra -->
+            <div class="arcade-card bg-gradient-to-b from-gray-900/90 to-gray-950/90 p-5 rounded-3xl border border-amber-500/30 flex flex-col justify-between shadow-xl">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-amber-600/30 border border-amber-500/50 text-amber-300 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">JUEGO 2</span>
+                        <span class="text-xl">🪽</span>
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-black italic text-amber-400 mb-1">Flappy Cobra</h2>
+                    <p class="text-xs text-gray-400 leading-relaxed mb-4">
+                        ¡Vuela con tu skin circular! Aletea entre postes, esquiva a Advíncula y recoge queques dorados.
+                    </p>
+                </div>
+                <button onclick="launchGame('flappy')" class="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 hover:brightness-110 active:scale-95 font-black text-sm rounded-2xl shadow-lg transition flex items-center justify-center gap-2">
+                    <span>DESPEGAR</span>
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+            </div>
+
+            <!-- JUEGO 3: Keke Invaders -->
+            <div class="arcade-card bg-gradient-to-b from-gray-900/90 to-gray-950/90 p-5 rounded-3xl border border-emerald-500/30 flex flex-col justify-between shadow-xl">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-emerald-600/30 border border-emerald-500/50 text-emerald-300 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">JUEGO 3</span>
+                        <span class="text-xl">🚀</span>
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-black italic text-emerald-400 mb-1">Keke Invaders</h2>
+                    <p class="text-xs text-gray-400 leading-relaxed mb-4">
+                        Cañón circular de La Cobra contra escuadrones de brócolis y el jefe Advíncula en su nave circular.
+                    </p>
+                </div>
+                <button onclick="launchGame('invaders')" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 active:scale-95 font-black text-sm rounded-2xl shadow-lg transition flex items-center justify-center gap-2">
+                    <span>BATALLAR</span>
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+            </div>
+
+        </main>
+
+        <!-- Pie de Lobby -->
+        <footer class="text-center text-gray-500 text-xs pb-2 flex items-center gap-4">
+            <button onclick="toggleMuteAudio()" id="sound-btn-lobby" class="hover:text-pink-400 transition flex items-center gap-1.5 bg-gray-900/60 px-3 py-1.5 rounded-full border border-gray-800">
+                <span id="sound-icon-lobby">🔊</span> Sonido: <span id="sound-status-lobby" class="font-bold text-white">ON</span>
+            </button>
+            <span>🎮 ¡Quiero Queque! Suite v3.2</span>
+        </footer>
+    </div>
+
+    <!-- CAPA HUD SOBRE EL CANVAS DE JUEGO -->
+    <div id="ui-layer" class="hidden fixed inset-0 pointer-events-none z-20 flex flex-col justify-between p-3 md:p-6 select-none">
+        
+        <!-- Barra Superior Unificada del HUD -->
+        <div class="flex justify-between items-center w-full">
+            
+            <!-- Botón Volver al Arcade + Info de Juego -->
+            <div class="flex items-center gap-2 md:gap-3 pointer-events-auto">
+                <button onclick="exitToArcadeLobby()" class="bg-black/70 hover:bg-pink-600/80 active:scale-95 backdrop-blur-md p-2 md:px-3 md:py-2 rounded-2xl border border-white/20 shadow-lg flex items-center gap-1.5 text-xs md:text-sm font-black transition text-white">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                    <span class="hidden sm:inline">ARCADE</span>
+                </button>
+                <div class="flex flex-col">
+                    <h2 id="hud-game-title" class="text-base md:text-xl font-black italic tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-yellow-300 drop-shadow">
+                        ¡QUIERO QUEQUE!
+                    </h2>
+                    <span id="hud-subbadge" class="text-[10px] font-bold bg-pink-600 text-white px-2 py-0.5 rounded-full w-max shadow">
+                        MODO EXTREMO
+                    </span>
+                </div>
+            </div>
+
+            <!-- Vidas, Puntos y Controles HUD -->
+            <div class="flex items-center gap-2 md:gap-3 pointer-events-auto">
+                
+                <!-- Miniatura circular del skin activo en el HUD -->
+                <div class="w-8 h-8 md:w-9 md:h-9 rounded-full overflow-hidden border-2 border-pink-500 shadow-md bg-black">
+                    <img id="hud-active-avatar" class="w-full h-full object-cover" alt="La Cobra">
+                </div>
+
+                <!-- Contenedor de Vidas -->
+                <div id="hud-lives-container" class="flex items-center gap-1 bg-black/70 backdrop-blur-md px-2.5 py-1 md:px-3.5 md:py-1.5 rounded-2xl border border-white/10 shadow-lg">
+                    <!-- Corazones dinámicos -->
+                </div>
+
                 <!-- Puntuación -->
-                <div id="score" class="text-xl md:text-3xl font-extrabold bg-gradient-to-r from-pink-600 to-red-600 px-4 md:px-5 py-1.5 rounded-2xl shadow-2xl border border-white/20">
-                    Puntos: 0
+                <div id="hud-score" class="text-lg md:text-2xl font-black bg-gradient-to-r from-pink-600 to-rose-600 px-3.5 py-1 md:px-5 md:py-1.5 rounded-2xl shadow-xl border border-white/20">
+                    0
                 </div>
-                <!-- Botón de Pausa -->
-                <button onclick="togglePause()" class="pointer-events-auto bg-black/60 hover:bg-pink-600/80 active:scale-95 transition backdrop-blur-md p-2 md:p-2.5 rounded-2xl border border-white/10 shadow-lg flex items-center justify-center text-white" title="Pausar (P o Esc)">
-                    <svg class="w-5 h-5 md:w-6 md:h-6 fill-current" viewBox="0 0 24 24">
-                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                    </svg>
+
+                <!-- Botón Sonido Rápido -->
+                <button onclick="toggleMuteAudio()" class="bg-black/70 hover:bg-gray-800 p-2 md:p-2.5 rounded-2xl border border-white/10 shadow-lg text-sm text-white" title="Sonido">
+                    <span id="sound-hud-icon">🔊</span>
+                </button>
+
+                <!-- Botón Pausa -->
+                <button onclick="togglePauseGame()" class="bg-black/70 hover:bg-pink-600/80 active:scale-95 p-2 md:p-2.5 rounded-2xl border border-white/10 shadow-lg text-white" title="Pausar">
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                 </button>
             </div>
         </div>
 
-        <!-- Indicador de Alertas Centrales -->
-        <div class="absolute top-20 md:top-24 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none z-20 w-11/12 max-w-lg">
-            <div id="wind-alert" class="hidden w-full justify-center bg-blue-600/90 text-white font-bold px-4 py-2 rounded-2xl text-sm md:text-base animate-bounce flex items-center gap-2 shadow-xl border border-blue-400/40">
+        <!-- Alertas Centrales (Viento, Advíncula, Estados) -->
+        <div class="absolute top-16 md:top-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none z-30 w-11/12 max-w-md">
+            <div id="wind-alert" class="hidden w-full justify-center bg-blue-600/90 text-white font-black px-4 py-2 rounded-2xl text-xs md:text-sm animate-bounce flex items-center gap-2 shadow-2xl border border-blue-400">
                 <span>💨 ¡VIENTO FUERTE EN CAMINO!</span>
             </div>
-            <div id="advincula-alert" class="hidden w-full justify-center bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-extrabold px-4 py-2 rounded-2xl text-sm md:text-base animate-pulse flex items-center gap-3 shadow-2xl border-2 border-yellow-300">
-                <img id="alert-advincula-icon" class="w-7 h-7 rounded-full object-cover border border-black/40" alt="Advíncula">
+            <div id="advincula-alert" class="hidden w-full justify-center bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black px-4 py-2 rounded-2xl text-xs md:text-sm animate-pulse flex items-center gap-2 shadow-2xl border-2 border-yellow-300">
+                <img id="advincula-alert-thumb" class="w-7 h-7 rounded-full object-cover border border-black shadow" alt="Advíncula">
                 <span>¡ADVÍNCULA AL ATAQUE! ¡ESQUIVA EL BRÓCOLI!</span>
             </div>
-            <div id="effect-alert" class="hidden w-full justify-center bg-purple-600/90 text-white font-bold px-4 py-2 rounded-2xl text-sm md:text-base animate-pulse flex items-center gap-2 shadow-xl border border-purple-400/40">
-                <span id="effect-text">🌶️ ¡CONTROLES INVERTIDOS!</span>
+            <div id="effect-alert" class="hidden w-full justify-center bg-purple-600/90 text-white font-black px-4 py-2 rounded-2xl text-xs md:text-sm animate-pulse flex items-center gap-2 shadow-2xl border border-purple-400">
+                <span id="effect-alert-text">🌶️ ¡CONTROLES INVERTIDOS!</span>
             </div>
         </div>
 
-        <!-- Guía Rápida Inferior Durante la Partida -->
-        <div class="hidden md:flex justify-around bg-black/60 backdrop-blur-md py-2 px-4 rounded-2xl text-xs gap-4 w-max mx-auto border border-white/10 mb-1">
-            <span class="flex items-center gap-1.5"><img id="leg-cake" class="w-4 h-4" alt="Queque"> Queque: +10 pts</span>
-            <span class="flex items-center gap-1.5"><img id="leg-gold" class="w-4 h-4" alt="Súper Queque"> Súper Queque: +50 pts</span>
-            <span class="flex items-center gap-1.5 text-green-400"><img id="leg-broccoli" class="w-4 h-4" alt="Brócoli"> Brócoli: -20 pts y reduce tamaño</span>
-            <span class="flex items-center gap-1.5 text-red-400"><img id="leg-chili" class="w-4 h-4" alt="Chile"> Chile: Invierte controles</span>
-            <span class="flex items-center gap-1.5 text-yellow-400"><img id="leg-bomb" class="w-4 h-4" alt="Bomba"> Bomba: Fin del juego</span>
-        </div>
-
-        <!-- Menú de Pausa -->
-        <div id="pause-menu" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center pointer-events-auto z-30 p-4">
-            <div class="text-center max-w-sm w-full px-6 py-8 bg-gray-900/95 rounded-3xl border border-pink-500/30 shadow-[0_0_50px_rgba(236,72,153,0.3)]">
-                <div class="inline-flex p-3 rounded-full bg-pink-500/10 text-pink-400 mb-3 border border-pink-500/20">
-                    <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24">
-                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                    </svg>
-                </div>
-                <h2 class="text-3xl md:text-4xl font-black italic tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 mb-6">
-                    JUEGO EN PAUSA
-                </h2>
-
-                <div class="flex flex-col gap-3">
-                    <button onclick="togglePause()" class="w-full py-3.5 px-6 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-extrabold rounded-2xl hover:scale-105 transition transform shadow-xl active:scale-95 flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                        <span>REANUDAR</span>
-                    </button>
-                    <button onclick="resetGame()" class="w-full py-3.5 px-6 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-2xl border border-gray-700 hover:scale-105 transition transform active:scale-95 flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-                        <span>REINICIAR</span>
-                    </button>
-                    <button onclick="showMainMenu()" class="w-full py-3.5 px-6 bg-gray-800/60 hover:bg-red-950/40 text-gray-300 hover:text-red-400 font-bold rounded-2xl border border-gray-700/50 hover:border-red-500/30 transition transform active:scale-95 flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-                        <span>MENÚ PRINCIPAL</span>
-                    </button>
-                </div>
+        <!-- Botones de Toque Móvil para Keke Invaders -->
+        <div id="invaders-mobile-controls" class="hidden pointer-events-auto flex justify-between items-center w-full pb-3 px-2 z-30">
+            <div class="flex gap-2">
+                <button id="btn-left-mobile" class="w-14 h-14 bg-white/10 active:bg-pink-500/50 rounded-2xl border border-white/20 text-2xl font-bold flex items-center justify-center">◀</button>
+                <button id="btn-right-mobile" class="w-14 h-14 bg-white/10 active:bg-pink-500/50 rounded-2xl border border-white/20 text-2xl font-bold flex items-center justify-center">▶</button>
             </div>
+            <button id="btn-shoot-mobile" class="w-20 h-14 bg-gradient-to-r from-pink-500 to-red-600 active:scale-95 rounded-2xl border border-white/30 text-xs font-black flex items-center justify-center shadow-lg">
+                DISPARAR 🍰
+            </button>
         </div>
 
-        <!-- Menú Principal de Inicio -->
-        <div id="main-menu" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center pointer-events-auto z-30 p-4">
-            <div class="text-center max-w-md w-full px-6 py-7 bg-gray-900/95 rounded-3xl border border-pink-500/30 shadow-[0_0_50px_rgba(236,72,153,0.3)]">
-                <h1 class="text-4xl md:text-5xl font-black italic tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 mb-1">
-                    ¡QUIERO QUEQUE!
-                </h1>
-                <p class="text-xs md:text-sm text-gray-400 mb-5">Atrapa los queques, esquiva a Advíncula y sobrevive.</p>
-
-                <!-- Selector de Skins de La Cobra -->
-                <div class="mb-5 bg-gray-800/60 p-3 rounded-2xl border border-gray-700/50">
-                    <p class="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2 text-center">Aspecto de La Cobra:</p>
-                    <div class="flex flex-wrap justify-center gap-2 md:gap-3" id="skin-selector">
-                        <button onclick="selectSkin(0)" id="skin-btn-0" class="skin-btn active p-1.5 rounded-xl border-2 border-pink-500 bg-pink-500/20 transition transform hover:scale-105 flex flex-col items-center shadow-lg">
-                            <img src="https://i.pinimg.com/345x/c8/fd/2f/c8fd2fae706955493dbd7a31c7f24657.jpg" class="w-12 h-12 md:w-14 md:h-14 object-cover rounded-full shadow-md border border-white/20" alt="Clásico">
-                            <span class="text-[10px] font-extrabold text-white mt-1">Clásico</span>
-                        </button>
-                        <button onclick="selectSkin(1)" id="skin-btn-1" class="skin-btn p-1.5 rounded-xl border-2 border-transparent bg-gray-700/50 hover:bg-gray-700 transition transform hover:scale-105 flex flex-col items-center opacity-60">
-                            <img src="https://lh3.googleusercontent.com/d/13Px-GrDKDxpWPIB4X2nGn0OgPizcMVtD" class="w-12 h-12 md:w-14 md:h-14 object-cover rounded-full shadow-md border border-white/20" alt="Enojado">
-                            <span class="text-[10px] font-extrabold text-gray-300 mt-1">Enojado</span>
-                        </button>
-                        <button onclick="selectSkin(2)" id="skin-btn-2" class="skin-btn p-1.5 rounded-xl border-2 border-transparent bg-gray-700/50 hover:bg-gray-700 transition transform hover:scale-105 flex flex-col items-center opacity-60">
-                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRThhTKKBt_tbw2pUxI-q1YUDL0vBraoXfvU1DZ2Z6liQ&s=10" class="w-12 h-12 md:w-14 md:h-14 object-cover rounded-full shadow-md border border-white/20" alt="Homero Cobra">
-                            <span class="text-[10px] font-extrabold text-gray-300 mt-1">Homero Cobra</span>
-                        </button>
-                        <button onclick="selectSkin(3)" id="skin-btn-3" class="skin-btn p-1.5 rounded-xl border-2 border-transparent bg-gray-700/50 hover:bg-gray-700 transition transform hover:scale-105 flex flex-col items-center opacity-60">
-                            <img src="https://lh3.googleusercontent.com/d/1HzQU6yH-uX07H3dPpAORY9NTqo33dRC-" class="w-12 h-12 md:w-14 md:h-14 object-cover rounded-full shadow-md border border-white/20" alt="Bata Bata Keke">
-                            <span class="text-[10px] font-extrabold text-gray-300 mt-1">Bata Bata</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-3">
-                    <!-- Botón Modo Fácil -->
-                    <button onclick="startGame('easy')" class="group relative w-full p-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl font-bold hover:scale-[1.02] transition transform shadow-lg hover:shadow-emerald-500/20 active:scale-95 text-left flex justify-between items-center border border-emerald-400/20">
-                        <div class="flex flex-col">
-                            <span class="text-lg font-extrabold flex items-center gap-2">
-                                🟢 MODO FÁCIL
-                            </span>
-                            <span class="text-xs text-emerald-100 font-normal mt-0.5 leading-relaxed">
-                                5 vidas, sin bombas, sin viento y Advíncula relajado.
-                            </span>
-                        </div>
-                        <img id="btn-cake-img" class="w-9 h-9 group-hover:animate-bounce" alt="Queque">
-                    </button>
-                    
-                    <!-- Botón Modo Medio -->
-                    <button onclick="startGame('medium')" class="group relative w-full p-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-2xl font-bold hover:scale-[1.02] transition transform shadow-lg hover:shadow-amber-500/20 active:scale-95 text-left flex justify-between items-center border border-amber-400/20">
-                        <div class="flex flex-col">
-                            <span class="text-lg font-extrabold flex items-center gap-2">
-                                🟡 MODO MEDIO
-                            </span>
-                            <span class="text-xs text-amber-100 font-normal mt-0.5 leading-relaxed">
-                                4 vidas, viento suave, pocas bombas y Advíncula cada 15s.
-                            </span>
-                        </div>
-                        <img id="btn-gold-img" class="w-9 h-9 group-hover:scale-110 transition transform" alt="Súper Queque">
-                    </button>
-
-                    <!-- Botón Modo Extremo -->
-                    <button onclick="startGame('extreme')" class="group relative w-full p-4 bg-gradient-to-r from-rose-600 via-red-600 to-pink-600 text-white rounded-2xl font-bold hover:scale-[1.02] transition transform shadow-lg hover:shadow-red-500/20 active:scale-95 text-left flex justify-between items-center border border-red-500/20">
-                        <div class="flex flex-col">
-                            <span class="text-lg font-extrabold flex items-center gap-2">
-                                🔥 MODO EXTREMO
-                            </span>
-                            <span class="text-xs text-rose-100 font-normal mt-0.5 leading-relaxed">
-                                3 vidas, viento, bombas, chiles y Advíncula cada 10s.
-                            </span>
-                        </div>
-                        <img id="btn-bomb-img" class="w-9 h-9 group-hover:rotate-12 transition transform" alt="Bomba">
-                    </button>
-                </div>
-            </div>
+        <!-- Indicador de Flappy Touch -->
+        <div id="flappy-instruction" class="hidden text-center text-white/60 text-xs md:text-sm font-semibold pointer-events-none pb-3">
+            Toca la pantalla o presiona [ESPACIO / CLICK] para aletear
         </div>
+    </div>
 
-        <!-- Pantalla de Game Over -->
-        <div id="game-over" class="hidden absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center pointer-events-auto z-30 p-4">
-            <div class="text-center max-w-md w-full px-6 py-8 bg-gray-900 rounded-3xl border border-pink-500/30 shadow-[0_0_50px_rgba(236,72,153,0.3)]">
-                <h2 id="over-title" class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-b from-red-400 to-pink-600 mb-2">¡JUEGO TERMINADO!</h2>
-                <p id="final-score" class="text-lg text-gray-300 mb-5"></p>
-                <div class="bg-gray-800/80 p-4 rounded-2xl mb-6 text-sm text-left text-gray-400 border border-gray-700">
-                    <p class="font-bold text-white mb-2 text-center text-pink-400">Estadísticas de la ronda:</p>
-                    <ul class="space-y-2">
-                        <li class="flex justify-between items-center">
-                            <span class="flex items-center gap-2"><img id="stat-cake-img" class="w-5 h-5" alt="Queque"> Queques atrapados:</span>
-                            <span id="stat-cakes" class="text-white font-mono font-bold">0</span>
-                        </li>
-                        <li class="flex justify-between items-center">
-                            <span class="flex items-center gap-2"><img id="stat-gold-img" class="w-5 h-5" alt="Súper Queque"> Súper Queques atrapados:</span>
-                            <span id="stat-gold" class="text-white font-mono font-bold">0</span>
-                        </li>
-                        <li class="flex justify-between items-center">
-                            <span class="flex items-center gap-2"><img id="stat-broccoli-img" class="w-5 h-5" alt="Brócoli"> Brócolis consumidos:</span>
-                            <span id="stat-broccoli" class="text-white font-mono font-bold">0</span>
-                        </li>
-                    </ul>
-                </div>
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <button onclick="resetGame()" class="flex-1 px-6 py-3.5 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white text-base rounded-2xl font-black hover:scale-105 transition transform shadow-xl active:scale-95">
-                        REINTENTAR
-                    </button>
-                    <button onclick="showMainMenu()" class="flex-1 px-6 py-3.5 bg-gray-800 hover:bg-gray-750 text-white text-base rounded-2xl font-black border border-gray-700 hover:scale-105 transition transform active:scale-95">
-                        MENÚ PRINCIPAL
-                    </button>
-                </div>
+    <!-- MODAL SELECTOR DE DIFICULTAD PARA JUEGO 1 -->
+    <div id="difficulty-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="w-full max-w-sm bg-gray-900 p-6 rounded-3xl border border-pink-500/40 shadow-2xl text-center">
+            <h3 class="text-2xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-yellow-400 mb-1">
+                ELIGE TU DIFICULTAD
+            </h3>
+            <p class="text-xs text-gray-400 mb-5">Atrapa los queques y sobrevive al brócoli de Advíncula.</p>
+
+            <div class="flex flex-col gap-3">
+                <button onclick="launchCatcherWithDifficulty('easy')" class="p-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:brightness-110 active:scale-95 rounded-2xl text-left border border-emerald-400/30 transition shadow-lg">
+                    <div class="font-black text-sm">🟢 MODO FÁCIL</div>
+                    <div class="text-[11px] text-emerald-100">5 vidas, sin bombas, sin viento y Advíncula calmado.</div>
+                </button>
+                <button onclick="launchCatcherWithDifficulty('medium')" class="p-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:brightness-110 active:scale-95 rounded-2xl text-left border border-amber-400/30 transition shadow-lg">
+                    <div class="font-black text-sm">🟡 MODO MEDIO</div>
+                    <div class="text-[11px] text-amber-100">4 vidas, viento suave y Advíncula cada 15s.</div>
+                </button>
+                <button onclick="launchCatcherWithDifficulty('extreme')" class="p-3.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:brightness-110 active:scale-95 rounded-2xl text-left border border-rose-400/30 transition shadow-lg">
+                    <div class="font-black text-sm">🔥 MODO EXTREMO</div>
+                    <div class="text-[11px] text-rose-100">3 vidas, viento fuerte, bombas y Advíncula cada 10s.</div>
+                </button>
+                <button onclick="closeDifficultyModal()" class="py-2.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-2xl text-xs font-bold text-gray-300 mt-1">
+                    CANCELAR
+                </button>
             </div>
         </div>
     </div>
 
-    <canvas id="gameCanvas"></canvas>
+    <!-- MENÚ DE PAUSA GENERAL -->
+    <div id="pause-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="w-full max-w-xs bg-gray-900/95 p-6 rounded-3xl border border-pink-500/30 text-center shadow-2xl">
+            <h3 class="text-3xl font-black italic text-pink-400 mb-6">JUEGO EN PAUSA</h3>
+            <div class="flex flex-col gap-3">
+                <button onclick="togglePauseGame()" class="py-3.5 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-extrabold rounded-2xl active:scale-95 transition shadow-lg">
+                    REANUDAR
+                </button>
+                <button onclick="restartCurrentGame()" class="py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-2xl active:scale-95 transition border border-gray-700">
+                    REINICIAR
+                </button>
+                <button onclick="exitToArcadeLobby()" class="py-3 bg-red-950/40 hover:bg-red-900/50 text-red-300 font-bold rounded-2xl active:scale-95 transition border border-red-500/20">
+                    VOLVER AL ARCADE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE GAME OVER GENERAL -->
+    <div id="gameover-modal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="w-full max-w-sm bg-gray-900 p-6 rounded-3xl border border-pink-500/40 text-center shadow-2xl">
+            <h3 id="over-title" class="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-pink-500 mb-2">
+                ¡JUEGO TERMINADO!
+            </h3>
+            <p id="over-subtitle" class="text-sm text-gray-300 mb-5 leading-snug"></p>
+
+            <div class="bg-gray-800/70 p-4 rounded-2xl border border-gray-700 mb-5 text-left text-xs space-y-1.5">
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Puntuación lograda:</span>
+                    <span id="stat-final-score" class="text-white font-black font-mono text-sm">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">Récord de la sesión:</span>
+                    <span id="stat-best-score" class="text-yellow-400 font-black font-mono text-sm">0</span>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="restartCurrentGame()" class="flex-1 py-3.5 bg-gradient-to-r from-pink-500 to-rose-600 font-black text-sm rounded-2xl active:scale-95 transition shadow-lg">
+                    REINTENTAR
+                </button>
+                <button onclick="exitToArcadeLobby()" class="flex-1 py-3.5 bg-gray-800 hover:bg-gray-700 font-black text-sm rounded-2xl active:scale-95 transition border border-gray-700">
+                    ARCADE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Canvas Principal para todos los juegos -->
+    <canvas id="gameCanvas" class="w-full h-full"></canvas>
 
     <script>
-        // Definición de Ilustraciones Vectoriales SVG en formato Data URI para renderizado cristalino
+        /* SVGs vectoriales cristalinos para todos los minijuegos */
         const CAKE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M10 70 L90 70 L80 35 L20 35 Z" fill="%23f9a8d4"/><path d="M10 70 L90 70 L90 85 C90 88 88 90 85 90 L15 90 C12 90 10 88 10 85 Z" fill="%23be185d"/><path d="M10 70 Q 25 78 40 70 Q 55 78 70 70 Q 85 78 90 70 L90 60 Q 75 68 60 60 Q 45 68 30 60 Q 15 68 10 60 Z" fill="%23fdf2f8"/><path d="M20 35 Q 35 42 50 35 Q 65 42 80 35 L80 30 Q 65 37 50 30 Q 35 37 20 30 Z" fill="%23f43f5e"/><circle cx="50" cy="20" r="10" fill="%23e11d48"/><path d="M50 10 Q 53 3 58 6" stroke="%2315803d" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
-        
-        const GOLD_CAKE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M25 50 L32 88 C33 92 36 95 40 95 L60 95 C64 95 67 92 68 88 L75 50 Z" fill="%23f59e0b" stroke="%23b45309" stroke-width="2"/><path d="M20 52 Q 50 15 80 52 C85 45 80 30 68 25 C60 12 40 12 32 25 C20 30 15 45 20 52 Z" fill="%23fbbf24"/><circle cx="50" cy="18" r="9" fill="%23ef4444"/><polygon points="50,2 53,10 62,10 55,15 57,23 50,18 43,23 45,15 38,10 47,10" fill="%23fef08a"/><polygon points="15,20 17,25 22,25 18,28 19,33 15,30 11,33 12,28 8,25 13,25" fill="%23fef08a"/></svg>`;
-        
+        const GOLD_CAKE_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M25 50 L32 88 C33 92 36 95 40 95 L60 95 C64 95 67 92 68 88 L75 50 Z" fill="%23f59e0b" stroke="%23b45309" stroke-width="2"/><path d="M20 52 Q 50 15 80 52 C85 45 80 30 68 25 C60 12 40 12 32 25 C20 30 15 45 20 52 Z" fill="%23fbbf24"/><circle cx="50" cy="18" r="9" fill="%23ef4444"/><polygon points="50,2 53,10 62,10 55,15 57,23 50,18 43,23 45,15 38,10 47,10" fill="%23fef08a"/></svg>`;
         const BROCCOLI_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M42 55 L38 90 C38 93 42 96 46 96 L54 96 C58 96 62 93 62 90 L58 55 Z" fill="%23a3e635" stroke="%234d7c0f" stroke-width="3"/><circle cx="32" cy="45" r="22" fill="%2322c55e"/><circle cx="68" cy="45" r="22" fill="%2322c55e"/><circle cx="50" cy="28" r="26" fill="%2316a34a"/><circle cx="38" cy="32" r="16" fill="%234ade80"/><circle cx="62" cy="32" r="16" fill="%234ade80"/><circle cx="50" cy="48" r="18" fill="%2315803d"/></svg>`;
-        
-        const CHILI_SVG = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M78 18 C84 34 76 60 56 80 C40 95 22 95 12 89 C8 85 10 79 16 77 C28 73 46 61 56 47 C66 33 68 20 68 20 Z' fill='%23ef4444'/><path d='M78 18 C80 28 74 50 58 68 C46 82 32 87 16 86 C12 85 10 81 13 77 C16 74 22 73 30 71 C45 67 54 56 62 44 C70 32 70 20 70 20 Z' fill='%23b91c1c'/><path d='M68 26 C72 34 65 50 52 66 C42 78 30 82 20 82' stroke='%23fca5a5' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M70 16 Q82 4 88 8 Q82 18 74 18 Z' fill='%2316a34a'/><path d='M68 18 Q60 12 64 22 Z' fill='%2315803d'/><path d='M74 14 Q78 22 82 18 Z' fill='%2322c55e'/></svg>`;
-        
+        const CHILI_SVG = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M78 18 C84 34 76 60 56 80 C40 95 22 95 12 89 C8 85 10 79 16 77 C28 73 46 61 56 47 C66 33 68 20 68 20 Z' fill='%23ef4444'/><path d='M78 18 C80 28 74 50 58 68 C46 82 32 87 16 86 C12 85 10 81 13 77 C16 74 22 73 30 71 C45 67 54 56 62 44 C70 32 70 20 70 20 Z' fill='%23b91c1c'/><path d='M68 26 C72 34 65 50 52 66 C42 78 30 82 20 82' stroke='%23fca5a5' stroke-width='3' fill='none' stroke-linecap='round'/><path d='M70 16 Q82 4 88 8 Q82 18 74 18 Z' fill='%2316a34a'/></svg>`;
         const BOMB_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="48" cy="58" r="36" fill="%231e293b" stroke="%230f172a" stroke-width="3"/><ellipse cx="38" cy="42" rx="10" ry="5" fill="%2364748b" transform="rotate(-30 38 42)"/><rect x="42" y="16" width="12" height="10" rx="2" fill="%2394a3b8"/><path d="M48 16 Q 52 4 65 8 Q 72 12 78 4" stroke="%23d97706" stroke-width="4" fill="none"/><circle cx="78" cy="4" r="6" fill="%23ef4444"/><circle cx="78" cy="4" r="3" fill="%23fef08a"/></svg>`;
+        const HEART_RED_SVG = `<svg class="w-5 h-5 text-red-500 fill-current drop-shadow" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+        const HEART_GRAY_SVG = `<svg class="w-5 h-5 text-gray-700 fill-current opacity-30" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
 
-        // Corazones vectoriales para el HUD de vidas
-        const HEART_RED_SVG = `<svg class="w-6 h-6 inline-block text-red-500 fill-current drop-shadow-md" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
-        const HEART_GRAY_SVG = `<svg class="w-6 h-6 inline-block text-gray-600 fill-current opacity-30" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
-
-        const ITEM_SVGS = {
-            cake: CAKE_SVG,
-            gold: GOLD_CAKE_SVG,
-            broccoli: BROCCOLI_SVG,
-            chili: CHILI_SVG,
-            bomb: BOMB_SVG
-        };
-
-        const ITEM_IMAGES = {};
-        Object.keys(ITEM_SVGS).forEach(key => {
+        const ITEM_IMGS = {};
+        [ ['cake', CAKE_SVG], ['gold', GOLD_CAKE_SVG], ['broccoli', BROCCOLI_SVG], ['chili', CHILI_SVG], ['bomb', BOMB_SVG] ].forEach(([k, s]) => {
             const img = new Image();
-            img.src = ITEM_SVGS[key];
-            ITEM_IMAGES[key] = img;
+            img.src = s;
+            ITEM_IMGS[k] = img;
         });
 
-        // Helper seguro para asignar src evitando errores de null
-        function setImgSrc(id, src) {
-            const el = document.getElementById(id);
-            if (el) el.src = src;
-        }
-
-        // Poblar imágenes de interfaz HTML estáticas de manera segura
-        setImgSrc('leg-cake', CAKE_SVG);
-        setImgSrc('leg-gold', GOLD_CAKE_SVG);
-        setImgSrc('leg-broccoli', BROCCOLI_SVG);
-        setImgSrc('leg-chili', CHILI_SVG);
-        setImgSrc('leg-bomb', BOMB_SVG);
-        setImgSrc('btn-cake-img', CAKE_SVG);
-        setImgSrc('btn-gold-img', GOLD_CAKE_SVG);
-        setImgSrc('btn-bomb-img', BOMB_SVG);
-        setImgSrc('stat-cake-img', CAKE_SVG);
-        setImgSrc('stat-gold-img', GOLD_CAKE_SVG);
-        setImgSrc('stat-broccoli-img', BROCCOLI_SVG);
-
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreEl = document.getElementById('score');
-        const gameOverEl = document.getElementById('game-over');
-        const finalScoreEl = document.getElementById('final-score');
-        const pauseMenuEl = document.getElementById('pause-menu');
-        const livesContainer = document.getElementById('lives-container');
-        const windAlert = document.getElementById('wind-alert');
-        const advinculaAlert = document.getElementById('advincula-alert');
-        const effectAlert = document.getElementById('effect-alert');
-        const effectText = document.getElementById('effect-text');
-        
-        // Stats
-        const statCakes = document.getElementById('stat-cakes');
-        const statGold = document.getElementById('stat-gold');
-        const statBroccoli = document.getElementById('stat-broccoli');
-
-        // Estado del Juego
-        let score = 0;
-        let lives = 3;
-        let gameRunning = false;
-        let isPaused = false;
-        let currentMode = 'extreme';
-        let animationId = null;
-        let spawnTimeout = null;
-
-        // Estadísticas de ronda
-        let stats = { cakes: 0, gold: 0, broccoli: 0 };
-
-        // Jugador ("La Cobra")
-        let player = {
-            x: 0,
-            y: 0,
-            width: 140,
-            height: 140,
-            baseWidth: 140,
-            baseHeight: 140,
-            targetX: 0
-        };
-
-        // Súper Enemigo: Advíncula
-        let advincula = {
-            active: false,
-            x: 0,
-            y: 80,
-            width: 110,
-            height: 110,
-            speed: 6,
-            dir: 1,
-            shootTimer: 0,
-            duration: 0, 
-            spawnTimer: 180 
-        };
-
-        // Definición de Skins para La Cobra
         const SKINS = [
-            {
-                name: "Clásico",
-                url: "https://i.pinimg.com/345x/c8/fd/2f/c8fd2fae706955493dbd7a31c7f24657.jpg"
+            { 
+                name: "Clásico", 
+                url: "https://i.pinimg.com/345x/c8/fd/2f/c8fd2fae706955493dbd7a31c7f24657.jpg",
+                fallback: "https://images.weserv.nl/?url=i.pinimg.com/345x/c8/fd/2f/c8fd2fae706955493dbd7a31c7f24657.jpg"
             },
-            {
-                name: "Enojado",
-                url: "https://lh3.googleusercontent.com/d/13Px-GrDKDxpWPIB4X2nGn0OgPizcMVtD"
+            { 
+                name: "Enojado", 
+                url: "https://lh3.googleusercontent.com/d/13Px-GrDKDxpWPIB4X2nGn0OgPizcMVtD",
+                fallback: "https://images.weserv.nl/?url=drive.google.com/uc?id=13Px-GrDKDxpWPIB4X2nGn0OgPizcMVtD"
             },
-            {
-                name: "Homero Cobra",
-                url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRThhTKKBt_tbw2pUxI-q1YUDL0vBraoXfvU1DZ2Z6liQ&s=10"
+            { 
+                name: "Homero Cobra", 
+                url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRThhTKKBt_tbw2pUxI-q1YUDL0vBraoXfvU1DZ2Z6liQ&s=10",
+                fallback: "https://images.weserv.nl/?url=encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRThhTKKBt_tbw2pUxI-q1YUDL0vBraoXfvU1DZ2Z6liQ&s=10"
             },
-            {
-                name: "Bata Bata Keke",
-                url: "https://lh3.googleusercontent.com/d/1HzQU6yH-uX07H3dPpAORY9NTqo33dRC-"
+            { 
+                name: "Bata Bata", 
+                url: "https://lh3.googleusercontent.com/d/1HzQU6yH-uX07H3dPpAORY9NTqo33dRC-",
+                fallback: "https://images.weserv.nl/?url=drive.google.com/uc?id=1HzQU6yH-uX07H3dPpAORY9NTqo33dRC-"
             }
         ];
 
-        let currentSkinIndex = 0;
-        const skinImages = SKINS.map((s) => {
+        let currentSkinIdx = 0;
+
+        // Carga de imágenes sin restricciones de CORS para que el Canvas las dibuje siempre
+        const skinImgs = SKINS.map(s => {
             const img = new Image();
             img.loaded = false;
             img.onload = () => { img.loaded = true; };
             img.onerror = () => {
-                if (img.crossOrigin) {
-                    img.crossOrigin = null;
-                    img.src = s.url;
-                } else {
-                    img.loaded = false;
+                if (img.src !== s.fallback) {
+                    img.src = s.fallback;
                 }
             };
-            img.crossOrigin = "Anonymous";
             img.src = s.url;
             return img;
         });
 
-        function selectSkin(index) {
-            currentSkinIndex = index;
-            for (let i = 0; i < SKINS.length; i++) {
-                const btn = document.getElementById(`skin-btn-${i}`);
-                if (!btn) continue;
-                if (i === index) {
-                    btn.className = "skin-btn active p-1.5 rounded-xl border-2 border-pink-500 bg-pink-500/20 transition transform hover:scale-105 flex flex-col items-center shadow-lg";
-                } else {
-                    btn.className = "skin-btn p-1.5 rounded-xl border-2 border-transparent bg-gray-700/50 hover:bg-gray-700 transition transform hover:scale-105 flex flex-col items-center opacity-60";
-                }
+        // Imagen de Advíncula con doble respaldo
+        const advinculaImg = new Image();
+        advinculaImg.loaded = false;
+        advinculaImg.onload = () => { 
+            advinculaImg.loaded = true;
+            const thumb = document.getElementById('advincula-alert-thumb');
+            if (thumb) thumb.src = advinculaImg.src;
+        };
+        advinculaImg.onerror = () => {
+            advinculaImg.src = "https://images.weserv.nl/?url=drive.google.com/uc?id=1fZjpAbwjE8Q4yuG5IS0zkMMskPSaLZ5L";
+        };
+        advinculaImg.src = "https://lh3.googleusercontent.com/d/1fZjpAbwjE8Q4yuG5IS0zkMMskPSaLZ5L";
+
+        // Métodos de resolución inmediata de imágenes desde caché DOM o memoria
+        function getActiveSkinImg() {
+            const domImg = document.getElementById(`lobby-skin-img-${currentSkinIdx}`);
+            if (domImg && domImg.complete && domImg.naturalWidth > 0) return domImg;
+            const img = skinImgs[currentSkinIdx];
+            if (img && (img.loaded || (img.complete && img.naturalWidth > 0))) return img;
+            return null;
+        }
+
+        function getAdvinculaImg() {
+            const domImg = document.getElementById('advincula-cache-img');
+            if (domImg && domImg.complete && domImg.naturalWidth > 0) return domImg;
+            if (advinculaImg && (advinculaImg.loaded || (advinculaImg.complete && advinculaImg.naturalWidth > 0))) return advinculaImg;
+            return null;
+        }
+
+        /**
+         * Dibuja cualquier imagen recortada dentro de un círculo con borde brillante en Canvas
+         */
+        function drawCircularPhoto(context, img, x, y, size, borderColor = '#ec4899', borderWidth = 4, shadowColor = '#ec4899') {
+            const radius = size / 2;
+            const cx = x + radius;
+            const cy = y + radius;
+
+            context.save();
+            if (shadowColor) {
+                context.shadowBlur = 18;
+                context.shadowColor = shadowColor;
+            }
+
+            // Borde circular exterior
+            context.strokeStyle = borderColor;
+            context.lineWidth = borderWidth;
+            context.beginPath();
+            context.arc(cx, cy, radius, 0, Math.PI * 2);
+            context.stroke();
+
+            // Recorte circular interno
+            context.beginPath();
+            context.arc(cx, cy, radius - (borderWidth / 2), 0, Math.PI * 2);
+            context.clip();
+
+            if (img) {
+                context.drawImage(img, x, y, size, size);
+            } else {
+                context.fillStyle = borderColor;
+                context.fill();
+            }
+            context.restore();
+        }
+
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
             }
         }
 
-        const advinculaImg = new Image();
-        advinculaImg.crossOrigin = "Anonymous";
-        advinculaImg.src = "https://images.weserv.nl/?url=drive.google.com/uc?id=1fZjpAbwjE8Q4yuG5IS0zkMMskPSaLZ5L";
-        let isAdvinculaLoaded = false;
-        advinculaImg.onload = () => { 
-            isAdvinculaLoaded = true; 
-            const alertIcon = document.getElementById('alert-advincula-icon');
-            if (alertIcon) alertIcon.src = advinculaImg.src;
-        };
-        advinculaImg.onerror = () => { isAdvinculaLoaded = false; };
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
 
-        // Efectos del Jugador
-        let effects = {
-            dizzy: 0,
-            shrunk: 0
-        };
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const t = audioCtx.currentTime;
 
-        // Lista de elementos cayendo y partículas
-        let items = [];
-        let particles = [];
+                if (type === 'catch') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, t);
+                    osc.frequency.exponentialRampToValueAtTime(1046.50, t + 0.12);
+                    gain.gain.setValueAtTime(0.2, t);
+                    gain.gain.linearRampToValueAtTime(0, t + 0.12);
+                    osc.start(t);
+                    osc.stop(t + 0.12);
+                } else if (type === 'gold') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(659.25, t);
+                    osc.frequency.exponentialRampToValueAtTime(1318.51, t + 0.2);
+                    gain.gain.setValueAtTime(0.25, t);
+                    gain.gain.linearRampToValueAtTime(0, t + 0.2);
+                    osc.start(t);
+                    osc.stop(t + 0.2);
+                } else if (type === 'jump') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(240, t);
+                    osc.frequency.exponentialRampToValueAtTime(600, t + 0.1);
+                    gain.gain.setValueAtTime(0.12, t);
+                    gain.gain.linearRampToValueAtTime(0, t + 0.1);
+                    osc.start(t);
+                    osc.stop(t + 0.1);
+                } else if (type === 'shoot') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(800, t);
+                    osc.frequency.exponentialRampToValueAtTime(150, t + 0.08);
+                    gain.gain.setValueAtTime(0.12, t);
+                    gain.gain.linearRampToValueAtTime(0, t + 0.08);
+                    osc.start(t);
+                    osc.stop(t + 0.08);
+                } else if (type === 'hurt') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, t);
+                    osc.frequency.linearRampToValueAtTime(70, t + 0.18);
+                    gain.gain.setValueAtTime(0.3, t);
+                    gain.gain.linearRampToValueAtTime(0, t + 0.18);
+                    osc.start(t);
+                    osc.stop(t + 0.18);
+                } else if (type === 'gameover') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(320, t);
+                    osc.frequency.linearRampToValueAtTime(110, t + 0.4);
+                    gain.gain.setValueAtTime(0.3, t);
+                    gain.gain.linearRampToValueAtTime(0, t + 0.4);
+                    osc.start(t);
+                    osc.stop(t + 0.4);
+                }
+            } catch (e) {
+                // Audio fallback
+            }
+        }
 
-        // Viento dinámico
-        let wind = 0; 
-        let windTarget = 0;
-        let windTimer = 100;
+        function toggleMuteAudio() {
+            soundEnabled = !soundEnabled;
+            const label = soundEnabled ? 'ON' : 'OFF';
+            const icon = soundEnabled ? '🔊' : '🔇';
+            document.getElementById('sound-status-lobby').innerText = label;
+            document.getElementById('sound-icon-lobby').innerText = icon;
+            document.getElementById('sound-hud-icon').innerText = icon;
+        }
 
-        function resize() {
+        function renderLobbySkins() {
+            const container = document.getElementById('lobby-skins-container');
+            container.innerHTML = '';
+            SKINS.forEach((s, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `skin-tab ${idx === currentSkinIdx ? 'active' : ''} p-2 rounded-2xl border-2 border-white/10 bg-white/5 flex flex-col items-center gap-1.5 transition`;
+                btn.onclick = () => selectSkin(idx);
+                btn.innerHTML = `
+                    <div class="w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden border border-white/20 shadow-md">
+                        <img id="lobby-skin-img-${idx}" src="${s.url}" onerror="this.src='${s.fallback}'" class="w-full h-full object-cover pointer-events-none" alt="${s.name}">
+                    </div>
+                    <span class="text-[10px] md:text-xs font-black truncate max-w-full">${s.name}</span>
+                `;
+                container.appendChild(btn);
+            });
+            document.getElementById('active-skin-label').innerText = SKINS[currentSkinIdx].name;
+            const hudAvatar = document.getElementById('hud-active-avatar');
+            if (hudAvatar) hudAvatar.src = SKINS[currentSkinIdx].url;
+        }
+
+        function selectSkin(idx) {
+            currentSkinIdx = idx;
+            renderLobbySkins();
+            playSound('catch');
+        }
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let activeGame = null;
+        let isGameRunning = false;
+        let isGamePaused = false;
+        let globalAnimId = null;
+        let highScores = { catcher: 0, flappy: 0, invaders: 0 };
+
+        function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            player.y = canvas.height - 180;
-            player.targetX = canvas.width / 2 - player.width / 2;
-        }
-        window.addEventListener('resize', resize);
-
-        function handleMove(clientX) {
-            if (!gameRunning || isPaused) return;
-            
-            if (effects.dizzy > 0) {
-                const relativeX = clientX - canvas.width / 2;
-                player.targetX = (canvas.width / 2 - relativeX) - player.width / 2;
-            } else {
-                player.targetX = clientX - player.width / 2;
+            if (activeGame === 'catcher') {
+                catcher.player.y = canvas.height - 180;
             }
         }
+        window.addEventListener('resize', resizeCanvas);
 
-        window.addEventListener('mousemove', (e) => handleMove(e.clientX));
-        window.addEventListener('touchmove', (e) => {
-            if (e.touches && e.touches.length > 0) {
-                handleMove(e.touches[0].clientX);
-            }
-        }, { passive: true });
-
-        // Atajos de teclado para Pausa (Tecla P o Escape)
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
-                if (gameRunning && gameOverEl.classList.contains('hidden')) {
-                    togglePause();
-                }
-            }
-        });
-
-        function togglePause() {
-            if (!gameRunning) return;
-
-            isPaused = !isPaused;
-
-            if (isPaused) {
-                pauseMenuEl.classList.remove('hidden');
-                if (animationId) cancelAnimationFrame(animationId);
-                if (spawnTimeout) clearTimeout(spawnTimeout);
-            } else {
-                pauseMenuEl.classList.add('hidden');
-                createItem();
-                update();
-            }
+        function openDifficultyModal() {
+            initAudio();
+            document.getElementById('difficulty-modal').classList.remove('hidden');
         }
 
-        function spawnParticles(x, y, color, count = 12) {
-            for (let i = 0; i < count; i++) {
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10 - 2,
-                    radius: Math.random() * 5 + 2,
-                    color: color,
-                    alpha: 1,
-                    decay: Math.random() * 0.02 + 0.015
-                });
-            }
+        function closeDifficultyModal() {
+            document.getElementById('difficulty-modal').classList.add('hidden');
         }
 
-        function createItem() {
-            if (!gameRunning) return;
+        function launchCatcherWithDifficulty(mode) {
+            closeDifficultyModal();
+            catcher.currentMode = mode;
+            launchGame('catcher');
+        }
 
-            // Contar cuántos queques (normales y dorados) hay actualmente cayendo en pantalla
-            const activeCakes = items.filter(i => i.type === 'cake' || i.type === 'gold').length;
+        function launchGame(gameId) {
+            initAudio();
+            document.getElementById('arcade-lobby').classList.add('hidden');
+            document.getElementById('ui-layer').classList.remove('hidden');
+            document.getElementById('pause-modal').classList.add('hidden');
+            document.getElementById('gameover-modal').classList.add('hidden');
 
-            const rand = Math.random();
-            let type = 'cake';
-            let speedModifier = 1;
-            let size = 52;
-            
-            const difficultyMultiplier = Math.min(2.5, 1 + score / 150);
+            activeGame = gameId;
+            isGameRunning = true;
+            isGamePaused = false;
 
-            if (currentMode === 'easy') {
-                if (rand < 0.60) {
-                    type = 'cake';
-                } else if (rand < 0.80) {
-                    type = 'gold';
-                    speedModifier = 1.3;
-                    size = 48;
-                } else if (rand < 0.93) {
-                    type = 'broccoli';
-                    speedModifier = 0.8;
+            // Actualizar avatar en el HUD
+            const hudAvatar = document.getElementById('hud-active-avatar');
+            if (hudAvatar) hudAvatar.src = SKINS[currentSkinIdx].url;
+
+            // Limpiar banners
+            document.getElementById('invaders-mobile-controls').classList.add('hidden');
+            document.getElementById('flappy-instruction').classList.add('hidden');
+            document.getElementById('wind-alert').classList.add('hidden');
+            document.getElementById('advincula-alert').classList.add('hidden');
+            document.getElementById('effect-alert').classList.add('hidden');
+
+            resizeCanvas();
+
+            if (gameId === 'catcher') {
+                document.getElementById('hud-game-title').innerText = "¡QUIERO QUEQUE!";
+                const badge = document.getElementById('hud-subbadge');
+                badge.className = "text-[10px] font-bold text-white px-2 py-0.5 rounded-full w-max shadow";
+                if (catcher.currentMode === 'easy') {
+                    badge.innerText = "MODO FÁCIL";
+                    badge.classList.add('bg-emerald-600');
+                } else if (catcher.currentMode === 'medium') {
+                    badge.innerText = "MODO MEDIO";
+                    badge.classList.add('bg-amber-600');
                 } else {
-                    type = 'chili';
-                    speedModifier = 0.9;
+                    badge.innerText = "MODO EXTREMO";
+                    badge.classList.add('bg-red-600');
                 }
-            } else if (currentMode === 'medium') {
-                if (rand < 0.50) {
-                    type = 'cake';
-                } else if (rand < 0.68) {
-                    type = 'gold';
-                    speedModifier = 1.5;
-                    size = 48;
-                } else if (rand < 0.82) {
-                    type = 'broccoli';
-                    speedModifier = 0.95;
-                } else if (rand < 0.92) {
-                    type = 'chili';
-                    speedModifier = 1.1;
-                } else {
-                    type = 'bomb';
-                    speedModifier = 1.0 * difficultyMultiplier;
-                }
-            } else {
-                if (rand < 0.45) {
-                    type = 'cake';
-                } else if (rand < 0.55) {
-                    type = 'gold';
-                    speedModifier = 1.7;
-                    size = 48;
-                } else if (rand < 0.72) {
-                    type = 'broccoli';
-                    speedModifier = 1.1;
-                } else if (rand < 0.80) {
-                    type = 'chili';
-                    speedModifier = 1.3;
-                } else {
-                    type = 'bomb';
-                    speedModifier = 1.2 * difficultyMultiplier;
-                }
+                catcher.start();
+            } else if (gameId === 'flappy') {
+                document.getElementById('hud-game-title').innerText = "FLAPPY COBRA";
+                document.getElementById('hud-subbadge').innerText = "VUELO KEKE";
+                document.getElementById('hud-subbadge').className = "text-[10px] font-bold bg-amber-500 text-black px-2 py-0.5 rounded-full w-max shadow";
+                document.getElementById('flappy-instruction').classList.remove('hidden');
+                flappy.start();
+            } else if (gameId === 'invaders') {
+                document.getElementById('hud-game-title').innerText = "KEKE INVADERS";
+                document.getElementById('hud-subbadge').innerText = "DEFENSA GALÁCTICA";
+                document.getElementById('hud-subbadge').className = "text-[10px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full w-max shadow";
+                document.getElementById('invaders-mobile-controls').classList.remove('hidden');
+                invaders.start();
             }
 
-            const baseMinSpeed = currentMode === 'easy' ? 2 : (currentMode === 'medium' ? 2.5 : 3);
-            const baseRandomSpeed = currentMode === 'easy' ? 3 : (currentMode === 'medium' ? 3.5 : 4);
-            const scoreDivider = currentMode === 'easy' ? 600 : (currentMode === 'medium' ? 450 : 350);
-
-            // Solo se genera un nuevo queque si hay menos de 3 en pantalla
-            const isCake = type === 'cake' || type === 'gold';
-            if (!isCake || activeCakes < 3) {
-                items.push({
-                    x: Math.random() * (canvas.width - 70) + 10,
-                    y: -60,
-                    type: type,
-                    speed: (baseMinSpeed + Math.random() * baseRandomSpeed) * speedModifier * (1 + (score / scoreDivider)),
-                    size: size,
-                    angle: 0,
-                    rotSpeed: (Math.random() - 0.5) * 0.05,
-                    zigzag: type === 'gold' ? (currentMode === 'easy' ? 2 : (currentMode === 'medium' ? 3 : 4)) : 0,
-                    zigzagDir: Math.random() > 0.5 ? 1 : -1
-                });
-            }
-
-            const baseInterval = currentMode === 'easy' ? 2000 : (currentMode === 'medium' ? 1750 : 1500);
-            const stepReduction = currentMode === 'easy' ? 4 : (currentMode === 'medium' ? 5 : 6);
-            const minInterval = currentMode === 'easy' ? 500 : (currentMode === 'medium' ? 400 : 300);
-            const nextSpawn = Math.max(minInterval, baseInterval - score * stepReduction);
-            
-            spawnTimeout = setTimeout(createItem, nextSpawn);
+            cancelAnimationFrame(globalAnimId);
+            runGameLoop();
         }
 
-        function update() {
-            if (!gameRunning) return;
+        function exitToArcadeLobby() {
+            isGameRunning = false;
+            isGamePaused = false;
+            cancelAnimationFrame(globalAnimId);
 
-            // Fondo dinámico
-            const redIntensity = Math.min(100, Math.floor(score / 5));
-            ctx.fillStyle = `rgb(${17 + redIntensity}, 15, 30)`;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (catcher.spawnTimeout) clearTimeout(catcher.spawnTimeout);
 
-            // Viento lateral visual (Modo Medio y Extremo)
-            if (currentMode === 'extreme' || currentMode === 'medium') {
-                if (Math.abs(wind) > 0.2) {
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-                    for (let i = 0; i < 5; i++) {
-                        const y = (Date.now() / 10 + i * 200) % canvas.height;
-                        ctx.fillRect(0, y, canvas.width, 2);
-                    }
-                }
-
-                windTimer--;
-                if (windTimer <= 0) {
-                    const windThreshold = currentMode === 'medium' ? 0.75 : 0.6;
-                    if (Math.random() > windThreshold) {
-                        const windPower = currentMode === 'medium' ? 3 : 5;
-                        windTarget = (Math.random() - 0.5) * windPower;
-                        windAlert.classList.remove('hidden');
-                        setTimeout(() => windAlert.classList.add('hidden'), 3000);
-                    } else {
-                        windTarget = 0;
-                    }
-                    windTimer = 300 + Math.random() * 300;
-                }
-                wind += (windTarget - wind) * 0.05;
-            } else {
-                wind = 0;
-            }
-
-            if (!advincula.active) {
-                advincula.spawnTimer--;
-                if (advincula.spawnTimer <= 0) {
-                    advincula.active = true;
-                    advincula.duration = 300; // Activo por 5 segundos
-                    advincula.x = canvas.width / 2 - advincula.width / 2; // Aparece en el medio
-                    advincula.y = 80;
-                    advincula.shootTimer = 0;
-                    advinculaAlert.classList.remove('hidden');
-                }
-            } else {
-                advincula.x += advincula.speed * advincula.dir;
-                if (advincula.x <= 10) {
-                    advincula.x = 10;
-                    advincula.dir = 1;
-                } else if (advincula.x >= canvas.width - advincula.width - 10) {
-                    advincula.x = canvas.width - advincula.width - 10;
-                    advincula.dir = -1;
-                }
-
-                advincula.shootTimer++;
-                const shootInterval = currentMode === 'easy' ? 45 : (currentMode === 'medium' ? 38 : 30);
-                if (advincula.shootTimer >= shootInterval) {
-                    advincula.shootTimer = 0;
-                    items.push({
-                        x: advincula.x + advincula.width / 2 - 20,
-                        y: advincula.y + advincula.height,
-                        type: 'broccoli',
-                        speed: currentMode === 'easy' ? 4 : (currentMode === 'medium' ? 5 : 6),
-                        size: 48,
-                        angle: 0,
-                        rotSpeed: 0.1,
-                        zigzag: 0,
-                        zigzagDir: 1
-                    });
-                }
-
-                advincula.duration--;
-                if (advincula.duration <= 0) {
-                    advincula.active = false;
-                    advinculaAlert.classList.add('hidden');
-                    advincula.spawnTimer = currentMode === 'easy' ? 1200 : (currentMode === 'medium' ? 900 : 600); // 20s en fácil, 15s en medio, 10s en extremo
-                }
-
-                // Renderizar Advíncula circular con aura brillante
-                ctx.save();
-                ctx.shadowBlur = 25;
-                ctx.shadowColor = '#eab308';
-                
-                ctx.strokeStyle = '#eab308';
-                ctx.lineWidth = 6;
-                ctx.beginPath();
-                ctx.arc(advincula.x + advincula.width / 2, advincula.y + advincula.height / 2, advincula.width / 2, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.closePath();
-                
-                ctx.beginPath();
-                ctx.arc(advincula.x + advincula.width / 2, advincula.y + advincula.height / 2, advincula.width / 2 - 3, 0, Math.PI * 2);
-                ctx.closePath();
-                ctx.clip();
-                
-                if (isAdvinculaLoaded) {
-                    ctx.drawImage(advinculaImg, advincula.x, advincula.y, advincula.width, advincula.height);
-                } else {
-                    ctx.fillStyle = '#eab308';
-                    ctx.fillRect(advincula.x, advincula.y, advincula.width, advincula.height);
-                }
-                ctx.restore();
-            }
-
-            // Actualizar efectos de estado del jugador
-            if (effects.dizzy > 0) {
-                effects.dizzy--;
-                if (effects.dizzy <= 0) effectAlert.classList.add('hidden');
-            }
-            if (effects.shrunk > 0) {
-                effects.shrunk--;
-                if (effects.shrunk <= 0) {
-                    player.width = player.baseWidth;
-                    player.height = player.baseHeight;
-                }
-            }
-
-            // Movimiento suave del jugador
-            player.x += (player.targetX - player.x) * 0.25;
-            if (player.x < 0) player.x = 0;
-            if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
-
-            ctx.save();
-            if (effects.dizzy > 0) {
-                ctx.translate((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6);
-            }
-
-            ctx.shadowBlur = 25;
-            ctx.shadowColor = '#f43f5e';
-            ctx.strokeStyle = '#f43f5e';
-            ctx.lineWidth = 6;
-            ctx.beginPath();
-            ctx.arc(player.x + player.width / 2, player.y + player.height / 2, player.width / 2, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.closePath();
-
-            ctx.beginPath();
-            ctx.arc(player.x + player.width / 2, player.y + player.height / 2, player.width / 2 - 3, 0, Math.PI * 2);
-            ctx.closePath();
-            ctx.clip();
-
-            const activeSkinImg = skinImages[currentSkinIndex];
-            if (activeSkinImg && activeSkinImg.loaded) {
-                ctx.drawImage(activeSkinImg, player.x, player.y, player.width, player.height);
-            } else {
-                ctx.fillStyle = '#db2777';
-                ctx.fillRect(player.x, player.y, player.width, player.height);
-            }
-            ctx.restore();
-
-            // Indicador de zona de captura
-            ctx.fillStyle = 'rgba(236, 72, 153, 0.3)';
-            ctx.fillRect(player.x, player.y, player.width, 10);
-
-            // Renderizado de partículas
-            particles.forEach((p, index) => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.alpha -= p.decay;
-                if (p.alpha <= 0) {
-                    particles.splice(index, 1);
-                } else {
-                    ctx.save();
-                    ctx.globalAlpha = p.alpha;
-                    ctx.fillStyle = p.color;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-                }
-            });
-
-            for (let index = items.length - 1; index >= 0; index--) {
-                const item = items[index];
-
-                item.x += wind;
-
-                if (item.zigzag > 0) {
-                    item.x += item.zigzagDir * item.zigzag;
-                }
-
-                // Clampear para que NO se salgan de la pantalla
-                if (item.x < 10) {
-                    item.x = 10;
-                    item.zigzagDir = 1;
-                } else if (item.x > canvas.width - item.size - 10) {
-                    item.x = canvas.width - item.size - 10;
-                    item.zigzagDir = -1;
-                }
-
-                item.y += item.speed;
-                item.angle += item.rotSpeed;
-
-                // Renderizar la Imagen Gráfica del objeto
-                ctx.save();
-                ctx.translate(item.x + item.size / 2, item.y + item.size / 2);
-                ctx.rotate(item.angle);
-                
-                const itemImg = ITEM_IMAGES[item.type];
-                if (itemImg) {
-                    ctx.drawImage(itemImg, -item.size / 2, -item.size / 2, item.size, item.size);
-                }
-                ctx.restore();
-
-                const isColliding = item.y + item.size >= player.y &&
-                                    item.y <= player.y + 30 &&
-                                    item.x + item.size >= player.x &&
-                                    item.x <= player.x + player.width;
-
-                if (isColliding) {
-                    if (item.type === 'cake') {
-                        score += 10;
-                        stats.cakes++;
-                        spawnParticles(item.x + 25, item.y + 25, '#f43f5e');
-                    } else if (item.type === 'gold') {
-                        score += 50;
-                        stats.gold++;
-                        spawnParticles(item.x + 25, item.y + 25, '#fbbf24', 25);
-                    } else if (item.type === 'broccoli') {
-                        score = Math.max(0, score - 20);
-                        stats.broccoli++;
-                        player.width = player.baseWidth * 0.55;
-                        player.height = player.baseHeight * 0.55;
-                        effects.shrunk = 300;
-                        spawnParticles(item.x + 25, item.y + 25, '#22c55e', 15);
-                    } else if (item.type === 'chili') {
-                        effects.dizzy = currentMode === 'easy' ? 120 : (currentMode === 'medium' ? 180 : 240); 
-                        effectText.innerHTML = `<img src="${CHILI_SVG}" class="w-6 h-6 inline mr-1" alt="Chile"> ¡CONTROLES INVERTIDOS!`;
-                        effectAlert.classList.remove('hidden');
-                        spawnParticles(item.x + 25, item.y + 25, '#ef4444', 15);
-                    } else if (item.type === 'bomb') {
-                        spawnParticles(item.x + 25, item.y + 25, '#ffffff', 40);
-                        endGame(true);
-                        return;
-                    }
-
-                    scoreEl.innerText = `Puntos: ${score}`;
-                    items.splice(index, 1);
-                    continue;
-                }
-
-                // Caída al suelo (Únicamente el queque normal resta vidas)
-                if (item.y > canvas.height) {
-                    if (item.type === 'cake') {
-                        loseLife();
-                    }
-                    items.splice(index, 1);
-                }
-            }
-
-            animationId = requestAnimationFrame(update);
-        }
-
-        function loseLife() {
-            lives--;
-            updateLivesUI();
-            
-            ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            if (lives <= 0) {
-                endGame(false);
-            }
-        }
-
-        function updateLivesUI() {
-            let hearts = '';
-            const maxLives = currentMode === 'easy' ? 5 : (currentMode === 'medium' ? 4 : 3);
-            for (let i = 0; i < maxLives; i++) {
-                if (i < lives) {
-                    hearts += HEART_RED_SVG;
-                } else {
-                    hearts += HEART_GRAY_SVG;
-                }
-            }
-            livesContainer.innerHTML = hearts;
-        }
-
-        function startGame(mode) {
-            currentMode = mode;
-            
-            const modeBadge = document.getElementById('mode-badge');
-            if (currentMode === 'easy') {
-                modeBadge.innerText = "MODO FÁCIL";
-                modeBadge.className = "text-xs font-semibold bg-emerald-600 text-white px-2 py-0.5 rounded-full w-max shadow-md";
-            } else if (currentMode === 'medium') {
-                modeBadge.innerText = "MODO MEDIO";
-                modeBadge.className = "text-xs font-semibold bg-amber-600 text-white px-2 py-0.5 rounded-full w-max shadow-md";
-            } else {
-                modeBadge.innerText = "MODO EXTREMO";
-                modeBadge.className = "text-xs font-semibold bg-red-600 text-white px-2 py-0.5 rounded-full w-max shadow-md";
-            }
-
-            document.getElementById('main-menu').classList.add('hidden');
-            resetGame();
-        }
-
-        function showMainMenu() {
-            gameRunning = false;
-            isPaused = false;
-            if (animationId) cancelAnimationFrame(animationId);
-            if (spawnTimeout) clearTimeout(spawnTimeout);
-            
-            pauseMenuEl.classList.add('hidden');
-            gameOverEl.classList.add('hidden');
-            document.getElementById('main-menu').classList.remove('hidden');
-            
-            items = [];
-            particles = [];
+            document.getElementById('ui-layer').classList.add('hidden');
+            document.getElementById('pause-modal').classList.add('hidden');
+            document.getElementById('gameover-modal').classList.add('hidden');
+            document.getElementById('arcade-lobby').classList.remove('hidden');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        function endGame(hitBomb) {
-            gameRunning = false;
-            isPaused = false;
-            if (animationId) cancelAnimationFrame(animationId);
-            if (spawnTimeout) clearTimeout(spawnTimeout);
-            
-            pauseMenuEl.classList.add('hidden');
-            gameOverEl.classList.remove('hidden');
-            
-            const overTitle = document.getElementById('over-title');
-            if (hitBomb) {
-                overTitle.innerText = "¡BOOOOM!";
-                finalScoreEl.innerText = `¡Te comiste una bomba! Conseguiste ${score} puntos.`;
+        function togglePauseGame() {
+            if (!isGameRunning) return;
+            isGamePaused = !isGamePaused;
+            if (isGamePaused) {
+                document.getElementById('pause-modal').classList.remove('hidden');
             } else {
-                overTitle.innerText = "¡SIN VIDAS!";
-                finalScoreEl.innerText = `Dejaste caer demasiados queques deliciosos. Conseguiste ${score} puntos.`;
+                document.getElementById('pause-modal').classList.add('hidden');
+                runGameLoop();
+            }
+        }
+
+        function restartCurrentGame() {
+            document.getElementById('pause-modal').classList.add('hidden');
+            document.getElementById('gameover-modal').classList.add('hidden');
+            launchGame(activeGame);
+        }
+
+        function triggerGameOver(title, subtitle, finalScore) {
+            isGameRunning = false;
+            playSound('gameover');
+            cancelAnimationFrame(globalAnimId);
+
+            if (catcher.spawnTimeout) clearTimeout(catcher.spawnTimeout);
+
+            if (finalScore > highScores[activeGame]) {
+                highScores[activeGame] = finalScore;
             }
 
-            statCakes.innerText = stats.cakes;
-            statGold.innerText = stats.gold;
-            statBroccoli.innerText = stats.broccoli;
+            document.getElementById('over-title').innerText = title;
+            document.getElementById('over-subtitle').innerText = subtitle;
+            document.getElementById('stat-final-score').innerText = finalScore;
+            document.getElementById('stat-best-score').innerText = highScores[activeGame];
+            document.getElementById('gameover-modal').classList.remove('hidden');
         }
 
-        function resetGame() {
-            score = 0;
-            lives = currentMode === 'easy' ? 5 : (currentMode === 'medium' ? 4 : 3);
-            items = [];
-            particles = [];
-            effects.dizzy = 0;
-            effects.shrunk = 0;
-            player.width = player.baseWidth;
-            player.height = player.baseHeight;
-            wind = 0;
-            windTarget = 0;
-            windTimer = 100;
-            isPaused = false;
-            
-            // Resetear Advíncula
-            advincula.active = false;
-            advincula.spawnTimer = currentMode === 'easy' ? 600 : (currentMode === 'medium' ? 360 : 180);
+        function runGameLoop() {
+            if (!isGameRunning || isGamePaused) return;
 
-            stats = { cakes: 0, gold: 0, broccoli: 0 };
+            if (activeGame === 'catcher') {
+                catcher.update();
+            } else if (activeGame === 'flappy') {
+                flappy.update();
+            } else if (activeGame === 'invaders') {
+                invaders.update();
+            }
 
-            scoreEl.innerText = `Puntos: 0`;
-            updateLivesUI();
-            
-            pauseMenuEl.classList.add('hidden');
-            gameOverEl.classList.add('hidden');
-            windAlert.classList.add('hidden');
-            advinculaAlert.classList.add('hidden');
-            effectAlert.classList.add('hidden');
-            
-            gameRunning = true;
-            
-            if (animationId) cancelAnimationFrame(animationId);
-            if (spawnTimeout) clearTimeout(spawnTimeout);
-
-            createItem();
-            update();
+            globalAnimId = requestAnimationFrame(runGameLoop);
         }
 
-        // Ajustar canvas en carga inicial y render inicial de vidas
-        resize();
-        updateLivesUI();
+        /* ==========================================================================
+           JUEGO 1: ¡QUIERO QUEQUE! (CATCHER ORIGINAL)
+           ========================================================================== */
+        const catcher = {
+            currentMode: 'extreme',
+            score: 0,
+            lives: 3,
+            maxLives: 3,
+            player: { x: 0, y: 0, width: 130, height: 130, baseWidth: 130, baseHeight: 130, targetX: 0 },
+            advincula: { active: false, x: 0, y: 80, width: 110, height: 110, speed: 6, dir: 1, shootTimer: 0, duration: 0, spawnTimer: 180 },
+            effects: { dizzy: 0, shrunk: 0 },
+            items: [],
+            particles: [],
+            wind: 0,
+            windTarget: 0,
+            windTimer: 100,
+            spawnTimeout: null,
+
+            start() {
+                this.score = 0;
+                this.maxLives = this.currentMode === 'easy' ? 5 : (this.currentMode === 'medium' ? 4 : 3);
+                this.lives = this.maxLives;
+                this.items = [];
+                this.particles = [];
+                this.effects.dizzy = 0;
+                this.effects.shrunk = 0;
+                this.player.width = this.player.baseWidth;
+                this.player.height = this.player.baseHeight;
+                this.player.y = canvas.height - 180;
+                this.player.targetX = canvas.width / 2 - this.player.width / 2;
+                this.player.x = this.player.targetX;
+
+                this.advincula.active = false;
+                this.advincula.spawnTimer = this.currentMode === 'easy' ? 600 : (this.currentMode === 'medium' ? 400 : 180);
+                this.wind = 0;
+                this.windTarget = 0;
+                this.windTimer = 100;
+
+                this.updateHUD();
+                if (this.spawnTimeout) clearTimeout(this.spawnTimeout);
+                this.createItem();
+            },
+
+            updateHUD() {
+                document.getElementById('hud-score').innerText = this.score;
+                let hearts = '';
+                for (let i = 0; i < this.maxLives; i++) {
+                    hearts += i < this.lives ? HEART_RED_SVG : HEART_GRAY_SVG;
+                }
+                document.getElementById('hud-lives-container').innerHTML = hearts;
+            },
+
+            createItem() {
+                if (!isGameRunning || activeGame !== 'catcher') return;
+
+                // Restricción: Máximo 3 queques en pantalla
+                const activeCakes = this.items.filter(i => i.type === 'cake' || i.type === 'gold').length;
+                const rand = Math.random();
+                let type = 'cake';
+                let speedMod = 1;
+                let size = 52;
+                const diffMult = Math.min(2.5, 1 + this.score / 150);
+
+                if (this.currentMode === 'easy') {
+                    if (rand < 0.60) type = 'cake';
+                    else if (rand < 0.80) { type = 'gold'; speedMod = 1.3; size = 48; }
+                    else if (rand < 0.93) { type = 'broccoli'; speedMod = 0.8; }
+                    else { type = 'chili'; speedMod = 0.9; }
+                } else if (this.currentMode === 'medium') {
+                    if (rand < 0.50) type = 'cake';
+                    else if (rand < 0.68) { type = 'gold'; speedMod = 1.5; size = 48; }
+                    else if (rand < 0.82) { type = 'broccoli'; speedMod = 0.95; }
+                    else if (rand < 0.92) { type = 'chili'; speedMod = 1.1; }
+                    else { type = 'bomb'; speedMod = 1.0 * diffMult; }
+                } else {
+                    if (rand < 0.45) type = 'cake';
+                    else if (rand < 0.55) { type = 'gold'; speedMod = 1.7; size = 48; }
+                    else if (rand < 0.72) { type = 'broccoli'; speedMod = 1.1; }
+                    else if (rand < 0.80) { type = 'chili'; speedMod = 1.3; }
+                    else { type = 'bomb'; speedMod = 1.2 * diffMult; }
+                }
+
+                const isCake = type === 'cake' || type === 'gold';
+                if (!isCake || activeCakes < 3) {
+                    const baseMin = this.currentMode === 'easy' ? 2 : (this.currentMode === 'medium' ? 2.5 : 3);
+                    const baseRand = this.currentMode === 'easy' ? 3 : (this.currentMode === 'medium' ? 3.5 : 4);
+                    const div = this.currentMode === 'easy' ? 600 : (this.currentMode === 'medium' ? 450 : 350);
+
+                    this.items.push({
+                        x: Math.random() * (canvas.width - 70) + 10,
+                        y: -60,
+                        type: type,
+                        speed: (baseMin + Math.random() * baseRand) * speedMod * (1 + (this.score / div)),
+                        size: size,
+                        angle: 0,
+                        rotSpeed: (Math.random() - 0.5) * 0.05,
+                        zigzag: type === 'gold' ? (this.currentMode === 'easy' ? 2 : 4) : 0,
+                        zigzagDir: Math.random() > 0.5 ? 1 : -1
+                    });
+                }
+
+                const baseInterval = this.currentMode === 'easy' ? 2000 : (this.currentMode === 'medium' ? 1750 : 1500);
+                const step = this.currentMode === 'easy' ? 4 : (this.currentMode === 'medium' ? 5 : 6);
+                const minInterval = this.currentMode === 'easy' ? 500 : (this.currentMode === 'medium' ? 400 : 300);
+                const nextSpawn = Math.max(minInterval, baseInterval - this.score * step);
+                this.spawnTimeout = setTimeout(() => this.createItem(), nextSpawn);
+            },
+
+            spawnParticles(x, y, color, count = 12) {
+                for (let i = 0; i < count; i++) {
+                    this.particles.push({
+                        x: x, y: y,
+                        vx: (Math.random() - 0.5) * 10,
+                        vy: (Math.random() - 0.5) * 10 - 2,
+                        radius: Math.random() * 5 + 2,
+                        color: color,
+                        alpha: 1,
+                        decay: Math.random() * 0.02 + 0.015
+                    });
+                }
+            },
+
+            handleInput(clientX) {
+                if (this.effects.dizzy > 0) {
+                    const rel = clientX - canvas.width / 2;
+                    this.player.targetX = (canvas.width / 2 - rel) - this.player.width / 2;
+                } else {
+                    this.player.targetX = clientX - this.player.width / 2;
+                }
+            },
+
+            update() {
+                // Fondo
+                const redIntensity = Math.min(90, Math.floor(this.score / 5));
+                ctx.fillStyle = `rgb(${15 + redIntensity}, 18, 32)`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Viento
+                if (this.currentMode !== 'easy') {
+                    if (Math.abs(this.wind) > 0.2) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+                        for (let i = 0; i < 4; i++) {
+                            const y = (Date.now() / 10 + i * 200) % canvas.height;
+                            ctx.fillRect(0, y, canvas.width, 2);
+                        }
+                    }
+                    this.windTimer--;
+                    if (this.windTimer <= 0) {
+                        if (Math.random() > (this.currentMode === 'medium' ? 0.75 : 0.6)) {
+                            this.windTarget = (Math.random() - 0.5) * (this.currentMode === 'medium' ? 3 : 5);
+                            document.getElementById('wind-alert').classList.remove('hidden');
+                            setTimeout(() => document.getElementById('wind-alert').classList.add('hidden'), 3000);
+                        } else {
+                            this.windTarget = 0;
+                        }
+                        this.windTimer = 300 + Math.random() * 300;
+                    }
+                    this.wind += (this.windTarget - this.wind) * 0.05;
+                }
+
+                // Advíncula
+                if (!this.advincula.active) {
+                    this.advincula.spawnTimer--;
+                    if (this.advincula.spawnTimer <= 0) {
+                        this.advincula.active = true;
+                        this.advincula.duration = 300;
+                        this.advincula.x = canvas.width / 2 - this.advincula.width / 2;
+                        this.advincula.y = 80;
+                        this.advincula.shootTimer = 0;
+                        document.getElementById('advincula-alert').classList.remove('hidden');
+                    }
+                } else {
+                    this.advincula.x += this.advincula.speed * this.advincula.dir;
+                    if (this.advincula.x <= 10) { this.advincula.x = 10; this.advincula.dir = 1; }
+                    else if (this.advincula.x >= canvas.width - this.advincula.width - 10) {
+                        this.advincula.x = canvas.width - this.advincula.width - 10;
+                        this.advincula.dir = -1;
+                    }
+
+                    this.advincula.shootTimer++;
+                    const shootInterval = this.currentMode === 'easy' ? 45 : (this.currentMode === 'medium' ? 38 : 30);
+                    if (this.advincula.shootTimer >= shootInterval) {
+                        this.advincula.shootTimer = 0;
+                        this.items.push({
+                            x: this.advincula.x + this.advincula.width / 2 - 20,
+                            y: this.advincula.y + this.advincula.height,
+                            type: 'broccoli',
+                            speed: this.currentMode === 'easy' ? 4 : 6,
+                            size: 48,
+                            angle: 0,
+                            rotSpeed: 0.1,
+                            zigzag: 0,
+                            zigzagDir: 1
+                        });
+                    }
+
+                    this.advincula.duration--;
+                    if (this.advincula.duration <= 0) {
+                        this.advincula.active = false;
+                        document.getElementById('advincula-alert').classList.add('hidden');
+                        this.advincula.spawnTimer = this.currentMode === 'easy' ? 1200 : (this.currentMode === 'medium' ? 900 : 600);
+                    }
+
+                    // Renderizar círculo con foto de Advíncula
+                    drawCircularPhoto(ctx, getAdvinculaImg(), this.advincula.x, this.advincula.y, this.advincula.width, '#eab308', 5, '#eab308');
+                }
+
+                // Efectos del Jugador
+                if (this.effects.dizzy > 0) {
+                    this.effects.dizzy--;
+                    if (this.effects.dizzy <= 0) document.getElementById('effect-alert').classList.add('hidden');
+                }
+                if (this.effects.shrunk > 0) {
+                    this.effects.shrunk--;
+                    if (this.effects.shrunk <= 0) {
+                        this.player.width = this.player.baseWidth;
+                        this.player.height = this.player.baseHeight;
+                    }
+                }
+
+                // Mover La Cobra
+                this.player.x += (this.player.targetX - this.player.x) * 0.25;
+                if (this.player.x < 0) this.player.x = 0;
+                if (this.player.x > canvas.width - this.player.width) this.player.x = canvas.width - this.player.width;
+
+                // Dibujar Jugador La Cobra en círculo con foto
+                ctx.save();
+                if (this.effects.dizzy > 0) {
+                    ctx.translate((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6);
+                }
+                drawCircularPhoto(ctx, getActiveSkinImg(), this.player.x, this.player.y, this.player.width, '#ec4899', 5, '#ec4899');
+                ctx.restore();
+
+                // Partículas
+                this.particles.forEach((p, index) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.alpha -= p.decay;
+                    if (p.alpha <= 0) {
+                        this.particles.splice(index, 1);
+                    } else {
+                        ctx.save();
+                        ctx.globalAlpha = p.alpha;
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                });
+
+                // Items Cayendo
+                for (let index = this.items.length - 1; index >= 0; index--) {
+                    const item = this.items[index];
+                    item.x += this.wind;
+                    if (item.zigzag > 0) item.x += item.zigzagDir * item.zigzag;
+
+                    if (item.x < 10) { item.x = 10; item.zigzagDir = 1; }
+                    else if (item.x > canvas.width - item.size - 10) { item.x = canvas.width - item.size - 10; item.zigzagDir = -1; }
+
+                    item.y += item.speed;
+                    item.angle += item.rotSpeed;
+
+                    ctx.save();
+                    ctx.translate(item.x + item.size / 2, item.y + item.size / 2);
+                    ctx.rotate(item.angle);
+                    const imgAsset = ITEM_IMGS[item.type];
+                    if (imgAsset) ctx.drawImage(imgAsset, -item.size / 2, -item.size / 2, item.size, item.size);
+                    ctx.restore();
+
+                    // Colisión con La Cobra
+                    const isColliding = item.y + item.size >= this.player.y &&
+                                        item.y <= this.player.y + 30 &&
+                                        item.x + item.size >= this.player.x &&
+                                        item.x <= this.player.x + this.player.width;
+
+                    if (isColliding) {
+                        if (item.type === 'cake') {
+                            this.score += 10;
+                            playSound('catch');
+                            this.spawnParticles(item.x + 25, item.y + 25, '#f43f5e');
+                        } else if (item.type === 'gold') {
+                            this.score += 50;
+                            playSound('gold');
+                            this.spawnParticles(item.x + 25, item.y + 25, '#fbbf24', 25);
+                        } else if (item.type === 'broccoli') {
+                            this.score = Math.max(0, this.score - 20);
+                            playSound('hurt');
+                            this.player.width = this.player.baseWidth * 0.55;
+                            this.player.height = this.player.baseHeight * 0.55;
+                            this.effects.shrunk = 300;
+                            this.spawnParticles(item.x + 25, item.y + 25, '#22c55e', 15);
+                        } else if (item.type === 'chili') {
+                            playSound('hurt');
+                            this.effects.dizzy = this.currentMode === 'easy' ? 120 : (this.currentMode === 'medium' ? 180 : 240);
+                            document.getElementById('effect-alert-text').innerHTML = `🌶️ ¡CONTROLES INVERTIDOS!`;
+                            document.getElementById('effect-alert').classList.remove('hidden');
+                            this.spawnParticles(item.x + 25, item.y + 25, '#ef4444', 15);
+                        } else if (item.type === 'bomb') {
+                            this.spawnParticles(item.x + 25, item.y + 25, '#ffffff', 40);
+                            triggerGameOver("¡BOOOOM!", "¡Te comiste una bomba explosiva!", this.score);
+                            return;
+                        }
+
+                        this.updateHUD();
+                        this.items.splice(index, 1);
+                        continue;
+                    }
+
+                    if (item.y > canvas.height) {
+                        if (item.type === 'cake') {
+                            this.lives--;
+                            playSound('hurt');
+                            this.updateHUD();
+                            ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            if (this.lives <= 0) {
+                                triggerGameOver("¡SIN VIDAS!", "Dejaste caer demasiados queques deliciosos.", this.score);
+                                return;
+                            }
+                        }
+                        this.items.splice(index, 1);
+                    }
+                }
+            }
+        };
+
+        /* ==========================================================================
+           JUEGO 2: FLAPPY COBRA (VUELO KEKE)
+           ========================================================================== */
+        const flappy = {
+            bird: { x: 100, y: 300, vy: 0, radius: 28, gravity: 0.38, jump: -7.5 },
+            pipes: [],
+            goldenCakes: [],
+            hazards: [],
+            score: 0,
+            frame: 0,
+
+            start() {
+                this.score = 0;
+                this.frame = 0;
+                this.bird.x = Math.max(90, canvas.width * 0.22);
+                this.bird.y = canvas.height * 0.4;
+                this.bird.vy = 0;
+                this.pipes = [];
+                this.goldenCakes = [];
+                this.hazards = [];
+                this.updateHUD();
+            },
+
+            updateHUD() {
+                document.getElementById('hud-score').innerText = this.score;
+                document.getElementById('hud-lives-container').innerHTML = `<span class="text-xs font-black tracking-widest text-amber-400">FLAP KEKE</span>`;
+            },
+
+            flap() {
+                if (!isGameRunning || activeGame !== 'flappy') return;
+                this.bird.vy = this.bird.jump;
+                playSound('jump');
+            },
+
+            update() {
+                this.frame++;
+
+                // Fondo cielo atardecer
+                const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                grad.addColorStop(0, '#1e1b4b');
+                grad.addColorStop(0.5, '#4c1d95');
+                grad.addColorStop(1, '#831843');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Siluetas de fondo
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+                for (let i = 0; i < 8; i++) {
+                    const x = ((i * 180) - (this.frame * 0.5)) % (canvas.width + 100);
+                    ctx.fillRect(x, canvas.height - 120, 40, 120);
+                }
+
+                // Generar tuberías y discos de Advíncula
+                if (this.frame % 110 === 0) {
+                    const gap = Math.max(160, canvas.height * 0.28);
+                    const minTop = 60;
+                    const maxTop = canvas.height - gap - 60;
+                    const topHeight = Math.floor(Math.random() * (maxTop - minTop)) + minTop;
+
+                    this.pipes.push({
+                        x: canvas.width + 40,
+                        top: topHeight,
+                        bottom: topHeight + gap,
+                        width: 70,
+                        passed: false,
+                        hasAdvinculaBadge: Math.random() > 0.4
+                    });
+
+                    // Bonus de queque dorado
+                    if (Math.random() > 0.35) {
+                        this.goldenCakes.push({
+                            x: canvas.width + 75,
+                            y: topHeight + gap / 2,
+                            size: 36,
+                            collected: false
+                        });
+                    }
+
+                    // Peligro flotante circular de Advíncula cada 3 tuberías
+                    if (this.frame % 330 === 0) {
+                        this.hazards.push({
+                            x: canvas.width + 120,
+                            y: Math.random() * (canvas.height - 240) + 120,
+                            size: 48,
+                            vy: (Math.random() - 0.5) * 2
+                        });
+                    }
+                }
+
+                // Físicas del Pájaro Cobra
+                this.bird.vy += this.bird.gravity;
+                this.bird.y += this.bird.vy;
+
+                // Choque con suelo o techo
+                if (this.bird.y + this.bird.radius > canvas.height - 20 || this.bird.y - this.bird.radius < 0) {
+                    triggerGameOver("¡TE ESTRELLASTE!", "La Cobra perdió altitud buscando queques.", this.score);
+                    return;
+                }
+
+                // Dibujar y colisionar tuberías
+                for (let i = this.pipes.length - 1; i >= 0; i--) {
+                    const p = this.pipes[i];
+                    p.x -= 3.2;
+
+                    // Tubo superior (Brócoli)
+                    ctx.fillStyle = '#16a34a';
+                    ctx.fillRect(p.x, 0, p.width, p.top);
+                    ctx.fillStyle = '#15803d';
+                    ctx.fillRect(p.x - 4, p.top - 20, p.width + 8, 20);
+
+                    // Tubo inferior
+                    ctx.fillStyle = '#16a34a';
+                    ctx.fillRect(p.x, p.bottom, p.width, canvas.height - p.bottom);
+                    ctx.fillStyle = '#15803d';
+                    ctx.fillRect(p.x - 4, p.bottom, p.width + 8, 20);
+
+                    // Insignia circular de Advíncula en el poste
+                    if (p.hasAdvinculaBadge) {
+                        const badgeSize = 34;
+                        drawCircularPhoto(ctx, getAdvinculaImg(), p.x + (p.width - badgeSize) / 2, p.top - 25, badgeSize, '#eab308', 2.5, '#eab308');
+                    }
+
+                    // Colisión con tubería
+                    if (
+                        this.bird.x + this.bird.radius > p.x &&
+                        this.bird.x - this.bird.radius < p.x + p.width &&
+                        (this.bird.y - this.bird.radius < p.top || this.bird.y + this.bird.radius > p.bottom)
+                    ) {
+                        triggerGameOver("¡CHOQUE DE BRÓCOLI!", "¡No pudiste esquivar las defensas de Advíncula!", this.score);
+                        return;
+                    }
+
+                    // Puntos por pasar obstáculo
+                    if (!p.passed && p.x + p.width < this.bird.x) {
+                        p.passed = true;
+                        this.score++;
+                        playSound('catch');
+                        this.updateHUD();
+                    }
+
+                    if (p.x + p.width < -60) this.pipes.splice(i, 1);
+                }
+
+                // Peligros flotantes circulares de Advíncula
+                for (let h = this.hazards.length - 1; h >= 0; h--) {
+                    const haz = this.hazards[h];
+                    haz.x -= 3.8;
+                    haz.y += haz.vy;
+                    if (haz.y < 80 || haz.y > canvas.height - 80) haz.vy *= -1;
+
+                    drawCircularPhoto(ctx, getAdvinculaImg(), haz.x - haz.size / 2, haz.y - haz.size / 2, haz.size, '#eab308', 3, '#eab308');
+
+                    // Colisión con el peligro flotante
+                    const d = Math.hypot(this.bird.x - haz.x, this.bird.y - haz.y);
+                    if (d < this.bird.radius + haz.size / 2) {
+                        triggerGameOver("¡EMBOSCADA AÉREA!", "¡Advíncula te interceptó en pleno vuelo!", this.score);
+                        return;
+                    }
+
+                    if (haz.x < -60) this.hazards.splice(h, 1);
+                }
+
+                // Queques dorados coleccionables
+                for (let i = this.goldenCakes.length - 1; i >= 0; i--) {
+                    const cake = this.goldenCakes[i];
+                    cake.x -= 3.2;
+
+                    if (!cake.collected) {
+                        ctx.drawImage(ITEM_IMGS.gold, cake.x - cake.size / 2, cake.y - cake.size / 2, cake.size, cake.size);
+
+                        const dist = Math.hypot(this.bird.x - cake.x, this.bird.y - cake.y);
+                        if (dist < this.bird.radius + cake.size / 2) {
+                            cake.collected = true;
+                            this.score += 5;
+                            playSound('gold');
+                            this.updateHUD();
+                        }
+                    }
+
+                    if (cake.x < -40) this.goldenCakes.splice(i, 1);
+                }
+
+                // Dibujar La Cobra volador: círculo con foto y alas animadas
+                ctx.save();
+                ctx.translate(this.bird.x, this.bird.y);
+                const rot = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, this.bird.vy * 0.08));
+                ctx.rotate(rot);
+
+                // Alas animadas
+                ctx.fillStyle = '#f43f5e';
+                ctx.beginPath();
+                ctx.ellipse(-this.bird.radius * 0.7, Math.sin(this.frame * 0.35) * 8, 16, 8, -rot, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Cabeza circular de La Cobra con la foto de la skin equipada
+                drawCircularPhoto(ctx, getActiveSkinImg(), -this.bird.radius, -this.bird.radius, this.bird.radius * 2, '#ec4899', 4, '#ec4899');
+                ctx.restore();
+            }
+        };
+
+        /* ==========================================================================
+           JUEGO 3: KEKE INVADERS (GUERRA DE BRÓCOLIS)
+           ========================================================================== */
+        const invaders = {
+            player: { x: 0, y: 0, width: 76, height: 76, speed: 7.5, invulnerable: 0 },
+            bullets: [],
+            enemyBullets: [],
+            kamikazes: [],
+            powerups: [],
+            bunkers: [],
+            enemies: [],
+            boss: { active: false, x: 0, y: 55, width: 90, height: 90, speed: 4.5, hp: 12, maxHp: 12, shootTimer: 0 },
+            keys: { left: false, right: false },
+            score: 0,
+            lives: 3,
+            wave: 1,
+            enemyDir: 1,
+            enemyStepTimer: 0,
+            shootCooldown: 0,
+            kamikazeTimer: 240,
+            powerupActive: null,
+            powerupTimer: 0,
+
+            buildBunkers() {
+                this.bunkers = [];
+                const count = 3;
+                const bWidth = 64;
+                const bHeight = 32;
+                const spacing = canvas.width / (count + 1);
+                for (let i = 1; i <= count; i++) {
+                    this.bunkers.push({
+                        x: spacing * i - bWidth / 2,
+                        y: canvas.height - 180,
+                        width: bWidth,
+                        height: bHeight,
+                        hp: 8,
+                        maxHp: 8
+                    });
+                }
+            },
+
+            start() {
+                this.score = 0;
+                this.lives = 3;
+                this.wave = 1;
+                this.bullets = [];
+                this.enemyBullets = [];
+                this.kamikazes = [];
+                this.powerups = [];
+                this.powerupActive = null;
+                this.powerupTimer = 0;
+                this.boss.active = false;
+                this.player.x = canvas.width / 2 - this.player.width / 2;
+                this.player.y = canvas.height - 110;
+                this.player.invulnerable = 0;
+                this.enemyDir = 1;
+                this.enemyStepTimer = 0;
+                this.shootCooldown = 0;
+                this.kamikazeTimer = 260;
+
+                this.buildBunkers();
+                this.spawnWave();
+                this.updateHUD();
+            },
+
+            updateHUD() {
+                document.getElementById('hud-score').innerText = this.score;
+                let hearts = '';
+                for (let i = 0; i < 3; i++) {
+                    hearts += i < this.lives ? HEART_RED_SVG : HEART_GRAY_SVG;
+                }
+                document.getElementById('hud-lives-container').innerHTML = `
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-black text-emerald-400 mr-1">OLEADA ${this.wave}</span>
+                        ${hearts}
+                    </div>
+                `;
+            },
+
+            spawnWave() {
+                this.enemies = [];
+                const cols = Math.min(8, Math.max(5, Math.floor(canvas.width / 85)));
+                const rows = 4;
+                const startX = (canvas.width - (cols * 64)) / 2;
+
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        const isArmored = (r === 0);
+                        const isShooter = (r === rows - 1);
+                        this.enemies.push({
+                            x: startX + c * 64,
+                            y: 75 + r * 48,
+                            width: 38,
+                            height: 38,
+                            alive: true,
+                            type: isArmored ? 'armored' : (isShooter ? 'shooter' : 'regular'),
+                            hp: isArmored ? 2 : 1,
+                            maxHp: isArmored ? 2 : 1
+                        });
+                    }
+                }
+            },
+
+            shoot() {
+                if (this.shootCooldown > 0) return;
+
+                if (this.powerupActive === 'double' && this.powerupTimer > 0) {
+                    this.bullets.push(
+                        { x: this.player.x + 8, y: this.player.y - 12, size: 24, speed: 11 },
+                        { x: this.player.x + this.player.width - 32, y: this.player.y - 12, size: 24, speed: 11 }
+                    );
+                } else {
+                    this.bullets.push({
+                        x: this.player.x + this.player.width / 2 - 13,
+                        y: this.player.y - 12,
+                        size: 26,
+                        speed: 10
+                    });
+                }
+
+                playSound('shoot');
+                this.shootCooldown = (this.powerupActive === 'double') ? 10 : 13;
+            },
+
+            spawnKamikaze() {
+                this.kamikazes.push({
+                    x: Math.random() * (canvas.width - 60) + 30,
+                    y: -40,
+                    vx: (Math.random() - 0.5) * 3,
+                    vy: 4.5 + Math.random() * 2.5,
+                    size: 34,
+                    angle: 0
+                });
+            },
+
+            damagePlayer() {
+                if (this.player.invulnerable > 0) return;
+                this.lives--;
+                this.player.invulnerable = 60;
+                playSound('hurt');
+                this.updateHUD();
+
+                if (this.lives <= 0) {
+                    triggerGameOver(
+                        "¡DERROTA EN LA COCINA!",
+                        "La invasión alienígena y los ataques de Advíncula vencieron a La Cobra.",
+                        this.score
+                    );
+                }
+            },
+
+            update() {
+                // Fondo espacial con estrellas
+                ctx.fillStyle = '#060913';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                for (let i = 0; i < 20; i++) {
+                    const sx = (i * 123 + Date.now() * 0.05) % canvas.width;
+                    const sy = (i * 87) % canvas.height;
+                    ctx.fillRect(sx, sy, 2, 2);
+                }
+
+                // Control del jugador
+                if (this.keys.left && this.player.x > 8) this.player.x -= this.player.speed;
+                if (this.keys.right && this.player.x < canvas.width - this.player.width - 8) this.player.x += this.player.speed;
+
+                if (this.shootCooldown > 0) this.shootCooldown--;
+                if (this.player.invulnerable > 0) this.player.invulnerable--;
+                if (this.powerupTimer > 0) {
+                    this.powerupTimer--;
+                    if (this.powerupTimer <= 0) this.powerupActive = null;
+                }
+
+                // Kamikazes
+                this.kamikazeTimer--;
+                if (this.kamikazeTimer <= 0) {
+                    this.spawnKamikaze();
+                    this.kamikazeTimer = Math.max(160, 320 - this.wave * 30);
+                }
+
+                // Bunkers de Pastel
+                for (let b = this.bunkers.length - 1; b >= 0; b--) {
+                    const bunker = this.bunkers[b];
+                    const hpRatio = bunker.hp / bunker.maxHp;
+
+                    ctx.fillStyle = hpRatio > 0.6 ? '#f472b6' : (hpRatio > 0.3 ? '#fbbf24' : '#ef4444');
+                    ctx.fillRect(bunker.x, bunker.y, bunker.width, bunker.height);
+
+                    ctx.fillStyle = '#fdf2f8';
+                    ctx.fillRect(bunker.x, bunker.y, bunker.width, 6);
+
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.fillRect(bunker.x, bunker.y + bunker.height - 4, bunker.width, 4);
+                    ctx.fillStyle = '#22c55e';
+                    ctx.fillRect(bunker.x, bunker.y + bunker.height - 4, bunker.width * hpRatio, 4);
+
+                    if (bunker.hp <= 0) this.bunkers.splice(b, 1);
+                }
+
+                // Balas de La Cobra (Las barreras ya no se rompen con los proyectiles del jugador)
+                for (let b = this.bullets.length - 1; b >= 0; b--) {
+                    const bullet = this.bullets[b];
+                    bullet.y -= bullet.speed;
+                    ctx.drawImage(ITEM_IMGS.cake, bullet.x, bullet.y, bullet.size, bullet.size);
+
+                    let bulletHit = false;
+
+                    // Impacto con Enemigos (los proyectiles del jugador atraviesan las barreras sin dañarlas)
+                    if (!bulletHit) {
+                        for (let e = 0; e < this.enemies.length; e++) {
+                            const enemy = this.enemies[e];
+                            if (enemy.alive &&
+                                bullet.x + bullet.size > enemy.x &&
+                                bullet.x < enemy.x + enemy.width &&
+                                bullet.y < enemy.y + enemy.height &&
+                                bullet.y + bullet.size > enemy.y
+                            ) {
+                                enemy.hp--;
+                                bulletHit = true;
+
+                                if (enemy.hp <= 0) {
+                                    enemy.alive = false;
+                                    const pts = enemy.type === 'armored' ? 35 : 15;
+                                    this.score += pts;
+                                    playSound('catch');
+                                    this.updateHUD();
+
+                                    if (Math.random() < 0.18) {
+                                        this.powerups.push({
+                                            x: enemy.x + enemy.width / 2 - 14,
+                                            y: enemy.y,
+                                            type: Math.random() > 0.4 ? 'double' : 'heart',
+                                            size: 28,
+                                            vy: 2.3
+                                        });
+                                    }
+                                } else {
+                                    playSound('shoot');
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    // Impacto con Kamikazes
+                    if (!bulletHit) {
+                        for (let k = this.kamikazes.length - 1; k >= 0; k--) {
+                            const kami = this.kamikazes[k];
+                            if (bullet.x + bullet.size > kami.x && bullet.x < kami.x + kami.size &&
+                                bullet.y < kami.y + kami.size && bullet.y + bullet.size > kami.y) {
+                                this.kamikazes.splice(k, 1);
+                                this.score += 45;
+                                playSound('gold');
+                                this.updateHUD();
+                                bulletHit = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Impacto con Jefe Advíncula
+                    if (!bulletHit && this.boss.active) {
+                        if (bullet.x + bullet.size > this.boss.x && bullet.x < this.boss.x + this.boss.width &&
+                            bullet.y < this.boss.y + this.boss.height && bullet.y + bullet.size > this.boss.y) {
+                            this.boss.hp--;
+                            bulletHit = true;
+                            playSound('gold');
+
+                            if (this.boss.hp <= 0) {
+                                this.boss.active = false;
+                                this.score += 250;
+                                if (this.lives < 3) this.lives++;
+                                this.wave++;
+                                this.buildBunkers();
+                                this.spawnWave();
+                                this.updateHUD();
+                            }
+                        }
+                    }
+
+                    if (bulletHit || bullet.y < -30) this.bullets.splice(b, 1);
+                }
+
+                // Proyectiles de energía del Jefe Advíncula (los brócolis regulares ya no disparan)
+                for (let eb = this.enemyBullets.length - 1; eb >= 0; eb--) {
+                    const eBullet = this.enemyBullets[eb];
+                    eBullet.x += eBullet.vx;
+                    eBullet.y += eBullet.vy;
+
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.beginPath();
+                    ctx.arc(eBullet.x, eBullet.y, eBullet.size / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#fbbf24';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    let eHit = false;
+
+                    for (let bk of this.bunkers) {
+                        if (eBullet.x > bk.x && eBullet.x < bk.x + bk.width &&
+                            eBullet.y > bk.y && eBullet.y < bk.y + bk.height) {
+                            bk.hp -= 1;
+                            eHit = true;
+                            break;
+                        }
+                    }
+
+                    if (!eHit &&
+                        eBullet.x > this.player.x && eBullet.x < this.player.x + this.player.width &&
+                        eBullet.y > this.player.y && eBullet.y < this.player.y + this.player.height) {
+                        this.damagePlayer();
+                        eHit = true;
+                    }
+
+                    if (eHit || eBullet.y > canvas.height + 20) {
+                        this.enemyBullets.splice(eb, 1);
+                    }
+                }
+
+                // Kamikazes
+                for (let k = this.kamikazes.length - 1; k >= 0; k--) {
+                    const kami = this.kamikazes[k];
+                    kami.x += kami.vx;
+                    kami.y += kami.vy;
+                    kami.angle += 0.15;
+
+                    if (kami.x < 10 || kami.x > canvas.width - kami.size - 10) kami.vx *= -1;
+
+                    ctx.save();
+                    ctx.translate(kami.x + kami.size / 2, kami.y + kami.size / 2);
+                    ctx.rotate(kami.angle);
+                    ctx.drawImage(ITEM_IMGS.chili, -kami.size / 2, -kami.size / 2, kami.size, kami.size);
+                    ctx.restore();
+
+                    for (let bk of this.bunkers) {
+                        if (kami.x + kami.size > bk.x && kami.x < bk.x + bk.width &&
+                            kami.y + kami.size > bk.y && kami.y < bk.y + bk.height) {
+                            bk.hp -= 3;
+                            this.kamikazes.splice(k, 1);
+                            break;
+                        }
+                    }
+
+                    if (kami.x + kami.size > this.player.x && kami.x < this.player.x + this.player.width &&
+                        kami.y + kami.size > this.player.y && kami.y < this.player.y + this.player.height) {
+                        this.damagePlayer();
+                        this.kamikazes.splice(k, 1);
+                    } else if (kami.y > canvas.height + 30) {
+                        this.kamikazes.splice(k, 1);
+                    }
+                }
+
+                // Power-ups
+                for (let p = this.powerups.length - 1; p >= 0; p--) {
+                    const pw = this.powerups[p];
+                    pw.y += pw.vy;
+
+                    const icon = pw.type === 'double' ? ITEM_IMGS.gold : ITEM_IMGS.cake;
+                    ctx.drawImage(icon, pw.x, pw.y, pw.size, pw.size);
+
+                    if (pw.x + pw.size > this.player.x && pw.x < this.player.x + this.player.width &&
+                        pw.y + pw.size > this.player.y && pw.y < this.player.y + this.player.height) {
+                        if (pw.type === 'double') {
+                            this.powerupActive = 'double';
+                            this.powerupTimer = 400;
+                            playSound('gold');
+                        } else if (pw.type === 'heart') {
+                            if (this.lives < 3) this.lives++;
+                            this.updateHUD();
+                            playSound('catch');
+                        }
+                        this.powerups.splice(p, 1);
+                    } else if (pw.y > canvas.height + 20) {
+                        this.powerups.splice(p, 1);
+                    }
+                }
+
+                // Marcha de invasores (sin ráfagas de brócolis)
+                const aliveEnemies = this.enemies.filter(e => e.alive);
+
+                if (aliveEnemies.length === 0 && !this.boss.active) {
+                    this.boss.active = true;
+                    this.boss.maxHp = 10 + this.wave * 4;
+                    this.boss.hp = this.boss.maxHp;
+                    this.boss.x = canvas.width / 2 - this.boss.width / 2;
+                    this.boss.speed = 4 + (this.wave * 0.5);
+                }
+
+                this.enemyStepTimer++;
+                const speedThreshold = Math.max(8, 24 - Math.floor((this.enemies.length - aliveEnemies.length) / 1.6));
+
+                if (this.enemyStepTimer > speedThreshold) {
+                    this.enemyStepTimer = 0;
+                    let shouldChangeDir = false;
+
+                    for (let e of aliveEnemies) {
+                        if ((this.enemyDir === 1 && e.x + e.width > canvas.width - 15) ||
+                            (this.enemyDir === -1 && e.x < 15)) {
+                            shouldChangeDir = true;
+                            break;
+                        }
+                    }
+
+                    if (shouldChangeDir) {
+                        this.enemyDir *= -1;
+                        for (let e of aliveEnemies) e.y += 18;
+                    } else {
+                        for (let e of aliveEnemies) e.x += 14 * this.enemyDir;
+                    }
+                }
+
+                // Dibujar invasores brócoli (y líderes acorazados con círculo de Advíncula)
+                for (let e of aliveEnemies) {
+                    if (e.type === 'armored') {
+                        drawCircularPhoto(ctx, getAdvinculaImg(), e.x - 2, e.y - 2, e.width + 4, '#a855f7', 2, '#a855f7');
+                    } else {
+                        ctx.drawImage(ITEM_IMGS.broccoli, e.x, e.y, e.width, e.height);
+                    }
+
+                    if (e.y + e.height >= this.player.y) {
+                        triggerGameOver("¡INVASIÓN TOTAL!", "Los brócolis invadieron la cocina de La Cobra.", this.score);
+                        return;
+                    }
+                }
+
+                // Lógica y renderizado del Jefe Advíncula
+                if (this.boss.active) {
+                    const isRage = this.boss.hp <= this.boss.maxHp * 0.5;
+                    const curSpeed = isRage ? this.boss.speed * 1.5 : this.boss.speed;
+
+                    this.boss.x += curSpeed * this.enemyDir;
+                    if (this.boss.x > canvas.width - this.boss.width - 15) {
+                        this.boss.x = canvas.width - this.boss.width - 15;
+                        this.enemyDir = -1;
+                    } else if (this.boss.x < 15) {
+                        this.boss.x = 15;
+                        this.enemyDir = 1;
+                    }
+
+                    this.boss.shootTimer = (this.boss.shootTimer || 0) + 1;
+                    const bossFireInterval = isRage ? 30 : 50;
+
+                    if (this.boss.shootTimer >= bossFireInterval) {
+                        this.boss.shootTimer = 0;
+                        if (isRage) {
+                            this.enemyBullets.push(
+                                { x: this.boss.x + this.boss.width / 2, y: this.boss.y + this.boss.height, vx: -2.2, vy: 5, size: 20 },
+                                { x: this.boss.x + this.boss.width / 2, y: this.boss.y + this.boss.height, vx: 0, vy: 5.5, size: 22 },
+                                { x: this.boss.x + this.boss.width / 2, y: this.boss.y + this.boss.height, vx: 2.2, vy: 5, size: 20 }
+                            );
+                        } else {
+                            this.enemyBullets.push({
+                                x: this.boss.x + this.boss.width / 2,
+                                y: this.boss.y + this.boss.height,
+                                vx: (Math.random() - 0.5) * 1.5,
+                                vy: 5,
+                                size: 20
+                            });
+                        }
+                    }
+
+                    // Renderizar Jefe Advíncula con círculo y foto
+                    const bossBorder = isRage ? '#ef4444' : '#eab308';
+                    drawCircularPhoto(ctx, getAdvinculaImg(), this.boss.x, this.boss.y, this.boss.width, bossBorder, 5, bossBorder);
+
+                    // Barra de salud del Jefe
+                    const barW = Math.min(260, canvas.width * 0.6);
+                    const barH = 12;
+                    const barX = canvas.width / 2 - barW / 2;
+                    const barY = 16;
+                    const bossRatio = Math.max(0, this.boss.hp / this.boss.maxHp);
+
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    ctx.fillRect(barX, barY, barW, barH);
+                    ctx.fillStyle = isRage ? '#ef4444' : '#eab308';
+                    ctx.fillRect(barX, barY, barW * bossRatio, barH);
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(barX, barY, barW, barH);
+
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(isRage ? `⚠️ ADVÍNCULA ENFURECIDO: ${this.boss.hp}/${this.boss.maxHp}` : `JEFE ADVÍNCULA: ${this.boss.hp}/${this.boss.maxHp}`, canvas.width / 2, barY - 4);
+                }
+
+                // Renderizar Jugador (La Cobra Cañón) con círculo y foto
+                ctx.save();
+                if (this.player.invulnerable > 0 && Math.floor(Date.now() / 80) % 2 === 0) {
+                    ctx.globalAlpha = 0.35;
+                }
+                const playerBorder = this.powerupActive === 'double' ? '#fbbf24' : '#ec4899';
+                drawCircularPhoto(ctx, getActiveSkinImg(), this.player.x, this.player.y, this.player.width, playerBorder, 4.5, playerBorder);
+                ctx.restore();
+
+                // Indicador de power-up activo
+                if (this.powerupActive === 'double') {
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`⚡ DOBLE QUEQUE (${Math.ceil(this.powerupTimer / 60)}s)`, this.player.x + this.player.width / 2, this.player.y - 12);
+                }
+            }
+        };
+
+        /* Event Listeners Globales (Teclado, Ratón y Touch) */
+        window.addEventListener('mousemove', (e) => {
+            if (!isGameRunning || isGamePaused) return;
+            if (activeGame === 'catcher') {
+                catcher.handleInput(e.clientX);
+            } else if (activeGame === 'invaders') {
+                invaders.player.x = e.clientX - invaders.player.width / 2;
+            }
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isGameRunning || isGamePaused || !e.touches.length) return;
+            if (activeGame === 'catcher') {
+                catcher.handleInput(e.touches[0].clientX);
+            } else if (activeGame === 'invaders') {
+                invaders.player.x = e.touches[0].clientX - invaders.player.width / 2;
+            }
+        }, { passive: true });
+
+        window.addEventListener('click', (e) => {
+            if (!isGameRunning || isGamePaused) return;
+            if (e.target.closest('button')) return;
+
+            if (activeGame === 'flappy') {
+                flappy.flap();
+            } else if (activeGame === 'invaders') {
+                invaders.shoot();
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+                if (isGameRunning) togglePauseGame();
+                return;
+            }
+
+            if (!isGameRunning || isGamePaused) return;
+
+            if (e.code === 'Space') {
+                if (activeGame === 'flappy') flappy.flap();
+                else if (activeGame === 'invaders') invaders.shoot();
+            }
+            if (activeGame === 'invaders') {
+                if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') invaders.keys.left = true;
+                if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') invaders.keys.right = true;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (activeGame === 'invaders') {
+                if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') invaders.keys.left = false;
+                if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') invaders.keys.right = false;
+            }
+        });
+
+        // Controles táctiles en pantalla para Keke Invaders
+        const btnLeft = document.getElementById('btn-left-mobile');
+        const btnRight = document.getElementById('btn-right-mobile');
+        const btnShoot = document.getElementById('btn-shoot-mobile');
+
+        btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); invaders.keys.left = true; });
+        btnLeft.addEventListener('touchend', () => invaders.keys.left = false);
+        btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); invaders.keys.right = true; });
+        btnRight.addEventListener('touchend', () => invaders.keys.right = false);
+        btnShoot.addEventListener('touchstart', (e) => { e.preventDefault(); invaders.shoot(); });
+
+        /* Inicio en ventana de carga */
+        window.onload = function() {
+            renderLobbySkins();
+            resizeCanvas();
+        };
     </script>
 </body>
 </html>
