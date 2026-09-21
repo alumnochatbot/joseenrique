@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Angry Birds Clone - Ultimate 80 Levels Edition</title>
+    <title>Angry Birds Clone - Ultimate 100 Levels Edition</title>
     <!-- Importar Matter.js para simulación física -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <!-- Importar Tailwind CSS para la interfaz de usuario -->
@@ -46,7 +46,7 @@
             <div class="bg-slate-900/90 text-white border border-purple-500/30 rounded-2xl px-5 py-3 shadow-2xl backdrop-blur-md flex items-center gap-4">
                 <div class="flex flex-col">
                     <span class="text-xs text-purple-400 font-bold uppercase tracking-wider">Progreso</span>
-                    <span class="text-lg font-black text-yellow-300">Nivel <span id="current-level-num">1</span> / 80</span>
+                    <span class="text-lg font-black text-yellow-300">Nivel <span id="current-level-num">1</span> / 100</span>
                 </div>
                 <div class="h-8 w-[1px] bg-purple-500/30"></div>
                 <div class="flex flex-col">
@@ -60,6 +60,9 @@
                 <select id="level-select" onchange="selectLevel(this.value)" class="bg-slate-900/95 text-white border-2 border-purple-600 rounded-xl px-4 py-2.5 font-bold text-sm shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer max-w-[250px] md:max-w-none">
                     <!-- Se cargarán los 80 niveles dinámicamente -->
                 </select>
+                <button id="btn-theme-toggle" onclick="toggleTheme()" class="bg-slate-900/95 hover:bg-slate-800 text-yellow-300 font-extrabold px-3.5 py-2.5 rounded-xl border-2 border-purple-600 shadow-xl active:scale-95 transition-all flex items-center justify-center text-sm" title="Cambiar Día / Noche">
+                    <i id="theme-icon" class="fa-solid fa-moon text-purple-300"></i>
+                </button>
                 <button id="btn-restart" onclick="initGame()" class="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-extrabold px-5 py-2.5 rounded-xl shadow-lg shadow-red-500/20 active:scale-95 transition-all flex items-center gap-2 text-sm border border-red-400/20">
                     <i class="fa-solid fa-rotate-right"></i> Reiniciar
                 </button>
@@ -177,7 +180,7 @@
         let activeDebris = [];
         let activePuffs = [];
         let currentLevel = 1;
-        const totalLevels = 80;
+        const totalLevels = 100;
         
         let levelFrameCount = 0;
         let structureUnlocked = false;
@@ -187,6 +190,21 @@
         
         let bonusExplosionRadius = 1;
         let bonusBirdSpeed = 1;
+
+        let isDayMode = false;
+
+        function toggleTheme() {
+            isDayMode = !isDayMode;
+            const icon = document.getElementById('theme-icon');
+            const btn = document.getElementById('btn-theme-toggle');
+            if (isDayMode) {
+                icon.className = 'fa-solid fa-sun text-yellow-400';
+                btn.title = 'Cambiar a Modo Noche';
+            } else {
+                icon.className = 'fa-solid fa-moon text-purple-300';
+                btn.title = 'Cambiar a Modo Día';
+            }
+        }
 
         const REWARDS = {
             triple_bomb: {
@@ -229,26 +247,36 @@
         const activeRewardText = document.getElementById('active-reward-text');
 
         const levelNames = [
-            "El Fuerte del Bosque", "Torres Gemelas de Piedra", "Castillo de TNT del Rey", "Fortaleza de Hielo",
-            "Pirámide del Desierto", "El Puente Colgante", "Caos Aéreo", "La Muralla Inexpugnable",
-            "El Castillo de Cristal", "La Venganza del Rey", "El Bastión Volcánico", "Laberinto Glaciar",
-            "Columnas del Olimpo", "Plataforma Celeste", "Búnker Subterráneo", "TNT Oculto en las Ruinas",
-            "La Puerta de Hierro", "Torres Suspendidas en Hielo", "El Último Castillo", "Apocalipsis de Cerdos",
+            "El Fuerte del Bosque", "Torres Gemelas de Madera", "Contacto con Dinamita", "Fortaleza de Hielo",
+            "⚔️ Desafío 5: Pirámide Reforzada", "El Puente Colgante", "Caos Aéreo de Globos", "La Muralla Triple",
+            "El Castillo de Cristal", "👑 Jefe 10: Gran Fortaleza Real Cerda", 
+            "El Bastión Volcánico", "Laberinto Glaciar", "Columnas del Olimpo", "Plataforma Celeste",
+            "⚔️ Desafío 15: Búnker de Asedio Blindado", "TNT Oculto en las Ruinas", "La Puerta de Hierro", "Torres Suspendidas en Hielo",
+            "El Castillo Alto", "👑 Jefe 20: Ciudadela Blindada de Doble Rey",
             "La Cámara de los Secretos", "El Zigurat del Destino", "La Torre Inclinada", "El Archipiélago Flotante",
-            "El Gran Laberinto de Piedra", "La Guillotina de Piedra", "El Gran Cañón", "El Cubo Geométrico",
-            "El Nido del Fénix", "La Muralla de Troya", "La Fortaleza de Obsidiana", "El Desafío de la Gravedad",
-            "El Castillo en las Nubes", "El Reactor Inestable", "El Trono de Hielo", "Columnas del Destino",
-            "El Gran Búnker Blindado", "La Trampa del Embudo", "El Templo Sagrado", "La Resistencia del Desierto",
+            "⚔️ Desafío 25: El Laberinto de Piedra y Metal", "La Guillotina de Piedra", "El Gran Cañón", "El Cubo Geométrico",
+            "El Nido del Fénix", "👑 Jefe 30: La Gran Muralla de Troya Acorazada",
+            "La Fortaleza de Obsidiana", "El Desafío de la Gravedad", "El Castillo en las Nubes", "El Reactor Inestable",
+            "⚔️ Desafío 35: El Trono de Hielo y Acero", "Columnas del Destino", "El Gran Búnker Blindado", "La Trampa del Embudo",
+            "El Templo Sagrado", "👑 Jefe 40: Fortaleza Titán del Desierto",
             "El Gran Acueducto", "La Jaula de Cristal", "La Guarida del Dragón", "La Fortificación Angular",
-            "La Torre de la Magia", "El Puente del Caos", "La Telaraña de Cerdos", "La Cueva del Rey Cerdo",
-            "La Ciudadela Militar", "El Último Bastión", "El Búnker de Obsidiana", "Laberinto de Doble Rey",
-            "La Bóveda Blindada", "Cúpula de Hielo Colosal", "Cámara de Alta Presión", "La Gran Muralla Vertical",
-            "Fortaleza de Hielo y Acero", "El Trono Impenetrable", "Laberinto Flotante de Cristal", "Torres Gemelas de Piedra Colosal",
+            "⚔️ Desafío 45: La Torre Acorazada de la Magia", "El Puente del Caos", "La Telaraña de Cerdos", "La Cueva del Rey Cerdo",
+            "La Ciudadela Militar", "👑 Jefe 50: El Megabastión de los Cuatro Reyes",
+            "El Búnker de Obsidiana", "Laberinto de Doble Rey", "La Bóveda Blindada", "Cúpula de Hielo Colosal",
+            "⚔️ Desafío 55: Cámara Blindada de Alta Presión", "La Gran Muralla Vertical", "Fortaleza de Hielo y Acero", "El Trono Impenetrable",
+            "Laberinto Flotante de Cristal", "👑 Jefe 60: Coloso Imperial de Obsidiana y Acero",
             "Búnker de TNT Blindado", "Bóveda Imperial de Hielo", "El Bastión de Obsidiana Pesada", "El Gran Coliseo Glaciar",
-            "El Puente del Juicio Final", "El Bastión de Cristal Colosal", "El Gran Coliseo Imperial", "El Sanctum del Vacío",
-            "La Muralla de Fuego y TNT", "El Zigurat Celestial", "La Bóveda Blindada Titán", "El Laberinto de Espejos y Cristal",
-            "El Puente de Cadenas Colgantes", "La Fortaleza de la Corona Real", "El Búnker Atómico Subterráneo", "La Torre Colosal de Marfil",
-            "El Baluarte de los Tres Reyes", "La Trampa de Demolición del Abismo", "La Puerta del Inframundo", "El Apocalipsis Final del Rey Cerdo"
+            "⚔️ Desafío 65: El Gran Puente del Juicio Final", "El Bastión de Cristal Colosal", "El Gran Coliseo Imperial", "El Sanctum del Vacío",
+            "La Muralla de Fuego y TNT", "👑 Jefe 70: El Gran Zigurat Celestial de Acero",
+            "La Bóveda Blindada Titán", "El Laberinto de Espejos y Cristal", "El Puente de Cadenas Colgantes", "La Fortaleza de la Corona Real",
+            "⚔️ Desafío 75: El Baluarte de los Tres Reyes", "La Trampa de Demolición del Abismo", "La Puerta del Inframundo", "El Bastión de Vanguardia Real",
+            "La Antesala del Trono", "👑 JEFE 80: El Apocalipsis del Rey Cerdo Supremo",
+            "El Bastión de Tungsteno Acorazado", "La Cúpula de Hielo y Acero Cósmico", "El Puente de la Desolación", "La Cámara Blindada de TNT",
+            "⚔️ Desafío 85: La Fortaleza Colgante de Acero", "El Monolito de las Sombras Blindado", "El Laberinto de los Tres Reyes Titanes", "El Bastión Gravitatorio Flotante",
+            "La Muralla Quíntuple de Acero y Obsidiana", "👑 JEFE 90: El Gran Megacastillo Imperial Blindado",
+            "El Glaciar Blindado de Tungsteno", "El Zigurat del Juicio Pesado", "La Torre Oscura del Alto Mando Cerdo", "La Bóveda Acorazada del Fin del Mundo",
+            "⚔️ Desafío 95: El Sanctum Imperial de la Corona Dorada", "El Coliseo de Acero y Demolición", "Las Catacumbas Blindadas de Obsidiana", "La Fortaleza Aérea de Vanguardia Suprema",
+            "La Antesala del Trono Supremo", "👑 JEFE FINAL SUPREMO 100: El Apocalipsis Definitivo del Imperio Cerdo"
         ];
 
         function populateLevelSelect() {
@@ -256,30 +284,27 @@
             for (let i = 1; i <= totalLevels; i++) {
                 const opt = document.createElement('option');
                 opt.value = i;
-                opt.innerText = `Nivel ${i}: ${levelNames[i-1]}`;
+                opt.innerText = `Nivel ${i}: ${levelNames[i - 1] || 'Fortaleza ' + i}`;
                 levelSelect.appendChild(opt);
             }
         }
 
         function toggleHelpModal() {
-            document.getElementById('help-modal').classList.toggle('hidden');
+            const modal = document.getElementById('help-modal');
+            modal.classList.toggle('hidden');
         }
 
         function init() {
             canvas = document.getElementById('game-canvas');
             ctx = canvas.getContext('2d', { alpha: false });
-            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
             engine = Engine.create();
             world = engine.world;
             engine.gravity.y = 1;
 
-            // Iteraciones elevadas para evitar traspaso de paredes a alta velocidad
-            engine.positionIterations = 14;
-            engine.velocityIterations = 14;
-
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-
+            // Configurar el ratón para apuntar con la honda
             const mouse = Mouse.create(canvas);
             mouseConstraint = MouseConstraint.create(engine, {
                 mouse: mouse,
@@ -287,16 +312,18 @@
             });
             Composite.add(world, mouseConstraint);
 
+            // Evitar que el scroll interfiera en móviles y computadoras
             mouseConstraint.mouse.element.removeEventListener("mousewheel", mouseConstraint.mouse.mousewheel);
             mouseConstraint.mouse.element.removeEventListener("DOMMouseScroll", mouseConstraint.mouse.mousewheel);
-            
+
             populateLevelSelect();
             initGame();
 
+            // Activar habilidades de los pájaros en el aire (Super velocidad o detonación)
             ['mousedown', 'touchstart'].forEach(evt => {
                 window.addEventListener(evt, (e) => {
                     if (e.target !== canvas) return;
-                    
+
                     if (isFired && !isAbilityUsed && bird && !bird.isDead) {
                         if (currentBirdType === 'yellow') {
                             isAbilityUsed = true;
@@ -323,24 +350,30 @@
         }
 
         function resizeCanvas() {
-            width = window.innerWidth || document.documentElement.clientWidth || 800;
-            height = window.innerHeight || document.documentElement.clientHeight || 600;
+            width = window.innerWidth;
+            height = window.innerHeight;
             canvas.width = width;
             canvas.height = height;
-            slingPos.x = Math.min(220, Math.floor(width * 0.22));
-            slingPos.y = Math.max(height - 160, 100);
+            slingPos = { x: 220, y: height - 160 };
 
             if (ground) {
                 Body.setPosition(ground, { x: width / 2, y: height - 20 });
             }
-
             if (bird && !isFired) {
                 Body.setPosition(bird, { x: slingPos.x, y: slingPos.y });
                 Body.setVelocity(bird, { x: 0, y: 0 });
-                Body.setAngularVelocity(bird, 0);
-                if (sling) {
-                    sling.pointA = { x: slingPos.x, y: slingPos.y };
-                }
+            }
+            if (sling && !isFired) {
+                sling.pointA = { x: slingPos.x, y: slingPos.y };
+            }
+
+            // Si la ventana cambia de tamaño antes del tiro, re-anclar la estructura al suelo
+            if (!isFired && !structureUnlocked && blocks.length > 0) {
+                blocks.forEach(b => World.remove(world, b));
+                pigs.forEach(p => World.remove(world, p));
+                blocks = [];
+                pigs = [];
+                buildLevel();
             }
         }
 
@@ -356,7 +389,7 @@
                     REWARDS[activeReward].apply();
                     rewardBanner.classList.remove('opacity-0', 'translate-y-12');
                     rewardBanner.classList.add('opacity-100', 'translate-y-0');
-                    document.getElementById('active-reward-text').innerText = REWARDS[activeReward].name;
+                    activeRewardText.innerText = REWARDS[activeReward].name;
                 }
             } else {
                 activeReward = null;
@@ -365,7 +398,144 @@
             }
         }
 
+        function initGame() {
+            World.clear(world);
+            Engine.clear(engine);
+            pigs = [];
+            blocks = [];
+            activeExplosions = [];
+            activeDebris = [];
+            activePuffs = [];
+            isFired = false;
+            structureUnlocked = false;
+            score = 0;
+            levelFrameCount = 0;
+            updateScore(0);
+            gameState = 'PLAYING';
+            msgContainer.classList.add('hidden');
+            isAbilityUsed = false;
+            sling = null;
+            bird = null;
+
+            levelNumEl.innerText = currentLevel;
+            levelSelect.value = currentLevel;
+
+            applyRewards();
+
+            let queue = getBaseBirdQueue(currentLevel);
+            if (activeReward === 'triple_bomb') {
+                queue = ['black', 'black', 'black'];
+            } else if (activeReward === 'extra_birds') {
+                queue = [...queue, 'red', 'red'];
+            }
+            birdQueue = [...queue];
+
+            Composite.add(world, mouseConstraint);
+
+            // Crear el suelo sólido del nivel
+            ground = Bodies.rectangle(width / 2, height - 20, width * 2, 40, {
+                isStatic: true,
+                label: 'ground',
+                friction: 0.8
+            });
+            Composite.add(world, ground);
+
+            loadNextBird();
+            buildLevel();
+        }
+
+        function selectLevel(val) {
+            currentLevel = parseInt(val);
+            pendingReward = null;
+            initGame();
+        }
+
+        function nextLevel() {
+            if (currentLevel < totalLevels) {
+                currentLevel++;
+            } else {
+                currentLevel = 1;
+                pendingReward = null;
+            }
+            msgContainer.classList.add('hidden');
+            initGame();
+        }
+
+        function loadNextBird() {
+            if (birdQueue.length === 0) return;
+            currentBirdType = birdQueue.shift();
+            isFired = false;
+            isAbilityUsed = false;
+
+            let birdOpts = { restitution: 0.8, frictionAir: 0.01, label: 'bird', birdType: currentBirdType };
+            if (currentBirdType === 'yellow') birdOpts.density = 0.0025;
+            else if (currentBirdType === 'black') birdOpts.density = 0.012;
+            else birdOpts.density = 0.005;
+
+            bird = Bodies.circle(slingPos.x, slingPos.y, 20, birdOpts);
+
+            if (currentBirdType === 'black') {
+                bird.explosionRadius = 140;
+                bird.timeSinceLaunch = 0;
+                bird.detonationWindow = Math.floor(Math.random() * (420 - 180 + 1)) + 180;
+                bird.fizzled = false;
+            }
+
+            if (sling) World.remove(world, sling);
+
+            sling = Constraint.create({
+                pointA: { x: slingPos.x, y: slingPos.y },
+                bodyB: bird,
+                stiffness: 0.05,
+                damping: 0.01,
+                length: 0
+            });
+
+            Composite.add(world, [bird, sling]);
+        }
+
+        function unlockStructure() {
+            if (structureUnlocked) return;
+            structureUnlocked = true;
+            blocks.forEach(b => {
+                if (b && b.isStatic) {
+                    Body.setStatic(b, false);
+                    if (b.initialDensity) Body.setDensity(b, b.initialDensity);
+                }
+            });
+            pigs.forEach(p => {
+                if (p && p.isStatic) {
+                    Body.setStatic(p, false);
+                    if (p.initialDensity) Body.setDensity(p, p.initialDensity);
+                }
+            });
+        }
+
         function getBaseBirdQueue(level) {
+            // Mega Jefes (cada 10 niveles) con mayor arsenal para demoler mega estructuras
+            if (level === 100) return ['black', 'yellow', 'black', 'yellow', 'black', 'black', 'red', 'red'];
+            if (level === 90) return ['black', 'black', 'yellow', 'black', 'yellow', 'red', 'red'];
+            if (level === 80) return ['black', 'yellow', 'black', 'yellow', 'black', 'red', 'red'];
+            if (level === 70) return ['black', 'yellow', 'black', 'black', 'red', 'red'];
+            if (level === 60) return ['black', 'black', 'yellow', 'black', 'red', 'red'];
+            if (level === 50) return ['black', 'yellow', 'yellow', 'black', 'red', 'red'];
+            if (level === 40) return ['black', 'yellow', 'black', 'yellow', 'red'];
+            if (level === 30) return ['yellow', 'black', 'black', 'red', 'red'];
+            if (level === 20) return ['yellow', 'black', 'yellow', 'black', 'red'];
+            if (level === 10) return ['black', 'yellow', 'black', 'red'];
+
+            // Desafíos cada 5 niveles (más difíciles, tiros precisos)
+            if (level === 95) return ['black', 'black', 'yellow', 'yellow', 'red'];
+            if (level === 85) return ['black', 'yellow', 'black', 'yellow', 'red'];
+            if (level === 75) return ['black', 'black', 'yellow', 'red'];
+            if (level === 65) return ['yellow', 'black', 'yellow', 'red'];
+            if (level === 55) return ['yellow', 'black', 'black', 'red'];
+            if (level === 45) return ['yellow', 'yellow', 'black', 'red'];
+            if (level === 35) return ['black', 'yellow', 'red'];
+            if (level === 25) return ['black', 'black', 'yellow'];
+            if (level === 15) return ['red', 'red', 'yellow', 'black'];
+            if (level === 5)  return ['black', 'red', 'yellow'];
+
             const birdPresets = [
                 ['red', 'red'],                              // 1
                 ['red', 'yellow', 'red'],                    // 2
@@ -446,124 +616,29 @@
                 ['black', 'black', 'yellow', 'black', 'red'], // 77
                 ['yellow', 'black', 'yellow', 'red'],        // 78
                 ['black', 'black', 'yellow', 'yellow', 'red'], // 79
-                ['black', 'yellow', 'black', 'yellow', 'black', 'red'] // 80
+                ['black', 'yellow', 'black', 'yellow', 'black', 'red'], // 80
+                ['black', 'yellow', 'yellow', 'black', 'red'], // 81
+                ['yellow', 'black', 'black', 'yellow', 'red'], // 82
+                ['black', 'yellow', 'black', 'black', 'red'], // 83
+                ['black', 'black', 'yellow', 'yellow', 'red'], // 84
+                ['black', 'yellow', 'black', 'yellow', 'red'], // 85 (Desafío 85)
+                ['yellow', 'black', 'yellow', 'black', 'red'], // 86
+                ['black', 'black', 'yellow', 'yellow', 'black', 'red'], // 87
+                ['yellow', 'black', 'black', 'yellow', 'red'], // 88
+                ['black', 'yellow', 'black', 'yellow', 'black'], // 89
+                ['black', 'black', 'yellow', 'black', 'yellow', 'red', 'red'], // 90 (Mega Jefe 90)
+                ['yellow', 'black', 'black', 'yellow', 'red'], // 91
+                ['black', 'yellow', 'black', 'black', 'red'], // 92
+                ['black', 'black', 'yellow', 'yellow', 'red'], // 93
+                ['yellow', 'black', 'yellow', 'black', 'black', 'red'], // 94
+                ['black', 'black', 'yellow', 'yellow', 'red'], // 95 (Desafío 95)
+                ['black', 'yellow', 'black', 'yellow', 'red', 'red'], // 96
+                ['black', 'black', 'black', 'yellow', 'yellow', 'red'], // 97
+                ['yellow', 'black', 'yellow', 'black', 'black', 'red'], // 98
+                ['black', 'yellow', 'black', 'yellow', 'black', 'red'], // 99
+                ['black', 'yellow', 'black', 'yellow', 'black', 'black', 'red', 'red'] // 100 (Mega Jefe 100)
             ];
             return birdPresets[(level - 1) % birdPresets.length];
-        }
-
-        function initGame() {
-            World.clear(world);
-            Engine.clear(engine);
-            pigs = [];
-            blocks = [];
-            isFired = false;
-            score = 0;
-            levelFrameCount = 0;
-            structureUnlocked = false;
-            updateScore(0);
-            gameState = 'PLAYING';
-            msgContainer.classList.add('hidden');
-            isAbilityUsed = false;
-            sling = null;
-            activeExplosions = [];
-            activeDebris = [];
-            activePuffs = [];
-            levelNumEl.innerText = currentLevel;
-            levelSelect.value = currentLevel;
-
-            applyRewards();
-
-            let queue = getBaseBirdQueue(currentLevel);
-            
-            if (activeReward === 'triple_bomb') {
-                queue = ['black', 'black', 'black'];
-            } else if (activeReward === 'extra_birds') {
-                queue.push('red', 'red');
-            }
-
-            birdQueue = [...queue];
-
-            Composite.add(world, mouseConstraint);
-
-            ground = Bodies.rectangle(width / 2, height - 20, width * 2, 40, {
-                isStatic: true,
-                label: 'ground',
-                friction: 0.8
-            });
-            Composite.add(world, ground);
-
-            loadNextBird();
-            buildLevel();
-        }
-
-        function selectLevel(val) {
-            currentLevel = parseInt(val);
-            pendingReward = null;
-            initGame();
-        }
-
-        function nextLevel() {
-            if (currentLevel < totalLevels) {
-                currentLevel++;
-                initGame();
-            } else {
-                currentLevel = 1;
-                pendingReward = null;
-                initGame();
-            }
-        }
-
-        function loadNextBird() {
-            if (birdQueue.length === 0) return;
-            currentBirdType = birdQueue.shift();
-            isFired = false;
-            isAbilityUsed = false;
-
-            // Restitución elástica de 0.8 para rebotes nítidos
-            let birdOpts = { restitution: 0.8, frictionAir: 0.005, label: 'bird', birdType: currentBirdType };
-            
-            if (currentBirdType === 'yellow') birdOpts.density = 0.0025;
-            else if (currentBirdType === 'black') birdOpts.density = 0.012;
-            else birdOpts.density = 0.005;
-
-            bird = Bodies.circle(slingPos.x, slingPos.y, 20, birdOpts);
-            Body.setPosition(bird, { x: slingPos.x, y: slingPos.y });
-            Body.setVelocity(bird, { x: 0, y: 0 });
-            Body.setAngularVelocity(bird, 0);
-            
-            if (currentBirdType === 'black') {
-                bird.explosionRadius = 140;
-                bird.timeSinceLaunch = 0;
-                bird.detonationWindow = Math.floor(Math.random() * (420 - 180 + 1)) + 180;
-                bird.fizzled = false;
-            }
-
-            if (sling) World.remove(world, sling);
-            
-            sling = Constraint.create({
-                pointA: { x: slingPos.x, y: slingPos.y },
-                bodyB: bird,
-                stiffness: 0.05,
-                damping: 0.01,
-                length: 0
-            });
-            
-            Composite.add(world, [bird, sling]);
-        }
-
-        function unlockStructure() {
-            if (structureUnlocked) return;
-            structureUnlocked = true;
-            blocks.forEach(b => {
-                if (b.label !== 'ground') {
-                    Body.setStatic(b, false);
-                    if (b.initialDensity) Body.setDensity(b, b.initialDensity);
-                }
-            });
-            pigs.forEach(p => {
-                Body.setStatic(p, false);
-                if (p.initialDensity) Body.setDensity(p, p.initialDensity);
-            });
         }
 
         function buildLevel() {
@@ -635,7 +710,7 @@
             };
 
             if (currentLevel === 1) {
-                // NIVEL 1: Introductorio y accesible (Un refugio clásico de madera con 1 cerdo fácil)
+                // NIVEL 1: Introductorio y accesible (Refugio clásico con 1 cerdo fácil)
                 spawnColumn(baseX - 45, baseY, 20, 65, woodOpts);
                 spawnColumn(baseX + 45, baseY, 20, 65, woodOpts);
                 spawnBeam(baseX, baseY - 65, 120, 16, woodOpts);
@@ -643,7 +718,6 @@
                 spawnPig(baseX, baseY, 18, 'normal');
 
             } else if (currentLevel === 2) {
-                // NIVEL 2: Dos plataformas pequeñas con madera y cristal
                 spawnColumn(baseX - 60, baseY, 20, 75, woodOpts);
                 spawnColumn(baseX - 10, baseY, 20, 75, woodOpts);
                 spawnBeam(baseX - 35, baseY - 75, 80, 16, iceOpts);
@@ -655,7 +729,6 @@
                 spawnPig(baseX + 35, baseY, 18, 'normal');
 
             } else if (currentLevel === 3) {
-                // NIVEL 3: Primer contacto con dinamita y piedra
                 spawnColumn(baseX - 70, baseY, 24, 80, stoneOpts);
                 spawnColumn(baseX + 70, baseY, 24, 80, stoneOpts);
                 spawnBeam(baseX, baseY - 80, 170, 18, woodOpts);
@@ -663,7 +736,6 @@
                 spawnPig(baseX, baseY - 80, 20, 'helmet');
 
             } else if (currentLevel === 4) {
-                // NIVEL 4: Fortaleza de Hielo con soportes de madera
                 [-70, 0, 70].forEach(ox => {
                     spawnColumn(baseX + ox - 18, baseY, 18, 80, iceOpts);
                     spawnColumn(baseX + ox + 18, baseY, 18, 80, iceOpts);
@@ -674,23 +746,22 @@
                 spawnPig(baseX, baseY - 114, 20, 'helmet');
 
             } else if (currentLevel === 5) {
-                // NIVEL 5: Pirámide escalonada compacta
-                for (let r = 0; r < 3; r++) {
-                    let cy = baseY - (r * 60);
-                    let count = 3 - r;
-                    for (let c = 0; c < count; c++) {
-                        let px = baseX - ((count - 1) * 36) + (c * 72);
-                        spawnColumn(px - 18, cy, 18, 45, woodOpts);
-                        spawnColumn(px + 18, cy, 18, 45, woodOpts);
-                        spawnBeam(px, cy - 45, 68, 15, woodOpts);
-                        if (r === 0) spawnPig(px, cy, 17, 'cowboy');
-                    }
-                }
-                spawnPig(baseX, baseY - 180, 22, 'helmet');
-                spawnTriangle(baseX, baseY - 195, 36, woodOpts);
+                // DESAFÍO 5 (Cada 5 niveles): Pirámide Reforzada
+                spawnColumn(baseX - 85, baseY, 22, 70, stoneOpts);
+                spawnColumn(baseX - 30, baseY, 20, 70, woodOpts);
+                spawnColumn(baseX + 30, baseY, 20, 70, woodOpts);
+                spawnColumn(baseX + 85, baseY, 22, 70, stoneOpts);
+                spawnBeam(baseX, baseY - 70, 210, 18, woodOpts);
+                spawnPig(baseX - 55, baseY, 19, 'helmet');
+                spawnPig(baseX + 55, baseY, 19, 'helmet');
+
+                spawnColumn(baseX - 45, baseY - 88, 20, 65, stoneOpts);
+                spawnColumn(baseX + 45, baseY - 88, 20, 65, stoneOpts);
+                spawnBeam(baseX, baseY - 153, 130, 18, stoneOpts);
+                spawnPig(baseX, baseY - 88, 22, 'cowboy');
+                spawnTriangle(baseX, baseY - 171, 38, woodOpts);
 
             } else if (currentLevel === 6) {
-                // NIVEL 6: Puente de madera con pilares de piedra
                 [-120, 120].forEach(ox => {
                     spawnColumn(baseX + ox, baseY, 28, 110, stoneOpts);
                     spawnTriangle(baseX + ox, baseY - 110, 32, woodOpts);
@@ -703,7 +774,6 @@
                 spawnPig(baseX, baseY - 130, 24, 'helmet');
 
             } else if (currentLevel === 7) {
-                // NIVEL 7: Caos aéreo con globos y vigas metálicas iniciales
                 spawnColumn(baseX - 100, baseY, 24, 100, woodOpts);
                 spawnColumn(baseX + 100, baseY, 24, 100, woodOpts);
                 spawnBeam(baseX, baseY - 100, 230, 20, metalOpts);
@@ -714,7 +784,6 @@
                 spawnPig(baseX + 50, baseY - 120, 20, 'cowboy');
 
             } else if (currentLevel === 8) {
-                // NIVEL 8: Muralla triple de madera y piedra
                 [-80, -25, 25, 80].forEach(ox => {
                     spawnColumn(baseX + ox, baseY, 22, 100, (Math.abs(ox) > 50) ? stoneOpts : woodOpts);
                 });
@@ -725,7 +794,6 @@
                 spawnPig(baseX, baseY - 180, 22, 'cowboy');
 
             } else if (currentLevel === 9) {
-                // NIVEL 9: Castillo de Cristal con amarres de metal
                 [-70, 0, 70].forEach(ox => {
                     spawnColumn(baseX + ox, baseY, 20, 110, iceOpts);
                 });
@@ -737,61 +805,468 @@
                 spawnPig(baseX, baseY - 128, 24, 'king');
 
             } else if (currentLevel === 10) {
-                // NIVEL 10: Primera gran fortaleza real sin TNT (Madera, Piedra y Metal)
-                spawnColumn(baseX - 110, baseY, 32, 120, stoneOpts);
-                spawnColumn(baseX - 40, baseY, 24, 120, woodOpts);
-                spawnColumn(baseX + 40, baseY, 24, 120, woodOpts);
-                spawnColumn(baseX + 110, baseY, 32, 120, stoneOpts);
-                spawnBeam(baseX, baseY - 120, 260, 24, metalOpts);
-                spawnPig(baseX - 75, baseY, 20, 'helmet');
-                spawnPig(baseX + 75, baseY, 20, 'helmet');
+                // MEGA JEFE 10 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                spawnColumn(baseX - 130, baseY, 34, 130, stoneOpts);
+                spawnColumn(baseX - 60, baseY, 24, 130, metalOpts);
+                spawnColumn(baseX + 60, baseY, 24, 130, metalOpts);
+                spawnColumn(baseX + 130, baseY, 34, 130, stoneOpts);
+                spawnBeam(baseX, baseY - 130, 300, 24, metalOpts);
 
-                spawnColumn(baseX - 50, baseY - 144, 22, 75, woodOpts);
-                spawnColumn(baseX + 50, baseY - 144, 22, 75, woodOpts);
-                spawnBeam(baseX, baseY - 219, 140, 20, stoneOpts);
+                spawnPig(baseX - 95, baseY, 22, 'helmet');
+                spawnPig(baseX + 95, baseY, 22, 'helmet');
+                spawnTNT(baseX, baseY, 34);
+
+                spawnColumn(baseX - 80, baseY - 154, 24, 80, woodOpts);
+                spawnColumn(baseX - 25, baseY - 154, 22, 80, stoneOpts);
+                spawnColumn(baseX + 25, baseY - 154, 22, 80, stoneOpts);
+                spawnColumn(baseX + 80, baseY - 154, 24, 80, woodOpts);
+                spawnBeam(baseX, baseY - 234, 200, 20, stoneOpts);
+
+                spawnPig(baseX - 52, baseY - 154, 22, 'cowboy');
+                spawnPig(baseX + 52, baseY - 154, 22, 'cowboy');
+                spawnPig(baseX, baseY - 254, 30, 'king');
+
+                spawnTriangle(baseX - 70, baseY - 254, 38, metalOpts);
+                spawnTriangle(baseX + 70, baseY - 254, 38, metalOpts);
+                spawnBoulder(baseX, baseY - 284, 28);
+
+            } else if (currentLevel === 15) {
+                // DESAFÍO 15 (Cada 5 niveles: Mayor dificultad)
+                spawnColumn(baseX - 110, baseY, 32, 120, stoneOpts);
+                spawnColumn(baseX - 35, baseY, 24, 120, metalOpts);
+                spawnColumn(baseX + 35, baseY, 24, 120, metalOpts);
+                spawnColumn(baseX + 110, baseY, 32, 120, stoneOpts);
+                spawnBeam(baseX, baseY - 120, 270, 24, metalOpts);
+
+                spawnPig(baseX - 70, baseY, 22, 'helmet');
+                spawnPig(baseX + 70, baseY, 22, 'helmet');
+
+                spawnColumn(baseX - 55, baseY - 144, 22, 80, stoneOpts);
+                spawnColumn(baseX + 55, baseY - 144, 22, 80, stoneOpts);
+                spawnBeam(baseX, baseY - 224, 150, 20, metalOpts);
                 spawnPig(baseX, baseY - 144, 26, 'king');
-                spawnBoulder(baseX, baseY - 239, 26);
+                spawnBoulder(baseX, baseY - 244, 28);
+
+            } else if (currentLevel === 20) {
+                // MEGA JEFE 20 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                spawnColumn(baseX - 160, baseY, 40, 150, metalOpts);
+                spawnColumn(baseX - 80, baseY, 28, 150, stoneOpts);
+                spawnColumn(baseX, baseY, 30, 150, metalOpts);
+                spawnColumn(baseX + 80, baseY, 28, 150, stoneOpts);
+                spawnColumn(baseX + 160, baseY, 40, 150, metalOpts);
+                spawnBeam(baseX, baseY - 150, 370, 28, metalOpts);
+
+                spawnPig(baseX - 120, baseY, 22, 'helmet');
+                spawnPig(baseX + 120, baseY, 22, 'helmet');
+                spawnTNT(baseX - 40, baseY, 34);
+                spawnTNT(baseX + 40, baseY, 34);
+
+                spawnColumn(baseX - 100, baseY - 178, 24, 85, stoneOpts);
+                spawnColumn(baseX - 25, baseY - 178, 22, 85, metalOpts);
+                spawnColumn(baseX + 25, baseY - 178, 22, 85, metalOpts);
+                spawnColumn(baseX + 100, baseY - 178, 24, 85, stoneOpts);
+                spawnBeam(baseX, baseY - 263, 240, 22, metalOpts);
+
+                spawnPig(baseX - 60, baseY - 178, 26, 'king');
+                spawnPig(baseX + 60, baseY - 178, 26, 'king');
+
+                spawnColumn(baseX - 40, baseY - 285, 20, 70, metalOpts);
+                spawnColumn(baseX + 40, baseY - 285, 20, 70, metalOpts);
+                spawnBeam(baseX, baseY - 355, 120, 20, metalOpts);
+                spawnPig(baseX, baseY - 285, 24, 'cowboy');
+                spawnBoulder(baseX, baseY - 375, 32);
+
+            } else if (currentLevel === 25) {
+                // DESAFÍO 25 (Cada 5 niveles)
+                spawnColumn(baseX - 110, baseY, 30, 130, stoneOpts);
+                spawnColumn(baseX - 35, baseY, 24, 130, stoneOpts);
+                spawnColumn(baseX + 35, baseY, 24, 130, stoneOpts);
+                spawnColumn(baseX + 110, baseY, 30, 130, stoneOpts);
+                spawnBeam(baseX, baseY - 130, 270, 22, metalOpts);
+                spawnPig(baseX - 70, baseY, 22, 'helmet');
+                spawnPig(baseX + 70, baseY, 22, 'helmet');
+
+                spawnColumn(baseX - 50, baseY - 152, 22, 75, metalOpts);
+                spawnColumn(baseX + 50, baseY - 152, 22, 75, metalOpts);
+                spawnBeam(baseX, baseY - 227, 140, 20, stoneOpts);
+                spawnPig(baseX, baseY - 152, 26, 'king');
+                spawnBoulder(baseX, baseY - 247, 28);
+
+            } else if (currentLevel === 30) {
+                // MEGA JEFE 30 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                [-150, -90, -30, 30, 90, 150].forEach((ox, idx) => {
+                    spawnColumn(baseX + ox, baseY, 26, 140, (idx === 0 || idx === 5) ? metalOpts : stoneOpts);
+                });
+                spawnBeam(baseX, baseY - 140, 360, 28, metalOpts);
+
+                spawnPig(baseX - 120, baseY, 22, 'helmet');
+                spawnPig(baseX - 60, baseY, 20, 'cowboy');
+                spawnPig(baseX + 60, baseY, 20, 'cowboy');
+                spawnPig(baseX + 120, baseY, 22, 'helmet');
+                spawnTNT(baseX, baseY, 36);
+
+                spawnColumn(baseX - 90, baseY - 168, 24, 85, metalOpts);
+                spawnColumn(baseX, baseY - 168, 24, 85, stoneOpts);
+                spawnColumn(baseX + 90, baseY - 168, 24, 85, metalOpts);
+                spawnBeam(baseX, baseY - 253, 230, 24, metalOpts);
+
+                spawnPig(baseX - 45, baseY - 168, 26, 'king');
+                spawnPig(baseX + 45, baseY - 168, 26, 'king');
+
+                spawnColumn(baseX - 35, baseY - 277, 20, 70, metalOpts);
+                spawnColumn(baseX + 35, baseY - 277, 20, 70, metalOpts);
+                spawnBeam(baseX, baseY - 347, 110, 20, metalOpts);
+                spawnPig(baseX, baseY - 277, 28, 'king');
+                spawnBoulder(baseX, baseY - 367, 30);
+
+            } else if (currentLevel === 35) {
+                // DESAFÍO 35 (Cada 5 niveles)
+                spawnColumn(baseX - 100, baseY, 26, 120, iceOpts);
+                spawnColumn(baseX - 30, baseY, 26, 120, metalOpts);
+                spawnColumn(baseX + 30, baseY, 26, 120, metalOpts);
+                spawnColumn(baseX + 100, baseY, 26, 120, iceOpts);
+                spawnBeam(baseX, baseY - 120, 250, 22, metalOpts);
+                spawnPig(baseX - 65, baseY, 20, 'helmet');
+                spawnPig(baseX + 65, baseY, 20, 'helmet');
+
+                spawnColumn(baseX - 45, baseY - 142, 22, 75, stoneOpts);
+                spawnColumn(baseX + 45, baseY - 142, 22, 75, stoneOpts);
+                spawnBeam(baseX, baseY - 217, 130, 20, metalOpts);
+                spawnPig(baseX, baseY - 142, 28, 'king');
+                spawnBoulder(baseX, baseY - 237, 28);
+
+            } else if (currentLevel === 40) {
+                // MEGA JEFE 40 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                spawnColumn(baseX - 160, baseY, 42, 160, metalOpts);
+                spawnColumn(baseX - 85, baseY, 30, 160, stoneOpts);
+                spawnColumn(baseX, baseY, 32, 160, metalOpts);
+                spawnColumn(baseX + 85, baseY, 30, 160, stoneOpts);
+                spawnColumn(baseX + 160, baseY, 42, 160, metalOpts);
+                spawnBeam(baseX, baseY - 160, 380, 30, metalOpts);
+
+                spawnPig(baseX - 120, baseY, 24, 'helmet');
+                spawnPig(baseX + 120, baseY, 24, 'helmet');
+                spawnPig(baseX - 42, baseY, 22, 'cowboy');
+                spawnPig(baseX + 42, baseY, 22, 'cowboy');
+
+                spawnColumn(baseX - 110, baseY - 190, 26, 90, metalOpts);
+                spawnColumn(baseX, baseY - 190, 26, 90, metalOpts);
+                spawnColumn(baseX + 110, baseY - 190, 26, 90, metalOpts);
+                spawnBeam(baseX, baseY - 280, 260, 24, metalOpts);
+
+                spawnPig(baseX - 55, baseY - 190, 28, 'king');
+                spawnPig(baseX + 55, baseY - 190, 28, 'king');
+
+                spawnColumn(baseX - 45, baseY - 304, 22, 75, metalOpts);
+                spawnColumn(baseX + 45, baseY - 304, 22, 75, metalOpts);
+                spawnBeam(baseX, baseY - 379, 130, 22, metalOpts);
+                spawnPig(baseX, baseY - 304, 30, 'king');
+
+                spawnBoulder(baseX - 80, baseY - 304, 26);
+                spawnBoulder(baseX + 80, baseY - 304, 26);
+                spawnBoulder(baseX, baseY - 401, 32);
+
+            } else if (currentLevel === 45) {
+                // DESAFÍO 45 (Cada 5 niveles)
+                spawnColumn(baseX - 90, baseY, 30, 140, stoneOpts);
+                spawnColumn(baseX, baseY, 30, 140, metalOpts);
+                spawnColumn(baseX + 90, baseY, 30, 140, stoneOpts);
+                spawnBeam(baseX, baseY - 140, 230, 24, metalOpts);
+                spawnPig(baseX - 45, baseY, 22, 'helmet');
+                spawnPig(baseX + 45, baseY, 22, 'helmet');
+
+                spawnColumn(baseX - 40, baseY - 164, 24, 80, metalOpts);
+                spawnColumn(baseX + 40, baseY - 164, 24, 80, metalOpts);
+                spawnBeam(baseX, baseY - 244, 120, 20, metalOpts);
+                spawnPig(baseX, baseY - 164, 28, 'king');
+                spawnTriangle(baseX, baseY - 264, 42, metalOpts);
+
+            } else if (currentLevel === 50) {
+                // MEGA JEFE 50 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                [-165, -95, -25, 25, 95, 165].forEach((ox, idx) => {
+                    spawnColumn(baseX + ox, baseY, (idx === 0 || idx === 5) ? 38 : 26, 165, (idx % 2 === 0) ? metalOpts : stoneOpts);
+                });
+                spawnBeam(baseX, baseY - 165, 390, 30, metalOpts);
+
+                spawnPig(baseX - 130, baseY, 24, 'helmet');
+                spawnPig(baseX + 130, baseY, 24, 'helmet');
+                spawnTNT(baseX - 60, baseY, 36);
+                spawnTNT(baseX + 60, baseY, 36);
+
+                spawnColumn(baseX - 110, baseY - 195, 28, 95, metalOpts);
+                spawnColumn(baseX - 35, baseY - 195, 24, 95, stoneOpts);
+                spawnColumn(baseX + 35, baseY - 195, 24, 95, stoneOpts);
+                spawnColumn(baseX + 110, baseY - 195, 28, 95, metalOpts);
+                spawnBeam(baseX, baseY - 290, 270, 26, metalOpts);
+
+                spawnPig(baseX - 72, baseY - 195, 28, 'king');
+                spawnPig(baseX + 72, baseY - 195, 28, 'king');
+                spawnPig(baseX, baseY - 195, 26, 'cowboy');
+
+                spawnColumn(baseX - 50, baseY - 316, 24, 80, metalOpts);
+                spawnColumn(baseX + 50, baseY - 316, 24, 80, metalOpts);
+                spawnBeam(baseX, baseY - 396, 150, 22, metalOpts);
+                spawnPig(baseX, baseY - 316, 32, 'king');
+
+                spawnBoulder(baseX - 100, baseY - 316, 28);
+                spawnBoulder(baseX + 100, baseY - 316, 28);
+                spawnBoulder(baseX, baseY - 418, 34);
+
+            } else if (currentLevel === 55) {
+                // DESAFÍO 55 (Cada 5 niveles)
+                spawnColumn(baseX - 100, baseY, 34, 130, metalOpts);
+                spawnColumn(baseX, baseY, 26, 130, stoneOpts);
+                spawnColumn(baseX + 100, baseY, 34, 130, metalOpts);
+                spawnBeam(baseX, baseY - 130, 250, 24, metalOpts);
+                spawnPig(baseX - 50, baseY, 24, 'helmet');
+                spawnPig(baseX + 50, baseY, 24, 'helmet');
+
+                spawnColumn(baseX - 45, baseY - 154, 24, 85, metalOpts);
+                spawnColumn(baseX + 45, baseY - 154, 24, 85, metalOpts);
+                spawnBeam(baseX, baseY - 239, 130, 22, metalOpts);
+                spawnPig(baseX, baseY - 154, 28, 'king');
+                spawnBoulder(baseX, baseY - 261, 30);
+
+            } else if (currentLevel === 60) {
+                // MEGA JEFE 60 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                [-170, -100, -35, 35, 100, 170].forEach((ox, idx) => {
+                    spawnColumn(baseX + ox, baseY, (idx === 0 || idx === 5) ? 44 : 30, 175, metalOpts);
+                });
+                spawnBeam(baseX, baseY - 175, 410, 32, metalOpts);
+
+                spawnPig(baseX - 135, baseY, 24, 'helmet');
+                spawnPig(baseX + 135, baseY, 24, 'helmet');
+                spawnPig(baseX - 67, baseY, 22, 'helmet');
+                spawnPig(baseX + 67, baseY, 22, 'helmet');
+
+                spawnColumn(baseX - 110, baseY - 207, 30, 100, stoneOpts);
+                spawnColumn(baseX - 35, baseY - 207, 26, 100, metalOpts);
+                spawnColumn(baseX + 35, baseY - 207, 26, 100, metalOpts);
+                spawnColumn(baseX + 110, baseY - 207, 30, 100, stoneOpts);
+                spawnBeam(baseX, baseY - 307, 280, 26, metalOpts);
+
+                spawnPig(baseX - 72, baseY - 207, 28, 'king');
+                spawnPig(baseX + 72, baseY - 207, 28, 'king');
+
+                spawnColumn(baseX - 55, baseY - 333, 26, 85, metalOpts);
+                spawnColumn(baseX + 55, baseY - 333, 26, 85, metalOpts);
+                spawnBeam(baseX, baseY - 418, 160, 24, metalOpts);
+                spawnPig(baseX, baseY - 333, 32, 'king');
+
+                spawnBoulder(baseX - 110, baseY - 333, 30);
+                spawnBoulder(baseX + 110, baseY - 333, 30);
+                spawnBoulder(baseX, baseY - 442, 34);
+
+            } else if (currentLevel === 65) {
+                // DESAFÍO 65 (Cada 5 niveles)
+                spawnColumn(baseX - 125, baseY, 36, 135, metalOpts);
+                spawnColumn(baseX + 125, baseY, 36, 135, metalOpts);
+                spawnBeam(baseX, baseY - 135, 310, 26, metalOpts);
+                spawnPig(baseX - 65, baseY, 22, 'helmet');
+                spawnPig(baseX + 65, baseY, 22, 'helmet');
+
+                spawnColumn(baseX - 50, baseY - 161, 24, 85, stoneOpts);
+                spawnColumn(baseX + 50, baseY - 161, 24, 85, stoneOpts);
+                spawnBeam(baseX, baseY - 246, 150, 22, metalOpts);
+                spawnPig(baseX, baseY - 161, 28, 'king');
+                spawnBoulder(baseX, baseY - 268, 30);
+
+            } else if (currentLevel === 70) {
+                // MEGA JEFE 70 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                [-180, -110, -40, 40, 110, 180].forEach((ox, idx) => {
+                    spawnColumn(baseX + ox, baseY, (idx === 0 || idx === 5) ? 46 : 32, 180, metalOpts);
+                });
+                spawnBeam(baseX, baseY - 180, 420, 34, metalOpts);
+
+                spawnPig(baseX - 145, baseY, 24, 'helmet');
+                spawnPig(baseX + 145, baseY, 24, 'helmet');
+                spawnPig(baseX - 75, baseY, 24, 'helmet');
+                spawnPig(baseX + 75, baseY, 24, 'helmet');
+                spawnTNT(baseX, baseY, 36);
+
+                [-120, -40, 40, 120].forEach(ox => {
+                    spawnColumn(baseX + ox, baseY - 214, 28, 95, metalOpts);
+                });
+                spawnBeam(baseX, baseY - 309, 300, 28, metalOpts);
+
+                spawnPig(baseX - 80, baseY - 214, 28, 'king');
+                spawnPig(baseX + 80, baseY - 214, 28, 'king');
+                spawnPig(baseX, baseY - 214, 26, 'cowboy');
+
+                spawnColumn(baseX - 55, baseY - 337, 26, 85, metalOpts);
+                spawnColumn(baseX + 55, baseY - 337, 26, 85, metalOpts);
+                spawnBeam(baseX, baseY - 422, 160, 24, metalOpts);
+                spawnPig(baseX, baseY - 337, 34, 'king');
+
+                spawnBoulder(baseX - 105, baseY - 337, 30);
+                spawnBoulder(baseX + 105, baseY - 337, 30);
+                spawnBoulder(baseX, baseY - 446, 36);
+
+            } else if (currentLevel === 75) {
+                // DESAFÍO 75 (Cada 5 niveles)
+                spawnColumn(baseX - 130, baseY, 38, 145, metalOpts);
+                spawnColumn(baseX, baseY, 30, 145, stoneOpts);
+                spawnColumn(baseX + 130, baseY, 38, 145, metalOpts);
+                spawnBeam(baseX, baseY - 145, 320, 26, metalOpts);
+                spawnPig(baseX - 65, baseY, 24, 'helmet');
+                spawnPig(baseX + 65, baseY, 24, 'helmet');
+
+                spawnColumn(baseX - 60, baseY - 171, 26, 90, metalOpts);
+                spawnColumn(baseX + 60, baseY - 171, 26, 90, metalOpts);
+                spawnBeam(baseX, baseY - 261, 170, 22, metalOpts);
+                spawnPig(baseX, baseY - 171, 30, 'king');
+                spawnBoulder(baseX, baseY - 283, 32);
+
+            } else if (currentLevel === 80) {
+                // MEGA JEFE FINAL 80 (MÁXIMO ABSOLUTO DE ESTRUCTURAS, DEFENSAS Y DESAFÍO)
+                [-190, -125, -60, 0, 60, 125, 190].forEach((ox, idx) => {
+                    const isEdge = (idx === 0 || idx === 6);
+                    spawnColumn(baseX + ox, baseY, isEdge ? 48 : 34, 190, metalOpts);
+                });
+                spawnBeam(baseX, baseY - 190, 440, 36, metalOpts);
+
+                spawnPig(baseX - 155, baseY, 24, 'helmet');
+                spawnPig(baseX - 90, baseY, 24, 'helmet');
+                spawnPig(baseX + 90, baseY, 24, 'helmet');
+                spawnPig(baseX + 155, baseY, 24, 'helmet');
+                spawnTNT(baseX - 30, baseY, 36);
+                spawnTNT(baseX + 30, baseY, 36);
+
+                [-130, -50, 50, 130].forEach(ox => {
+                    spawnColumn(baseX + ox, baseY - 226, 30, 105, metalOpts);
+                });
+                spawnBeam(baseX, baseY - 331, 320, 30, metalOpts);
+                spawnPig(baseX - 90, baseY - 226, 28, 'king');
+                spawnPig(baseX + 90, baseY - 226, 28, 'king');
+                spawnPig(baseX, baseY - 226, 26, 'cowboy');
+
+                spawnColumn(baseX - 65, baseY - 361, 28, 95, metalOpts);
+                spawnColumn(baseX + 65, baseY - 361, 28, 95, metalOpts);
+                spawnBeam(baseX, baseY - 456, 180, 26, metalOpts);
+                spawnPig(baseX, baseY - 361, 36, 'king');
+
+                spawnTriangle(baseX - 110, baseY - 361, 46, metalOpts);
+                spawnTriangle(baseX + 110, baseY - 361, 46, metalOpts);
+                spawnBoulder(baseX - 110, baseY - 407, 32);
+                spawnBoulder(baseX + 110, baseY - 407, 32);
+                spawnBoulder(baseX, baseY - 482, 38);
+
+            } else if (currentLevel === 85) {
+                // DESAFÍO 85 (Cada 5 niveles: Fortaleza Colgante de Acero)
+                spawnColumn(baseX - 135, baseY, 40, 150, metalOpts);
+                spawnColumn(baseX, baseY, 32, 150, stoneOpts);
+                spawnColumn(baseX + 135, baseY, 40, 150, metalOpts);
+                spawnBeam(baseX, baseY - 150, 330, 28, metalOpts);
+                spawnPig(baseX - 70, baseY, 24, 'helmet');
+                spawnPig(baseX + 70, baseY, 24, 'helmet');
+
+                spawnColumn(baseX - 65, baseY - 178, 28, 95, metalOpts);
+                spawnColumn(baseX + 65, baseY - 178, 28, 95, metalOpts);
+                spawnBeam(baseX, baseY - 273, 180, 24, metalOpts);
+                spawnPig(baseX, baseY - 178, 30, 'king');
+                spawnTriangle(baseX - 100, baseY - 178, 42, metalOpts);
+                spawnTriangle(baseX + 100, baseY - 178, 42, metalOpts);
+                spawnBoulder(baseX, baseY - 297, 34);
+
+            } else if (currentLevel === 90) {
+                // MEGA JEFE 90 (MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                [-200, -135, -70, 0, 70, 135, 200].forEach((ox, idx) => {
+                    const isEdge = (idx === 0 || idx === 6);
+                    spawnColumn(baseX + ox, baseY, isEdge ? 50 : 36, 195, metalOpts);
+                });
+                spawnBeam(baseX, baseY - 195, 460, 38, metalOpts);
+
+                spawnPig(baseX - 165, baseY, 24, 'helmet');
+                spawnPig(baseX - 100, baseY, 24, 'helmet');
+                spawnPig(baseX + 100, baseY, 24, 'helmet');
+                spawnPig(baseX + 165, baseY, 24, 'helmet');
+                spawnTNT(baseX - 35, baseY, 36);
+                spawnTNT(baseX + 35, baseY, 36);
+
+                [-140, -60, 60, 140].forEach(ox => {
+                    spawnColumn(baseX + ox, baseY - 233, 32, 110, metalOpts);
+                });
+                spawnBeam(baseX, baseY - 343, 340, 32, metalOpts);
+
+                spawnPig(baseX - 100, baseY - 233, 30, 'king');
+                spawnPig(baseX + 100, baseY - 233, 30, 'king');
+                spawnPig(baseX, baseY - 233, 26, 'cowboy');
+
+                spawnColumn(baseX - 70, baseY - 375, 28, 95, metalOpts);
+                spawnColumn(baseX + 70, baseY - 375, 28, 95, metalOpts);
+                spawnBeam(baseX, baseY - 470, 190, 28, metalOpts);
+                spawnPig(baseX, baseY - 375, 36, 'king');
+
+                spawnTriangle(baseX - 120, baseY - 375, 48, metalOpts);
+                spawnTriangle(baseX + 120, baseY - 375, 48, metalOpts);
+                spawnBoulder(baseX - 120, baseY - 423, 34);
+                spawnBoulder(baseX + 120, baseY - 423, 34);
+                spawnBoulder(baseX, baseY - 498, 40);
+
+            } else if (currentLevel === 95) {
+                // DESAFÍO 95 (Cada 5 niveles: El Sanctum Imperial de la Corona Dorada)
+                spawnColumn(baseX - 145, baseY, 42, 160, metalOpts);
+                spawnColumn(baseX - 45, baseY, 30, 160, metalOpts);
+                spawnColumn(baseX + 45, baseY, 30, 160, metalOpts);
+                spawnColumn(baseX + 145, baseY, 42, 160, metalOpts);
+                spawnBeam(baseX, baseY - 160, 350, 30, metalOpts);
+
+                spawnPig(baseX - 95, baseY, 24, 'helmet');
+                spawnPig(baseX + 95, baseY, 24, 'helmet');
+                spawnTNT(baseX, baseY, 36);
+
+                spawnColumn(baseX - 70, baseY - 190, 28, 95, metalOpts);
+                spawnColumn(baseX + 70, baseY - 190, 28, 95, metalOpts);
+                spawnBeam(baseX, baseY - 285, 200, 26, metalOpts);
+                spawnPig(baseX, baseY - 190, 32, 'king');
+                spawnBoulder(baseX, baseY - 311, 36);
+
+            } else if (currentLevel === 100) {
+                // 👑 JEFE FINAL SUPREMO 100: El Apocalipsis Definitivo del Imperio Cerdo
+                // (MÁXIMA CANTIDAD DE ESTRUCTURAS, MÁS DEFENSAS, MÁS REYES Y MÁXIMO DESAFÍO)
+                [-210, -145, -80, 0, 80, 145, 210].forEach((ox, idx) => {
+                    const isEdge = (idx === 0 || idx === 6);
+                    spawnColumn(baseX + ox, baseY, isEdge ? 52 : 38, 205, metalOpts);
+                });
+                spawnBeam(baseX, baseY - 205, 480, 40, metalOpts);
+
+                spawnPig(baseX - 175, baseY, 26, 'helmet');
+                spawnPig(baseX - 110, baseY, 26, 'helmet');
+                spawnPig(baseX + 110, baseY, 26, 'helmet');
+                spawnPig(baseX + 175, baseY, 26, 'helmet');
+                spawnTNT(baseX - 40, baseY, 38);
+                spawnTNT(baseX + 40, baseY, 38);
+
+                [-150, -75, 0, 75, 150].forEach(ox => {
+                    spawnColumn(baseX + ox, baseY - 245, 32, 115, metalOpts);
+                });
+                spawnBeam(baseX, baseY - 360, 370, 34, metalOpts);
+
+                spawnPig(baseX - 110, baseY - 245, 30, 'king');
+                spawnPig(baseX + 110, baseY - 245, 30, 'king');
+                spawnPig(baseX - 40, baseY - 245, 26, 'cowboy');
+                spawnPig(baseX + 40, baseY - 245, 26, 'cowboy');
+
+                spawnColumn(baseX - 80, baseY - 394, 30, 105, metalOpts);
+                spawnColumn(baseX + 80, baseY - 394, 30, 105, metalOpts);
+                spawnBeam(baseX, baseY - 499, 220, 30, metalOpts);
+                spawnPig(baseX, baseY - 394, 40, 'king');
+
+                spawnTriangle(baseX - 135, baseY - 394, 52, metalOpts);
+                spawnTriangle(baseX + 135, baseY - 394, 52, metalOpts);
+                spawnBoulder(baseX - 135, baseY - 446, 36);
+                spawnBoulder(baseX + 135, baseY - 446, 36);
+                spawnBoulder(baseX, baseY - 529, 42);
 
             } else {
-                // NIVELES 11 AL 80: Dificultad ascendente con materiales combinados
-                const progress = (currentLevel - 11) / 69;
+                const progress = (currentLevel - 11) / 89;
                 const archId = (currentLevel - 11) % 15;
 
                 const baseColMat = progress > 0.45 ? (progress > 0.75 ? metalOpts : stoneOpts) : woodOpts;
                 const beamMat = progress > 0.35 ? (progress > 0.7 ? metalOpts : stoneOpts) : woodOpts;
                 const topMat = progress > 0.6 ? metalOpts : woodOpts;
 
-                if (currentLevel === 80) {
-                    // NIVEL 80: EL APOCALIPSIS FINAL DEL REY CERDO
-                    spawnColumn(baseX - 170, baseY, 48, 180, metalOpts);
-                    spawnColumn(baseX - 90, baseY, 34, 180, stoneOpts);
-                    spawnColumn(baseX, baseY, 34, 180, metalOpts);
-                    spawnColumn(baseX + 90, baseY, 34, 180, stoneOpts);
-                    spawnColumn(baseX + 170, baseY, 48, 180, metalOpts);
-                    spawnBeam(baseX, baseY - 180, 410, 32, metalOpts);
-
-                    spawnPig(baseX - 130, baseY, 24, 'helmet');
-                    spawnPig(baseX + 130, baseY, 24, 'helmet');
-                    spawnPig(baseX - 45, baseY, 24, 'helmet');
-                    spawnPig(baseX + 45, baseY, 24, 'helmet');
-
-                    spawnColumn(baseX - 100, baseY - 212, 28, 90, metalOpts);
-                    spawnColumn(baseX, baseY - 212, 28, 90, stoneOpts);
-                    spawnColumn(baseX + 100, baseY - 212, 28, 90, metalOpts);
-                    spawnBeam(baseX, baseY - 302, 260, 26, metalOpts);
-                    spawnPig(baseX - 50, baseY - 212, 26, 'cowboy');
-                    spawnPig(baseX + 50, baseY - 212, 26, 'cowboy');
-
-                    spawnColumn(baseX - 45, baseY - 328, 24, 75, metalOpts);
-                    spawnColumn(baseX + 45, baseY - 328, 24, 75, metalOpts);
-                    spawnBeam(baseX, baseY - 403, 140, 22, metalOpts);
-                    spawnPig(baseX, baseY - 328, 34, 'king');
-
-                    spawnTriangle(baseX - 80, baseY - 425, 42, metalOpts);
-                    spawnTriangle(baseX + 80, baseY - 425, 42, metalOpts);
-                    spawnBoulder(baseX, baseY - 425, 34);
-
-                } else if (archId === 0) {
+                if (archId === 0) {
                     spawnColumn(baseX - 120, baseY, 30, 125, baseColMat);
                     spawnColumn(baseX - 40, baseY, 22, 125, woodOpts);
                     spawnColumn(baseX + 40, baseY, 22, 125, woodOpts);
@@ -1030,9 +1505,12 @@
                     const { bodyA, bodyB } = pair;
                     const relVel = Vector.magnitude(Vector.sub(bodyA.velocity, bodyB.velocity));
 
-                    // Despertar físico al colisionar con el pájaro
+                    // Despertar físico al colisionar con el pájaro (excepto si el pájaro solo toca el suelo)
                     if (bodyA.label === 'bird' || bodyB.label === 'bird') {
-                        unlockStructure();
+                        const other = bodyA.label === 'bird' ? bodyB : bodyA;
+                        if (other.label !== 'ground') {
+                            unlockStructure();
+                        }
                     }
                     
                     // Durabilidad y agrietamiento progresivo
@@ -1266,7 +1744,7 @@
                 } else {
                     msgTitle.innerText = "🏆 ¡VICTORIA SUPREMA! 🏆";
                     msgTitle.style.color = "#ffbe76";
-                    msgSubtitle.innerText = "¡Has completado los 80 niveles del juego y conquistado todas las fortalezas!";
+                    msgSubtitle.innerText = "¡Has completado los 100 niveles del juego y conquistado todas las fortalezas!";
                     btnNextLevel.innerText = "Volver a Jugar 🔄";
                 }
             }
@@ -1303,7 +1781,7 @@
                             msgTitle.innerText = "¡Intento Fallido!";
                             msgTitle.style.color = "#ff4757";
                             msgSubtitle.innerText = "Te has quedado sin pájaros. ¡Inténtalo de nuevo!";
-                            btnNextLevel.innerText = "Reintentar Nivel 🔄";
+                            btnNextLevel.innerHTML = 'Siguiente Nivel <i class="fa-solid fa-arrow-right"></i>';
                         }
                     }
                 }
@@ -1776,23 +2254,108 @@
         }
 
         function draw() {
-            const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
-            skyGrad.addColorStop(0, '#0d0415');
-            skyGrad.addColorStop(0.6, '#20082c');
-            skyGrad.addColorStop(1, '#4a154b');
-            ctx.fillStyle = skyGrad;
-            ctx.fillRect(0, 0, width, height);
-            
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-            for (let i = 0; i < 30; i++) {
-                let sX = (Math.sin(i) * 0.5 + 0.5) * width;
-                let sY = (Math.cos(i * 3) * 0.5 + 0.5) * (height - 180);
-                ctx.fillRect(sX, sY, 2, 2);
-            }
+            if (isDayMode) {
+                const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+                skyGrad.addColorStop(0, '#38bdf8');
+                skyGrad.addColorStop(0.5, '#7dd3fc');
+                skyGrad.addColorStop(0.85, '#bae6fd');
+                skyGrad.addColorStop(1, '#e0f2fe');
+                ctx.fillStyle = skyGrad;
+                ctx.fillRect(0, 0, width, height);
 
-            ctx.fillStyle = '#1e0926';
-            ctx.fillRect(0, height - 40, width, 40);
-            drawBody(ground, '#501764');
+                // Sol radiante con halo
+                ctx.save();
+                const sunX = width - 110;
+                const sunY = 85;
+                const sunGrad = ctx.createRadialGradient(sunX, sunY, 15, sunX, sunY, 65);
+                sunGrad.addColorStop(0, '#ffffff');
+                sunGrad.addColorStop(0.3, '#fef08a');
+                sunGrad.addColorStop(0.65, '#facc15');
+                sunGrad.addColorStop(1, 'rgba(250, 204, 21, 0)');
+                ctx.fillStyle = sunGrad;
+                ctx.beginPath();
+                ctx.arc(sunX, sunY, 65, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Nubes dinámicas con desplazamiento en el cielo diurno
+                ctx.save();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                const cloudOffsets = [
+                    { x: (levelFrameCount * 0.35) % (width + 250) - 120, y: 70, scale: 0.95 },
+                    { x: (levelFrameCount * 0.22 + width * 0.38) % (width + 250) - 120, y: 120, scale: 1.15 },
+                    { x: (levelFrameCount * 0.28 + width * 0.72) % (width + 250) - 120, y: 60, scale: 0.8 }
+                ];
+                cloudOffsets.forEach(c => {
+                    ctx.beginPath();
+                    ctx.arc(c.x, c.y, 24 * c.scale, 0, Math.PI * 2);
+                    ctx.arc(c.x + 22 * c.scale, c.y - 12 * c.scale, 28 * c.scale, 0, Math.PI * 2);
+                    ctx.arc(c.x + 46 * c.scale, c.y, 22 * c.scale, 0, Math.PI * 2);
+                    ctx.arc(c.x + 20 * c.scale, c.y + 10 * c.scale, 20 * c.scale, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                ctx.restore();
+
+                // Suelo de pradera con césped natural
+                ctx.fillStyle = '#5c3114';
+                ctx.fillRect(0, height - 40, width, 40);
+                drawBody(ground, '#22c55e');
+
+                ctx.fillStyle = '#4ade80';
+                for (let gx = 0; gx < width; gx += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(gx, height - 40);
+                    ctx.lineTo(gx + 4, height - 46);
+                    ctx.lineTo(gx + 8, height - 40);
+                    ctx.fill();
+                }
+            } else {
+                const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+                skyGrad.addColorStop(0, '#0d0415');
+                skyGrad.addColorStop(0.6, '#20082c');
+                skyGrad.addColorStop(1, '#4a154b');
+                ctx.fillStyle = skyGrad;
+                ctx.fillRect(0, 0, width, height);
+
+                // Luna creciente nocturna con resplandor
+                ctx.save();
+                const moonX = width - 110;
+                const moonY = 85;
+                const moonGlow = ctx.createRadialGradient(moonX, moonY, 15, moonX, moonY, 55);
+                moonGlow.addColorStop(0, 'rgba(248, 250, 252, 0.35)');
+                moonGlow.addColorStop(1, 'rgba(248, 250, 252, 0)');
+                ctx.fillStyle = moonGlow;
+                ctx.beginPath();
+                ctx.arc(moonX, moonY, 55, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.beginPath();
+                ctx.arc(moonX, moonY, 22, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#170624';
+                ctx.beginPath();
+                ctx.arc(moonX + 9, moonY - 5, 19, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Estrellas titilantes
+                ctx.save();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                for (let i = 0; i < 35; i++) {
+                    let sX = (Math.sin(i * 1.9) * 0.5 + 0.5) * width;
+                    let sY = (Math.cos(i * 3.1) * 0.5 + 0.5) * (height - 180);
+                    let twinkle = Math.sin(levelFrameCount * 0.05 + i) * 0.35 + 0.65;
+                    ctx.globalAlpha = twinkle;
+                    ctx.fillRect(sX, sY, 2, 2);
+                }
+                ctx.restore();
+
+                ctx.fillStyle = '#1e0926';
+                ctx.fillRect(0, height - 40, width, 40);
+                drawBody(ground, '#501764');
+            }
 
             drawProceduralSling();
 
