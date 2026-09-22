@@ -133,13 +133,16 @@
                 </li>
                 <li class="flex gap-2.5">
                     <span class="text-yellow-400 font-bold">2.</span>
-                    <p><strong class="text-cyan-300">Durabilidad de Materiales:</strong></p>
+                    <p><strong class="text-cyan-300">Durabilidad y Tipos de Materiales:</strong></p>
                 </li>
                 <li class="pl-6 space-y-1 text-xs">
-                    <p>🧊 <strong>Cristal:</strong> Se destruye al 1.er impacto.</p>
-                    <p>🪵 <strong>Madera:</strong> Se agrieta al 1.er impacto y se destruye al 2.º.</p>
-                    <p>🪨 <strong>Piedra:</strong> Leve grieta al 1.º, grieta profunda al 2.º y se destruye al 3.º.</p>
-                    <p>⚙️ <strong>Metal:</strong> Blindado, se agrieta progresivamente y se destruye al 4.º.</p>
+                    <p>❄️ <strong>Nieve:</strong> El más frágil. Se desintegra al instante con pájaros, bloques o escombros.</p>
+                    <p>🧊 <strong>Cristal:</strong> Se destruye al 1.er impacto directo.</p>
+                    <p>🪵 <strong>Madera:</strong> Se agrieta al 1.º y se destruye al 2.º.</p>
+                    <p>🪨 <strong>Piedra:</strong> Se agrieta progresivamente y se destruye al 3.º.</p>
+                    <p>⚙️ <strong>Metal:</strong> Blindado, soporta hasta 4 impactos.</p>
+                    <p>🟡 <strong>Oro:</strong> Súper denso, pesado y resistente (5 impactos; vulnerable a bombas).</p>
+                    <p>👻 <strong>Fantasma:</strong> Translúcido y etéreo. Los pájaros lo atraviesan sin frenar, pero sostiene cerdos y estructuras.</p>
                 </li>
                 <li class="flex gap-2.5 border border-purple-500/40 p-2.5 rounded-xl bg-purple-950/20">
                     <span class="text-yellow-400 font-bold">3.</span>
@@ -192,6 +195,10 @@
         let bonusBirdSpeed = 1;
 
         let isDayMode = false;
+
+        const CAT_DEFAULT = 0x0001;
+        const CAT_BIRD    = 0x0002;
+        const CAT_GHOST   = 0x0004;
 
         function toggleTheme() {
             isDayMode = !isDayMode;
@@ -247,36 +254,36 @@
         const activeRewardText = document.getElementById('active-reward-text');
 
         const levelNames = [
-            "El Fuerte del Bosque", "Torres Gemelas de Madera", "Contacto con Dinamita", "Fortaleza de Hielo",
-            "⚔️ Desafío 5: Pirámide Reforzada", "El Puente Colgante", "Caos Aéreo de Globos", "La Muralla Triple",
-            "El Castillo de Cristal", "👑 Jefe 10: Gran Fortaleza Real Cerda", 
-            "El Bastión Volcánico", "Laberinto Glaciar", "Columnas del Olimpo", "Plataforma Celeste",
-            "⚔️ Desafío 15: Búnker de Asedio Blindado", "TNT Oculto en las Ruinas", "La Puerta de Hierro", "Torres Suspendidas en Hielo",
-            "El Castillo Alto", "👑 Jefe 20: Ciudadela Blindada de Doble Rey",
-            "La Cámara de los Secretos", "El Zigurat del Destino", "La Torre Inclinada", "El Archipiélago Flotante",
-            "⚔️ Desafío 25: El Laberinto de Piedra y Metal", "La Guillotina de Piedra", "El Gran Cañón", "El Cubo Geométrico",
-            "El Nido del Fénix", "👑 Jefe 30: La Gran Muralla de Troya Acorazada",
-            "La Fortaleza de Obsidiana", "El Desafío de la Gravedad", "El Castillo en las Nubes", "El Reactor Inestable",
-            "⚔️ Desafío 35: El Trono de Hielo y Acero", "Columnas del Destino", "El Gran Búnker Blindado", "La Trampa del Embudo",
-            "El Templo Sagrado", "👑 Jefe 40: Fortaleza Titán del Desierto",
-            "El Gran Acueducto", "La Jaula de Cristal", "La Guarida del Dragón", "La Fortificación Angular",
-            "⚔️ Desafío 45: La Torre Acorazada de la Magia", "El Puente del Caos", "La Telaraña de Cerdos", "La Cueva del Rey Cerdo",
-            "La Ciudadela Militar", "👑 Jefe 50: El Megabastión de los Cuatro Reyes",
-            "El Búnker de Obsidiana", "Laberinto de Doble Rey", "La Bóveda Blindada", "Cúpula de Hielo Colosal",
-            "⚔️ Desafío 55: Cámara Blindada de Alta Presión", "La Gran Muralla Vertical", "Fortaleza de Hielo y Acero", "El Trono Impenetrable",
-            "Laberinto Flotante de Cristal", "👑 Jefe 60: Coloso Imperial de Obsidiana y Acero",
-            "Búnker de TNT Blindado", "Bóveda Imperial de Hielo", "El Bastión de Obsidiana Pesada", "El Gran Coliseo Glaciar",
-            "⚔️ Desafío 65: El Gran Puente del Juicio Final", "El Bastión de Cristal Colosal", "El Gran Coliseo Imperial", "El Sanctum del Vacío",
-            "La Muralla de Fuego y TNT", "👑 Jefe 70: El Gran Zigurat Celestial de Acero",
-            "La Bóveda Blindada Titán", "El Laberinto de Espejos y Cristal", "El Puente de Cadenas Colgantes", "La Fortaleza de la Corona Real",
-            "⚔️ Desafío 75: El Baluarte de los Tres Reyes", "La Trampa de Demolición del Abismo", "La Puerta del Inframundo", "El Bastión de Vanguardia Real",
-            "La Antesala del Trono", "👑 JEFE 80: El Apocalipsis del Rey Cerdo Supremo",
-            "El Bastión de Tungsteno Acorazado", "La Cúpula de Hielo y Acero Cósmico", "El Puente de la Desolación", "La Cámara Blindada de TNT",
-            "⚔️ Desafío 85: La Fortaleza Colgante de Acero", "El Monolito de las Sombras Blindado", "El Laberinto de los Tres Reyes Titanes", "El Bastión Gravitatorio Flotante",
-            "La Muralla Quíntuple de Acero y Obsidiana", "👑 JEFE 90: El Gran Megacastillo Imperial Blindado",
-            "El Glaciar Blindado de Tungsteno", "El Zigurat del Juicio Pesado", "La Torre Oscura del Alto Mando Cerdo", "La Bóveda Acorazada del Fin del Mundo",
-            "⚔️ Desafío 95: El Sanctum Imperial de la Corona Dorada", "El Coliseo de Acero y Demolición", "Las Catacumbas Blindadas de Obsidiana", "La Fortaleza Aérea de Vanguardia Suprema",
-            "La Antesala del Trono Supremo", "👑 JEFE FINAL SUPREMO 100: El Apocalipsis Definitivo del Imperio Cerdo"
+            "El Fuerte del Bosque", "Torres Gemelas de Madera y Nieve", "Contacto con Dinamita", "Fortaleza de Nieve Glaciar",
+            "⚔️ Desafío 5: Pirámide Reforzada", "El Puente Colgante Espectral", "Caos Aéreo de Globos Fantasma", "La Muralla Triple de Oro",
+            "La Bóveda Real del Tesoro de Oro", "👑 Jefe 10: Gran Fortaleza Real Cerda", 
+            "El Bastión Volcánico y Dorado", "Laberinto Glaciar de Nieve", "Columnas Espectrales del Olimpo", "Plataforma Celeste de Fantasma",
+            "⚔️ Desafío 15: Búnker de Oro y Asedio", "TNT Oculto en las Ruinas Doradas", "La Puerta de Hierro y Fantasma", "Torres de Nieve Suspendidas",
+            "El Castillo Alto de Oro", "👑 Jefe 20: Ciudadela Blindada de Doble Rey",
+            "La Cámara Espectral de los Secretos", "El Zigurat Dorado del Destino", "La Torre Inclinada de Nieve", "El Archipiélago Flotante Fantasma",
+            "⚔️ Desafío 25: El Laberinto Espectral y Dorado", "La Guillotina de Piedra y Nieve", "El Gran Cañón Fantasma", "El Cubo Geométrico de Oro",
+            "El Nido del Fénix Espectral", "👑 Jefe 30: La Gran Muralla de Troya Acorazada",
+            "La Fortaleza de Oro y Obsidiana", "El Desafío de la Gravedad Fantasma", "El Castillo Espectral en las Nubes", "El Reactor de Nieve Inestable",
+            "⚔️ Desafío 35: El Trono de Hielo, Nieve y Oro", "Columnas Doradas del Destino", "El Gran Búnker Blindado de Fantasma", "La Trampa del Embudo de Nieve",
+            "El Templo Sagrado de Oro", "👑 Jefe 40: Fortaleza Titán del Desierto",
+            "El Gran Acueducto de Fantasma", "La Jaula de Cristal y Nieve", "La Guarida del Dragón Dorado", "La Fortificación Angular Espectral",
+            "⚔️ Desafío 45: La Torre Acorazada de Magia Espectral", "El Puente del Caos de Nieve", "La Telaraña de Cerdos Dorada", "La Cueva del Rey Cerdo Fantasma",
+            "La Ciudadela Militar de Oro", "👑 Jefe 50: El Megabastión de los Cuatro Reyes",
+            "El Búnker de Oro y Obsidiana", "Laberinto Espectral de Doble Rey", "La Bóveda Blindada de Nieve", "Cúpula de Hielo y Oro Colosal",
+            "⚔️ Desafío 55: Cámara Blindada de Alta Presión", "La Gran Muralla Vertical Fantasma", "Fortaleza de Nieve y Acero", "El Trono Impenetrable de Oro",
+            "Laberinto Flotante de Cristal Espectral", "👑 Jefe 60: Coloso Imperial de Obsidiana y Oro",
+            "Búnker de TNT y Fantasma", "Bóveda Imperial de Hielo y Nieve", "El Bastión de Oro Pesado", "El Gran Coliseo Glaciar de Nieve",
+            "⚔️ Desafío 65: El Gran Puente del Juicio Final", "El Bastión de Cristal y Fantasma", "El Gran Coliseo Imperial Dorado", "El Sanctum Espectral del Vacío",
+            "La Muralla de Fuego, Oro y TNT", "👑 Jefe 70: El Gran Zigurat Celestial de Acero y Oro",
+            "La Bóveda Blindada Titán de Fantasma", "El Laberinto Espectral y Cristal", "El Puente de Cadenas y Nieve", "La Fortaleza de la Corona de Oro",
+            "⚔️ Desafío 75: El Baluarte de los Tres Reyes", "La Trampa de Demolición de Nieve", "La Puerta del Inframundo Espectral", "El Bastión de Vanguardia de Oro",
+            "La Antesala del Trono Fantasma", "👑 JEFE 80: El Apocalipsis del Rey Cerdo Supremo",
+            "El Bastión de Oro y Tungsteno", "La Cúpula de Nieve y Acero Cósmico", "El Puente Espectral de la Desolación", "La Cámara Blindada de Oro y TNT",
+            "⚔️ Desafío 85: La Fortaleza Colgante de Acero y Fantasma", "El Monolito de las Sombras de Nieve", "El Laberinto Dorado de los Tres Reyes", "El Bastión Gravitatorio Fantasma",
+            "La Muralla Quíntuple de Acero, Oro y Nieve", "👑 JEFE 90: El Gran Megacastillo Imperial Blindado",
+            "El Glaciar Blindado de Nieve y Tungsteno", "El Zigurat Espectral del Juicio", "La Torre Oscura del Alto Mando de Oro", "La Bóveda Acorazada del Fin del Mundo",
+            "⚔️ Desafío 95: El Sanctum Imperial de la Corona Dorada", "El Coliseo de Acero, Nieve y Demolición", "Las Catacumbas Blindadas de Oro y Fantasma", "La Fortaleza Aérea Espectral Suprema",
+            "La Antesala del Trono Supremo de Oro", "👑 JEFE FINAL SUPREMO 100: El Apocalipsis Definitivo del Imperio Cerdo"
         ];
 
         function populateLevelSelect() {
@@ -467,7 +474,16 @@
             isFired = false;
             isAbilityUsed = false;
 
-            let birdOpts = { restitution: 0.8, frictionAir: 0.01, label: 'bird', birdType: currentBirdType };
+            let birdOpts = { 
+                restitution: 0.8, 
+                frictionAir: 0.01, 
+                label: 'bird', 
+                birdType: currentBirdType,
+                collisionFilter: {
+                    category: CAT_BIRD,
+                    mask: 0xFFFFFFFF ^ CAT_GHOST // Atraviesa bloques fantasma sin frenarse
+                }
+            };
             if (currentBirdType === 'yellow') birdOpts.density = 0.0025;
             else if (currentBirdType === 'black') birdOpts.density = 0.012;
             else birdOpts.density = 0.005;
@@ -645,16 +661,30 @@
             const baseX = width * 0.73, baseY = height - 40;
             
             // Físicas optimizadas y durabilidad por material
-            const woodOpts = { restitution: 0.2, density: 0.005, friction: 0.85, label: 'wood', hp: 2, maxHp: 2 };
-            const stoneOpts = { restitution: 0.15, density: 0.015, friction: 0.9, label: 'stone', hp: 3, maxHp: 3 };
-            const iceOpts = { restitution: 0.25, density: 0.003, friction: 0.5, label: 'ice', hp: 1, maxHp: 1 };
-            const metalOpts = { restitution: 0.1, density: 0.025, friction: 0.95, label: 'metal', hp: 4, maxHp: 4 };
-            const tntOpts = { restitution: 0.2, density: 0.002, friction: 0.7, label: 'tnt' };
-            const pigOpts = { restitution: 0.35, density: 0.001, friction: 0.6, label: 'pig' };
-            const bonusOpts = { restitution: 0.6, density: 0.0005, friction: 0.3, label: 'bonus' };
+            const woodOpts = { restitution: 0.2, density: 0.005, friction: 0.85, label: 'wood', hp: 2, maxHp: 2, collisionFilter: { category: CAT_DEFAULT, mask: 0xFFFFFFFF } };
+            const stoneOpts = { restitution: 0.15, density: 0.015, friction: 0.9, label: 'stone', hp: 3, maxHp: 3, collisionFilter: { category: CAT_DEFAULT, mask: 0xFFFFFFFF } };
+            const iceOpts = { restitution: 0.25, density: 0.003, friction: 0.5, label: 'ice', hp: 1, maxHp: 1, collisionFilter: { category: CAT_DEFAULT, mask: 0xFFFFFFFF } };
+            const metalOpts = { restitution: 0.1, density: 0.025, friction: 0.95, label: 'metal', hp: 4, maxHp: 4, collisionFilter: { category: CAT_DEFAULT, mask: 0xFFFFFFFF } };
+            
+            // Bloque de Oro: Extraordinariamente pesado, metálico y resistente (5 HP)
+            const goldOpts = { restitution: 0.05, density: 0.045, friction: 0.98, label: 'gold', hp: 5, maxHp: 5, collisionFilter: { category: CAT_DEFAULT, mask: 0xFFFFFFFF } };
+            
+            // Bloque Fantasma: Totalmente etéreo para los pájaros (lo atraviesan sin tocarlo), pero sostiene cerdos y bloques
+            const ghostOpts = { restitution: 0.15, density: 0.004, friction: 0.6, label: 'ghost', hp: 2, maxHp: 2, collisionFilter: { category: CAT_GHOST, mask: 0xFFFFFFFF ^ CAT_BIRD } };
+            
+            // Bloque de Nieve: Masa y resistencia casi nulas, se desintegra al más leve impacto o roce con escombros (1 HP)
+            const snowOpts = { restitution: 0.05, density: 0.0006, friction: 0.35, label: 'snow', hp: 1, maxHp: 1, collisionFilter: { category: CAT_DEFAULT, mask: 0xFFFFFFFF } };
+
+            const tntOpts = { restitution: 0.2, density: 0.002, friction: 0.7, label: 'tnt', collisionFilter: { category: CAT_DEFAULT, mask: 0xFFFFFFFF } };
+            const pigOpts = { restitution: 0.35, density: 0.001, friction: 0.6, label: 'pig', collisionFilter: { category: CAT_DEFAULT, mask: 0xFFFFFFFF } };
+            const bonusOpts = { restitution: 0.6, density: 0.0005, friction: 0.3, label: 'bonus', collisionFilter: { category: CAT_DEFAULT, mask: 0xFFFFFFFF } };
 
             const spawnColumn = (x, y, w, h, materialOpts) => {
                 const col = Bodies.rectangle(x, y - h/2, w, h, { ...materialOpts, isStatic: true });
+                if (materialOpts.collisionFilter) {
+                    col.collisionFilter.category = materialOpts.collisionFilter.category;
+                    col.collisionFilter.mask = materialOpts.collisionFilter.mask;
+                }
                 col.initialDensity = materialOpts.density || 0.005;
                 col.hp = materialOpts.hp !== undefined ? materialOpts.hp : 2;
                 col.maxHp = materialOpts.maxHp !== undefined ? materialOpts.maxHp : 2;
@@ -664,6 +694,10 @@
 
             const spawnBeam = (x, y, w, h, materialOpts) => {
                 const beam = Bodies.rectangle(x, y - h/2, w, h, { ...materialOpts, isStatic: true });
+                if (materialOpts.collisionFilter) {
+                    beam.collisionFilter.category = materialOpts.collisionFilter.category;
+                    beam.collisionFilter.mask = materialOpts.collisionFilter.mask;
+                }
                 beam.initialDensity = materialOpts.density || 0.005;
                 beam.hp = materialOpts.hp !== undefined ? materialOpts.hp : 2;
                 beam.maxHp = materialOpts.maxHp !== undefined ? materialOpts.maxHp : 2;
@@ -674,6 +708,10 @@
             const spawnTriangle = (x, y, size, materialOpts) => {
                 const labelName = materialOpts.label + '_tri';
                 const tri = Bodies.polygon(x, y - size/2, 3, size * 0.65, { ...materialOpts, isStatic: true, label: labelName });
+                if (materialOpts.collisionFilter) {
+                    tri.collisionFilter.category = materialOpts.collisionFilter.category;
+                    tri.collisionFilter.mask = materialOpts.collisionFilter.mask;
+                }
                 tri.initialDensity = materialOpts.density || 0.005;
                 tri.hp = materialOpts.hp !== undefined ? materialOpts.hp : 2;
                 tri.maxHp = materialOpts.maxHp !== undefined ? materialOpts.maxHp : 2;
@@ -718,14 +756,17 @@
                 spawnPig(baseX, baseY, 18, 'normal');
 
             } else if (currentLevel === 2) {
+                // NIVEL 2: Torres Gemelas con almena frágil de nieve en la cima
                 spawnColumn(baseX - 60, baseY, 20, 75, woodOpts);
                 spawnColumn(baseX - 10, baseY, 20, 75, woodOpts);
                 spawnBeam(baseX - 35, baseY - 75, 80, 16, iceOpts);
+                spawnTriangle(baseX - 35, baseY - 91, 32, snowOpts);
                 spawnPig(baseX - 35, baseY, 18, 'normal');
 
                 spawnColumn(baseX + 10, baseY, 20, 75, woodOpts);
                 spawnColumn(baseX + 60, baseY, 20, 75, woodOpts);
                 spawnBeam(baseX + 35, baseY - 75, 80, 16, iceOpts);
+                spawnTriangle(baseX + 35, baseY - 91, 32, snowOpts);
                 spawnPig(baseX + 35, baseY, 18, 'normal');
 
             } else if (currentLevel === 3) {
@@ -736,22 +777,24 @@
                 spawnPig(baseX, baseY - 80, 20, 'helmet');
 
             } else if (currentLevel === 4) {
+                // NIVEL 4: Presentación de los Bloques de Nieve ultra-frágiles
                 [-70, 0, 70].forEach(ox => {
-                    spawnColumn(baseX + ox - 18, baseY, 18, 80, iceOpts);
-                    spawnColumn(baseX + ox + 18, baseY, 18, 80, iceOpts);
-                    spawnBeam(baseX + ox, baseY - 80, 65, 16, woodOpts);
+                    spawnColumn(baseX + ox - 18, baseY, 18, 80, snowOpts);
+                    spawnColumn(baseX + ox + 18, baseY, 18, 80, snowOpts);
+                    spawnBeam(baseX + ox, baseY - 80, 65, 16, snowOpts);
                     spawnPig(baseX + ox, baseY, 18, 'normal');
                 });
                 spawnBeam(baseX, baseY - 96, 210, 18, iceOpts);
+                spawnTriangle(baseX, baseY - 114, 38, snowOpts);
                 spawnPig(baseX, baseY - 114, 20, 'helmet');
 
             } else if (currentLevel === 5) {
-                // DESAFÍO 5 (Cada 5 niveles): Pirámide Reforzada
+                // DESAFÍO 5 (Cada 5 niveles): Pirámide Reforzada con pedestal de oro
                 spawnColumn(baseX - 85, baseY, 22, 70, stoneOpts);
                 spawnColumn(baseX - 30, baseY, 20, 70, woodOpts);
                 spawnColumn(baseX + 30, baseY, 20, 70, woodOpts);
                 spawnColumn(baseX + 85, baseY, 22, 70, stoneOpts);
-                spawnBeam(baseX, baseY - 70, 210, 18, woodOpts);
+                spawnBeam(baseX, baseY - 70, 210, 18, goldOpts);
                 spawnPig(baseX - 55, baseY, 19, 'helmet');
                 spawnPig(baseX + 55, baseY, 19, 'helmet');
 
@@ -759,24 +802,29 @@
                 spawnColumn(baseX + 45, baseY - 88, 20, 65, stoneOpts);
                 spawnBeam(baseX, baseY - 153, 130, 18, stoneOpts);
                 spawnPig(baseX, baseY - 88, 22, 'cowboy');
-                spawnTriangle(baseX, baseY - 171, 38, woodOpts);
+                spawnTriangle(baseX, baseY - 171, 38, snowOpts);
 
             } else if (currentLevel === 6) {
+                // NIVEL 6: El Puente Colgante con sección central fantasma y parapetos de nieve
                 [-120, 120].forEach(ox => {
                     spawnColumn(baseX + ox, baseY, 28, 110, stoneOpts);
-                    spawnTriangle(baseX + ox, baseY - 110, 32, woodOpts);
+                    spawnTriangle(baseX + ox, baseY - 110, 32, snowOpts);
                 });
-                spawnBeam(baseX, baseY - 110, 280, 20, woodOpts);
+                spawnBeam(baseX - 70, baseY - 110, 80, 20, woodOpts);
+                spawnBeam(baseX + 70, baseY - 110, 80, 20, woodOpts);
+                // Pasarela central fantasma: los pájaros la atraviesan sin frenar pero sostiene al rey cerdo
+                spawnBeam(baseX, baseY - 110, 75, 20, ghostOpts);
                 spawnColumn(baseX - 45, baseY, 20, 110, woodOpts);
                 spawnColumn(baseX + 45, baseY, 20, 110, woodOpts);
                 spawnPig(baseX - 75, baseY, 18, 'normal');
                 spawnPig(baseX + 75, baseY, 18, 'normal');
-                spawnPig(baseX, baseY - 130, 24, 'helmet');
+                spawnPig(baseX, baseY - 130, 24, 'king');
 
             } else if (currentLevel === 7) {
+                // NIVEL 7: Presentación de los Bloques Fantasma de Haunted Hogs
                 spawnColumn(baseX - 100, baseY, 24, 100, woodOpts);
                 spawnColumn(baseX + 100, baseY, 24, 100, woodOpts);
-                spawnBeam(baseX, baseY - 100, 230, 20, metalOpts);
+                spawnBeam(baseX, baseY - 100, 230, 20, ghostOpts);
                 spawnBonus(baseX - 120, baseY - 100, 20, 'balloon');
                 spawnBonus(baseX + 120, baseY - 100, 20, 'balloon');
                 spawnTNT(baseX, baseY, 36);
@@ -784,76 +832,85 @@
                 spawnPig(baseX + 50, baseY - 120, 20, 'cowboy');
 
             } else if (currentLevel === 8) {
+                // NIVEL 8: La Muralla con cimientos de Oro y almenas de Nieve
                 [-80, -25, 25, 80].forEach(ox => {
-                    spawnColumn(baseX + ox, baseY, 22, 100, (Math.abs(ox) > 50) ? stoneOpts : woodOpts);
+                    spawnColumn(baseX + ox, baseY, 22, 100, (Math.abs(ox) > 50) ? goldOpts : woodOpts);
                 });
-                spawnBeam(baseX, baseY - 100, 200, 20, woodOpts);
+                spawnBeam(baseX, baseY - 100, 200, 20, goldOpts);
                 spawnPig(baseX - 50, baseY, 18, 'helmet');
                 spawnPig(baseX + 50, baseY, 18, 'helmet');
                 spawnColumn(baseX, baseY - 120, 20, 60, metalOpts);
+                spawnTriangle(baseX - 70, baseY - 120, 34, snowOpts);
+                spawnTriangle(baseX + 70, baseY - 120, 34, snowOpts);
                 spawnPig(baseX, baseY - 180, 22, 'cowboy');
 
             } else if (currentLevel === 9) {
+                // NIVEL 9: La Bóveda Real del Tesoro de Oro
                 [-70, 0, 70].forEach(ox => {
-                    spawnColumn(baseX + ox, baseY, 20, 110, iceOpts);
+                    spawnColumn(baseX + ox, baseY, 22, 110, goldOpts);
                 });
-                spawnBeam(baseX, baseY - 110, 190, 18, metalOpts);
-                spawnColumn(baseX - 40, baseY - 128, 20, 65, woodOpts);
-                spawnColumn(baseX + 40, baseY - 128, 20, 65, woodOpts);
-                spawnBeam(baseX, baseY - 193, 120, 18, iceOpts);
-                spawnPig(baseX, baseY, 20, 'helmet');
-                spawnPig(baseX, baseY - 128, 24, 'king');
+                spawnBeam(baseX, baseY - 110, 190, 20, goldOpts);
+                spawnColumn(baseX - 40, baseY - 130, 20, 65, woodOpts);
+                spawnColumn(baseX + 40, baseY - 130, 20, 65, woodOpts);
+                spawnBeam(baseX, baseY - 195, 120, 18, iceOpts);
+                spawnTriangle(baseX, baseY - 213, 38, goldOpts);
+                spawnPig(baseX - 35, baseY, 18, 'helmet');
+                spawnPig(baseX + 35, baseY, 18, 'helmet');
+                spawnPig(baseX, baseY - 130, 24, 'king');
 
             } else if (currentLevel === 10) {
-                // MEGA JEFE 10 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                // 👑 MEGA JEFE 10: Gran Fortaleza Real Cerda (Oro, Fantasma y Nieve)
                 spawnColumn(baseX - 130, baseY, 34, 130, stoneOpts);
-                spawnColumn(baseX - 60, baseY, 24, 130, metalOpts);
-                spawnColumn(baseX + 60, baseY, 24, 130, metalOpts);
+                spawnColumn(baseX - 40, baseY, 28, 130, goldOpts);
+                spawnColumn(baseX + 40, baseY, 28, 130, goldOpts);
                 spawnColumn(baseX + 130, baseY, 34, 130, stoneOpts);
-                spawnBeam(baseX, baseY - 130, 300, 24, metalOpts);
+                spawnBeam(baseX, baseY - 130, 300, 24, goldOpts);
 
                 spawnPig(baseX - 95, baseY, 22, 'helmet');
                 spawnPig(baseX + 95, baseY, 22, 'helmet');
                 spawnTNT(baseX, baseY, 34);
 
-                spawnColumn(baseX - 80, baseY - 154, 24, 80, woodOpts);
-                spawnColumn(baseX - 25, baseY - 154, 22, 80, stoneOpts);
-                spawnColumn(baseX + 25, baseY - 154, 22, 80, stoneOpts);
-                spawnColumn(baseX + 80, baseY - 154, 24, 80, woodOpts);
-                spawnBeam(baseX, baseY - 234, 200, 20, stoneOpts);
+                // Pasarela superior fantasma que sostiene a los francotiradores sobre el tejado
+                spawnColumn(baseX - 60, baseY - 154, 22, 80, woodOpts);
+                spawnColumn(baseX + 60, baseY - 154, 22, 80, woodOpts);
+                spawnBeam(baseX, baseY - 234, 180, 20, ghostOpts);
 
-                spawnPig(baseX - 52, baseY - 154, 22, 'cowboy');
-                spawnPig(baseX + 52, baseY - 154, 22, 'cowboy');
+                spawnPig(baseX - 40, baseY - 154, 22, 'cowboy');
+                spawnPig(baseX + 40, baseY - 154, 22, 'cowboy');
                 spawnPig(baseX, baseY - 254, 30, 'king');
 
-                spawnTriangle(baseX - 70, baseY - 254, 38, metalOpts);
-                spawnTriangle(baseX + 70, baseY - 254, 38, metalOpts);
+                // Almenas de nieve frágiles y rocas
+                spawnTriangle(baseX - 90, baseY - 154, 36, snowOpts);
+                spawnTriangle(baseX + 90, baseY - 154, 36, snowOpts);
                 spawnBoulder(baseX, baseY - 284, 28);
 
             } else if (currentLevel === 15) {
-                // DESAFÍO 15 (Cada 5 niveles: Mayor dificultad)
-                spawnColumn(baseX - 110, baseY, 32, 120, stoneOpts);
+                // ⚔️ DESAFÍO 15: Búnker de Asedio Blindado de Oro y Fantasma
+                spawnColumn(baseX - 110, baseY, 32, 120, goldOpts);
                 spawnColumn(baseX - 35, baseY, 24, 120, metalOpts);
                 spawnColumn(baseX + 35, baseY, 24, 120, metalOpts);
-                spawnColumn(baseX + 110, baseY, 32, 120, stoneOpts);
-                spawnBeam(baseX, baseY - 120, 270, 24, metalOpts);
+                spawnColumn(baseX + 110, baseY, 32, 120, goldOpts);
+                spawnBeam(baseX, baseY - 120, 270, 24, goldOpts);
 
                 spawnPig(baseX - 70, baseY, 22, 'helmet');
                 spawnPig(baseX + 70, baseY, 22, 'helmet');
 
-                spawnColumn(baseX - 55, baseY - 144, 22, 80, stoneOpts);
-                spawnColumn(baseX + 55, baseY - 144, 22, 80, stoneOpts);
+                // Plataforma interior fantasma
+                spawnColumn(baseX - 55, baseY - 144, 22, 80, ghostOpts);
+                spawnColumn(baseX + 55, baseY - 144, 22, 80, ghostOpts);
                 spawnBeam(baseX, baseY - 224, 150, 20, metalOpts);
                 spawnPig(baseX, baseY - 144, 26, 'king');
+                spawnTriangle(baseX - 60, baseY - 224, 34, snowOpts);
+                spawnTriangle(baseX + 60, baseY - 224, 34, snowOpts);
                 spawnBoulder(baseX, baseY - 244, 28);
 
             } else if (currentLevel === 20) {
-                // MEGA JEFE 20 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
-                spawnColumn(baseX - 160, baseY, 40, 150, metalOpts);
+                // 👑 MEGA JEFE 20: Ciudadela Blindada de Doble Rey (Cimientos de Oro y Pasarelas Fantasma)
+                spawnColumn(baseX - 160, baseY, 40, 150, goldOpts);
                 spawnColumn(baseX - 80, baseY, 28, 150, stoneOpts);
                 spawnColumn(baseX, baseY, 30, 150, metalOpts);
                 spawnColumn(baseX + 80, baseY, 28, 150, stoneOpts);
-                spawnColumn(baseX + 160, baseY, 40, 150, metalOpts);
+                spawnColumn(baseX + 160, baseY, 40, 150, goldOpts);
                 spawnBeam(baseX, baseY - 150, 370, 28, metalOpts);
 
                 spawnPig(baseX - 120, baseY, 22, 'helmet');
@@ -861,43 +918,44 @@
                 spawnTNT(baseX - 40, baseY, 34);
                 spawnTNT(baseX + 40, baseY, 34);
 
-                spawnColumn(baseX - 100, baseY - 178, 24, 85, stoneOpts);
+                // Mezzanine fantasma: tiros directos atraviesan el piso hacia las TNT
+                spawnColumn(baseX - 100, baseY - 178, 24, 85, ghostOpts);
                 spawnColumn(baseX - 25, baseY - 178, 22, 85, metalOpts);
                 spawnColumn(baseX + 25, baseY - 178, 22, 85, metalOpts);
-                spawnColumn(baseX + 100, baseY - 178, 24, 85, stoneOpts);
-                spawnBeam(baseX, baseY - 263, 240, 22, metalOpts);
+                spawnColumn(baseX + 100, baseY - 178, 24, 85, ghostOpts);
+                spawnBeam(baseX, baseY - 263, 240, 22, goldOpts);
 
                 spawnPig(baseX - 60, baseY - 178, 26, 'king');
                 spawnPig(baseX + 60, baseY - 178, 26, 'king');
 
-                spawnColumn(baseX - 40, baseY - 285, 20, 70, metalOpts);
-                spawnColumn(baseX + 40, baseY - 285, 20, 70, metalOpts);
+                spawnColumn(baseX - 40, baseY - 285, 20, 70, snowOpts);
+                spawnColumn(baseX + 40, baseY - 285, 20, 70, snowOpts);
                 spawnBeam(baseX, baseY - 355, 120, 20, metalOpts);
                 spawnPig(baseX, baseY - 285, 24, 'cowboy');
                 spawnBoulder(baseX, baseY - 375, 32);
 
             } else if (currentLevel === 25) {
-                // DESAFÍO 25 (Cada 5 niveles)
-                spawnColumn(baseX - 110, baseY, 30, 130, stoneOpts);
-                spawnColumn(baseX - 35, baseY, 24, 130, stoneOpts);
-                spawnColumn(baseX + 35, baseY, 24, 130, stoneOpts);
-                spawnColumn(baseX + 110, baseY, 30, 130, stoneOpts);
-                spawnBeam(baseX, baseY - 130, 270, 22, metalOpts);
+                // ⚔️ DESAFÍO 25: El Laberinto Espectral y Dorado
+                spawnColumn(baseX - 110, baseY, 30, 130, goldOpts);
+                spawnColumn(baseX - 35, baseY, 24, 130, ghostOpts);
+                spawnColumn(baseX + 35, baseY, 24, 130, ghostOpts);
+                spawnColumn(baseX + 110, baseY, 30, 130, goldOpts);
+                spawnBeam(baseX, baseY - 130, 270, 22, goldOpts);
                 spawnPig(baseX - 70, baseY, 22, 'helmet');
                 spawnPig(baseX + 70, baseY, 22, 'helmet');
 
-                spawnColumn(baseX - 50, baseY - 152, 22, 75, metalOpts);
-                spawnColumn(baseX + 50, baseY - 152, 22, 75, metalOpts);
-                spawnBeam(baseX, baseY - 227, 140, 20, stoneOpts);
+                spawnColumn(baseX - 50, baseY - 152, 22, 75, snowOpts);
+                spawnColumn(baseX + 50, baseY - 152, 22, 75, snowOpts);
+                spawnBeam(baseX, baseY - 227, 140, 20, ghostOpts);
                 spawnPig(baseX, baseY - 152, 26, 'king');
                 spawnBoulder(baseX, baseY - 247, 28);
 
             } else if (currentLevel === 30) {
-                // MEGA JEFE 30 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                // 👑 MEGA JEFE 30: La Gran Muralla de Troya Acorazada (Oro y Nieve)
                 [-150, -90, -30, 30, 90, 150].forEach((ox, idx) => {
-                    spawnColumn(baseX + ox, baseY, 26, 140, (idx === 0 || idx === 5) ? metalOpts : stoneOpts);
+                    spawnColumn(baseX + ox, baseY, 26, 140, (idx === 0 || idx === 5) ? goldOpts : (idx % 2 === 0 ? stoneOpts : snowOpts));
                 });
-                spawnBeam(baseX, baseY - 140, 360, 28, metalOpts);
+                spawnBeam(baseX, baseY - 140, 360, 28, goldOpts);
 
                 spawnPig(baseX - 120, baseY, 22, 'helmet');
                 spawnPig(baseX - 60, baseY, 20, 'cowboy');
@@ -905,43 +963,44 @@
                 spawnPig(baseX + 120, baseY, 22, 'helmet');
                 spawnTNT(baseX, baseY, 36);
 
-                spawnColumn(baseX - 90, baseY - 168, 24, 85, metalOpts);
-                spawnColumn(baseX, baseY - 168, 24, 85, stoneOpts);
-                spawnColumn(baseX + 90, baseY - 168, 24, 85, metalOpts);
+                spawnColumn(baseX - 90, baseY - 168, 24, 85, ghostOpts);
+                spawnColumn(baseX, baseY - 168, 24, 85, goldOpts);
+                spawnColumn(baseX + 90, baseY - 168, 24, 85, ghostOpts);
                 spawnBeam(baseX, baseY - 253, 230, 24, metalOpts);
 
                 spawnPig(baseX - 45, baseY - 168, 26, 'king');
                 spawnPig(baseX + 45, baseY - 168, 26, 'king');
 
-                spawnColumn(baseX - 35, baseY - 277, 20, 70, metalOpts);
-                spawnColumn(baseX + 35, baseY - 277, 20, 70, metalOpts);
-                spawnBeam(baseX, baseY - 347, 110, 20, metalOpts);
+                spawnColumn(baseX - 35, baseY - 277, 20, 70, snowOpts);
+                spawnColumn(baseX + 35, baseY - 277, 20, 70, snowOpts);
+                spawnBeam(baseX, baseY - 347, 110, 20, goldOpts);
                 spawnPig(baseX, baseY - 277, 28, 'king');
                 spawnBoulder(baseX, baseY - 367, 30);
 
             } else if (currentLevel === 35) {
-                // DESAFÍO 35 (Cada 5 niveles)
-                spawnColumn(baseX - 100, baseY, 26, 120, iceOpts);
-                spawnColumn(baseX - 30, baseY, 26, 120, metalOpts);
-                spawnColumn(baseX + 30, baseY, 26, 120, metalOpts);
-                spawnColumn(baseX + 100, baseY, 26, 120, iceOpts);
-                spawnBeam(baseX, baseY - 120, 250, 22, metalOpts);
+                // ⚔️ DESAFÍO 35: El Trono de Hielo, Nieve y Oro
+                spawnColumn(baseX - 100, baseY, 26, 120, snowOpts);
+                spawnColumn(baseX - 30, baseY, 26, 120, goldOpts);
+                spawnColumn(baseX + 30, baseY, 26, 120, goldOpts);
+                spawnColumn(baseX + 100, baseY, 26, 120, snowOpts);
+                spawnBeam(baseX, baseY - 120, 250, 22, ghostOpts);
                 spawnPig(baseX - 65, baseY, 20, 'helmet');
                 spawnPig(baseX + 65, baseY, 20, 'helmet');
 
-                spawnColumn(baseX - 45, baseY - 142, 22, 75, stoneOpts);
-                spawnColumn(baseX + 45, baseY - 142, 22, 75, stoneOpts);
-                spawnBeam(baseX, baseY - 217, 130, 20, metalOpts);
+                spawnColumn(baseX - 45, baseY - 142, 22, 75, iceOpts);
+                spawnColumn(baseX + 45, baseY - 142, 22, 75, iceOpts);
+                spawnBeam(baseX, baseY - 217, 130, 20, goldOpts);
                 spawnPig(baseX, baseY - 142, 28, 'king');
-                spawnBoulder(baseX, baseY - 237, 28);
+                spawnTriangle(baseX, baseY - 237, 38, snowOpts);
+                spawnBoulder(baseX, baseY - 257, 28);
 
             } else if (currentLevel === 40) {
-                // MEGA JEFE 40 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
-                spawnColumn(baseX - 160, baseY, 42, 160, metalOpts);
+                // 👑 MEGA JEFE 40: Fortaleza Titán del Desierto (Oro, Fantasma y Nieve)
+                spawnColumn(baseX - 160, baseY, 42, 160, goldOpts);
                 spawnColumn(baseX - 85, baseY, 30, 160, stoneOpts);
-                spawnColumn(baseX, baseY, 32, 160, metalOpts);
+                spawnColumn(baseX, baseY, 32, 160, goldOpts);
                 spawnColumn(baseX + 85, baseY, 30, 160, stoneOpts);
-                spawnColumn(baseX + 160, baseY, 42, 160, metalOpts);
+                spawnColumn(baseX + 160, baseY, 42, 160, goldOpts);
                 spawnBeam(baseX, baseY - 160, 380, 30, metalOpts);
 
                 spawnPig(baseX - 120, baseY, 24, 'helmet');
@@ -949,16 +1008,16 @@
                 spawnPig(baseX - 42, baseY, 22, 'cowboy');
                 spawnPig(baseX + 42, baseY, 22, 'cowboy');
 
-                spawnColumn(baseX - 110, baseY - 190, 26, 90, metalOpts);
-                spawnColumn(baseX, baseY - 190, 26, 90, metalOpts);
-                spawnColumn(baseX + 110, baseY - 190, 26, 90, metalOpts);
-                spawnBeam(baseX, baseY - 280, 260, 24, metalOpts);
+                spawnColumn(baseX - 110, baseY - 190, 26, 90, ghostOpts);
+                spawnColumn(baseX, baseY - 190, 26, 90, goldOpts);
+                spawnColumn(baseX + 110, baseY - 190, 26, 90, ghostOpts);
+                spawnBeam(baseX, baseY - 280, 260, 24, goldOpts);
 
                 spawnPig(baseX - 55, baseY - 190, 28, 'king');
                 spawnPig(baseX + 55, baseY - 190, 28, 'king');
 
-                spawnColumn(baseX - 45, baseY - 304, 22, 75, metalOpts);
-                spawnColumn(baseX + 45, baseY - 304, 22, 75, metalOpts);
+                spawnColumn(baseX - 45, baseY - 304, 22, 75, snowOpts);
+                spawnColumn(baseX + 45, baseY - 304, 22, 75, snowOpts);
                 spawnBeam(baseX, baseY - 379, 130, 22, metalOpts);
                 spawnPig(baseX, baseY - 304, 30, 'king');
 
@@ -967,45 +1026,45 @@
                 spawnBoulder(baseX, baseY - 401, 32);
 
             } else if (currentLevel === 45) {
-                // DESAFÍO 45 (Cada 5 niveles)
-                spawnColumn(baseX - 90, baseY, 30, 140, stoneOpts);
-                spawnColumn(baseX, baseY, 30, 140, metalOpts);
-                spawnColumn(baseX + 90, baseY, 30, 140, stoneOpts);
-                spawnBeam(baseX, baseY - 140, 230, 24, metalOpts);
+                // ⚔️ DESAFÍO 45: La Torre Acorazada de Magia Espectral
+                spawnColumn(baseX - 90, baseY, 30, 140, goldOpts);
+                spawnColumn(baseX, baseY, 30, 140, ghostOpts);
+                spawnColumn(baseX + 90, baseY, 30, 140, goldOpts);
+                spawnBeam(baseX, baseY - 140, 230, 24, ghostOpts);
                 spawnPig(baseX - 45, baseY, 22, 'helmet');
                 spawnPig(baseX + 45, baseY, 22, 'helmet');
 
-                spawnColumn(baseX - 40, baseY - 164, 24, 80, metalOpts);
-                spawnColumn(baseX + 40, baseY - 164, 24, 80, metalOpts);
-                spawnBeam(baseX, baseY - 244, 120, 20, metalOpts);
+                spawnColumn(baseX - 40, baseY - 164, 24, 80, snowOpts);
+                spawnColumn(baseX + 40, baseY - 164, 24, 80, snowOpts);
+                spawnBeam(baseX, baseY - 244, 120, 20, goldOpts);
                 spawnPig(baseX, baseY - 164, 28, 'king');
-                spawnTriangle(baseX, baseY - 264, 42, metalOpts);
+                spawnTriangle(baseX, baseY - 264, 42, goldOpts);
 
             } else if (currentLevel === 50) {
-                // MEGA JEFE 50 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                // 👑 MEGA JEFE 50: El Megabastión de los Cuatro Reyes (Oro, Fantasma y Nieve)
                 [-165, -95, -25, 25, 95, 165].forEach((ox, idx) => {
-                    spawnColumn(baseX + ox, baseY, (idx === 0 || idx === 5) ? 38 : 26, 165, (idx % 2 === 0) ? metalOpts : stoneOpts);
+                    spawnColumn(baseX + ox, baseY, (idx === 0 || idx === 5) ? 38 : 26, 165, (idx === 0 || idx === 5) ? goldOpts : ((idx % 2 === 0) ? metalOpts : ghostOpts));
                 });
-                spawnBeam(baseX, baseY - 165, 390, 30, metalOpts);
+                spawnBeam(baseX, baseY - 165, 390, 30, goldOpts);
 
                 spawnPig(baseX - 130, baseY, 24, 'helmet');
                 spawnPig(baseX + 130, baseY, 24, 'helmet');
                 spawnTNT(baseX - 60, baseY, 36);
                 spawnTNT(baseX + 60, baseY, 36);
 
-                spawnColumn(baseX - 110, baseY - 195, 28, 95, metalOpts);
-                spawnColumn(baseX - 35, baseY - 195, 24, 95, stoneOpts);
-                spawnColumn(baseX + 35, baseY - 195, 24, 95, stoneOpts);
-                spawnColumn(baseX + 110, baseY - 195, 28, 95, metalOpts);
+                spawnColumn(baseX - 110, baseY - 195, 28, 95, ghostOpts);
+                spawnColumn(baseX - 35, baseY - 195, 24, 95, goldOpts);
+                spawnColumn(baseX + 35, baseY - 195, 24, 95, goldOpts);
+                spawnColumn(baseX + 110, baseY - 195, 28, 95, ghostOpts);
                 spawnBeam(baseX, baseY - 290, 270, 26, metalOpts);
 
                 spawnPig(baseX - 72, baseY - 195, 28, 'king');
                 spawnPig(baseX + 72, baseY - 195, 28, 'king');
                 spawnPig(baseX, baseY - 195, 26, 'cowboy');
 
-                spawnColumn(baseX - 50, baseY - 316, 24, 80, metalOpts);
-                spawnColumn(baseX + 50, baseY - 316, 24, 80, metalOpts);
-                spawnBeam(baseX, baseY - 396, 150, 22, metalOpts);
+                spawnColumn(baseX - 50, baseY - 316, 24, 80, snowOpts);
+                spawnColumn(baseX + 50, baseY - 316, 24, 80, snowOpts);
+                spawnBeam(baseX, baseY - 396, 150, 22, goldOpts);
                 spawnPig(baseX, baseY - 316, 32, 'king');
 
                 spawnBoulder(baseX - 100, baseY - 316, 28);
@@ -1013,44 +1072,45 @@
                 spawnBoulder(baseX, baseY - 418, 34);
 
             } else if (currentLevel === 55) {
-                // DESAFÍO 55 (Cada 5 niveles)
-                spawnColumn(baseX - 100, baseY, 34, 130, metalOpts);
-                spawnColumn(baseX, baseY, 26, 130, stoneOpts);
-                spawnColumn(baseX + 100, baseY, 34, 130, metalOpts);
+                // ⚔️ DESAFÍO 55: Cámara Blindada de Alta Presión
+                spawnColumn(baseX - 100, baseY, 34, 130, goldOpts);
+                spawnColumn(baseX, baseY, 26, 130, ghostOpts);
+                spawnColumn(baseX + 100, baseY, 34, 130, goldOpts);
                 spawnBeam(baseX, baseY - 130, 250, 24, metalOpts);
                 spawnPig(baseX - 50, baseY, 24, 'helmet');
                 spawnPig(baseX + 50, baseY, 24, 'helmet');
 
-                spawnColumn(baseX - 45, baseY - 154, 24, 85, metalOpts);
-                spawnColumn(baseX + 45, baseY - 154, 24, 85, metalOpts);
-                spawnBeam(baseX, baseY - 239, 130, 22, metalOpts);
+                spawnColumn(baseX - 45, baseY - 154, 24, 85, ghostOpts);
+                spawnColumn(baseX + 45, baseY - 154, 24, 85, ghostOpts);
+                spawnBeam(baseX, baseY - 239, 130, 22, goldOpts);
                 spawnPig(baseX, baseY - 154, 28, 'king');
+                spawnTriangle(baseX, baseY - 239, 36, snowOpts);
                 spawnBoulder(baseX, baseY - 261, 30);
 
             } else if (currentLevel === 60) {
-                // MEGA JEFE 60 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                // 👑 MEGA JEFE 60: Coloso Imperial de Obsidiana, Oro y Fantasma
                 [-170, -100, -35, 35, 100, 170].forEach((ox, idx) => {
-                    spawnColumn(baseX + ox, baseY, (idx === 0 || idx === 5) ? 44 : 30, 175, metalOpts);
+                    spawnColumn(baseX + ox, baseY, (idx === 0 || idx === 5) ? 44 : 30, 175, (idx % 2 === 0) ? goldOpts : metalOpts);
                 });
-                spawnBeam(baseX, baseY - 175, 410, 32, metalOpts);
+                spawnBeam(baseX, baseY - 175, 410, 32, goldOpts);
 
                 spawnPig(baseX - 135, baseY, 24, 'helmet');
                 spawnPig(baseX + 135, baseY, 24, 'helmet');
                 spawnPig(baseX - 67, baseY, 22, 'helmet');
                 spawnPig(baseX + 67, baseY, 22, 'helmet');
 
-                spawnColumn(baseX - 110, baseY - 207, 30, 100, stoneOpts);
-                spawnColumn(baseX - 35, baseY - 207, 26, 100, metalOpts);
-                spawnColumn(baseX + 35, baseY - 207, 26, 100, metalOpts);
-                spawnColumn(baseX + 110, baseY - 207, 30, 100, stoneOpts);
-                spawnBeam(baseX, baseY - 307, 280, 26, metalOpts);
+                spawnColumn(baseX - 110, baseY - 207, 30, 100, ghostOpts);
+                spawnColumn(baseX - 35, baseY - 207, 26, 100, goldOpts);
+                spawnColumn(baseX + 35, baseY - 207, 26, 100, goldOpts);
+                spawnColumn(baseX + 110, baseY - 207, 30, 100, ghostOpts);
+                spawnBeam(baseX, baseY - 307, 280, 26, ghostOpts);
 
                 spawnPig(baseX - 72, baseY - 207, 28, 'king');
                 spawnPig(baseX + 72, baseY - 207, 28, 'king');
 
-                spawnColumn(baseX - 55, baseY - 333, 26, 85, metalOpts);
-                spawnColumn(baseX + 55, baseY - 333, 26, 85, metalOpts);
-                spawnBeam(baseX, baseY - 418, 160, 24, metalOpts);
+                spawnColumn(baseX - 55, baseY - 333, 26, 85, snowOpts);
+                spawnColumn(baseX + 55, baseY - 333, 26, 85, snowOpts);
+                spawnBeam(baseX, baseY - 418, 160, 24, goldOpts);
                 spawnPig(baseX, baseY - 333, 32, 'king');
 
                 spawnBoulder(baseX - 110, baseY - 333, 30);
@@ -1058,25 +1118,25 @@
                 spawnBoulder(baseX, baseY - 442, 34);
 
             } else if (currentLevel === 65) {
-                // DESAFÍO 65 (Cada 5 niveles)
-                spawnColumn(baseX - 125, baseY, 36, 135, metalOpts);
-                spawnColumn(baseX + 125, baseY, 36, 135, metalOpts);
-                spawnBeam(baseX, baseY - 135, 310, 26, metalOpts);
+                // ⚔️ DESAFÍO 65: El Gran Puente del Juicio Final
+                spawnColumn(baseX - 125, baseY, 36, 135, goldOpts);
+                spawnColumn(baseX + 125, baseY, 36, 135, goldOpts);
+                spawnBeam(baseX, baseY - 135, 310, 26, ghostOpts);
                 spawnPig(baseX - 65, baseY, 22, 'helmet');
                 spawnPig(baseX + 65, baseY, 22, 'helmet');
 
-                spawnColumn(baseX - 50, baseY - 161, 24, 85, stoneOpts);
-                spawnColumn(baseX + 50, baseY - 161, 24, 85, stoneOpts);
-                spawnBeam(baseX, baseY - 246, 150, 22, metalOpts);
+                spawnColumn(baseX - 50, baseY - 161, 24, 85, snowOpts);
+                spawnColumn(baseX + 50, baseY - 161, 24, 85, snowOpts);
+                spawnBeam(baseX, baseY - 246, 150, 22, goldOpts);
                 spawnPig(baseX, baseY - 161, 28, 'king');
                 spawnBoulder(baseX, baseY - 268, 30);
 
             } else if (currentLevel === 70) {
-                // MEGA JEFE 70 (Cada 10 niveles: MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                // 👑 MEGA JEFE 70: El Gran Zigurat Celestial de Acero y Oro
                 [-180, -110, -40, 40, 110, 180].forEach((ox, idx) => {
-                    spawnColumn(baseX + ox, baseY, (idx === 0 || idx === 5) ? 46 : 32, 180, metalOpts);
+                    spawnColumn(baseX + ox, baseY, (idx === 0 || idx === 5) ? 46 : 32, 180, (idx % 2 === 0) ? goldOpts : metalOpts);
                 });
-                spawnBeam(baseX, baseY - 180, 420, 34, metalOpts);
+                spawnBeam(baseX, baseY - 180, 420, 34, goldOpts);
 
                 spawnPig(baseX - 145, baseY, 24, 'helmet');
                 spawnPig(baseX + 145, baseY, 24, 'helmet');
@@ -1084,18 +1144,18 @@
                 spawnPig(baseX + 75, baseY, 24, 'helmet');
                 spawnTNT(baseX, baseY, 36);
 
-                [-120, -40, 40, 120].forEach(ox => {
-                    spawnColumn(baseX + ox, baseY - 214, 28, 95, metalOpts);
+                [-120, -40, 40, 120].forEach((ox, i) => {
+                    spawnColumn(baseX + ox, baseY - 214, 28, 95, (i === 1 || i === 2) ? goldOpts : ghostOpts);
                 });
-                spawnBeam(baseX, baseY - 309, 300, 28, metalOpts);
+                spawnBeam(baseX, baseY - 309, 300, 28, ghostOpts);
 
                 spawnPig(baseX - 80, baseY - 214, 28, 'king');
                 spawnPig(baseX + 80, baseY - 214, 28, 'king');
                 spawnPig(baseX, baseY - 214, 26, 'cowboy');
 
-                spawnColumn(baseX - 55, baseY - 337, 26, 85, metalOpts);
-                spawnColumn(baseX + 55, baseY - 337, 26, 85, metalOpts);
-                spawnBeam(baseX, baseY - 422, 160, 24, metalOpts);
+                spawnColumn(baseX - 55, baseY - 337, 26, 85, snowOpts);
+                spawnColumn(baseX + 55, baseY - 337, 26, 85, snowOpts);
+                spawnBeam(baseX, baseY - 422, 160, 24, goldOpts);
                 spawnPig(baseX, baseY - 337, 34, 'king');
 
                 spawnBoulder(baseX - 105, baseY - 337, 30);
@@ -1103,27 +1163,28 @@
                 spawnBoulder(baseX, baseY - 446, 36);
 
             } else if (currentLevel === 75) {
-                // DESAFÍO 75 (Cada 5 niveles)
-                spawnColumn(baseX - 130, baseY, 38, 145, metalOpts);
-                spawnColumn(baseX, baseY, 30, 145, stoneOpts);
-                spawnColumn(baseX + 130, baseY, 38, 145, metalOpts);
+                // ⚔️ DESAFÍO 75: El Baluarte de los Tres Reyes
+                spawnColumn(baseX - 130, baseY, 38, 145, goldOpts);
+                spawnColumn(baseX, baseY, 30, 145, ghostOpts);
+                spawnColumn(baseX + 130, baseY, 38, 145, goldOpts);
                 spawnBeam(baseX, baseY - 145, 320, 26, metalOpts);
                 spawnPig(baseX - 65, baseY, 24, 'helmet');
                 spawnPig(baseX + 65, baseY, 24, 'helmet');
 
-                spawnColumn(baseX - 60, baseY - 171, 26, 90, metalOpts);
-                spawnColumn(baseX + 60, baseY - 171, 26, 90, metalOpts);
-                spawnBeam(baseX, baseY - 261, 170, 22, metalOpts);
+                spawnColumn(baseX - 60, baseY - 171, 26, 90, ghostOpts);
+                spawnColumn(baseX + 60, baseY - 171, 26, 90, ghostOpts);
+                spawnBeam(baseX, baseY - 261, 170, 22, goldOpts);
                 spawnPig(baseX, baseY - 171, 30, 'king');
+                spawnTriangle(baseX, baseY - 261, 40, snowOpts);
                 spawnBoulder(baseX, baseY - 283, 32);
 
             } else if (currentLevel === 80) {
-                // MEGA JEFE FINAL 80 (MÁXIMO ABSOLUTO DE ESTRUCTURAS, DEFENSAS Y DESAFÍO)
+                // 👑 MEGA JEFE 80: El Apocalipsis del Rey Cerdo Supremo (Oro, Fantasma y Nieve)
                 [-190, -125, -60, 0, 60, 125, 190].forEach((ox, idx) => {
                     const isEdge = (idx === 0 || idx === 6);
-                    spawnColumn(baseX + ox, baseY, isEdge ? 48 : 34, 190, metalOpts);
+                    spawnColumn(baseX + ox, baseY, isEdge ? 48 : 34, 190, isEdge ? goldOpts : (idx % 2 === 0 ? metalOpts : ghostOpts));
                 });
-                spawnBeam(baseX, baseY - 190, 440, 36, metalOpts);
+                spawnBeam(baseX, baseY - 190, 440, 36, goldOpts);
 
                 spawnPig(baseX - 155, baseY, 24, 'helmet');
                 spawnPig(baseX - 90, baseY, 24, 'helmet');
@@ -1132,49 +1193,49 @@
                 spawnTNT(baseX - 30, baseY, 36);
                 spawnTNT(baseX + 30, baseY, 36);
 
-                [-130, -50, 50, 130].forEach(ox => {
-                    spawnColumn(baseX + ox, baseY - 226, 30, 105, metalOpts);
+                [-130, -50, 50, 130].forEach((ox, i) => {
+                    spawnColumn(baseX + ox, baseY - 226, 30, 105, (i === 1 || i === 2) ? goldOpts : ghostOpts);
                 });
-                spawnBeam(baseX, baseY - 331, 320, 30, metalOpts);
+                spawnBeam(baseX, baseY - 331, 320, 30, ghostOpts);
                 spawnPig(baseX - 90, baseY - 226, 28, 'king');
                 spawnPig(baseX + 90, baseY - 226, 28, 'king');
                 spawnPig(baseX, baseY - 226, 26, 'cowboy');
 
-                spawnColumn(baseX - 65, baseY - 361, 28, 95, metalOpts);
-                spawnColumn(baseX + 65, baseY - 361, 28, 95, metalOpts);
-                spawnBeam(baseX, baseY - 456, 180, 26, metalOpts);
+                spawnColumn(baseX - 65, baseY - 361, 28, 95, snowOpts);
+                spawnColumn(baseX + 65, baseY - 361, 28, 95, snowOpts);
+                spawnBeam(baseX, baseY - 456, 180, 26, goldOpts);
                 spawnPig(baseX, baseY - 361, 36, 'king');
 
-                spawnTriangle(baseX - 110, baseY - 361, 46, metalOpts);
-                spawnTriangle(baseX + 110, baseY - 361, 46, metalOpts);
+                spawnTriangle(baseX - 110, baseY - 361, 46, goldOpts);
+                spawnTriangle(baseX + 110, baseY - 361, 46, goldOpts);
                 spawnBoulder(baseX - 110, baseY - 407, 32);
                 spawnBoulder(baseX + 110, baseY - 407, 32);
                 spawnBoulder(baseX, baseY - 482, 38);
 
             } else if (currentLevel === 85) {
-                // DESAFÍO 85 (Cada 5 niveles: Fortaleza Colgante de Acero)
-                spawnColumn(baseX - 135, baseY, 40, 150, metalOpts);
-                spawnColumn(baseX, baseY, 32, 150, stoneOpts);
-                spawnColumn(baseX + 135, baseY, 40, 150, metalOpts);
+                // ⚔️ DESAFÍO 85: La Fortaleza Colgante de Acero y Fantasma
+                spawnColumn(baseX - 135, baseY, 40, 150, goldOpts);
+                spawnColumn(baseX, baseY, 32, 150, ghostOpts);
+                spawnColumn(baseX + 135, baseY, 40, 150, goldOpts);
                 spawnBeam(baseX, baseY - 150, 330, 28, metalOpts);
                 spawnPig(baseX - 70, baseY, 24, 'helmet');
                 spawnPig(baseX + 70, baseY, 24, 'helmet');
 
-                spawnColumn(baseX - 65, baseY - 178, 28, 95, metalOpts);
-                spawnColumn(baseX + 65, baseY - 178, 28, 95, metalOpts);
-                spawnBeam(baseX, baseY - 273, 180, 24, metalOpts);
+                spawnColumn(baseX - 65, baseY - 178, 28, 95, ghostOpts);
+                spawnColumn(baseX + 65, baseY - 178, 28, 95, ghostOpts);
+                spawnBeam(baseX, baseY - 273, 180, 24, goldOpts);
                 spawnPig(baseX, baseY - 178, 30, 'king');
-                spawnTriangle(baseX - 100, baseY - 178, 42, metalOpts);
-                spawnTriangle(baseX + 100, baseY - 178, 42, metalOpts);
+                spawnTriangle(baseX - 100, baseY - 178, 42, snowOpts);
+                spawnTriangle(baseX + 100, baseY - 178, 42, snowOpts);
                 spawnBoulder(baseX, baseY - 297, 34);
 
             } else if (currentLevel === 90) {
-                // MEGA JEFE 90 (MÁS ESTRUCTURAS, MÁS DEFENSAS, MÁS TODO)
+                // 👑 MEGA JEFE 90: El Gran Megacastillo Imperial Blindado (Oro, Fantasma y Nieve)
                 [-200, -135, -70, 0, 70, 135, 200].forEach((ox, idx) => {
                     const isEdge = (idx === 0 || idx === 6);
-                    spawnColumn(baseX + ox, baseY, isEdge ? 50 : 36, 195, metalOpts);
+                    spawnColumn(baseX + ox, baseY, isEdge ? 50 : 36, 195, isEdge ? goldOpts : (idx % 2 === 0 ? metalOpts : ghostOpts));
                 });
-                spawnBeam(baseX, baseY - 195, 460, 38, metalOpts);
+                spawnBeam(baseX, baseY - 195, 460, 38, goldOpts);
 
                 spawnPig(baseX - 165, baseY, 24, 'helmet');
                 spawnPig(baseX - 100, baseY, 24, 'helmet');
@@ -1183,52 +1244,52 @@
                 spawnTNT(baseX - 35, baseY, 36);
                 spawnTNT(baseX + 35, baseY, 36);
 
-                [-140, -60, 60, 140].forEach(ox => {
-                    spawnColumn(baseX + ox, baseY - 233, 32, 110, metalOpts);
+                [-140, -60, 60, 140].forEach((ox, i) => {
+                    spawnColumn(baseX + ox, baseY - 233, 32, 110, (i === 1 || i === 2) ? goldOpts : ghostOpts);
                 });
-                spawnBeam(baseX, baseY - 343, 340, 32, metalOpts);
+                spawnBeam(baseX, baseY - 343, 340, 32, ghostOpts);
 
                 spawnPig(baseX - 100, baseY - 233, 30, 'king');
                 spawnPig(baseX + 100, baseY - 233, 30, 'king');
                 spawnPig(baseX, baseY - 233, 26, 'cowboy');
 
-                spawnColumn(baseX - 70, baseY - 375, 28, 95, metalOpts);
-                spawnColumn(baseX + 70, baseY - 375, 28, 95, metalOpts);
-                spawnBeam(baseX, baseY - 470, 190, 28, metalOpts);
+                spawnColumn(baseX - 70, baseY - 375, 28, 95, snowOpts);
+                spawnColumn(baseX + 70, baseY - 375, 28, 95, snowOpts);
+                spawnBeam(baseX, baseY - 470, 190, 28, goldOpts);
                 spawnPig(baseX, baseY - 375, 36, 'king');
 
-                spawnTriangle(baseX - 120, baseY - 375, 48, metalOpts);
-                spawnTriangle(baseX + 120, baseY - 375, 48, metalOpts);
+                spawnTriangle(baseX - 120, baseY - 375, 48, goldOpts);
+                spawnTriangle(baseX + 120, baseY - 375, 48, goldOpts);
                 spawnBoulder(baseX - 120, baseY - 423, 34);
                 spawnBoulder(baseX + 120, baseY - 423, 34);
                 spawnBoulder(baseX, baseY - 498, 40);
 
             } else if (currentLevel === 95) {
-                // DESAFÍO 95 (Cada 5 niveles: El Sanctum Imperial de la Corona Dorada)
-                spawnColumn(baseX - 145, baseY, 42, 160, metalOpts);
-                spawnColumn(baseX - 45, baseY, 30, 160, metalOpts);
-                spawnColumn(baseX + 45, baseY, 30, 160, metalOpts);
-                spawnColumn(baseX + 145, baseY, 42, 160, metalOpts);
-                spawnBeam(baseX, baseY - 160, 350, 30, metalOpts);
+                // ⚔️ DESAFÍO 95: El Sanctum Imperial de la Corona Dorada
+                spawnColumn(baseX - 145, baseY, 42, 160, goldOpts);
+                spawnColumn(baseX - 45, baseY, 30, 160, ghostOpts);
+                spawnColumn(baseX + 45, baseY, 30, 160, ghostOpts);
+                spawnColumn(baseX + 145, baseY, 42, 160, goldOpts);
+                spawnBeam(baseX, baseY - 160, 350, 30, goldOpts);
 
                 spawnPig(baseX - 95, baseY, 24, 'helmet');
                 spawnPig(baseX + 95, baseY, 24, 'helmet');
                 spawnTNT(baseX, baseY, 36);
 
-                spawnColumn(baseX - 70, baseY - 190, 28, 95, metalOpts);
-                spawnColumn(baseX + 70, baseY - 190, 28, 95, metalOpts);
-                spawnBeam(baseX, baseY - 285, 200, 26, metalOpts);
+                spawnColumn(baseX - 70, baseY - 190, 28, 95, snowOpts);
+                spawnColumn(baseX + 70, baseY - 190, 28, 95, snowOpts);
+                spawnBeam(baseX, baseY - 285, 200, 26, goldOpts);
                 spawnPig(baseX, baseY - 190, 32, 'king');
+                spawnTriangle(baseX, baseY - 285, 44, goldOpts);
                 spawnBoulder(baseX, baseY - 311, 36);
 
             } else if (currentLevel === 100) {
-                // 👑 JEFE FINAL SUPREMO 100: El Apocalipsis Definitivo del Imperio Cerdo
-                // (MÁXIMA CANTIDAD DE ESTRUCTURAS, MÁS DEFENSAS, MÁS REYES Y MÁXIMO DESAFÍO)
+                // 👑 JEFE FINAL SUPREMO 100: El Apocalipsis Definitivo del Imperio Cerdo (Oro, Fantasma y Nieve)
                 [-210, -145, -80, 0, 80, 145, 210].forEach((ox, idx) => {
                     const isEdge = (idx === 0 || idx === 6);
-                    spawnColumn(baseX + ox, baseY, isEdge ? 52 : 38, 205, metalOpts);
+                    spawnColumn(baseX + ox, baseY, isEdge ? 52 : 38, 205, isEdge ? goldOpts : (idx % 2 === 0 ? metalOpts : ghostOpts));
                 });
-                spawnBeam(baseX, baseY - 205, 480, 40, metalOpts);
+                spawnBeam(baseX, baseY - 205, 480, 40, goldOpts);
 
                 spawnPig(baseX - 175, baseY, 26, 'helmet');
                 spawnPig(baseX - 110, baseY, 26, 'helmet');
@@ -1237,23 +1298,25 @@
                 spawnTNT(baseX - 40, baseY, 38);
                 spawnTNT(baseX + 40, baseY, 38);
 
-                [-150, -75, 0, 75, 150].forEach(ox => {
-                    spawnColumn(baseX + ox, baseY - 245, 32, 115, metalOpts);
+                // Pasarela espectral penetrable con pájaros
+                [-150, -75, 0, 75, 150].forEach((ox, i) => {
+                    spawnColumn(baseX + ox, baseY - 245, 32, 115, (i === 2) ? goldOpts : ((i % 2 === 0) ? metalOpts : ghostOpts));
                 });
-                spawnBeam(baseX, baseY - 360, 370, 34, metalOpts);
+                spawnBeam(baseX, baseY - 360, 370, 34, ghostOpts);
 
                 spawnPig(baseX - 110, baseY - 245, 30, 'king');
                 spawnPig(baseX + 110, baseY - 245, 30, 'king');
                 spawnPig(baseX - 40, baseY - 245, 26, 'cowboy');
                 spawnPig(baseX + 40, baseY - 245, 26, 'cowboy');
 
-                spawnColumn(baseX - 80, baseY - 394, 30, 105, metalOpts);
-                spawnColumn(baseX + 80, baseY - 394, 30, 105, metalOpts);
-                spawnBeam(baseX, baseY - 499, 220, 30, metalOpts);
+                // Almenas y torres de nieve avalancha
+                spawnColumn(baseX - 80, baseY - 394, 30, 105, snowOpts);
+                spawnColumn(baseX + 80, baseY - 394, 30, 105, snowOpts);
+                spawnBeam(baseX, baseY - 499, 220, 30, goldOpts);
                 spawnPig(baseX, baseY - 394, 40, 'king');
 
-                spawnTriangle(baseX - 135, baseY - 394, 52, metalOpts);
-                spawnTriangle(baseX + 135, baseY - 394, 52, metalOpts);
+                spawnTriangle(baseX - 135, baseY - 394, 52, goldOpts);
+                spawnTriangle(baseX + 135, baseY - 394, 52, goldOpts);
                 spawnBoulder(baseX - 135, baseY - 446, 36);
                 spawnBoulder(baseX + 135, baseY - 446, 36);
                 spawnBoulder(baseX, baseY - 529, 42);
@@ -1262,14 +1325,15 @@
                 const progress = (currentLevel - 11) / 89;
                 const archId = (currentLevel - 11) % 15;
 
-                const baseColMat = progress > 0.45 ? (progress > 0.75 ? metalOpts : stoneOpts) : woodOpts;
-                const beamMat = progress > 0.35 ? (progress > 0.7 ? metalOpts : stoneOpts) : woodOpts;
-                const topMat = progress > 0.6 ? metalOpts : woodOpts;
+                const baseColMat = progress > 0.5 ? (progress > 0.75 ? goldOpts : metalOpts) : (progress > 0.25 ? stoneOpts : woodOpts);
+                const beamMat = progress > 0.4 ? (progress > 0.7 ? goldOpts : metalOpts) : (progress > 0.2 ? stoneOpts : woodOpts);
+                const topMat = progress > 0.6 ? goldOpts : (progress > 0.3 ? metalOpts : woodOpts);
 
                 if (archId === 0) {
+                    // Arquetipo 0: Bastión con pasarela central fantasma y parapetos de nieve
                     spawnColumn(baseX - 120, baseY, 30, 125, baseColMat);
-                    spawnColumn(baseX - 40, baseY, 22, 125, woodOpts);
-                    spawnColumn(baseX + 40, baseY, 22, 125, woodOpts);
+                    spawnColumn(baseX - 40, baseY, 22, 125, ghostOpts);
+                    spawnColumn(baseX + 40, baseY, 22, 125, ghostOpts);
                     spawnColumn(baseX + 120, baseY, 30, 125, baseColMat);
                     spawnBeam(baseX, baseY - 125, 280, 24, beamMat);
                     spawnTNT(baseX, baseY, 36);
@@ -1278,180 +1342,203 @@
 
                     spawnColumn(baseX - 55, baseY - 149, 22, 80, topMat);
                     spawnColumn(baseX + 55, baseY - 149, 22, 80, topMat);
-                    spawnBeam(baseX, baseY - 229, 160, 20, beamMat);
+                    spawnBeam(baseX, baseY - 229, 160, 20, ghostOpts);
                     spawnPig(baseX, baseY - 149, 26, 'king');
-                    spawnTriangle(baseX, baseY - 249, 38, topMat);
+                    spawnTriangle(baseX, baseY - 249, 38, snowOpts);
 
                 } else if (archId === 1) {
+                    // Arquetipo 1: Pagoda multinivel con pisos alternados de oro y nieve
                     let floors = Math.min(5, 3 + Math.floor(progress * 2.5));
                     let curY = baseY;
                     for (let f = 0; f < floors; f++) {
-                        let floorMat = f >= 2 ? metalOpts : (f === 1 ? stoneOpts : woodOpts);
+                        let floorMat = f === 0 ? (progress > 0.3 ? goldOpts : stoneOpts) : (f === floors - 1 ? snowOpts : (f % 2 === 0 ? ghostOpts : beamMat));
                         spawnColumn(baseX - 50, curY, 22, 60, floorMat);
                         spawnColumn(baseX + 50, curY, 22, 60, floorMat);
-                        spawnBeam(baseX, curY - 60, 140, 18, floorMat);
+                        spawnBeam(baseX, curY - 60, 140, 18, (f % 2 === 0) ? beamMat : ghostOpts);
                         spawnPig(baseX, curY, 18, (f === floors - 1) ? 'king' : 'helmet');
                         curY -= 78;
                     }
-                    spawnTriangle(baseX, curY, 40, metalOpts);
+                    spawnTriangle(baseX, curY, 40, topMat);
 
                 } else if (archId === 2) {
-                    spawnColumn(baseX - 95, baseY, 32, 150, metalOpts);
-                    spawnColumn(baseX + 95, baseY, 32, 150, metalOpts);
-                    spawnBeam(baseX, baseY - 150, 240, 26, metalOpts);
-                    spawnColumn(baseX - 35, baseY - 176, 20, 75, stoneOpts);
-                    spawnColumn(baseX + 35, baseY - 176, 20, 75, stoneOpts);
-                    spawnBeam(baseX, baseY - 251, 130, 20, beamMat);
+                    // Arquetipo 2: Bóveda de Oro pesado con techo fantasma y roca de demolición
+                    spawnColumn(baseX - 95, baseY, 32, 150, goldOpts);
+                    spawnColumn(baseX + 95, baseY, 32, 150, goldOpts);
+                    spawnBeam(baseX, baseY - 150, 240, 26, ghostOpts);
+                    spawnColumn(baseX - 35, baseY - 176, 20, 75, snowOpts);
+                    spawnColumn(baseX + 35, baseY - 176, 20, 75, snowOpts);
+                    spawnBeam(baseX, baseY - 251, 130, 20, goldOpts);
                     spawnBoulder(baseX, baseY - 271, 30);
                     spawnPig(baseX, baseY, 28, 'king');
                     spawnPig(baseX - 60, baseY - 176, 18, 'helmet');
                     spawnPig(baseX + 60, baseY - 176, 18, 'helmet');
 
                 } else if (archId === 3) {
+                    // Arquetipo 3: Muralla cuádruple con torres exteriores de nieve que se desmoronan
                     [-135, -45, 45, 135].forEach((ox, idx) => {
-                        spawnColumn(baseX + ox, baseY, 26, 110, (idx === 0 || idx === 3) ? metalOpts : stoneOpts);
+                        let colType = (idx === 0 || idx === 3) ? snowOpts : (idx === 1 ? goldOpts : ghostOpts);
+                        spawnColumn(baseX + ox, baseY, 26, 110, colType);
                         if (idx < 3) spawnPig(baseX + ox + 45, baseY, 18, idx === 1 ? 'king' : 'helmet');
                     });
                     spawnBeam(baseX, baseY - 110, 335, 24, beamMat);
-                    spawnColumn(baseX - 70, baseY - 134, 22, 75, topMat);
-                    spawnColumn(baseX + 70, baseY - 134, 22, 75, topMat);
-                    spawnBeam(baseX, baseY - 209, 200, 20, beamMat);
+                    spawnColumn(baseX - 70, baseY - 134, 22, 75, goldOpts);
+                    spawnColumn(baseX + 70, baseY - 134, 22, 75, goldOpts);
+                    spawnBeam(baseX, baseY - 209, 200, 20, ghostOpts);
                     spawnBoulder(baseX, baseY - 229, 24);
 
                 } else if (archId === 4) {
-                    spawnBeam(baseX, baseY - 120, 270, 24, metalOpts);
+                    // Arquetipo 4: Plataforma aérea fantasma con globos y cámara de oro
+                    spawnBeam(baseX, baseY - 120, 270, 24, ghostOpts);
                     spawnBonus(baseX - 125, baseY - 120, 22, 'balloon');
                     spawnBonus(baseX + 125, baseY - 120, 22, 'balloon');
-                    spawnColumn(baseX - 70, baseY - 144, 22, 75, stoneOpts);
-                    spawnColumn(baseX + 70, baseY - 144, 22, 75, stoneOpts);
+                    spawnColumn(baseX - 70, baseY - 144, 22, 75, goldOpts);
+                    spawnColumn(baseX + 70, baseY - 144, 22, 75, goldOpts);
                     spawnBeam(baseX, baseY - 219, 180, 20, beamMat);
                     spawnPig(baseX, baseY - 144, 26, 'king');
                     spawnPig(baseX - 80, baseY, 20, 'helmet');
                     spawnPig(baseX + 80, baseY, 20, 'helmet');
+                    spawnTriangle(baseX, baseY - 237, 36, snowOpts);
                     spawnTNT(baseX, baseY, 36);
 
                 } else if (archId === 5) {
-                    spawnColumn(baseX - 125, baseY, 34, 110, metalOpts);
-                    spawnColumn(baseX - 45, baseY, 24, 110, stoneOpts);
-                    spawnColumn(baseX + 45, baseY, 24, 110, stoneOpts);
-                    spawnColumn(baseX + 125, baseY, 34, 110, metalOpts);
-                    spawnBeam(baseX, baseY - 110, 310, 26, metalOpts);
+                    // Arquetipo 5: Fortaleza con columnas de oro y vigas de nieve
+                    spawnColumn(baseX - 125, baseY, 34, 110, goldOpts);
+                    spawnColumn(baseX - 45, baseY, 24, 110, ghostOpts);
+                    spawnColumn(baseX + 45, baseY, 24, 110, ghostOpts);
+                    spawnColumn(baseX + 125, baseY, 34, 110, goldOpts);
+                    spawnBeam(baseX, baseY - 110, 310, 26, beamMat);
                     spawnPig(baseX - 85, baseY, 20, 'helmet');
                     spawnPig(baseX + 85, baseY, 20, 'helmet');
-                    spawnColumn(baseX - 60, baseY - 136, 24, 80, topMat);
-                    spawnColumn(baseX + 60, baseY - 136, 24, 80, topMat);
-                    spawnBeam(baseX, baseY - 216, 180, 22, beamMat);
+                    spawnColumn(baseX - 60, baseY - 136, 24, 80, snowOpts);
+                    spawnColumn(baseX + 60, baseY - 136, 24, 80, snowOpts);
+                    spawnBeam(baseX, baseY - 216, 180, 22, goldOpts);
                     spawnPig(baseX, baseY - 136, 28, 'king');
 
                 } else if (archId === 6) {
-                    [-90, 90].forEach(ox => spawnColumn(baseX + ox, baseY, 28, 75, metalOpts));
-                    spawnColumn(baseX, baseY, 22, 75, woodOpts);
+                    // Arquetipo 6: Pirámide con base dorada y cúspide espectral
+                    [-90, 90].forEach(ox => spawnColumn(baseX + ox, baseY, 28, 75, goldOpts));
+                    spawnColumn(baseX, baseY, 22, 75, ghostOpts);
                     spawnBeam(baseX, baseY - 75, 255, 20, beamMat);
                     spawnPig(baseX - 45, baseY, 18, 'cowboy');
                     spawnPig(baseX + 45, baseY, 18, 'cowboy');
 
-                    [-65, 65].forEach(ox => spawnColumn(baseX + ox, baseY - 95, 24, 70, stoneOpts));
-                    spawnBeam(baseX, baseY - 165, 195, 18, metalOpts);
+                    [-65, 65].forEach(ox => spawnColumn(baseX + ox, baseY - 95, 24, 70, snowOpts));
+                    spawnBeam(baseX, baseY - 165, 195, 18, ghostOpts);
                     spawnPig(baseX, baseY - 95, 22, 'helmet');
 
                     [-35, 35].forEach(ox => spawnColumn(baseX + ox, baseY - 183, 20, 60, topMat));
                     spawnBeam(baseX, baseY - 243, 130, 16, topMat);
                     spawnPig(baseX, baseY - 183, 26, 'king');
-                    spawnTriangle(baseX, baseY - 259, 42, metalOpts);
+                    spawnTriangle(baseX, baseY - 259, 42, goldOpts);
 
                 } else if (archId === 7) {
-                    spawnColumn(baseX - 130, baseY, 32, 135, metalOpts);
-                    spawnColumn(baseX + 130, baseY, 32, 135, metalOpts);
-                    spawnBeam(baseX - 65, baseY - 135, 140, 20, beamMat);
-                    spawnBeam(baseX + 65, baseY - 135, 140, 20, beamMat);
+                    // Arquetipo 7: Puente colgante de Fantasma sobre TNT con pilares de Oro
+                    spawnColumn(baseX - 130, baseY, 32, 135, goldOpts);
+                    spawnColumn(baseX + 130, baseY, 32, 135, goldOpts);
+                    spawnBeam(baseX - 65, baseY - 135, 140, 20, ghostOpts);
+                    spawnBeam(baseX + 65, baseY - 135, 140, 20, ghostOpts);
                     spawnBoulder(baseX, baseY - 155, 32);
                     spawnPig(baseX - 60, baseY, 22, 'helmet');
                     spawnPig(baseX + 60, baseY, 22, 'helmet');
+                    spawnTriangle(baseX - 130, baseY - 135, 36, snowOpts);
+                    spawnTriangle(baseX + 130, baseY - 135, 36, snowOpts);
                     spawnTNT(baseX, baseY, 36);
 
                 } else if (archId === 8) {
+                    // Arquetipo 8: Cámara tripartita con estantes de nieve frágil y tesoro dorado
                     for (let r = 0; r < 3; r++) {
                         let cy = baseY - (r * 75);
-                        let cellMat = r === 2 ? metalOpts : (r === 1 ? stoneOpts : woodOpts);
+                        let cellMat = r === 2 ? goldOpts : (r === 1 ? ghostOpts : snowOpts);
                         spawnColumn(baseX - 75, cy, 22, 60, cellMat);
                         spawnColumn(baseX, cy, 22, 60, cellMat);
                         spawnColumn(baseX + 75, cy, 22, 60, cellMat);
-                        spawnBeam(baseX, cy - 60, 195, 18, cellMat);
+                        spawnBeam(baseX, cy - 60, 195, 18, (r === 1) ? ghostOpts : beamMat);
                         if (r === 0) spawnPig(baseX - 35, cy, 18, 'helmet');
                         else if (r === 1) spawnTNT(baseX, cy, 34);
                         else spawnPig(baseX, cy, 26, 'king');
                     }
 
                 } else if (archId === 9) {
-                    spawnColumn(baseX - 110, baseY, 36, 155, metalOpts);
-                    spawnColumn(baseX - 45, baseY, 26, 155, metalOpts);
-                    spawnBeam(baseX - 77, baseY - 155, 130, 24, metalOpts);
+                    // Arquetipo 9: Bastión asimétrico (torre de oro a la izquierda, torre de nieve a la derecha)
+                    spawnColumn(baseX - 110, baseY, 36, 155, goldOpts);
+                    spawnColumn(baseX - 45, baseY, 26, 155, goldOpts);
+                    spawnBeam(baseX - 77, baseY - 155, 130, 24, goldOpts);
                     spawnPig(baseX - 77, baseY, 24, 'helmet');
                     spawnBoulder(baseX - 77, baseY - 179, 26);
 
-                    spawnColumn(baseX + 30, baseY, 22, 95, stoneOpts);
-                    spawnColumn(baseX + 90, baseY, 22, 95, stoneOpts);
-                    spawnBeam(baseX + 60, baseY - 95, 110, 18, woodOpts);
+                    spawnColumn(baseX + 30, baseY, 22, 95, snowOpts);
+                    spawnColumn(baseX + 90, baseY, 22, 95, snowOpts);
+                    spawnBeam(baseX + 60, baseY - 95, 110, 18, ghostOpts);
                     spawnPig(baseX + 60, baseY, 26, 'king');
 
                 } else if (archId === 10) {
-                    spawnColumn(baseX - 145, baseY, 40, 90, metalOpts);
-                    spawnColumn(baseX - 45, baseY, 28, 90, stoneOpts);
-                    spawnColumn(baseX + 45, baseY, 28, 90, stoneOpts);
-                    spawnColumn(baseX + 145, baseY, 40, 90, metalOpts);
-                    spawnBeam(baseX, baseY - 90, 340, 28, metalOpts);
+                    // Arquetipo 10: Acueducto con pilares de Oro macizo y pasarela fantasma
+                    spawnColumn(baseX - 145, baseY, 40, 90, goldOpts);
+                    spawnColumn(baseX - 45, baseY, 28, 90, ghostOpts);
+                    spawnColumn(baseX + 45, baseY, 28, 90, ghostOpts);
+                    spawnColumn(baseX + 145, baseY, 40, 90, goldOpts);
+                    spawnBeam(baseX, baseY - 90, 340, 28, ghostOpts);
                     spawnPig(baseX - 95, baseY, 22, 'helmet');
                     spawnPig(baseX + 95, baseY, 22, 'helmet');
                     spawnPig(baseX, baseY, 28, 'king');
-                    spawnBoulder(baseX - 85, baseY - 118, 26);
-                    spawnBoulder(baseX + 85, baseY - 118, 26);
+                    spawnTriangle(baseX - 85, baseY - 90, 36, snowOpts);
+                    spawnTriangle(baseX + 85, baseY - 90, 36, snowOpts);
+                    spawnBoulder(baseX - 85, baseY - 126, 26);
+                    spawnBoulder(baseX + 85, baseY - 126, 26);
 
                 } else if (archId === 11) {
+                    // Arquetipo 11: Torres de nieve con bóveda central dorada
                     [-140, -60, 60, 140].forEach((ox, idx) => {
                         let h = (idx === 0 || idx === 3) ? 135 : 95;
-                        spawnColumn(baseX + ox, baseY, 28, h, (idx === 0 || idx === 3) ? metalOpts : stoneOpts);
+                        let m = (idx === 0 || idx === 3) ? snowOpts : goldOpts;
+                        spawnColumn(baseX + ox, baseY, 28, h, m);
                     });
-                    spawnBeam(baseX - 100, baseY - 95, 130, 20, woodOpts);
-                    spawnBeam(baseX + 100, baseY - 95, 130, 20, woodOpts);
-                    spawnBeam(baseX, baseY - 135, 325, 24, metalOpts);
+                    spawnBeam(baseX - 100, baseY - 95, 130, 20, ghostOpts);
+                    spawnBeam(baseX + 100, baseY - 95, 130, 20, ghostOpts);
+                    spawnBeam(baseX, baseY - 135, 325, 24, goldOpts);
                     spawnPig(baseX - 100, baseY, 20, 'helmet');
                     spawnPig(baseX + 100, baseY, 20, 'helmet');
                     spawnPig(baseX, baseY - 135, 30, 'king');
 
                 } else if (archId === 12) {
-                    [-95, 0, 95].forEach(ox => {
-                        spawnColumn(baseX + ox - 24, baseY, 22, 100, stoneOpts);
-                        spawnColumn(baseX + ox + 24, baseY, 22, 100, stoneOpts);
-                        spawnBeam(baseX + ox, baseY - 100, 80, 20, metalOpts);
+                    // Arquetipo 12: Triple santuario (Oro, Fantasma y Nieve)
+                    [-95, 0, 95].forEach((ox, i) => {
+                        let m = i === 0 ? goldOpts : (i === 1 ? ghostOpts : snowOpts);
+                        spawnColumn(baseX + ox - 24, baseY, 22, 100, m);
+                        spawnColumn(baseX + ox + 24, baseY, 22, 100, m);
+                        spawnBeam(baseX + ox, baseY - 100, 80, 20, (i === 1) ? ghostOpts : goldOpts);
                         spawnPig(baseX + ox, baseY, 20, 'helmet');
                     });
-                    spawnBeam(baseX, baseY - 150, 280, 22, metalOpts);
+                    spawnBeam(baseX, baseY - 150, 280, 22, beamMat);
                     spawnPig(baseX, baseY - 172, 28, 'king');
                     spawnBoulder(baseX, baseY - 204, 28);
 
                 } else if (archId === 13) {
-                    spawnColumn(baseX - 90, baseY, 32, 100, metalOpts);
-                    spawnColumn(baseX, baseY, 26, 100, stoneOpts);
-                    spawnColumn(baseX + 90, baseY, 32, 100, metalOpts);
-                    spawnBeam(baseX, baseY - 100, 220, 24, metalOpts);
+                    // Arquetipo 13: Fortaleza celestial con globos y entrelazado fantasma
+                    spawnColumn(baseX - 90, baseY, 32, 100, goldOpts);
+                    spawnColumn(baseX, baseY, 26, 100, ghostOpts);
+                    spawnColumn(baseX + 90, baseY, 32, 100, goldOpts);
+                    spawnBeam(baseX, baseY - 100, 220, 24, goldOpts);
                     spawnPig(baseX - 45, baseY, 22, 'helmet');
                     spawnPig(baseX + 45, baseY, 22, 'helmet');
                     spawnBonus(baseX - 125, baseY - 180, 22, 'balloon');
                     spawnBonus(baseX + 125, baseY - 180, 22, 'balloon');
-                    spawnBeam(baseX, baseY - 180, 240, 22, beamMat);
+                    spawnBeam(baseX, baseY - 180, 240, 22, ghostOpts);
+                    spawnTriangle(baseX, baseY - 180, 36, snowOpts);
                     spawnPig(baseX, baseY - 202, 30, 'king');
 
                 } else {
-                    spawnColumn(baseX - 150, baseY, 40, 160, metalOpts);
-                    spawnColumn(baseX - 75, baseY, 26, 160, stoneOpts);
-                    spawnColumn(baseX + 75, baseY, 26, 160, stoneOpts);
-                    spawnColumn(baseX + 150, baseY, 40, 160, metalOpts);
-                    spawnBeam(baseX, baseY - 160, 360, 28, metalOpts);
+                    // Arquetipo 14: Megafuerte imperial de Oro, Fantasma y Nieve
+                    spawnColumn(baseX - 150, baseY, 40, 160, goldOpts);
+                    spawnColumn(baseX - 75, baseY, 26, 160, ghostOpts);
+                    spawnColumn(baseX + 75, baseY, 26, 160, ghostOpts);
+                    spawnColumn(baseX + 150, baseY, 40, 160, goldOpts);
+                    spawnBeam(baseX, baseY - 160, 360, 28, goldOpts);
                     spawnPig(baseX - 110, baseY, 22, 'helmet');
                     spawnPig(baseX + 110, baseY, 22, 'helmet');
-                    spawnColumn(baseX - 80, baseY - 188, 24, 80, metalOpts);
-                    spawnColumn(baseX + 80, baseY - 188, 24, 80, metalOpts);
-                    spawnBeam(baseX, baseY - 268, 210, 22, stoneOpts);
+                    spawnColumn(baseX - 80, baseY - 188, 24, 80, snowOpts);
+                    spawnColumn(baseX + 80, baseY - 188, 24, 80, snowOpts);
+                    spawnBeam(baseX, baseY - 268, 210, 22, ghostOpts);
                     spawnPig(baseX, baseY - 188, 30, 'king');
                     spawnBoulder(baseX, baseY - 290, 32);
                 }
@@ -1518,14 +1605,16 @@
                         const other = idx === 0 ? bodyB : bodyA;
                         if (b.hp !== undefined && !b.isDead) {
                             const isBirdHit = other.label === 'bird';
-                            const isSignificantImpact = relVel > 1.2;
+                            const isSignificantImpact = relVel > (b.label.includes('snow') ? 0.3 : 1.2);
 
                             if (isBirdHit || isSignificantImpact) {
                                 const now = levelFrameCount;
                                 if (!b.lastHitFrame || (now - b.lastHitFrame > 10)) {
                                     b.lastHitFrame = now;
 
-                                    if (b.label === 'ice') {
+                                    if (b.label === 'snow' || b.label === 'snow_tri') {
+                                        b.hp = 0; // Nieve: se destruye instantáneamente al mínimo impacto
+                                    } else if (b.label === 'ice') {
                                         b.hp = 0;
                                     } else if (b.label === 'wood' || b.label === 'wood_tri') {
                                         let dmg = (other.birdType === 'yellow') ? 2 : 1;
@@ -1536,6 +1625,13 @@
                                     } else if (b.label === 'metal' || b.label === 'metal_tri') {
                                         let dmg = (other.birdType === 'black') ? 3 : ((other.birdType === 'yellow') ? 2 : 1);
                                         b.hp -= dmg;
+                                    } else if (b.label === 'gold' || b.label === 'gold_tri') {
+                                        // Oro: Ultra resistente (5 HP), pájaro bomba negro inflige 3 de daño directo
+                                        let dmg = (other.birdType === 'black') ? 3 : ((other.birdType === 'yellow') ? 2 : 1);
+                                        b.hp -= dmg;
+                                    } else if (b.label === 'ghost' || b.label === 'ghost_tri') {
+                                        // Los pájaros lo traspasan; colisiones de otros bloques lo dañan
+                                        b.hp -= 1;
                                     }
 
                                     if (b.hp <= 0) {
@@ -2122,6 +2218,115 @@
                     }
                 }
 
+            } else if (label === 'gold' || label === 'gold_tri') {
+                const goldGrad = ctx.createLinearGradient(-width/2, -height/2, width/2, height/2);
+                goldGrad.addColorStop(0, '#fffbeb');
+                goldGrad.addColorStop(0.2, '#fde047');
+                goldGrad.addColorStop(0.5, '#eab308');
+                goldGrad.addColorStop(0.8, '#ca8a04');
+                goldGrad.addColorStop(1, '#854d0e');
+                ctx.fillStyle = goldGrad;
+                ctx.strokeStyle = '#713f12';
+                ctx.lineWidth = 3.5;
+
+                if (label === 'gold_tri') {
+                    ctx.beginPath();
+                    ctx.moveTo(-width / 2, height / 2);
+                    ctx.lineTo(width / 2, height / 2);
+                    ctx.lineTo(0, -height / 2);
+                    ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+
+                    ctx.strokeStyle = '#fef08a';
+                    ctx.lineWidth = 1.8;
+                    ctx.beginPath();
+                    ctx.moveTo(-width * 0.22, height * 0.25);
+                    ctx.lineTo(0, -height * 0.18);
+                    ctx.stroke();
+                } else {
+                    ctx.fillRect(-width / 2, -height / 2, width, height);
+                    ctx.strokeRect(-width / 2, -height / 2, width, height);
+
+                    // Bisel y brillo dorado especular
+                    ctx.strokeStyle = '#fef08a';
+                    ctx.lineWidth = 1.6;
+                    ctx.strokeRect(-width / 2 + 3, -height / 2 + 3, width - 6, height - 6);
+
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(-width / 2 + 5, -height / 2 + 5);
+                    ctx.lineTo(width / 2 - 5, -height / 2 + 5);
+                    ctx.stroke();
+
+                    // Perno o gema dorada en el centro
+                    ctx.fillStyle = '#fef9c3';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, Math.min(width, height) * 0.14, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#a16207';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+            } else if (label === 'ghost' || label === 'ghost_tri') {
+                const pulse = Math.sin(levelFrameCount * 0.08) * 0.12 + 0.5;
+                ctx.fillStyle = `rgba(165, 243, 252, ${pulse * 0.55})`;
+                ctx.strokeStyle = `rgba(103, 232, 249, ${pulse * 0.95})`;
+                ctx.lineWidth = 2.5;
+
+                ctx.shadowColor = '#38bdf8';
+                ctx.shadowBlur = 10;
+
+                if (label === 'ghost_tri') {
+                    ctx.beginPath();
+                    ctx.moveTo(-width / 2, height / 2);
+                    ctx.lineTo(width / 2, height / 2);
+                    ctx.lineTo(0, -height / 2);
+                    ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+                } else {
+                    ctx.fillRect(-width / 2, -height / 2, width, height);
+                    ctx.strokeRect(-width / 2, -height / 2, width, height);
+
+                    // Líneas espectrales de energía interior
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(-width * 0.35, -height * 0.2);
+                    ctx.quadraticCurveTo(0, 0, width * 0.35, height * 0.2);
+                    ctx.stroke();
+                }
+                ctx.shadowBlur = 0;
+
+            } else if (label === 'snow' || label === 'snow_tri') {
+                const snowGrad = ctx.createLinearGradient(0, -height/2, 0, height/2);
+                snowGrad.addColorStop(0, '#ffffff');
+                snowGrad.addColorStop(0.7, '#f1f5f9');
+                snowGrad.addColorStop(1, '#e2e8f0');
+                ctx.fillStyle = snowGrad;
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 2;
+
+                if (label === 'snow_tri') {
+                    ctx.beginPath();
+                    ctx.moveTo(-width / 2, height / 2);
+                    ctx.lineTo(width / 2, height / 2);
+                    ctx.lineTo(0, -height / 2);
+                    ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+                } else {
+                    // Bloque con bordes suaves de nieve
+                    ctx.fillRect(-width / 2, -height / 2, width, height);
+                    ctx.strokeRect(-width / 2, -height / 2, width, height);
+
+                    // Copa de nieve superior suave
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.ellipse(0, -height / 2 + 3, width * 0.45, 3.5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
             } else if (label === 'stone' || label === 'stone_tri' || label === 'boulder') {
                 ctx.fillStyle = '#7f8c8d';
                 ctx.strokeStyle = '#4f5d65';
@@ -2181,9 +2386,9 @@
 
             // Renderizado de grietas por daño
             const damageTaken = maxHp - hp;
-            if (damageTaken > 0 && label !== 'tnt') {
+            if (damageTaken > 0 && label !== 'tnt' && !label.includes('snow') && !label.includes('ghost')) {
                 ctx.save();
-                ctx.strokeStyle = label === 'ice' ? 'rgba(255, 255, 255, 0.95)' : (label === 'metal' || label === 'metal_tri' ? 'rgba(20, 30, 40, 0.9)' : 'rgba(35, 20, 10, 0.8)');
+                ctx.strokeStyle = label === 'ice' ? 'rgba(255, 255, 255, 0.95)' : (label.includes('gold') ? 'rgba(113, 63, 18, 0.9)' : (label === 'metal' || label === 'metal_tri' ? 'rgba(20, 30, 40, 0.9)' : 'rgba(35, 20, 10, 0.8)'));
                 ctx.lineWidth = label === 'ice' ? 2.0 : 1.8;
                 ctx.beginPath();
 
@@ -2439,6 +2644,9 @@
             const stoneColors = ['#7f8c8d', '#95a5a6', '#6c7a7a', '#566573', '#abb2b9'];
             const iceColors = ['rgba(173, 230, 245, 0.85)', 'rgba(215, 248, 255, 0.95)', 'rgba(130, 210, 235, 0.8)'];
             const metalColors = ['#7f8c8d', '#bdc3c7', '#95a5a6', '#5d6d7e', '#485460'];
+            const goldColors = ['#fde047', '#eab308', '#ca8a04', '#fef08a', '#854d0e'];
+            const ghostColors = ['rgba(165, 243, 252, 0.8)', 'rgba(103, 232, 249, 0.75)', 'rgba(224, 242, 254, 0.9)'];
+            const snowColors = ['#ffffff', '#f8fafc', '#f1f5f9', '#e2e8f0', '#cbd5e1'];
 
             const cosA = Math.cos(block.angle);
             const sinA = Math.sin(block.angle);
@@ -2481,6 +2689,15 @@
                     } else if (label.includes('metal')) {
                         color = metalColors[Math.floor(Math.random() * metalColors.length)];
                         bounce = 0.18;
+                    } else if (label.includes('gold')) {
+                        color = goldColors[Math.floor(Math.random() * goldColors.length)];
+                        bounce = 0.15;
+                    } else if (label.includes('ghost')) {
+                        color = ghostColors[Math.floor(Math.random() * ghostColors.length)];
+                        bounce = 0.5;
+                    } else if (label.includes('snow')) {
+                        color = snowColors[Math.floor(Math.random() * snowColors.length)];
+                        bounce = 0.1;
                     } else if (label === 'tnt') {
                         color = Math.random() > 0.4 ? '#b32424' : '#f1c40f';
                         bounce = 0.3;
@@ -2508,9 +2725,12 @@
             if (label.includes('stone') || label === 'boulder') puffColor = 'rgba(160, 165, 170, ';
             else if (label === 'ice') puffColor = 'rgba(200, 240, 255, ';
             else if (label.includes('metal')) puffColor = 'rgba(180, 190, 200, ';
+            else if (label.includes('gold')) puffColor = 'rgba(254, 240, 138, ';
+            else if (label.includes('ghost')) puffColor = 'rgba(125, 211, 252, ';
+            else if (label.includes('snow')) puffColor = 'rgba(255, 255, 255, ';
             else if (label === 'tnt') puffColor = 'rgba(220, 100, 40, ';
 
-            const numPuffs = 4 + Math.floor(Math.random() * 4);
+            const numPuffs = (label.includes('snow') ? 8 : 4) + Math.floor(Math.random() * 4);
             for (let p = 0; p < numPuffs; p++) {
                 activePuffs.push({
                     x: block.position.x + (Math.random() - 0.5) * w * 0.6,
@@ -2520,7 +2740,7 @@
                     radius: 5 + Math.random() * 8,
                     maxRadius: 18 + Math.random() * 16,
                     color: puffColor,
-                    baseAlpha: 0.55,
+                    baseAlpha: label.includes('snow') ? 0.8 : 0.55,
                     timer: 0,
                     maxTimer: 25 + Math.floor(Math.random() * 15)
                 });
@@ -2610,6 +2830,14 @@
                 d.angle += d.vRot;
                 d.vx *= 0.99;
 
+                blocks.forEach(b => {
+                    if ((b.label === 'snow' || b.label === 'snow_tri') && !b.isDead) {
+                        if (d.x >= b.bounds.min.x && d.x <= b.bounds.max.x && d.y >= b.bounds.min.y && d.y <= b.bounds.max.y) {
+                            b.isDead = true;
+                        }
+                    }
+                });
+
                 if (d.y >= groundY - d.size) {
                     d.y = groundY - d.size;
                     d.vy = -d.vy * d.bounce;
@@ -2687,6 +2915,23 @@
                 ctx.beginPath();
                 ctx.moveTo(-d.size * 0.5, -d.size * 0.3);
                 ctx.lineTo(d.size * 0.5, -d.size * 0.3);
+                ctx.stroke();
+            } else if (d.label && d.label.includes('gold')) {
+                ctx.strokeStyle = '#854d0e';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.strokeStyle = 'rgba(254, 240, 138, 0.8)';
+                ctx.beginPath();
+                ctx.moveTo(-d.size * 0.4, -d.size * 0.2);
+                ctx.lineTo(d.size * 0.4, d.size * 0.2);
+                ctx.stroke();
+            } else if (d.label && d.label.includes('ghost')) {
+                ctx.strokeStyle = 'rgba(125, 211, 252, 0.9)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            } else if (d.label && d.label.includes('snow')) {
+                ctx.strokeStyle = 'rgba(203, 213, 225, 0.6)';
+                ctx.lineWidth = 0.8;
                 ctx.stroke();
             } else {
                 ctx.strokeStyle = 'rgba(0,0,0,0.3)';
