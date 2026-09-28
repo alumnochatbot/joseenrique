@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jose Enrique | Portafolio Personal</title>
+    <title>Jose Enrique | Desarrollador de Aplicaciones Web y Móviles</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -18,6 +18,28 @@
         .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
         .faq-item.active .faq-answer { max-height: 200px; padding-bottom: 1.25rem; }
         .faq-item.active .faq-icon { transform: rotate(180deg); }
+
+        /* Floating live preview container */
+        #floating-preview {
+            position: fixed;
+            pointer-events: none;
+            z-index: 100;
+            width: 1024px;
+            height: 600px;
+            transform: scale(0.25);
+            transform-origin: top left;
+            display: none;
+            overflow: hidden;
+            border: 4px solid #3b82f6;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            background-color: #020617;
+        }
+        #floating-preview iframe {
+            width: 1024px;
+            height: 600px;
+            border: none;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 bg-grid">
@@ -44,20 +66,34 @@
         <!-- PESTAÑA: INICIO -->
         <div id="inicio" class="tab-content active pt-32 animate-fade-in">
             <header class="relative pb-20 px-6 overflow-hidden">
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_10%,#1e40af33,transparent_50%)] pointer-events-none"></div>
-                <div class="max-w-4xl mx-auto text-center relative z-10">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold mb-6">
+                <!-- Image Slider Background -->
+                <div id="hero-slider" class="absolute inset-0 z-0 pointer-events-none">
+                    <div class="absolute inset-0 bg-slate-950/70 z-10"></div> <!-- Dark overlay -->
+                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" style="background-image: url('assets/images/slide1.png');"></div>
+                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide2.png');"></div>
+                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide3.png');"></div>
+                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide4.png');"></div>
+                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide5.png');"></div>
+                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide6.png');"></div>
+                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide7.png');"></div>
+                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide8.png');"></div>
+                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide9.png');"></div>
+                </div>
+
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_10%,#1e40af33,transparent_50%)] pointer-events-none z-10"></div>
+                <div class="max-w-4xl mx-auto text-center relative z-20">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold mb-6 backdrop-blur-sm">
                         <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
                         DISPONIBLE PARA PROYECTOS
                     </div>
                     <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">
-                        Diseñando el Futuro <br>con <span class="text-blue-500">IA y Creatividad</span>
+                        Desarrollo de <br>Aplicaciones <span class="text-blue-500">Web y Mobile</span>
                     </h1>
                     <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-                        Hola, soy <span class="text-white font-medium">Jose Enrique</span> de la Unidad Educativa Cambridge. Estudiante apasionado por la inteligencia artificial y el diseño de experiencias digitales únicas.
+                        Hola, soy <span class="text-white font-medium">Jose Enrique</span> de la Unidad Educativa Cambridge. Estudiante apasionado por el desarrollo de software y la creación de soluciones interactivas, responsivas y de alto rendimiento para web y dispositivos móviles.
                     </p>
                     <div class="flex flex-wrap justify-center gap-4">
-                        <button onclick="switchTab('proyectos')" class="px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold transition-all transform hover:scale-105 flex items-center gap-2">
+        <button onclick="document.getElementById('inicio-proyectos').scrollIntoView({ behavior: 'smooth' })" class="px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold transition-all transform hover:scale-105 flex items-center gap-2">
                             Ver Proyectos <i class="fa-solid fa-chevron-down text-xs"></i>
                         </button>
                         <button onclick="switchTab('ayuda')" class="px-8 py-4 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl font-bold transition-all flex items-center gap-2">
@@ -78,30 +114,93 @@
                         <!-- Card 1 -->
                         <div class="p-8 rounded-2xl bg-slate-950 border border-slate-800 hover:border-blue-500/50 transition-all group">
                             <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-6 group-hover:bg-blue-500 group-hover:text-white transition-all">
-                                <i class="fa-solid fa-layer-group text-xl"></i>
+                                <i class="fa-solid fa-mobile-screen-button text-xl"></i>
                             </div>
-                            <h3 class="text-xl font-bold mb-2">Diseño Web</h3>
+                            <h3 class="text-xl font-bold mb-2">Desarrollo Frontend y Mobile</h3>
                             <p class="text-blue-400 text-sm mb-4 font-medium uppercase tracking-wider">Avanzado</p>
-                            <p class="text-slate-400 text-sm leading-relaxed">Creación de interfaces modernas, responsivas y centradas en el usuario.</p>
+                            <p class="text-slate-400 text-sm leading-relaxed">Creación de interfaces web y móviles modernas, responsivas y optimizadas, empleando estándares actuales y diseños fluidos.</p>
                         </div>
                         <!-- Card 2 -->
                         <div class="p-8 rounded-2xl bg-slate-950 border border-slate-800 hover:border-blue-500/50 transition-all group">
                             <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-6 group-hover:bg-blue-500 group-hover:text-white transition-all">
-                                <i class="fa-solid fa-microchip text-xl"></i>
+                                <i class="fa-solid fa-cube text-xl"></i>
                             </div>
-                            <h3 class="text-xl font-bold mb-2">Inteligencia Artificial</h3>
+                            <h3 class="text-xl font-bold mb-2">Integración de IA & APIs</h3>
                             <p class="text-blue-400 text-sm mb-4 font-medium uppercase tracking-wider">En formación</p>
-                            <p class="text-slate-400 text-sm leading-relaxed">Exploración de modelos LLM, agentes autónomos y automatización de procesos.</p>
+                            <p class="text-slate-400 text-sm leading-relaxed">Consumo de APIs rest, sincronización de bases de datos en tiempo real y características inteligentes como asistentes y chatbots interactivos.</p>
                         </div>
                         <!-- Card 3 -->
                         <div class="p-8 rounded-2xl bg-slate-950 border border-slate-800 hover:border-blue-500/50 transition-all group">
                             <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-6 group-hover:bg-blue-500 group-hover:text-white transition-all">
-                                <i class="fa-solid fa-gamepad text-xl"></i>
+                                <i class="fa-solid fa-palette text-xl"></i>
                             </div>
-                            <h3 class="text-xl font-bold mb-2">Generación IA Minecraft</h3>
+                            <h3 class="text-xl font-bold mb-2">Diseño UX/UI & Prototipado</h3>
                             <p class="text-blue-400 text-sm mb-4 font-medium uppercase tracking-wider">Especialista</p>
-                            <p class="text-slate-400 text-sm leading-relaxed">Creación de mundos procedurales y assets mediante ingeniería de prompts.</p>
+                            <p class="text-slate-400 text-sm leading-relaxed">Diseño de la experiencia y del flujo de usuario, wireframing detallado y prototipado rápido con Tailwind CSS para máxima interactividad.</p>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de proyectos integrada en inicio -->
+            <section id="inicio-proyectos" class="py-10 px-6">
+                <div class="max-w-6xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-12 text-center">Mis Proyectos y Juegos</h2>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <!-- Minecraft -->
+                        <a href="minecraft.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧱</div>
+                            <h3 class="font-bold text-lg mb-2">Minecraft</h3>
+                            <p class="text-slate-400 text-xs">Juego sandbox creativo</p>
+                        </a>
+                        <!-- Ajedrez 3d -->
+                        <a href="ajedrez3d.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">♟️</div>
+                            <h3 class="font-bold text-lg mb-2">Ajedrez 3D</h3>
+                            <p class="text-slate-400 text-xs">Desafío estratégico</p>
+                        </a>
+                        <!-- Angry bird -->
+                        <a href="angrybird.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐦</div>
+                            <h3 class="font-bold text-lg mb-2">Angry Bird</h3>
+                            <p class="text-slate-400 text-xs">Juego de física</p>
+                        </a>
+                        <!-- Blooket -->
+                        <a href="blooket.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🎮</div>
+                            <h3 class="font-bold text-lg mb-2">Blooket</h3>
+                            <p class="text-slate-400 text-xs">Aprendizaje interactivo</p>
+                        </a>
+                        <!-- Roblox -->
+                        <a href="roblox.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🚀</div>
+                            <h3 class="font-bold text-lg mb-2">Roblox</h3>
+                            <p class="text-slate-400 text-xs">Mundos compartidos</p>
+                        </a>
+                        <!-- Quiero queque -->
+                        <a href="quieroqueque.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🍰</div>
+                            <h3 class="font-bold text-lg mb-2">Quiero Queque</h3>
+                            <p class="text-slate-400 text-xs">Juego de cocina</p>
+                        </a>
+                        <!-- Serpiente -->
+                        <a href="serpiente.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐍</div>
+                            <h3 class="font-bold text-lg mb-2">Serpiente</h3>
+                            <p class="text-slate-400 text-xs">Juego de agilidad mental</p>
+                        </a>
+                        <!-- Laberinto -->
+                        <a href="laberinto.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧩</div>
+                            <h3 class="font-bold text-lg mb-2">Laberinto</h3>
+                            <p class="text-slate-400 text-xs">Dungeon crawler hardcore</p>
+                        </a>
+                        <!-- Juego del Calamar -->
+                        <a href="juegodelcalamar.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🦑</div>
+                            <h3 class="font-bold text-lg mb-2">Juego del Calamar</h3>
+                            <p class="text-slate-400 text-xs">Juego de supervivencia</p>
+                        </a>
                     </div>
                 </div>
             </section>
@@ -111,36 +210,62 @@
         <div id="proyectos" class="tab-content pt-32">
             <section class="py-10 px-6">
                 <div class="max-w-6xl mx-auto">
-                    <div class="bg-gradient-to-r from-blue-900/40 to-slate-900 rounded-3xl border border-slate-800 p-8 md:p-12 flex flex-col md:flex-row items-center gap-12">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2 text-blue-400 font-bold text-sm mb-4">
-                                <i class="fa-solid fa-star text-xs"></i> PROYECTO DESTACADO
-                            </div>
-                            <h2 class="text-4xl font-bold mb-6">Universo Minecraft con IA</h2>
-                            <p class="text-slate-300 text-lg mb-8 leading-relaxed">
-                                Proyecto de vanguardia que utiliza algoritmos generativos para diseñar estructuras masivas y biomas personalizados dentro de Minecraft.
-                            </p>
-                            <ul class="space-y-4 mb-10">
-                                <li class="flex items-center gap-3 text-slate-400">
-                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> Automatización de Assets 3D
-                                </li>
-                                <li class="flex items-center gap-3 text-slate-400">
-                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> Prompt Engineering aplicado a Voxel Art
-                                </li>
-                                <li class="flex items-center gap-3 text-slate-400">
-                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> Integración de Scripts procedimentales
-                                </li>
-                            </ul>
-                            <button class="px-6 py-3 border border-slate-700 rounded-lg hover:bg-slate-800 transition-all flex items-center gap-2">
-                                Ver Demo [Imagen de Proyecto Minecraft] <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
-                            </button>
-                        </div>
-                        <div class="flex-1 w-full relative">
-                            <div class="aspect-video bg-slate-800 rounded-2xl border border-slate-700 shadow-2xl flex items-center justify-center relative overflow-hidden group">
-                                <div class="absolute inset-0 bg-blue-600/10 group-hover:bg-transparent transition-all"></div>
-                                <span class="text-slate-500 font-medium italic">Previsualización del Mapa IA</span>
-                            </div>
-                        </div>
+                    <h2 class="text-3xl font-bold mb-12 text-center">Mis Proyectos y Juegos</h2>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <!-- Minecraft -->
+                        <a href="minecraft.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧱</div>
+                            <h3 class="font-bold text-lg mb-2">Minecraft</h3>
+                            <p class="text-slate-400 text-xs">Juego sandbox creativo</p>
+                        </a>
+                        <!-- Ajedrez 3d -->
+                        <a href="ajedrez3d.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">♟️</div>
+                            <h3 class="font-bold text-lg mb-2">Ajedrez 3D</h3>
+                            <p class="text-slate-400 text-xs">Desafío estratégico</p>
+                        </a>
+                        <!-- Angry bird -->
+                        <a href="angrybird.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐦</div>
+                            <h3 class="font-bold text-lg mb-2">Angry Bird</h3>
+                            <p class="text-slate-400 text-xs">Juego de física</p>
+                        </a>
+                        <!-- Blooket -->
+                        <a href="blooket.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🎮</div>
+                            <h3 class="font-bold text-lg mb-2">Blooket</h3>
+                            <p class="text-slate-400 text-xs">Aprendizaje interactivo</p>
+                        </a>
+                        <!-- Roblox -->
+                        <a href="roblox.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🚀</div>
+                            <h3 class="font-bold text-lg mb-2">Roblox</h3>
+                            <p class="text-slate-400 text-xs">Mundos compartidos</p>
+                        </a>
+                        <!-- Quiero queque -->
+                        <a href="quieroqueque.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🍰</div>
+                            <h3 class="font-bold text-lg mb-2">Quiero Queque</h3>
+                            <p class="text-slate-400 text-xs">Juego de cocina</p>
+                        </a>
+                        <!-- Serpiente -->
+                        <a href="serpiente.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐍</div>
+                            <h3 class="font-bold text-lg mb-2">Serpiente</h3>
+                            <p class="text-slate-400 text-xs">Juego de agilidad mental</p>
+                        </a>
+                        <!-- Laberinto -->
+                        <a href="laberinto.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧩</div>
+                            <h3 class="font-bold text-lg mb-2">Laberinto</h3>
+                            <p class="text-slate-400 text-xs">Dungeon crawler hardcore</p>
+                        </a>
+                        <!-- Juego del Calamar -->
+                        <a href="juegodelcalamar.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🦑</div>
+                            <h3 class="font-bold text-lg mb-2">Juego del Calamar</h3>
+                            <p class="text-slate-400 text-xs">Juego de supervivencia</p>
+                        </a>
                     </div>
                 </div>
             </section>
@@ -281,7 +406,59 @@
         </div>
     </footer>
 
+    <!-- Contenedor flotante para simular vista previa de aplicaciones al pasar el cursor -->
+    <div id="floating-preview">
+        <iframe id="preview-iframe" src=""></iframe>
+    </div>
+
     <script>
+        // Lógica del simulador de vistas previas flotantes guiadas por cursor
+        document.addEventListener("DOMContentLoaded", () => {
+            const previewContainer = document.getElementById("floating-preview");
+            const previewIframe = document.getElementById("preview-iframe");
+
+            // Selector para todas las tarjetas de proyectos que tengan links locales
+            const projectCards = document.querySelectorAll("#inicio-proyectos a, #proyectos a");
+
+            projectCards.forEach(card => {
+                card.addEventListener("mouseenter", (e) => {
+                    const href = card.getAttribute("href");
+                    if (href && !href.startsWith("http")) {
+                        previewIframe.src = href;
+                        previewContainer.style.display = "block";
+                    }
+                });
+
+                card.addEventListener("mousemove", (e) => {
+                    // Posicionamos el contenedor un poco desfasado del cursor para que no lo cubra y se mueva suavemente
+                    const offsetX = 20;
+                    const offsetY = 20;
+
+                    // Aseguramos que la ventana no se desborde por los límites derecho o inferior
+                    let x = e.clientX + offsetX;
+                    let y = e.clientY + offsetY;
+
+                    // Ajustar si se sale por la derecha (tomando en cuenta el escalado de 0.25 en un contenedor de 1024px, lo que equivale a 256px de ancho real renderizado)
+                    if (x + 260 > window.innerWidth) {
+                        x = e.clientX - 270;
+                    }
+                    // Ajustar si se sale por abajo (150px de alto real renderizado)
+                    if (y + 160 > window.innerHeight) {
+                        y = e.clientY - 170;
+                    }
+
+                    previewContainer.style.left = `${x}px`;
+                    previewContainer.style.top = `${y}px`;
+                });
+
+                card.addEventListener("mouseleave", () => {
+                    previewContainer.style.display = "none";
+                    // Inmediatamente descargamos el iframe src para detener ejecuciones de juegos y ruidos en background
+                    previewIframe.src = "";
+                });
+            });
+        });
+
         // Lógica de cambio de pestañas
         function switchTab(tabId) {
             // Ocultar todos los contenidos
@@ -319,6 +496,23 @@
             }
         };
 
+        // Hero Background Fading Slider Logic
+        document.addEventListener("DOMContentLoaded", () => {
+            const slides = document.querySelectorAll('.hero-slide');
+            if (slides.length > 0) {
+                let currentSlide = 0;
+                setInterval(() => {
+                    slides[currentSlide].classList.remove('opacity-100');
+                    slides[currentSlide].classList.add('opacity-0');
+
+                    currentSlide = (currentSlide + 1) % slides.length;
+
+                    slides[currentSlide].classList.remove('opacity-0');
+                    slides[currentSlide].classList.add('opacity-100');
+                }, 4000); // Change image every 4 seconds
+            }
+        });
+
         // Lógica FAQ (Acordeón)
         function toggleFaq(btn) {
             const item = btn.parentElement;
@@ -354,5 +548,13 @@
             }, 1500);
         }
     </script>
+
+        <script
+        src="https://catza-digital.github.io/catza-ai-widget/widget.js"
+        data-client="joseenrique"
+        data-position="right"
+        data-message="🤖 ¿Hola soy Jose tu asistente virtual ?">
+        </script>
+    
 </body>
 </html>
