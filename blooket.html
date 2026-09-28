@@ -105,18 +105,6 @@
 
             <p id="draft-subtitle" class="text-slate-300 text-xs sm:text-sm font-black tracking-wide mb-0.5">Choose an Upgrade</p>
             <h2 id="draft-title" class="text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow-[0_4px_0_#1a222d] mb-5">Level Up</h2>
-            
-            <!-- CONTENEDOR DE PREGUNTAS (BLOOKET TRIVIA ENGINE) -->
-            <div id="quiz-container" class="hidden max-w-md mx-auto bg-[#1a202c] p-5 rounded-2xl border-2 border-cyan-500/50 shadow-xl mb-4">
-                <div class="flex justify-between items-center mb-3">
-                    <span class="text-xs font-bold tracking-widest text-cyan-400 uppercase">Validación de Nivel</span>
-                    <span id="quiz-step-counter" class="text-xs font-black text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-600/40">1/1</span>
-                </div>
-                <div id="quiz-question" class="text-lg font-black text-white mb-4">¿Pregunta?</div>
-                <div id="quiz-answers" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <!-- Opciones de respuesta inyectadas por JS -->
-                </div>
-            </div>
 
             <div id="draft-options" class="flex flex-col gap-3 w-full">
                 <!-- Inyectado por JS -->
@@ -908,21 +896,268 @@ class Player {
         ctxCanvas.scale((r / 20) * (2 - bounce), (r / 20) * bounce);
         ctxCanvas.translate(-32, -34);
 
-        if (currentSkinId === 'verde') {
-            let grad = ctxCanvas.createRadialGradient(32, 30, 0, 32, 30, 20);
-            grad.addColorStop(0, '#4ade80'); grad.addColorStop(1, '#166534');
-            ctxCanvas.fillStyle = grad;
-            ctxCanvas.beginPath(); ctxCanvas.moveTo(12, 40); ctxCanvas.bezierCurveTo(12, 18, 52, 18, 52, 40);
-            ctxCanvas.bezierCurveTo(52, 48, 44, 48, 32, 48); ctxCanvas.bezierCurveTo(20, 48, 12, 48, 12, 40); ctxCanvas.fill();
-            ctxCanvas.fillStyle = 'white';
-            ctxCanvas.beginPath(); ctxCanvas.arc(24, 34, 4.5, 0, Math.PI * 2); ctxCanvas.fill();
-            ctxCanvas.beginPath(); ctxCanvas.arc(40, 34, 4.5, 0, Math.PI * 2); ctxCanvas.fill();
-            ctxCanvas.fillStyle = 'black';
-            ctxCanvas.beginPath(); ctxCanvas.arc(24, 34, 2, 0, Math.PI * 2); ctxCanvas.fill();
-            ctxCanvas.beginPath(); ctxCanvas.arc(40, 34, 2, 0, Math.PI * 2); ctxCanvas.fill();
-        } else {
-            ctxCanvas.fillStyle = '#3b82f6';
-            ctxCanvas.beginPath(); ctxCanvas.arc(32, 34, 18, 0, Math.PI * 2); ctxCanvas.fill();
+        const drawBaseSlime = (fillGrad) => {
+            ctxCanvas.fillStyle = fillGrad;
+            ctxCanvas.beginPath();
+            ctxCanvas.moveTo(12, 40);
+            ctxCanvas.bezierCurveTo(12, 18, 52, 18, 52, 40);
+            ctxCanvas.bezierCurveTo(52, 48, 44, 48, 32, 48);
+            ctxCanvas.bezierCurveTo(20, 48, 12, 48, 12, 40);
+            ctxCanvas.closePath();
+            ctxCanvas.fill();
+        };
+
+        switch (currentSkinId) {
+            case 'rojo': {
+                // 1. Lava Caliente: Magma slime con grietas ardientes, fuego superior y ojos dorados
+                let grad = ctxCanvas.createRadialGradient(32, 30, 0, 32, 32, 22);
+                grad.addColorStop(0, '#f97316');
+                grad.addColorStop(0.6, '#ea580c');
+                grad.addColorStop(1, '#7f1d1d');
+                drawBaseSlime(grad);
+
+                // Llamas y cuernos ígneos en la cabeza
+                ctxCanvas.fillStyle = '#f97316';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(22, 22); ctxCanvas.quadraticCurveTo(25, 12, 28, 18);
+                ctxCanvas.quadraticCurveTo(32, 9, 36, 18);
+                ctxCanvas.quadraticCurveTo(39, 11, 42, 22);
+                ctxCanvas.closePath(); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#fde047';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(27, 20); ctxCanvas.quadraticCurveTo(32, 12, 37, 20); ctxCanvas.closePath(); ctxCanvas.fill();
+
+                // Grietas de lava brillante
+                ctxCanvas.strokeStyle = '#fef08a';
+                ctxCanvas.lineWidth = 1.6;
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(18, 38); ctxCanvas.lineTo(26, 42); ctxCanvas.lineTo(34, 40);
+                ctxCanvas.moveTo(38, 41); ctxCanvas.lineTo(44, 38);
+                ctxCanvas.stroke();
+
+                // Cejas feroces oscuras
+                ctxCanvas.strokeStyle = '#450a0a';
+                ctxCanvas.lineWidth = 2.5;
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(20, 29); ctxCanvas.lineTo(27, 32);
+                ctxCanvas.moveTo(44, 29); ctxCanvas.lineTo(37, 32);
+                ctxCanvas.stroke();
+
+                // Ojos ambarinos incandescentes
+                ctxCanvas.fillStyle = '#facc15';
+                ctxCanvas.beginPath(); ctxCanvas.arc(24, 34, 4.5, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(40, 34, 4.5, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#450a0a';
+                ctxCanvas.beginPath(); ctxCanvas.arc(24, 34, 2.2, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(40, 34, 2.2, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath(); ctxCanvas.arc(25.2, 33, 1, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(41.2, 33, 1, 0, Math.PI * 2); ctxCanvas.fill();
+
+                // Boca de lava
+                ctxCanvas.strokeStyle = '#fde047';
+                ctxCanvas.lineWidth = 2;
+                ctxCanvas.beginPath();
+                ctxCanvas.arc(32, 42, 4.5, 0.2, Math.PI - 0.2);
+                ctxCanvas.stroke();
+                break;
+            }
+            case 'azul': {
+                // 2. Hielo Profundo: Slime glacial con corona de diamantes de hielo y reflejos
+                let grad = ctxCanvas.createRadialGradient(32, 28, 0, 32, 32, 22);
+                grad.addColorStop(0, '#7dd3fc');
+                grad.addColorStop(0.5, '#0284c7');
+                grad.addColorStop(1, '#0c4a6e');
+                drawBaseSlime(grad);
+
+                // Corona de cristales de hielo en la cabeza
+                ctxCanvas.fillStyle = '#38bdf8';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(24, 21); ctxCanvas.lineTo(27, 12); ctxCanvas.lineTo(32, 18);
+                ctxCanvas.lineTo(37, 12); ctxCanvas.lineTo(40, 21); ctxCanvas.closePath(); ctxCanvas.fill();
+                // Facetas de diamante en la corona
+                ctxCanvas.fillStyle = '#e0f2fe';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(27, 12); ctxCanvas.lineTo(32, 7); ctxCanvas.lineTo(37, 12); ctxCanvas.lineTo(32, 17);
+                ctxCanvas.closePath(); ctxCanvas.fill();
+                ctxCanvas.strokeStyle = '#0284c7';
+                ctxCanvas.lineWidth = 1.2;
+                ctxCanvas.stroke();
+
+                // Destellos de hielo en el cuerpo
+                ctxCanvas.fillStyle = 'rgba(255, 255, 255, 0.65)';
+                ctxCanvas.beginPath();
+                ctxCanvas.arc(20, 24, 3, 0, Math.PI * 2);
+                ctxCanvas.arc(25, 20, 1.8, 0, Math.PI * 2);
+                ctxCanvas.fill();
+
+                // Ojos brillantes de escarcha
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath(); ctxCanvas.arc(24, 34, 4.5, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(40, 34, 4.5, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#0369a1';
+                ctxCanvas.beginPath(); ctxCanvas.arc(24, 34, 2.5, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(40, 34, 2.5, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#38bdf8';
+                ctxCanvas.beginPath(); ctxCanvas.arc(24.5, 33.5, 1, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(40.5, 33.5, 1, 0, Math.PI * 2); ctxCanvas.fill();
+
+                // Sonrisa fresca
+                ctxCanvas.strokeStyle = '#e0f2fe';
+                ctxCanvas.lineWidth = 1.8;
+                ctxCanvas.beginPath(); ctxCanvas.arc(32, 40, 4, 0.1, Math.PI - 0.1); ctxCanvas.stroke();
+                break;
+            }
+            case 'purpura': {
+                // 3. Materia Oscura: Slime cósmico del vacío con halo místico y ojo singular
+                let grad = ctxCanvas.createRadialGradient(32, 30, 0, 32, 32, 24);
+                grad.addColorStop(0, '#c084fc');
+                grad.addColorStop(0.5, '#7e22ce');
+                grad.addColorStop(1, '#2e1065');
+                drawBaseSlime(grad);
+
+                // Anillo de horizonte de sucesos cósmico
+                ctxCanvas.save();
+                ctxCanvas.translate(32, 32);
+                ctxCanvas.rotate(animationTime * 3);
+                ctxCanvas.strokeStyle = 'rgba(232, 121, 249, 0.6)';
+                ctxCanvas.lineWidth = 2;
+                ctxCanvas.setLineDash([4, 4]);
+                ctxCanvas.beginPath();
+                ctxCanvas.ellipse(0, 0, 22, 10, 0, 0, Math.PI * 2);
+                ctxCanvas.stroke();
+                ctxCanvas.restore();
+
+                // Destellos cósmicos púrpuras
+                ctxCanvas.fillStyle = '#f0abfc';
+                ctxCanvas.beginPath();
+                ctxCanvas.arc(22, 23, 2.2, 0, Math.PI * 2);
+                ctxCanvas.arc(42, 24, 1.8, 0, Math.PI * 2);
+                ctxCanvas.arc(32, 20, 1.5, 0, Math.PI * 2);
+                ctxCanvas.fill();
+
+                // Ojo cósmico central místico gigante
+                ctxCanvas.fillStyle = '#3b0764';
+                ctxCanvas.beginPath(); ctxCanvas.arc(32, 33, 9, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.strokeStyle = '#c084fc';
+                ctxCanvas.lineWidth = 1.8; ctxCanvas.stroke();
+
+                ctxCanvas.fillStyle = '#f43f5e';
+                ctxCanvas.beginPath(); ctxCanvas.arc(32, 33, 6, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath(); ctxCanvas.arc(30.5, 31.5, 2.5, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#4c0519';
+                ctxCanvas.beginPath(); ctxCanvas.arc(32.5, 33.5, 2, 0, Math.PI * 2); ctxCanvas.fill();
+
+                // Boca misteriosa
+                ctxCanvas.strokeStyle = '#e879f9';
+                ctxCanvas.lineWidth = 1.8;
+                ctxCanvas.beginPath(); ctxCanvas.arc(32, 42, 3.5, Math.PI * 0.2, Math.PI * 0.8); ctxCanvas.stroke();
+                break;
+            }
+            case 'dorado': {
+                // 4. Rey Dorado: Slime de oro fundido con corona imperial, gemas y destellos
+                let grad = ctxCanvas.createRadialGradient(28, 26, 0, 32, 32, 24);
+                grad.addColorStop(0, '#fef08a');
+                grad.addColorStop(0.35, '#facc15');
+                grad.addColorStop(0.75, '#ca8a04');
+                grad.addColorStop(1, '#713f12');
+                drawBaseSlime(grad);
+
+                // Reflejo metálico dorado
+                ctxCanvas.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                ctxCanvas.beginPath();
+                ctxCanvas.ellipse(23, 26, 7, 3, -0.6, 0, Math.PI * 2);
+                ctxCanvas.fill();
+
+                // Corona imperial de 3 puntas
+                ctxCanvas.fillStyle = '#f59e0b';
+                ctxCanvas.strokeStyle = '#78350f';
+                ctxCanvas.lineWidth = 1.6;
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(18, 22);
+                ctxCanvas.lineTo(21, 10);
+                ctxCanvas.lineTo(27, 17);
+                ctxCanvas.lineTo(32, 7);
+                ctxCanvas.lineTo(37, 17);
+                ctxCanvas.lineTo(43, 10);
+                ctxCanvas.lineTo(46, 22);
+                ctxCanvas.closePath();
+                ctxCanvas.fill();
+                ctxCanvas.stroke();
+
+                // Joyas incrustadas en la corona (Rubí central y zafiros laterales)
+                ctxCanvas.fillStyle = '#ef4444'; // Rubí
+                ctxCanvas.beginPath(); ctxCanvas.arc(32, 17, 2.4, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#3b82f6'; // Zafiro izquierdo
+                ctxCanvas.beginPath(); ctxCanvas.arc(24, 18, 1.8, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#3b82f6'; // Zafiro derecho
+                ctxCanvas.beginPath(); ctxCanvas.arc(40, 18, 1.8, 0, Math.PI * 2); ctxCanvas.fill();
+
+                // Ojos reales con brillo elegante
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath(); ctxCanvas.arc(24, 34, 4.5, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(40, 34, 4.5, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#713f12';
+                ctxCanvas.beginPath(); ctxCanvas.arc(24, 34, 2.4, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(40, 34, 2.4, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = '#ffffff';
+                ctxCanvas.beginPath(); ctxCanvas.arc(25, 33, 1.2, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(41, 33, 1.2, 0, Math.PI * 2); ctxCanvas.fill();
+
+                // Sonrisa de rey confiado
+                ctxCanvas.strokeStyle = '#78350f';
+                ctxCanvas.lineWidth = 2.2;
+                ctxCanvas.beginPath();
+                ctxCanvas.arc(32, 39, 4.5, 0.2, Math.PI - 0.2);
+                ctxCanvas.stroke();
+
+                // Estrella de brillo dorado flotante
+                let starAngle = animationTime * 4;
+                ctxCanvas.save();
+                ctxCanvas.translate(46 + Math.cos(starAngle) * 2, 14 + Math.sin(starAngle) * 2);
+                ctxCanvas.fillStyle = '#fef08a';
+                ctxCanvas.beginPath();
+                ctxCanvas.moveTo(0, -3.5); ctxCanvas.lineTo(1.2, -1.2); ctxCanvas.lineTo(3.5, 0);
+                ctxCanvas.lineTo(1.2, 1.2); ctxCanvas.lineTo(0, 3.5); ctxCanvas.lineTo(-1.2, 1.2);
+                ctxCanvas.lineTo(-3.5, 0); ctxCanvas.lineTo(-1.2, -1.2); ctxCanvas.closePath();
+                ctxCanvas.fill();
+                ctxCanvas.restore();
+                break;
+            }
+            default: {
+                // 5. Slime Verde clásico (por defecto)
+                let grad = ctxCanvas.createRadialGradient(32, 30, 0, 32, 30, 20);
+                grad.addColorStop(0, '#4ade80');
+                grad.addColorStop(1, '#166534');
+                drawBaseSlime(grad);
+
+                // Destello brillante en la cabeza
+                ctxCanvas.fillStyle = 'rgba(255, 255, 255, 0.55)';
+                ctxCanvas.beginPath();
+                ctxCanvas.arc(21, 24, 3, 0, Math.PI * 2);
+                ctxCanvas.arc(26, 21, 1.8, 0, Math.PI * 2);
+                ctxCanvas.fill();
+
+                // Ojos expresivos
+                ctxCanvas.fillStyle = 'white';
+                ctxCanvas.beginPath(); ctxCanvas.arc(24, 34, 4.5, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(40, 34, 4.5, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = 'black';
+                ctxCanvas.beginPath(); ctxCanvas.arc(24, 34, 2.2, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(40, 34, 2.2, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.fillStyle = 'white';
+                ctxCanvas.beginPath(); ctxCanvas.arc(25.2, 33, 1, 0, Math.PI * 2); ctxCanvas.fill();
+                ctxCanvas.beginPath(); ctxCanvas.arc(41.2, 33, 1, 0, Math.PI * 2); ctxCanvas.fill();
+
+                // Sonrisa alegre
+                ctxCanvas.strokeStyle = '#ffffff';
+                ctxCanvas.lineWidth = 1.8;
+                ctxCanvas.beginPath();
+                ctxCanvas.arc(32, 39, 4, 0.1, Math.PI - 0.1);
+                ctxCanvas.stroke();
+                break;
+            }
         }
         ctxCanvas.restore();
     }
@@ -2204,65 +2439,6 @@ const PASSIVES_CATALOG = [
     }
 ];
 
-const TRIVIA_QUESTIONS = [
-    { q: '¿Cuánto es 12 + 15?', a: ['27', '25', '29', '26'], c: 0 },
-    { q: '¿Cuál es el planeta más cercano al Sol?', a: ['Marte', 'Mercurio', 'Venus', 'Tierra'], c: 1 },
-    { q: '¿Cuánto es 9 x 7?', a: ['56', '64', '63', '72'], c: 2 },
-    { q: '¿Cuál es el océano más grande del mundo?', a: ['Atlántico', 'Índico', 'Ártico', 'Pacífico'], c: 3 },
-    { q: '¿Cuánto es 80 / 4?', a: ['20', '25', '18', '22'], c: 0 },
-    { q: '¿Qué animal es conocido como el rey de la selva?', a: ['Tigre', 'León', 'Elefante', 'Oso'], c: 1 },
-    { q: '¿Cuánto es 14 x 3?', a: ['38', '40', '42', '46'], c: 2 },
-    { q: '¿Cuál es el elemento químico del agua?', a: ['CO2', 'NaCl', 'O2', 'H2O'], c: 3 },
-    { q: '¿Cuántos días tiene un año bisiesto?', a: ['366', '365', '364', '360'], c: 0 },
-    { q: '¿Cuánto es 100 - 37?', a: ['73', '63', '53', '67'], c: 1 }
-];
-
-let quizRequiredCount = 0;
-let quizAnsweredCount = 0;
-
-function startQuizValidation(requiredSuccesses, onPassed) {
-    quizRequiredCount = requiredSuccesses;
-    quizAnsweredCount = 0;
-    const quizBox = document.getElementById('quiz-container');
-    const draftOptions = document.getElementById('draft-options');
-    
-    quizBox.classList.remove('hidden');
-    draftOptions.classList.add('hidden');
-
-    function renderNextQuestion() {
-        document.getElementById('quiz-step-counter').innerText = `${quizAnsweredCount + 1}/${quizRequiredCount}`;
-        const qData = TRIVIA_QUESTIONS[Math.floor(Math.random() * TRIVIA_QUESTIONS.length)];
-        document.getElementById('quiz-question').innerText = qData.q;
-        const answersContainer = document.getElementById('quiz-answers');
-        answersContainer.innerHTML = '';
-
-        qData.a.forEach((optText, index) => {
-            const btn = document.createElement('button');
-            btn.className = 'bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-600 font-bold p-3 rounded-xl text-white transition text-center cursor-pointer';
-            btn.innerText = optText;
-            btn.onclick = () => {
-                if (index === qData.c) {
-                    quizAnsweredCount++;
-                    if (quizAnsweredCount >= quizRequiredCount) {
-                        quizBox.classList.add('hidden');
-                        draftOptions.classList.remove('hidden');
-                        onPassed();
-                    } else {
-                        renderNextQuestion();
-                    }
-                } else {
-                    // Si falla una respuesta consecutiva en Lv 30+, reinicia la racha a 0
-                    quizAnsweredCount = 0;
-                    renderNextQuestion();
-                }
-            };
-            answersContainer.appendChild(btn);
-        });
-    }
-
-    renderNextQuestion();
-}
-
 const ENEMY_CATALOG = [
     { key: 'slime', name: 'Ice Slime', hp: 5, baseSpeed: 15, radius: 14, color: '#93c5fd', minLevel: 1, drawType: 'slime', xp: 0.5 },
     { key: 'bat', name: 'Ice Bat', hp: 20, baseSpeed: 15, radius: 14, color: '#38bdf8', minLevel: 3, drawType: 'bat', xp: 0.75 },
@@ -3019,7 +3195,6 @@ function createUpgradeCard({ name, levelBadge, statText, id, isFusion, apply }) 
 
 function triggerInitialDraft() {
     currentState = GAME_STATE.LEVEL_UP;
-    document.getElementById('quiz-container').classList.add('hidden');
     document.getElementById('draft-options').classList.remove('hidden');
     document.getElementById('draft-subtitle').innerText = "Choose an Upgrade";
     document.getElementById('draft-title').innerText = "Level Up";
@@ -3067,25 +3242,10 @@ function triggerDraft() {
 
     currentState = GAME_STATE.LEVEL_UP;
     document.getElementById('level-up-screen').classList.remove('hidden');
+    document.getElementById('draft-options').classList.remove('hidden');
     updateInventoryDisplay();
 
-    // Verificación de validación de preguntas según el nivel
-    let requiredQuestions = 0;
-    if (player.level >= 30) {
-        // Nivel 30+: Exige obligatoriamente 2 respuestas correctas consecutivas
-        requiredQuestions = 2;
-    } else if (player.level >= 17) {
-        // Nivel 17 al 29: Exige exactamente 1 respuesta correcta
-        requiredQuestions = 1;
-    }
-
-    if (requiredQuestions > 0) {
-        startQuizValidation(requiredQuestions, generateRouletteCards);
-    } else {
-        document.getElementById('quiz-container').classList.add('hidden');
-        document.getElementById('draft-options').classList.remove('hidden');
-        generateRouletteCards();
-    }
+    generateRouletteCards();
 }
 
 function generateRouletteCards() {
