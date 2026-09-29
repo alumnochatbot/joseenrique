@@ -1,1 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pac-Man Clásico en HTML5</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="arcade-cabinet">
+    <!-- Header / Marcador -->
+    <header class="game-header">
+      <div class="logo-container">
+        <h1 class="game-title">PAC-MAN</h1>
+      </div>
+      
+      <div class="scoreboard">
+        <div class="score-card">
+          <span class="label">PUNTOS</span>
+          <span id="score" class="value">00000</span>
+        </div>
+        <div class="score-card">
+          <span class="label">RÉCORD</span>
+          <span id="high-score" class="value">00000</span>
+        </div>
+        <div class="score-card">
+          <span class="label">NIVEL</span>
+          <span id="level" class="value">1</span>
+        </div>
+      </div>
+    </header>
 
+    <!-- Área de Juego (Canvas) -->
+    <main class="canvas-container">
+      <canvas id="gameCanvas" width="504" height="504"></canvas>
+      
+      <!-- Superposiciones (Overlay UI) -->
+      <div id="startOverlay" class="overlay">
+        <div class="overlay-card">
+          <h2>¡PREPÁRATE!</h2>
+          <p class="subtitle">Usa las flechas del teclado o W-A-S-D</p>
+          <div class="ghost-parade">
+            <span class="ghost-badge blinky">🔴 Blinky</span>
+            <span class="ghost-badge pinky">🌸 Pinky</span>
+            <span class="ghost-badge inky">💎 Inky</span>
+            <span class="ghost-badge clyde">🍊 Clyde</span>
+          </div>
+          <button id="startBtn" class="arcade-btn pulse">JUGAR</button>
+        </div>
+      </div>
+
+      <div id="pauseOverlay" class="overlay hidden">
+        <div class="overlay-card">
+          <h2>PAUSA</h2>
+          <p>Presiona <strong>P</strong> o el botón para reanudar</p>
+          <button id="resumeBtn" class="arcade-btn">CONTINUAR</button>
+        </div>
+      </div>
+
+      <div id="gameOverOverlay" class="overlay hidden">
+        <div class="overlay-card">
+          <h2 class="game-over-text">GAME OVER</h2>
+          <p id="finalScoreText">Puntuación final: 0</p>
+          <button id="restartBtn" class="arcade-btn">REINTENTAR</button>
+        </div>
+      </div>
+
+      <div id="levelClearOverlay" class="overlay hidden">
+        <div class="overlay-card">
+          <h2 class="level-clear-text">¡NIVEL COMPLETADO!</h2>
+          <p>Prepárate para el siguiente nivel...</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Barra de Vidas y Controles Secundarios -->
+    <footer class="game-footer">
+      <div class="lives-container">
+        <span class="label">VIDAS:</span>
+        <div id="livesIcons" class="lives-icons"></div>
+      </div>
+
+      <div class="control-actions">
+        <button id="soundBtn" class="icon-btn" title="Alternar Sonido">🔊</button>
+        <button id="pauseBtn" class="icon-btn" title="Pausar / Reanudar">⏸️</button>
+        <button id="resetGameBtn" class="icon-btn" title="Reiniciar Partida">🔄</button>
+      </div>
+    </footer>
+
+    <!-- Controles táctiles / D-Pad para móviles o tablets -->
+    <div class="touch-controls">
+      <button class="dpad-btn up" data-dir="UP" aria-label="Arriba">▲</button>
+      <div class="dpad-middle">
+        <button class="dpad-btn left" data-dir="LEFT" aria-label="Izquierda">◀</button>
+        <div class="dpad-center"></div>
+        <button class="dpad-btn right" data-dir="RIGHT" aria-label="Derecha">▶</button>
+      </div>
+      <button class="dpad-btn down" data-dir="DOWN" aria-label="Abajo">▼</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
