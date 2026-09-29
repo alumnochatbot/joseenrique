@@ -1,0 +1,294 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  background-color: #0b0c10;
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+  padding: 10px;
+}
+
+/* Header & HUD */
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.hud-panel {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #12141d;
+  padding: 10px 16px;
+  border-radius: 8px 8px 0 0;
+  border: 2px solid #2837ff;
+  border-bottom: none;
+  box-shadow: 0 0 15px rgba(40, 55, 255, 0.3);
+}
+
+.score-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.score-box.right {
+  align-items: flex-end;
+}
+
+.hud-label {
+  font-size: 11px;
+  color: #ff3333;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+.hud-value {
+  font-size: 18px;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+/* Canvas Board */
+.canvas-wrapper {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border: 2px solid #2837ff;
+  box-shadow: 0 0 20px rgba(40, 55, 255, 0.4), inset 0 0 10px rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+canvas {
+  display: block;
+  image-rendering: pixelated;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Bottom Bar (Lives & Controls) */
+.bottom-bar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #12141d;
+  padding: 10px 16px;
+  border-radius: 0 0 8px 8px;
+  border: 2px solid #2837ff;
+  border-top: none;
+  box-shadow: 0 0 15px rgba(40, 55, 255, 0.3);
+}
+
+.lives-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lives-label {
+  font-size: 11px;
+  font-weight: bold;
+  color: #ffe600;
+}
+
+.lives-icons {
+  display: flex;
+  gap: 6px;
+}
+
+.life-icon {
+  width: 18px;
+  height: 18px;
+  background: #ffe600;
+  border-radius: 50%;
+  clip-path: polygon(100% 74%, 44% 48%, 100% 21%, 100% 0%, 0% 0%, 0% 100%, 100% 100%);
+  display: inline-block;
+}
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+}
+
+.arcade-btn {
+  background: #1f2833;
+  color: #66fcf1;
+  border: 1px solid #45a29e;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arcade-btn:hover {
+  background: #45a29e;
+  color: #0b0c10;
+  box-shadow: 0 0 10px #45a29e;
+}
+
+.arcade-btn:active {
+  transform: scale(0.95);
+}
+
+/* Overlays */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  z-index: 10;
+}
+
+.overlay.hidden {
+  display: none !important;
+}
+
+.overlay-title {
+  font-size: 26px;
+  color: #ffe600;
+  margin-bottom: 16px;
+  text-shadow: 0 0 10px #ffe600;
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+
+.overlay-title.game-over {
+  color: #ff3333;
+  text-shadow: 0 0 10px #ff3333;
+}
+
+.overlay-title.win {
+  color: #00ff66;
+  text-shadow: 0 0 10px #00ff66;
+}
+
+.overlay-msg {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #c5c6c7;
+  margin-bottom: 24px;
+}
+
+.btn-large {
+  padding: 12px 24px;
+  font-size: 14px;
+  background: #ffe600;
+  color: #000;
+  border: 2px solid #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: bold;
+  box-shadow: 0 0 15px rgba(255, 230, 0, 0.6);
+  transition: all 0.2s ease;
+}
+
+.btn-large:hover {
+  background: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px #fff;
+}
+
+/* On-screen D-Pad Controls for touch/mobile */
+.dpad-container {
+  margin-top: 15px;
+  display: grid;
+  grid-template-columns: repeat(3, 56px);
+  grid-template-rows: repeat(3, 56px);
+  gap: 6px;
+  justify-content: center;
+}
+
+.dpad-btn {
+  background: #1a1e29;
+  border: 2px solid #334466;
+  color: #ffe600;
+  font-size: 20px;
+  font-weight: bold;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 4px 0 #0f1218;
+}
+
+.dpad-btn:active {
+  background: #2837ff;
+  color: #fff;
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #0f1218;
+}
+
+.dpad-up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.dpad-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.dpad-down {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.dpad-right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+/* Keyboard hint info */
+.instructions-panel {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 12px;
+  color: #8899bb;
+  line-height: 1.6;
+}
+
+.instructions-panel kbd {
+  background: #1a1e29;
+  border: 1px solid #455a7a;
+  color: #ffe600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 11px;
+}

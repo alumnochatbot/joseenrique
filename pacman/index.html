@@ -1,1 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pac-Man Clásico en HTML5</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-container">
+    <!-- Panel Superior / HUD -->
+    <header class="hud-panel">
+      <div class="score-box">
+        <span class="hud-label">PUNTOS</span>
+        <span id="score-display" class="hud-value">0</span>
+      </div>
+      <div class="score-box right">
+        <span class="hud-label">RÉCORD</span>
+        <span id="high-score-display" class="hud-value">0</span>
+      </div>
+    </header>
 
+    <!-- Contenedor del Canvas y Overlays -->
+    <main class="canvas-wrapper">
+      <canvas id="gameCanvas" width="380" height="440"></canvas>
+
+      <!-- Pantalla de Inicio -->
+      <div id="start-overlay" class="overlay">
+        <h1 class="overlay-title">PAC-MAN</h1>
+        <p class="overlay-msg">
+          Come todos los puntos y evita a los fantasmas.<br>
+          ¡Las bolitas grandes te permiten devorarlos!
+        </p>
+        <button id="start-btn" class="btn-large">JUGAR</button>
+      </div>
+
+      <!-- Pantalla de Pausa -->
+      <div id="pause-overlay" class="overlay hidden">
+        <h2 class="overlay-title">PAUSA</h2>
+        <p class="overlay-msg">Presiona ESPACIO o el botón para continuar</p>
+        <button id="resume-btn" class="btn-large">CONTINUAR</button>
+      </div>
+
+      <!-- Pantalla de Game Over -->
+      <div id="game-over-overlay" class="overlay hidden">
+        <h2 class="overlay-title game-over">GAME OVER</h2>
+        <p id="final-score-msg" class="overlay-msg">Puntuación: 0</p>
+        <button id="restart-game-over-btn" class="btn-large">REINTENTAR</button>
+      </div>
+
+      <!-- Pantalla de Victoria -->
+      <div id="win-overlay" class="overlay hidden">
+        <h2 class="overlay-title win">¡VICTORIA!</h2>
+        <p id="win-score-msg" class="overlay-msg">¡Has limpiado el laberinto!<br>Puntuación: 0</p>
+        <button id="next-level-btn" class="btn-large">SIGUIENTE NIVEL</button>
+      </div>
+    </main>
+
+    <!-- Barra Inferior de Estado y Controles -->
+    <footer class="bottom-bar">
+      <div class="lives-container">
+        <span class="lives-label">VIDAS:</span>
+        <div id="lives-icons" class="lives-icons">
+          <span class="life-icon"></span>
+          <span class="life-icon"></span>
+          <span class="life-icon"></span>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button id="btn-sound" class="arcade-btn" title="Activar/Desactivar Sonido">🔊 SONIDO</button>
+        <button id="btn-pause" class="arcade-btn" title="Pausar Juego">⏸️ PAUSA</button>
+        <button id="btn-reset" class="arcade-btn" title="Reiniciar Juego">🔄 REINICIAR</button>
+      </div>
+    </footer>
+
+    <!-- Controles en pantalla táctil (D-Pad) -->
+    <div class="dpad-container">
+      <button class="dpad-btn dpad-up" id="btn-up" aria-label="Arriba">▲</button>
+      <button class="dpad-btn dpad-left" id="btn-left" aria-label="Izquierda">◀</button>
+      <button class="dpad-btn dpad-down" id="btn-down" aria-label="Abajo">▼</button>
+      <button class="dpad-btn dpad-right" id="btn-right" aria-label="Derecha">▶</button>
+    </div>
+
+    <!-- Instrucciones de teclado -->
+    <div class="instructions-panel">
+      Controles: <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> o <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> | Pausa: <kbd>Espacio</kbd>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
