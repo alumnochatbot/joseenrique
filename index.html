@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- SDK oficial de Vimeo Player para control de reproducción y audio -->
+    <script src="https://player.vimeo.com/api/player.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .bg-grid {
@@ -66,18 +68,29 @@
         <!-- PESTAÑA: INICIO -->
         <div id="inicio" class="tab-content active pt-32 animate-fade-in">
             <header class="relative pb-20 px-6 overflow-hidden">
-                <!-- Image Slider Background -->
-                <div id="hero-slider" class="absolute inset-0 z-0 pointer-events-none">
-                    <div class="absolute inset-0 bg-slate-950/70 z-10"></div> <!-- Dark overlay -->
-                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" style="background-image: url('assets/images/slide1.png');"></div>
-                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide2.png');"></div>
-                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide3.png');"></div>
-                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide4.png');"></div>
-                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide5.png');"></div>
-                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide6.png');"></div>
-                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide7.png');"></div>
-                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide8.png');"></div>
-                    <div class="hero-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('assets/images/slide9.png');"></div>
+                <!-- Video de Portada (Vimeo Background) -->
+                <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                    <div class="absolute inset-0 bg-slate-950/75 z-10 backdrop-blur-[0.5px]"></div>
+                    <iframe 
+                        id="hero-vimeo-iframe"
+                        src="https://player.vimeo.com/video/1229278300?background=1&autoplay=1&loop=1&muted=1&autopause=0" 
+                        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[177.78vh] min-w-full min-h-full h-[56.25vw] pointer-events-none scale-105" 
+                        frameborder="0" 
+                        allow="autoplay; fullscreen; picture-in-picture" 
+                        title="Video de Portada Vimeo">
+                    </iframe>
+                </div>
+
+                <!-- Botón de Control de Audio ON / OFF -->
+                <div class="absolute bottom-4 right-4 sm:bottom-6 sm:right-8 z-30">
+                    <button id="audioToggleBtn" onclick="toggleHeroAudio()" class="flex items-center gap-2.5 px-4 py-2 sm:py-2.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700/70 shadow-xl backdrop-blur-md transition-all duration-300 group hover:scale-105 active:scale-95 cursor-pointer" aria-label="Alternar audio del video de portada">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span id="audioPing" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                            <span id="audioDot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-500 transition-colors"></span>
+                        </span>
+                        <i id="audioIcon" class="fa-solid fa-volume-xmark text-slate-400 group-hover:text-white transition-colors"></i>
+                        <span id="audioText" class="text-xs font-semibold tracking-wide">Audio: OFF</span>
+                    </button>
                 </div>
 
                 <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_10%,#1e40af33,transparent_50%)] pointer-events-none z-10"></div>
@@ -547,6 +560,98 @@
                 setTimeout(() => msg.classList.add('hidden'), 5000);
             }, 1500);
         }
+
+        // Lógica de control de Audio ON / OFF para el video de fondo Vimeo
+        let isHeroAudioOn = false;
+        let vimeoHeroPlayer = null;
+
+        function initVimeoAudio() {
+            const iframe = document.getElementById('hero-vimeo-iframe');
+            if (iframe && window.Vimeo && window.Vimeo.Player) {
+                try {
+                    vimeoHeroPlayer = new Vimeo.Player(iframe);
+                    // Iniciar silenciado respetando políticas de autoplay de navegadores
+                    vimeoHeroPlayer.setVolume(0);
+                    vimeoHeroPlayer.setMuted(true);
+                } catch (err) {
+                    console.warn("No se pudo inicializar Vimeo Player SDK:", err);
+                }
+            }
+        }
+
+        function toggleHeroAudio() {
+            const iframe = document.getElementById('hero-vimeo-iframe');
+            isHeroAudioOn = !isHeroAudioOn;
+
+            const audioText = document.getElementById('audioText');
+            const audioIcon = document.getElementById('audioIcon');
+            const audioDot = document.getElementById('audioDot');
+            const audioPing = document.getElementById('audioPing');
+            const audioBtn = document.getElementById('audioToggleBtn');
+
+            if (isHeroAudioOn) {
+                // Activar audio con SDK y fallback con postMessage
+                if (vimeoHeroPlayer) {
+                    vimeoHeroPlayer.setMuted(false)
+                        .then(() => vimeoHeroPlayer.setVolume(1))
+                        .catch(() => {
+                            if (vimeoHeroPlayer.setVolume) vimeoHeroPlayer.setVolume(1);
+                        });
+                }
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage(JSON.stringify({ method: 'setMuted', value: false }), '*');
+                    iframe.contentWindow.postMessage(JSON.stringify({ method: 'setVolume', value: 1 }), '*');
+                }
+
+                // Actualizar interfaz a estado ON
+                if (audioText) audioText.textContent = 'Audio: ON';
+                if (audioIcon) {
+                    audioIcon.className = 'fa-solid fa-volume-high text-cyan-400 transition-colors';
+                }
+                if (audioDot) {
+                    audioDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-400 shadow-sm';
+                }
+                if (audioPing) {
+                    audioPing.classList.remove('hidden');
+                }
+                if (audioBtn) {
+                    audioBtn.classList.add('border-cyan-500/60', 'shadow-cyan-500/20', 'text-white');
+                    audioBtn.classList.remove('border-slate-700/70', 'text-slate-200');
+                }
+            } else {
+                // Silenciar audio con SDK y fallback con postMessage
+                if (vimeoHeroPlayer) {
+                    vimeoHeroPlayer.setMuted(true)
+                        .then(() => vimeoHeroPlayer.setVolume(0))
+                        .catch(() => {
+                            if (vimeoHeroPlayer.setVolume) vimeoHeroPlayer.setVolume(0);
+                        });
+                }
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage(JSON.stringify({ method: 'setMuted', value: true }), '*');
+                    iframe.contentWindow.postMessage(JSON.stringify({ method: 'setVolume', value: 0 }), '*');
+                }
+
+                // Actualizar interfaz a estado OFF
+                if (audioText) audioText.textContent = 'Audio: OFF';
+                if (audioIcon) {
+                    audioIcon.className = 'fa-solid fa-volume-xmark text-slate-400 group-hover:text-white transition-colors';
+                }
+                if (audioDot) {
+                    audioDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-500 transition-colors';
+                }
+                if (audioPing) {
+                    audioPing.classList.add('hidden');
+                }
+                if (audioBtn) {
+                    audioBtn.classList.remove('border-cyan-500/60', 'shadow-cyan-500/20', 'text-white');
+                    audioBtn.classList.add('border-slate-700/70', 'text-slate-200');
+                }
+            }
+        }
+
+        // Inicializar cuando la ventana termine de cargar
+        window.addEventListener('load', initVimeoAudio);
     </script>
 
         <script
