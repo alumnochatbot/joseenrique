@@ -80,6 +80,14 @@
                     🟠 Modo Difícil (x1.5 Pts)
                     <span class="block text-xs font-normal opacity-85 mt-0.5">Enemigos disparan proyectiles de plasma.</span>
                 </button>
+                <button id="btn-start-infinito" type="button" onclick="initGame('infinito')" class="cursor-pointer w-full px-5 py-3.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-extrabold rounded-2xl text-base transition-all transform hover:-translate-y-0.5 shadow-lg shadow-yellow-950/30 text-left pl-5 border border-yellow-300/40 active:scale-98">
+                    ♾️ Modo Infinito
+                    <span class="block text-xs font-bold text-slate-900/90 mt-0.5">Sobrevive sin límite de nivel contra los mismos enemigos con armas balanceadas y jefes recurrentes.</span>
+                </button>
+                <button id="btn-start-hiper" type="button" onclick="initGame('hiper')" class="cursor-pointer w-full px-5 py-3.5 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white font-bold rounded-2xl text-base transition-all transform hover:-translate-y-0.5 shadow-lg shadow-purple-950/40 text-left pl-5 border border-purple-400/30 active:scale-98">
+                    💥 Modo Hiper
+                    <span class="block text-xs font-normal opacity-90 mt-0.5">Poderes Nivel 10 y 11 hiper-rotos. Pantallas limpias, daño colosal y subidas infinitas.</span>
+                </button>
                 <button id="btn-start-experto" type="button" onclick="initGame('experto')" class="cursor-pointer w-full px-5 py-3.5 bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white font-bold rounded-2xl text-base transition-all transform hover:-translate-y-0.5 shadow-lg shadow-red-950/40 text-left pl-5 border border-red-400/20 active:scale-98">
                     🔴 Modo Experto (x2.0 Pts)
                     <span class="block text-xs font-normal opacity-85 mt-0.5">Enemigos disparan y ejecutan embestidas letales.</span>
@@ -195,6 +203,8 @@ function generateSeamlessTexture() {
 const GAME_STATE = { MENU: 0, PLAYING: 1, LEVEL_UP: 2, GAME_OVER: 3, SHOP: 4 };
 let currentState = GAME_STATE.MENU;
 let currentDifficulty = 'normal'; 
+function isInfiniteMode() { return currentDifficulty === 'infinito' || currentDifficulty === 'hiper'; }
+function isOpMode() { return currentDifficulty === 'hiper'; }
 let lastTime = 0;
 let gameTimer = 0;
 let animationTime = 0;
@@ -239,16 +249,16 @@ function getXpForLevel(lvl) {
 
 const WEAPON_UPGRADES = {
     horseshoe: {
-        1: "Base (5 daño) + 1 herradura en órbita.",
+        1: "Base (5 daño) + 3 herraduras en órbita.",
         2: "+1 herradura.",
-        3: "+5 daño.",
+        3: "+4 daño.",
         4: "+1 herradura.",
         5: "Steel Upgrade: Aumenta tamaño y velocidad de giro.",
         6: "+Duración del efecto / rotación.",
         7: "+1 herradura.",
-        8: "+10 daño.",
+        8: "+6 daño.",
         9: "+1 herradura.",
-        10: "Obsidian Upgrade: Aumenta masivamente tamaño y velocidad."
+        10: "Obsidian Upgrade: 6 herraduras oscuras con mayor tamaño y velocidad."
     },
     cards: {
         1: "Base (3 daño) + dispara 1 carta frontal.",
@@ -257,10 +267,10 @@ const WEAPON_UPGRADES = {
         4: "Dispara con mayor frecuencia (+Attack Speed).",
         5: "Four Suits: Dispara 4 cartas en direcciones cardinales.",
         6: "+3 daño.",
-        7: "Atraviesa 3 enemigos adicionales.",
+        7: "Atraviesa 1 enemigo adicional.",
         8: "+Velocidad de ataque.",
-        9: "+Cartas adicionales al abanico.",
-        10: "Full Deck: Disparo masivo continuo en abanico con perforación infinita."
+        9: "+1 carta adicional al abanico.",
+        10: "Full Deck: Abanico continuo de 6 cartas con perforación de 5 enemigos."
     },
     lasers: {
         1: "Base (2 daño) + 1 haz láser continuo frontal.",
@@ -272,43 +282,43 @@ const WEAPON_UPGRADES = {
         7: "+Cadencia de disparo.",
         8: "+3 daño.",
         9: "+1 rayo láser adicional.",
-        10: "Laser Cannon: Transforma el disparo en un cañón de plasma gigante (+15 daño plano)."
+        10: "Laser Cannon: Cañón de plasma gigante con perforación de 6 enemigos (+20 daño)."
     },
     darkenergy: {
         1: "Base (5 daño) + 1 orbe cósmico protector.",
         2: "+2 daño (Permite eliminar slimes iniciales de 1 golpe).",
         3: "+1 orbe oscuro a la órbita.",
         4: "+Radio del círculo de defensa (+Area of Effect).",
-        5: "+10 daño (Elimina al segundo tipo de enemigo al instante).",
+        5: "+7 daño continuo.",
         6: "+1 orbe oscuro.",
         7: "+Velocidad de giro orbital.",
         8: "+Radio de área.",
         9: "+1 orbe oscuro.",
-        10: "Singularity: Orbes oscuros gigantescos continuos con daño masivo de contacto."
+        10: "Singularity: 5 orbes de vacío continuo con daño aumentado y radio de 115px."
     },
     bubbles: {
-        1: "Base (2 daño) + burbujas aleatorias flotantes.",
+        1: "Base (2 daño) + burbujas flotantes teledirigidas.",
         2: "+1 burbuja simultánea (+1 Bubble).",
         3: "+3 daño de explosión (+Damage).",
         4: "+Radio de estallido (+Explosion Radius).",
         5: "+1 burbuja simultánea.",
-        6: "+5 daño de explosión.",
+        6: "+4 daño de explosión.",
         7: "+Radio de estallido.",
         8: "+1 burbuja simultánea.",
         9: "+Velocidad de generación.",
-        10: "Mega Blast: Ráfagas de burbujas gigantescas que generan ondas expansivas enormes."
+        10: "Mega Blast: Ráfagas de 4 burbujas grandes con onda expansiva controlada."
     },
     syrup: {
         1: "Base (10 daño por segundo) + charco teledirigido.",
         2: "+Tamaño de la mancha de jarabe (+Puddle Size).",
         3: "+Efecto de ralentización (+Slowdown Effect).",
-        4: "+5 DPS continuo (+Damage over Time).",
+        4: "+4 DPS continuo (+Damage over Time).",
         5: "+1 charco simultáneo.",
         6: "+Tamaño de la trampa en el suelo.",
-        7: "+Ralentización máxima.",
-        8: "+8 DPS continuo.",
+        7: "+Ralentización del 55%.",
+        8: "+6 DPS continuo.",
         9: "+1 charco simultáneo.",
-        10: "Honey Lake: Charcos masivos gigantes que paralizan casi por completo y causan 40 DPS."
+        10: "Honey Lake: 3 charcos de miel que ralentizan un 65% y causan 28 DPS."
     },
     bees: {
         1: "Base (3 daño) + 2 abejas teledirigidas automáticas.",
@@ -316,47 +326,47 @@ const WEAPON_UPGRADES = {
         3: "+2 daño de picadura (+Damage).",
         4: "+Velocidad de vuelo y persecución (+Homing Speed).",
         5: "+1 abeja al enjambre.",
-        6: "+3 daño de picadura.",
+        6: "+2 daño de picadura.",
         7: "+1 abeja al enjambre.",
         8: "Las abejas atraviesan a 1 enemigo adicional (+Pierce).",
         9: "+Velocidad de vuelo.",
-        10: "Mega Swarm: Más de 8 abejas hiperveloces con daño alto y perforación múltiple."
+        10: "Mega Swarm: Enjambre de 5 abejas veloces con perforación doble y 15 de daño."
     },
     arrows: {
         1: "Base (5 daño) + 1 saeta lineal perforante.",
-        2: "Atraviesa 2 enemigos más (+Pierce Count).",
-        3: "+3 daño (+Damage).",
+        2: "Atraviesa 1 enemigo más (+Pierce Count).",
+        3: "+2 daño (+Damage).",
         4: "+1 flecha paralela (+1 Arrow).",
         5: "+Velocidad del proyectil (+Arrow Speed).",
-        6: "+5 daño.",
-        7: "Atraviesa a 3 enemigos adicionales.",
-        8: "+1 flecha paralela.",
+        6: "+4 daño.",
+        7: "Atraviesa a 1 enemigo adicional.",
+        8: "+Velocidad de saeta.",
         9: "+Cadencia de disparo (+Fire Rate).",
-        10: "Enchanted Ballista: Dispara saetas gigantes que cruzan toda la pantalla con perforación infinita."
+        10: "Enchanted Ballista: Saeta reforzada que perfora hasta 6 enemigos seguidos."
     },
     slimyballs: {
         1: "Base (4 daño) + 1 bola verde rebotante.",
-        2: "+2 rebotes antes de destruirse (+Bounces).",
+        2: "+1 rebote antes de destruirse (+Bounces).",
         3: "+Tamaño de la bola (+Ball Size).",
-        4: "+3 daño por golpe (+Damage).",
+        4: "+2 daño por golpe (+Damage).",
         5: "+1 bola simultánea (+1 Ball).",
         6: "+2 rebotes adicionales.",
-        7: "+5 daño por golpe.",
+        7: "+4 daño por golpe.",
         8: "+Tamaño de la bola.",
-        9: "+1 bola simultánea.",
-        10: "Bouncy Havoc: Múltiples bolas de slime gigantescas que rebotan continuamente sin salir de la pantalla."
+        9: "+Velocidad de bote.",
+        10: "Bouncy Havoc: 3 bolas de slime grandes con 10 rebotes dinámicos."
     },
     shell: {
         1: "Base (5 daño) + 1 caparazón teledirigido.",
-        2: "+2 rebotes guiados entre monstruos (+Bounces).",
-        3: "+3 daño (+Damage).",
+        2: "+1 rebote guiado entre monstruos (+Bounces).",
+        3: "+2 daño (+Damage).",
         4: "+Velocidad de movimiento teledirigido (+Projectile Speed).",
-        5: "+3 rebotes guiados.",
-        6: "+5 daño.",
+        5: "+2 rebotes guiados.",
+        6: "+4 daño.",
         7: "+Efecto de retroceso (+Knockback).",
-        8: "+5 rebotes guiados.",
+        8: "+2 rebotes guiados.",
         9: "+Velocidad de impacto.",
-        10: "Destruction Shell: Caparazón masivo e hiperveloz que rebota de forma casi infinita eliminando grupos enteros."
+        10: "Destruction Shell: Caparazón pesado que realiza hasta 12 rebotes guiados."
     },
     rapideggs: {
         1: "Base (2 daño) + ametralladora frontal de huevos.",
@@ -367,104 +377,92 @@ const WEAPON_UPGRADES = {
         6: "+2 daño.",
         7: "Dispara una hilera doble paralela de huevos (+1 Projectile).",
         8: "+Velocidad de proyectil.",
-        9: "+3 daño.",
-        10: "Egg Gatling: Flujo continuo e ininterrumpido de huevos gigantes a máxima velocidad de disparo."
+        9: "+2 daño.",
+        10: "Egg Gatling: Disparo doble de alta cadencia con proyectiles reforzados."
     },
     feathers: {
         1: "Base (2 daño) + abanico frontal de plumas.",
-        2: "+1 ave / ráfaga de plumas (+1 Projectile).",
+        2: "+1 pluma por ráfaga (+1 Projectile).",
         3: "+1 daño (+Damage).",
         4: "Atraviesa a 1 enemigo más (+Pierce).",
-        5: "+1 ave / ráfaga de plumas.",
+        5: "+1 pluma por ráfaga.",
         6: "+2 daño.",
         7: "+Velocidad de las plumas.",
-        8: "Atraviesa a 2 enemigos más.",
-        9: "+1 ave / ráfaga de plumas.",
-        10: "Feather Tempest: Torbellino masivo frontal de plumas que barre a los enemigos a su paso."
+        8: "Atraviesa a 1 enemigo más.",
+        9: "+1 pluma por ráfaga.",
+        10: "Feather Tempest: Ráfaga de 8 plumas veloces que barren a los enemigos."
     },
     acorns: {
-        1: "Base (6 daño) + caen bellotas explosivas al azar.",
+        1: "Base (6 daño) + caen bellotas explosivas teledirigidas.",
         2: "+1 bellota por oleada (+1 Acorn).",
         3: "+Radio de la explosión (+Blast Radius).",
-        4: "+3 daño de detonación (+Damage).",
-        5: "+1 bellota por oleada.",
+        4: "+2 daño de detonación (+Damage).",
+        5: "+Velocidad de caída.",
         6: "+Radio de la explosión.",
-        7: "+5 daño de detonación.",
+        7: "+4 daño de detonación.",
         8: "+Frecuencia de caída.",
         9: "+1 bellota por oleada.",
-        10: "Acorn Artillery: Lluvia continua de bellotas colosales que saturan el mapa con explosiones masivas."
-    },
-    horseshoe: {
-        1: "Base (5 daño) + 3 herraduras en órbita.",
-        2: "+1 herradura.",
-        3: "+5 daño.",
-        4: "+1 herradura.",
-        5: "Steel Upgrade: Aumenta tamaño y velocidad de giro.",
-        6: "+Duración del efecto / rotación.",
-        7: "+1 herradura.",
-        8: "+10 daño.",
-        9: "+1 herradura.",
-        10: "Obsidian Upgrade: Aumenta masivamente tamaño y velocidad."
+        10: "Acorn Artillery: 4 bellotas explosivas de mayor radio de detonación."
     },
     pizza: {
         1: "Base (4 daño) + rebanada de ida y vuelta.",
         2: "+Distancia de viaje lineal (+Travel Distance).",
         3: "+Tamaño de la rebanada (+Size).",
-        4: "+3 daño (+Damage).",
+        4: "+2 daño (+Damage).",
         5: "+Velocidad de ida y regreso.",
         6: "+Tamaño de la rebanada.",
-        7: "+5 daño.",
+        7: "+4 daño.",
         8: "+Distancia de recorrido.",
         9: "Atraviesa más enemigos en el retorno.",
-        10: "Giant Pizza Blade: Rebanada de pizza colosal que cubre media pantalla y corta dos veces con daño masivo."
+        10: "Giant Pizza Blade: Gran rebanada de pizza que recorre larga distancia y regresa."
     },
     banana: {
         1: "Base (3 daño) + proyectiles en arco curvo.",
         2: "+1 banana simultánea (+1 Banana).",
         3: "+Radio del arco de giro (+Curve Radius).",
         4: "+2 daño (+Damage).",
-        5: "+1 banana simultánea.",
+        5: "+Velocidad de rotación.",
         6: "+Velocidad de rotación.",
-        7: "+4 daño.",
+        7: "+3 daño.",
         8: "+1 banana simultánea.",
         9: "+Radio de curvatura.",
-        10: "Banana Spiral: Enjambre de bananas gigantes que describen espirales veloces alrededor de toda la pantalla."
+        10: "Banana Spiral: 4 bananas en trayectorias curvas con mayor velocidad."
     },
     jugglingspheres: {
         1: "Base (8 daño) + ráfaga de esferas malabares.",
-        2: "+1 esfera malabar (+1 Sphere).",
-        3: "+3 daño (+Damage).",
-        4: "+Velocidad y oscilación (+Attack Speed).",
+        2: "+Velocidad y oscilación (+Attack Speed).",
+        3: "+2 daño (+Damage).",
+        4: "+Frecuencia de lanzamiento.",
         5: "+1 esfera malabar.",
         6: "+4 daño.",
         7: "+Cadencia continua.",
-        8: "+1 esfera malabar.",
+        8: "+Velocidad de viaje.",
         9: "+4 daño.",
-        10: "Juggling Cascade: Cascada masiva de 6 esferas neón con 40 daño."
+        10: "Juggling Cascade: Ráfaga de 4 esferas malabares con 26 de daño."
     },
     bones: {
         1: "Base (5 daño) + 6 huesos en espiral.",
-        2: "+2 huesos a la espiral (+2 Bones).",
-        3: "+3 daño (+Damage).",
+        2: "+1 hueso a la espiral (+1 Bone).",
+        3: "+2 daño (+Damage).",
         4: "+Velocidad de expansión (+Speed).",
-        5: "+3 huesos adicionales.",
+        5: "+1 hueso adicional.",
         6: "+4 daño.",
         7: "+Tamaño de los huesos.",
         8: "+Frecuencia de lanzamiento.",
-        9: "+3 huesos.",
-        10: "Bone Cyclone: 16 huesos gigantes omnidireccionales con 38 daño."
+        9: "+1 hueso.",
+        10: "Bone Cyclone: Espiral de 10 huesos con 25 de daño."
     },
     peacock: {
         1: "Base (6 daño) + 5 plumas protectoras en abanico.",
-        2: "+2 plumas al abanico (+2 Feathers).",
-        3: "+3 daño (+Damage).",
+        2: "+1 pluma al abanico (+1 Feather).",
+        3: "+2 daño (+Damage).",
         4: "+Ángulo del abanico (+Spread).",
-        5: "+3 plumas exóticas.",
-        6: "+5 daño.",
+        5: "+1 pluma exótica.",
+        6: "+4 daño.",
         7: "+Velocidad de impacto.",
-        8: "+2 plumas al abanico.",
-        9: "+7 daño.",
-        10: "Royal Peacock Shield: Barrera colosal de 13 plumas reales con 50 daño."
+        8: "+1 pluma al abanico.",
+        9: "+6 daño.",
+        10: "Royal Peacock Shield: Abanico de 9 plumas reales con 32 de daño."
     }
 };
 
@@ -476,24 +474,24 @@ function getWeaponUpgradeText(id, level) {
 }
 
 const WEAPON_DAMAGE_TABLES = {
-    lasers:          [0, 2, 3, 4, 5, 6, 8, 10, 12, 14, 26],
-    syrup:           [0, 10, 12, 15, 18, 22, 25, 28, 32, 35, 40],
-    jugglingspheres: [0, 8, 10, 13, 16, 20, 24, 28, 32, 36, 40],
-    darkenergy:      [0, 5, 7, 9, 12, 15, 18, 22, 26, 30, 35],
-    bubbles:         [0, 2, 3, 5, 7, 10, 12, 14, 16, 18, 22],
-    cards:           [0, 3, 4, 6, 8, 10, 11, 13, 14, 16, 18],
-    slimyballs:      [0, 4, 5, 7, 9, 12, 14, 16, 18, 20, 22],
-    arrows:          [0, 5, 7, 9, 11, 14, 16, 18, 20, 22, 25],
-    rapideggs:       [0, 2, 3, 4, 5, 7, 8, 10, 11, 13, 15],
-    feathers:        [0, 2, 3, 4, 5, 6, 8, 9, 11, 12, 15],
-    shell:           [0, 5, 8, 11, 14, 17, 20, 22, 25, 27, 30],
-    acorns:          [0, 6, 8, 11, 14, 17, 20, 22, 24, 26, 28],
-    horseshoe:       [0, 6, 8, 11, 14, 17, 20, 22, 25, 27, 30],
-    pizza:           [0, 4, 6, 8, 11, 14, 16, 18, 20, 22, 24],
-    banana:          [0, 3, 5, 7, 9, 11, 13, 15, 17, 19, 20],
-    bees:            [0, 4, 6, 8, 10, 14, 18, 22, 26, 30, 35],
-    bones:           [0, 5, 7, 10, 13, 16, 20, 24, 28, 32, 38],
-    peacock:         [0, 6, 9, 12, 16, 20, 25, 30, 35, 42, 50]
+    lasers:          [0, 2, 3, 4, 5, 6, 8, 10, 12, 14, 20],
+    syrup:           [0, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28],
+    jugglingspheres: [0, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26],
+    darkenergy:      [0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 24],
+    bubbles:         [0, 2, 3, 5, 7, 9, 11, 13, 15, 16, 18],
+    cards:           [0, 3, 4, 6, 7, 9, 10, 12, 13, 15, 17],
+    slimyballs:      [0, 4, 5, 7, 8, 10, 11, 13, 15, 16, 18],
+    arrows:          [0, 5, 7, 9, 11, 13, 15, 17, 19, 20, 22],
+    rapideggs:       [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12],
+    feathers:        [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12],
+    shell:           [0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 24],
+    acorns:          [0, 6, 8, 10, 12, 14, 16, 18, 20, 21, 22],
+    horseshoe:       [0, 5, 7, 9, 11, 13, 15, 17, 19, 21, 24],
+    pizza:           [0, 4, 6, 8, 10, 12, 14, 16, 17, 18, 20],
+    banana:          [0, 3, 5, 6, 7, 8, 10, 12, 13, 15, 16],
+    bees:            [0, 3, 5, 6, 8, 9, 11, 12, 13, 14, 15],
+    bones:           [0, 5, 7, 9, 11, 13, 15, 17, 19, 22, 25],
+    peacock:         [0, 6, 8, 10, 12, 15, 18, 21, 24, 28, 32]
 };
 
 function getWeaponDamage(id, lvl) {
@@ -804,10 +802,12 @@ class Player {
     constructor() { this.reset(); }
     reset() {
         this.x = 0; this.y = 0;
-        this.radius = 20; this.speed = 220;
+        this.radius = 20; this.speed = isOpMode() ? 250 : 220;
         this.maxHp = 100; this.hp = 100;
         this.level = 1; this.xp = 0; this.maxXp = getXpForLevel(2);
-        this.baseDamageMult = 1.0; this.critChance = 0.05; this.critMult = 1.5;
+        this.baseDamageMult = isOpMode() ? 2.5 : 1.0; 
+        this.critChance = isOpMode() ? 0.30 : 0.05; 
+        this.critMult = 1.5;
         this.hitFlash = 0;
         this.facingAngle = 0;
         this.weapons = [];
@@ -1168,10 +1168,10 @@ class Player {
         if (this.hp <= 0) gameOver();
     }
     addXp(amount) {
-        if (this.level >= 60) return; // Nivel 60: Detención del bucle de XP
+        if (!isInfiniteMode() && this.level >= 60) return; // Nivel 60: Detención del bucle de XP en modos normales
         this.xp += amount;
         let leveled = false;
-        while (this.xp >= this.maxXp && this.level < 60) {
+        while (this.xp >= this.maxXp && (isInfiniteMode() || this.level < 60)) {
             this.xp -= this.maxXp;
             this.level++;
             this.maxXp = getXpForLevel(this.level + 1);
@@ -1179,14 +1179,14 @@ class Player {
             this.pendingLevels = (this.pendingLevels || 0) + 1;
             leveled = true;
 
-            // Nivel 60: Detener experiencia y preguntas, invocar Yeti
-            if (this.level >= 60) {
+            // Nivel 60: Detener experiencia e invocar Yeti en modos estándar
+            if (!isInfiniteMode() && this.level >= 60) {
                 this.pendingLevels = 0;
                 this.xp = 0;
                 break;
             }
         }
-        if (leveled && currentState === GAME_STATE.PLAYING && this.level < 60) {
+        if (leveled && currentState === GAME_STATE.PLAYING && (isInfiniteMode() || this.level < 60)) {
             this.pendingLevels--;
             triggerDraft();
         }
@@ -1270,13 +1270,13 @@ class RapidFireLasersWeapon {
         if (lvl === 1) { this.baseDamage = 2; this.beams = 1; this.cooldown = 0.25; }
         else if (lvl === 2) { this.baseDamage = 3; }
         else if (lvl === 3) { this.beams = 2; }
-        else if (lvl === 4) { this.cooldown = 0.20; }
+        else if (lvl === 4) { this.cooldown = 0.21; }
         else if (lvl === 5) { this.baseDamage = 5; }
         else if (lvl === 6) { this.beams = 3; }
-        else if (lvl === 7) { this.cooldown = 0.15; }
+        else if (lvl === 7) { this.cooldown = 0.18; }
         else if (lvl === 8) { this.baseDamage = 8; }
         else if (lvl === 9) { this.beams = 4; }
-        else if (lvl >= 10) { this.baseDamage = 26; this.laserCannon = true; this.cooldown = 0.10; }
+        else if (lvl >= 10) { this.baseDamage = 20; this.laserCannon = true; this.cooldown = 0.16; }
     }
     update(dt) {
         this.timer -= dt;
@@ -1285,57 +1285,58 @@ class RapidFireLasersWeapon {
             let ang = this.player.facingAngle, vx = Math.cos(ang), vy = Math.sin(ang), perpX = -vy, perpY = vx;
             let lvl = this.level;
             const isFused = this.player.fusions && this.player.fusions.has('lasers_cards');
+            const beamScale = (isOpMode() && lvl >= 5) ? 2.4 : 1.0;
 
             if (isFused) {
-                const beamCount = 7;
-                const fanSpread = 1.35;
+                const beamCount = 5;
+                const fanSpread = 0.85;
                 for (let i = 0; i < beamCount; i++) {
                     const bAngle = ang - fanSpread / 2 + (fanSpread / (beamCount - 1)) * i;
                     const bvx = Math.cos(bAngle), bvy = Math.sin(bAngle);
                     let proj = projectilePool.get();
-                    proj.spawn(this.player.x, this.player.y, bvx, bvy, 1200, this.baseDamage * 2.5 * this.player.baseDamageMult, 26, '#ef4444', true, 999);
+                    proj.spawn(this.player.x, this.player.y, bvx, bvy, 1050, this.baseDamage * 1.35 * this.player.baseDamageMult, 18 * beamScale, '#ef4444', true, 6);
                     proj.customDraw = (c, cx, cy) => {
                         c.save(); c.translate(proj.x - cx, proj.y - cy);
-                        c.strokeStyle = 'rgba(239, 68, 68, 0.35)'; c.lineWidth = 36;
-                        c.beginPath(); c.moveTo(-bvx * 80, -bvy * 80); c.lineTo(0, 0); c.stroke();
-                        c.strokeStyle = '#ff0055'; c.lineWidth = 20; c.shadowColor = '#ff0033'; c.shadowBlur = 22;
-                        c.beginPath(); c.moveTo(-bvx * 80, -bvy * 80); c.lineTo(0, 0); c.stroke();
-                        c.strokeStyle = '#ffffff'; c.lineWidth = 10;
-                        c.beginPath(); c.moveTo(-bvx * 80, -bvy * 80); c.lineTo(0, 0); c.stroke();
+                        c.strokeStyle = 'rgba(239, 68, 68, 0.3)'; c.lineWidth = 26 * beamScale;
+                        c.beginPath(); c.moveTo(-bvx * 65 * beamScale, -bvy * 65 * beamScale); c.lineTo(0, 0); c.stroke();
+                        c.strokeStyle = '#ff0055'; c.lineWidth = 14 * beamScale; c.shadowColor = '#ff0033'; c.shadowBlur = 16 * beamScale;
+                        c.beginPath(); c.moveTo(-bvx * 65 * beamScale, -bvy * 65 * beamScale); c.lineTo(0, 0); c.stroke();
+                        c.strokeStyle = '#ffffff'; c.lineWidth = 6 * beamScale;
+                        c.beginPath(); c.moveTo(-bvx * 65 * beamScale, -bvy * 65 * beamScale); c.lineTo(0, 0); c.stroke();
                         c.rotate(bAngle);
-                        c.fillStyle = '#ffffff'; c.fillRect(-8, -12, 16, 24);
-                        c.strokeStyle = '#dc2626'; c.lineWidth = 2; c.strokeRect(-8, -12, 16, 24);
+                        c.fillStyle = '#ffffff'; c.fillRect(-6 * beamScale, -9 * beamScale, 12 * beamScale, 18 * beamScale);
+                        c.strokeStyle = '#dc2626'; c.lineWidth = 1.5 * beamScale; c.strokeRect(-6 * beamScale, -9 * beamScale, 12 * beamScale, 18 * beamScale);
                         c.restore();
                     };
                     projectiles.push(proj);
                 }
             } else if (this.laserCannon || lvl >= 10) {
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, vx, vy, 1100, this.baseDamage * this.player.baseDamageMult, 25, '#ef4444', Math.random()<this.player.critChance, 999);
+                proj.spawn(this.player.x, this.player.y, vx, vy, 1000, this.baseDamage * this.player.baseDamageMult, 18 * beamScale, '#ef4444', Math.random()<this.player.critChance, 6);
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy);
-                    c.strokeStyle = 'rgba(255, 34, 85, 0.4)'; c.lineWidth = 44;
-                    c.beginPath(); c.moveTo(-vx*90, -vy*90); c.lineTo(0,0); c.stroke();
-                    c.strokeStyle = '#ff0055'; c.lineWidth = 26; c.shadowColor = '#ff0033'; c.shadowBlur = 24;
-                    c.beginPath(); c.moveTo(-vx*90, -vy*90); c.lineTo(0,0); c.stroke();
-                    c.strokeStyle = '#ffffff'; c.lineWidth = 12;
-                    c.beginPath(); c.moveTo(-vx*90, -vy*90); c.lineTo(0,0); c.stroke();
+                    c.strokeStyle = 'rgba(255, 34, 85, 0.35)'; c.lineWidth = 32 * beamScale;
+                    c.beginPath(); c.moveTo(-vx*75 * beamScale, -vy*75 * beamScale); c.lineTo(0,0); c.stroke();
+                    c.strokeStyle = '#ff0055'; c.lineWidth = 18 * beamScale; c.shadowColor = '#ff0033'; c.shadowBlur = 18 * beamScale;
+                    c.beginPath(); c.moveTo(-vx*75 * beamScale, -vy*75 * beamScale); c.lineTo(0,0); c.stroke();
+                    c.strokeStyle = '#ffffff'; c.lineWidth = 8 * beamScale;
+                    c.beginPath(); c.moveTo(-vx*75 * beamScale, -vy*75 * beamScale); c.lineTo(0,0); c.stroke();
                     c.restore();
                 };
                 projectiles.push(proj);
             } else {
                 let bCount = this.beams || 1;
-                let step = 14;
+                let step = 14 * beamScale;
                 for (let b = 0; b < bCount; b++) {
                     let off = (b - (bCount - 1) / 2) * step;
                     let proj = projectilePool.get();
-                    proj.spawn(this.player.x + perpX * off, this.player.y + perpY * off, vx, vy, 920, this.baseDamage * this.player.baseDamageMult, 5, '#ef4444', Math.random()<this.player.critChance, 2);
+                    proj.spawn(this.player.x + perpX * off, this.player.y + perpY * off, vx, vy, 920, this.baseDamage * this.player.baseDamageMult, 5 * beamScale, '#ef4444', Math.random()<this.player.critChance, 2);
                     proj.customDraw = (c, cx, cy) => {
                         c.save(); c.translate(proj.x - cx, proj.y - cy);
-                        c.strokeStyle = '#ff0055'; c.lineWidth = 7; c.shadowColor = '#ff0044'; c.shadowBlur = 12;
-                        c.beginPath(); c.moveTo(-vx*40, -vy*40); c.lineTo(0,0); c.stroke();
-                        c.strokeStyle = '#ffffff'; c.lineWidth = 2.5;
-                        c.beginPath(); c.moveTo(-vx*40, -vy*40); c.lineTo(0,0); c.stroke();
+                        c.strokeStyle = '#ff0055'; c.lineWidth = 7 * beamScale; c.shadowColor = '#ff0044'; c.shadowBlur = 12 * beamScale;
+                        c.beginPath(); c.moveTo(-vx*40 * beamScale, -vy*40 * beamScale); c.lineTo(0,0); c.stroke();
+                        c.strokeStyle = '#ffffff'; c.lineWidth = 2.5 * beamScale;
+                        c.beginPath(); c.moveTo(-vx*40 * beamScale, -vy*40 * beamScale); c.lineTo(0,0); c.stroke();
                         c.restore();
                     };
                     projectiles.push(proj);
@@ -1357,13 +1358,13 @@ class SlicingCardsWeapon {
         if (lvl === 1) { this.baseDamage = 3; this.count = 1; this.pierce = 1; this.cooldown = 0.85; this.pattern = 'front'; }
         else if (lvl === 2) { this.baseDamage = 5; }
         else if (lvl === 3) { this.pierce = 3; }
-        else if (lvl === 4) { this.cooldown = 0.65; }
+        else if (lvl === 4) { this.cooldown = 0.68; }
         else if (lvl === 5) { this.pattern = 'cardinal'; this.count = 4; }
         else if (lvl === 6) { this.baseDamage = 8; }
-        else if (lvl === 7) { this.pierce = 6; }
-        else if (lvl === 8) { this.cooldown = 0.50; }
-        else if (lvl === 9) { this.pattern = 'fan'; this.count = 6; }
-        else if (lvl >= 10) { this.pattern = 'fan'; this.count = 9; this.pierce = 999; this.baseDamage = 18; this.cooldown = 0.35; }
+        else if (lvl === 7) { this.pierce = 4; }
+        else if (lvl === 8) { this.cooldown = 0.55; }
+        else if (lvl === 9) { this.pattern = 'fan'; this.count = 5; }
+        else if (lvl >= 10) { this.pattern = 'fan'; this.count = 6; this.pierce = 5; this.baseDamage = 17; this.cooldown = 0.45; }
     }
     update(dt) {
         this.timer -= dt;
@@ -1371,14 +1372,15 @@ class SlicingCardsWeapon {
             this.timer = this.cooldown;
             let baseAng = this.player.facingAngle, lvl = this.level;
             let dmg = this.baseDamage * this.player.baseDamageMult;
-            let cardW = lvl >= 10 ? 24 : (lvl >= 5 ? 18 : 14);
-            let cardH = lvl >= 10 ? 36 : (lvl >= 5 ? 26 : 20);
+            let cardScale = (isOpMode() && lvl >= 5) ? 2.3 : 1.0;
+            let cardW = (lvl >= 10 ? 20 : (lvl >= 5 ? 16 : 14)) * cardScale;
+            let cardH = (lvl >= 10 ? 30 : (lvl >= 5 ? 24 : 20)) * cardScale;
 
             let angles = [];
             if (this.pattern === 'cardinal') {
                 angles = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
             } else if (this.pattern === 'fan' || this.count > 1) {
-                let spread = lvl >= 10 ? Math.PI : 0.8;
+                let spread = lvl >= 10 ? 1.5 : 0.8;
                 for (let i = 0; i < this.count; i++) {
                     angles.push(baseAng - spread / 2 + (spread / (this.count - 1)) * i);
                 }
@@ -1388,13 +1390,13 @@ class SlicingCardsWeapon {
 
             for (let ang of angles) {
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), lvl >= 10 ? 650 : 520, dmg, cardH / 2, '#ffffff', Math.random()<this.player.critChance, this.pierce);
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), lvl >= 10 ? 600 : 520, dmg, cardH / 2, '#ffffff', Math.random()<this.player.critChance, this.pierce);
                 proj.rot = ang;
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(proj.rot + animationTime * 12);
                     c.fillStyle = '#ffffff'; c.fillRect(-cardW/2, -cardH/2, cardW, cardH);
-                    c.strokeStyle = '#dc2626'; c.lineWidth = 2; c.strokeRect(-cardW/2, -cardH/2, cardW, cardH);
-                    c.fillStyle = '#dc2626'; c.beginPath(); c.arc(0,0, 3, 0, Math.PI*2); c.fill();
+                    c.strokeStyle = '#dc2626'; c.lineWidth = 2 * cardScale; c.strokeRect(-cardW/2, -cardH/2, cardW, cardH);
+                    c.fillStyle = '#dc2626'; c.beginPath(); c.arc(0,0, 3 * cardScale, 0, Math.PI*2); c.fill();
                     c.restore();
                 };
                 projectiles.push(proj);
@@ -1415,20 +1417,22 @@ class DarkEnergyWeapon {
         if (lvl === 1) { this.baseDamage = 5; this.dps = 5; this.orbCount = 1; this.radius = 65; this.orbitSpeed = 4; }
         else if (lvl === 2) { this.dps = 7; this.baseDamage = 7; }
         else if (lvl === 3) { this.orbCount = 2; }
-        else if (lvl === 4) { this.radius = 85; }
-        else if (lvl === 5) { this.dps = 17; this.baseDamage = 17; }
+        else if (lvl === 4) { this.radius = 80; }
+        else if (lvl === 5) { this.dps = 13; this.baseDamage = 13; }
         else if (lvl === 6) { this.orbCount = 3; }
-        else if (lvl === 7) { this.orbitSpeed = 7; }
-        else if (lvl === 8) { this.radius = 110; }
+        else if (lvl === 7) { this.orbitSpeed = 5.5; }
+        else if (lvl === 8) { this.radius = 98; }
         else if (lvl === 9) { this.orbCount = 4; }
-        else if (lvl >= 10) { this.dps = 35; this.baseDamage = 35; this.orbCount = 6; this.radius = 140; this.orbitSpeed = 9; }
+        else if (lvl >= 10) { this.dps = 24; this.baseDamage = 24; this.orbCount = 5; this.radius = 115; this.orbitSpeed = 6.5; }
     }
     update(dt) {
         let currentRadius = this.radius;
         const isFused = this.player.fusions && this.player.fusions.has('dark_bubbles');
-        if (isFused) currentRadius = 160;
-        let nearby = enemyGrid.getNearby(this.player.x, this.player.y, currentRadius + 35);
-        let dmgThisFrame = this.dps * (isFused ? 2.5 : 1.0) * this.player.baseDamageMult * dt;
+        if (isFused) currentRadius = 130;
+        if (isOpMode() && this.level >= 5) currentRadius = Math.round(currentRadius * 1.85);
+
+        let nearby = enemyGrid.getNearby(this.player.x, this.player.y, currentRadius + 30);
+        let dmgThisFrame = this.dps * (isFused ? 1.35 : 1.0) * this.player.baseDamageMult * dt;
         for (let e of nearby) {
             if (e.active && distSq(this.player.x, this.player.y, e.x, e.y) < (currentRadius + e.radius)**2) {
                 e.takeDamage(dmgThisFrame, false, 0, 0, false);
@@ -1439,23 +1443,25 @@ class DarkEnergyWeapon {
         let px = this.player.x - cx, py = this.player.y - cy;
         let r = this.radius, lvl = this.level;
         const isFused = this.player.fusions && this.player.fusions.has('dark_bubbles');
-        if (isFused) r = 160;
-        let pulse = Math.sin(animationTime * (lvl >= 10 ? 10 : 6)) * (lvl >= 10 ? 6 : 3);
+        if (isFused) r = 130;
+        if (isOpMode() && lvl >= 5) r = Math.round(r * 1.85);
+
+        let pulse = Math.sin(animationTime * (lvl >= 10 ? 8 : 6)) * (lvl >= 10 ? 4 : 3);
         let activeR = r + pulse;
 
         c.save(); c.translate(px, py);
         let grad = c.createRadialGradient(0, 0, activeR * 0.2, 0, 0, activeR);
-        grad.addColorStop(0, isFused ? 'rgba(59, 7, 100, 0.35)' : 'rgba(88, 28, 135, 0.1)');
-        grad.addColorStop(0.7, isFused ? 'rgba(126, 34, 206, 0.55)' : 'rgba(147, 51, 234, 0.35)');
-        grad.addColorStop(1, isFused ? 'rgba(192, 132, 252, 0.95)' : 'rgba(192, 132, 252, 0.8)');
+        grad.addColorStop(0, isFused ? 'rgba(59, 7, 100, 0.3)' : 'rgba(88, 28, 135, 0.1)');
+        grad.addColorStop(0.7, isFused ? 'rgba(126, 34, 206, 0.45)' : 'rgba(147, 51, 234, 0.3)');
+        grad.addColorStop(1, isFused ? 'rgba(192, 132, 252, 0.85)' : 'rgba(192, 132, 252, 0.7)');
         c.fillStyle = grad; c.beginPath(); c.arc(0, 0, activeR, 0, Math.PI * 2); c.fill();
 
         c.strokeStyle = isFused ? '#f3e8ff' : (lvl >= 10 ? '#e9d5ff' : '#c084fc');
-        c.lineWidth = isFused ? 7 : (lvl >= 10 ? 5 : 3); c.shadowColor = '#a855f7'; c.shadowBlur = isFused ? 30 : 16;
+        c.lineWidth = isFused ? 5 : (lvl >= 10 ? 4 : 3); c.shadowColor = '#a855f7'; c.shadowBlur = isFused ? 22 : 14;
         c.beginPath(); c.arc(0, 0, activeR, 0, Math.PI * 2); c.stroke();
 
-        let orbsCount = isFused ? 8 : this.orbCount;
-        let orbSize = isFused ? 15 : (lvl >= 10 ? 13 : (lvl >= 5 ? 8 : 5));
+        let orbsCount = isFused ? 6 : this.orbCount;
+        let orbSize = (isFused ? 12 : (lvl >= 10 ? 10 : (lvl >= 5 ? 7 : 5))) * ((isOpMode() && lvl >= 5) ? 2.0 : 1.0);
         let speed = this.orbitSpeed || 4;
         for (let i = 0; i < orbsCount; i++) {
             let angle = animationTime * speed + (i / orbsCount) * Math.PI * 2;
@@ -1472,20 +1478,20 @@ class BoomingBubblesWeapon {
     constructor(p) {
         this.player = p; this.id = 'bubbles'; this.name = "Booming Bubbles";
         this.level = 1; this.cooldown = 1.2; this.timer = 0;
-        this.baseDamage = 2; this.count = 1; this.aoeRadius = 60;
+        this.baseDamage = 2; this.count = 1; this.aoeRadius = 55;
     }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl === 1) { this.baseDamage = 2; this.count = 1; this.aoeRadius = 60; this.cooldown = 1.2; }
+        if (lvl === 1) { this.baseDamage = 2; this.count = 1; this.aoeRadius = 55; this.cooldown = 1.2; }
         else if (lvl === 2) { this.count = 2; }
         else if (lvl === 3) { this.baseDamage = 5; }
-        else if (lvl === 4) { this.aoeRadius = 85; }
+        else if (lvl === 4) { this.aoeRadius = 75; }
         else if (lvl === 5) { this.count = 3; }
-        else if (lvl === 6) { this.baseDamage = 10; }
-        else if (lvl === 7) { this.aoeRadius = 120; }
-        else if (lvl === 8) { this.count = 4; }
-        else if (lvl === 9) { this.cooldown = 0.70; }
-        else if (lvl >= 10) { this.count = 6; this.baseDamage = 22; this.aoeRadius = 180; this.cooldown = 0.40; }
+        else if (lvl === 6) { this.baseDamage = 9; }
+        else if (lvl === 7) { this.aoeRadius = 95; }
+        else if (lvl === 8) { this.count = 3; }
+        else if (lvl === 9) { this.cooldown = 0.80; }
+        else if (lvl >= 10) { this.count = 4; this.baseDamage = 18; this.aoeRadius = 115; this.cooldown = 0.60; }
     }
     update(dt) {
         this.timer -= dt;
@@ -1493,10 +1499,14 @@ class BoomingBubblesWeapon {
             this.timer = this.cooldown;
             let lvl = this.level;
             const isFused = this.player.fusions && this.player.fusions.has('dark_bubbles');
-            let spawnCount = isFused ? 6 : this.count;
-            let bSize = isFused ? 32 : (lvl >= 10 ? 24 : (lvl >= 5 ? 18 : 14));
-            let maxAoe = isFused ? 240 : this.aoeRadius;
-            let dmg = (isFused ? 50 : this.baseDamage) * this.player.baseDamageMult;
+            let spawnCount = isFused ? 4 : this.count;
+            let bSize = isFused ? 24 : (lvl >= 10 ? 20 : (lvl >= 5 ? 16 : 14));
+            let maxAoe = isFused ? 145 : this.aoeRadius;
+            if (isOpMode() && lvl >= 5) {
+                bSize = Math.round(bSize * 2.3);
+                maxAoe = Math.round(maxAoe * 2.2);
+            }
+            let dmg = (isFused ? this.baseDamage * 1.35 : this.baseDamage) * this.player.baseDamageMult;
 
             let target = getClosestEnemy(this.player, 1000);
             let baseAng = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : Math.random() * Math.PI * 2;
@@ -1505,13 +1515,13 @@ class BoomingBubblesWeapon {
             for (let i = 0; i < spawnCount; i++) {
                 let ang = spawnCount === 1 ? baseAng : baseAng - spread/2 + (spread / (spawnCount - 1)) * i;
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 210, dmg, bSize, isFused ? '#a855f7' : '#38bdf8', false, 1);
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 230, dmg, bSize, isFused ? '#a855f7' : '#38bdf8', false, 1);
                 proj.life = 2.0;
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy);
                     if (isFused) {
                         c.fillStyle = 'rgba(88, 28, 135, 0.65)'; c.beginPath(); c.arc(0,0,proj.radius,0,Math.PI*2); c.fill();
-                        c.strokeStyle = '#c084fc'; c.lineWidth = 4; c.shadowColor = '#9333ea'; c.shadowBlur = 18; c.stroke();
+                        c.strokeStyle = '#c084fc'; c.lineWidth = 3.5; c.shadowColor = '#9333ea'; c.shadowBlur = 14; c.stroke();
                         c.fillStyle = '#f3e8ff'; c.beginPath(); c.arc(-proj.radius*0.35, -proj.radius*0.35, proj.radius*0.28, 0, Math.PI*2); c.fill();
                     } else {
                         c.fillStyle = 'rgba(186, 230, 253, 0.55)'; c.beginPath(); c.arc(0,0,proj.radius,0,Math.PI*2); c.fill();
@@ -1523,7 +1533,7 @@ class BoomingBubblesWeapon {
                 proj.onExpire = () => {
                     aoeExplosions.push({
                         x: proj.x, y: proj.y, radius: 0, maxRadius: maxAoe, damage: proj.damage,
-                        color: isFused ? 'rgba(147, 51, 234, 0.85)' : 'rgba(56, 189, 248, 0.7)'
+                        color: isFused ? 'rgba(147, 51, 234, 0.8)' : 'rgba(56, 189, 248, 0.7)'
                     });
                 };
                 projectiles.push(proj);
@@ -1542,15 +1552,15 @@ class RapidEggsWeapon {
     applyUpgrade(lvl) {
         this.level = lvl;
         if (lvl === 1) { this.baseDamage = 2; this.cooldown = 0.45; this.streams = 1; this.speed = 620; this.knockback = 1.0; }
-        else if (lvl === 2) { this.cooldown = 0.34; }
+        else if (lvl === 2) { this.cooldown = 0.36; }
         else if (lvl === 3) { this.baseDamage = 3; }
-        else if (lvl === 4) { this.knockback = 2.0; }
-        else if (lvl === 5) { this.cooldown = 0.22; }
+        else if (lvl === 4) { this.knockback = 1.4; }
+        else if (lvl === 5) { this.cooldown = 0.28; }
         else if (lvl === 6) { this.baseDamage = 5; }
         else if (lvl === 7) { this.streams = 2; }
-        else if (lvl === 8) { this.speed = 800; }
-        else if (lvl === 9) { this.baseDamage = 8; }
-        else if (lvl >= 10) { this.streams = 3; this.cooldown = 0.07; this.baseDamage = 15; this.speed = 850; this.knockback = 3.0; }
+        else if (lvl === 8) { this.speed = 720; }
+        else if (lvl === 9) { this.baseDamage = 7; }
+        else if (lvl >= 10) { this.streams = 2; this.cooldown = 0.16; this.baseDamage = 12; this.speed = 760; this.knockback = 1.8; }
     }
     update(dt) {
         this.timer -= dt;
@@ -1562,16 +1572,17 @@ class RapidEggsWeapon {
             let d = Math.sqrt(vx*vx + vy*vy) || 1; vx /= d; vy /= d;
             let perpX = -vy, perpY = vx, lvl = this.level;
             const isFused = this.player.fusions && this.player.fusions.has('eggs_feathers');
+            const eggScale = (isOpMode() && lvl >= 5) ? 2.2 : 1.0;
 
-            let offsets = isFused ? [-15, -5, 5, 15] : (this.streams === 3 ? [-10, 0, 10] : (this.streams === 2 ? [-7, 7] : [0]));
+            let offsets = isFused ? [-10 * eggScale, 10 * eggScale] : (this.streams === 2 ? [-6 * eggScale, 6 * eggScale] : [0]);
 
             for (let off of offsets) {
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x + perpX * off, this.player.y + perpY * off, vx, vy, this.speed, this.baseDamage * (isFused ? 2.5 : 1) * this.player.baseDamageMult, isFused ? 12 : 8, '#fef08a', Math.random()<this.player.critChance, lvl >= 10 ? 4 : 1);
+                proj.spawn(this.player.x + perpX * off, this.player.y + perpY * off, vx, vy, this.speed, this.baseDamage * (isFused ? 1.35 : 1) * this.player.baseDamageMult, (isFused ? 10 : 8) * eggScale, '#fef08a', Math.random()<this.player.critChance, lvl >= 10 ? 2 : 1);
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(Math.atan2(vy, vx));
-                    c.fillStyle = isFused ? '#fef08a' : '#ffffff'; c.beginPath(); c.ellipse(0,0, isFused ? 14 : 9, isFused ? 9 : 6, 0, 0, Math.PI*2); c.fill();
-                    c.strokeStyle = isFused ? '#f59e0b' : '#fef08a'; c.lineWidth = 2; c.stroke();
+                    c.fillStyle = isFused ? '#fef08a' : '#ffffff'; c.beginPath(); c.ellipse(0,0, (isFused ? 12 : 9) * eggScale, (isFused ? 8 : 6) * eggScale, 0, 0, Math.PI*2); c.fill();
+                    c.strokeStyle = isFused ? '#f59e0b' : '#fef08a'; c.lineWidth = 1.5 * eggScale; c.stroke();
                     c.restore();
                 };
                 projectiles.push(proj);
@@ -1580,19 +1591,19 @@ class RapidEggsWeapon {
             if (isFused) {
                 for (let i = 0; i < 2; i++) {
                     const angle = animationTime * 3 + (i * Math.PI);
-                    const chX = this.player.x + Math.cos(angle) * 65;
-                    const chY = this.player.y + Math.sin(angle) * 65;
+                    const chX = this.player.x + Math.cos(angle) * (65 * eggScale);
+                    const chY = this.player.y + Math.sin(angle) * (65 * eggScale);
                     let targetE = getClosestEnemy({ x: chX, y: chY }, 600);
                     let cvx = targetE ? (targetE.x - chX) : vx;
                     let cvy = targetE ? (targetE.y - chY) : vy;
                     let cd = Math.sqrt(cvx * cvx + cvy * cvy) || 1; cvx /= cd; cvy /= cd;
 
                     let cProj = projectilePool.get();
-                    cProj.spawn(chX, chY, cvx, cvy, 750, this.baseDamage * 2.5 * this.player.baseDamageMult, 11, '#fef08a', true, 3);
+                    cProj.spawn(chX, chY, cvx, cvy, 700, this.baseDamage * 1.25 * this.player.baseDamageMult, 9 * eggScale, '#fef08a', true, 2);
                     cProj.customDraw = (c, cx, cy) => {
                         c.save(); c.translate(cProj.x - cx, cProj.y - cy); c.rotate(Math.atan2(cvy, cvx));
-                        c.fillStyle = '#ffedd5'; c.beginPath(); c.ellipse(0,0, 12, 8, 0, 0, Math.PI*2); c.fill();
-                        c.strokeStyle = '#ea580c'; c.lineWidth = 2; c.stroke();
+                        c.fillStyle = '#ffedd5'; c.beginPath(); c.ellipse(0,0, 10 * eggScale, 7 * eggScale, 0, 0, Math.PI*2); c.fill();
+                        c.strokeStyle = '#ea580c'; c.lineWidth = 1.5 * eggScale; c.stroke();
                         c.restore();
                     };
                     projectiles.push(cProj);
@@ -1617,18 +1628,19 @@ class FlyingFeathersWeapon {
         else if (lvl === 4) { this.pierce = 2; }
         else if (lvl === 5) { this.count = 6; }
         else if (lvl === 6) { this.baseDamage = 5; }
-        else if (lvl === 7) { this.speed = 560; }
-        else if (lvl === 8) { this.pierce = 4; }
+        else if (lvl === 7) { this.speed = 520; }
+        else if (lvl === 8) { this.pierce = 3; }
         else if (lvl === 9) { this.count = 7; }
-        else if (lvl >= 10) { this.count = 12; this.baseDamage = 15; this.pierce = 6; this.speed = 650; this.cooldown = 0.28; }
+        else if (lvl >= 10) { this.count = 8; this.baseDamage = 12; this.pierce = 4; this.speed = 580; this.cooldown = 0.45; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
             let lvl = this.level, count = this.count;
-            let spread = lvl >= 10 ? 1.4 : (lvl >= 5 ? 0.9 : 0.6);
-            let fLength = lvl >= 10 ? 24 : (lvl >= 5 ? 16 : 10);
+            let spread = lvl >= 10 ? 1.2 : (lvl >= 5 ? 0.9 : 0.6);
+            let fLength = lvl >= 10 ? 20 : (lvl >= 5 ? 16 : 10);
+            if (isOpMode() && lvl >= 5) fLength = Math.round(fLength * 2.3);
             let dmg = this.baseDamage * this.player.baseDamageMult;
 
             for (let i = 0; i < count; i++) {
@@ -1653,20 +1665,20 @@ class StickySyrupWeapon {
     constructor(p) {
         this.player = p; this.id = 'syrup'; this.name = "Sticky Syrup";
         this.level = 1; this.cooldown = 2.0; this.timer = 0;
-        this.baseDamage = 10; this.dps = 10; this.puddles = 1; this.puddleRadius = 50; this.slow = 0.4;
+        this.baseDamage = 10; this.dps = 10; this.puddles = 1; this.puddleRadius = 50; this.slow = 0.35;
     }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl === 1) { this.baseDamage = 10; this.dps = 10; this.puddles = 1; this.puddleRadius = 50; this.slow = 0.4; this.cooldown = 2.0; }
-        else if (lvl === 2) { this.puddleRadius = 70; }
-        else if (lvl === 3) { this.slow = 0.60; }
-        else if (lvl === 4) { this.dps = 15; this.baseDamage = 15; }
+        if (lvl === 1) { this.baseDamage = 10; this.dps = 10; this.puddles = 1; this.puddleRadius = 50; this.slow = 0.35; this.cooldown = 2.0; }
+        else if (lvl === 2) { this.puddleRadius = 65; }
+        else if (lvl === 3) { this.slow = 0.45; }
+        else if (lvl === 4) { this.dps = 14; this.baseDamage = 14; }
         else if (lvl === 5) { this.puddles = 2; }
-        else if (lvl === 6) { this.puddleRadius = 95; }
-        else if (lvl === 7) { this.slow = 0.80; }
-        else if (lvl === 8) { this.dps = 23; this.baseDamage = 23; }
+        else if (lvl === 6) { this.puddleRadius = 80; }
+        else if (lvl === 7) { this.slow = 0.55; }
+        else if (lvl === 8) { this.dps = 20; this.baseDamage = 20; }
         else if (lvl === 9) { this.puddles = 3; }
-        else if (lvl >= 10) { this.puddles = 4; this.puddleRadius = 135; this.slow = 0.90; this.dps = 40; this.baseDamage = 40; this.cooldown = 1.0; }
+        else if (lvl >= 10) { this.puddles = 3; this.puddleRadius = 95; this.slow = 0.65; this.dps = 28; this.baseDamage = 28; this.cooldown = 1.3; }
     }
     update(dt) {
         this.timer -= dt;
@@ -1674,10 +1686,12 @@ class StickySyrupWeapon {
             this.timer = this.cooldown;
             let lvl = this.level;
             const isFused = this.player.fusions && this.player.fusions.has('syrup_bees');
-            let puddleCount = isFused ? 4 : this.puddles;
-            let pRadius = isFused ? 130 : this.puddleRadius;
-            let dpsVal = (isFused ? 60 : this.dps) * this.player.baseDamageMult;
-            let slowVal = isFused ? 0.95 : this.slow;
+            let puddleCount = isFused ? 3 : this.puddles;
+            let pRadius = isFused ? 105 : this.puddleRadius;
+            if (isOpMode() && lvl >= 5) pRadius = Math.round(pRadius * 2.2);
+
+            let dpsVal = (isFused ? this.dps * 1.3 : this.dps) * this.player.baseDamageMult;
+            let slowVal = isFused ? 0.75 : this.slow;
 
             let target = getClosestEnemy(this.player, 1000);
             for (let i = 0; i < puddleCount; i++) {
@@ -1685,31 +1699,33 @@ class StickySyrupWeapon {
                 let py = target ? target.y + randRange(-20, 20) : this.player.y + randRange(-120, 120);
 
                 groundPuddles.push({
-                    x: px, y: py, radius: pRadius, duration: 6.0, maxDuration: 6.0,
-                    dps: dpsVal, slow: slowVal, color: isFused ? 'rgba(245, 158, 11, 0.85)' : (lvl >= 10 ? 'rgba(217, 119, 6, 0.75)' : 'rgba(217, 119, 6, 0.55)')
+                    x: px, y: py, radius: pRadius, duration: 5.5, maxDuration: 5.5,
+                    dps: dpsVal, slow: slowVal, color: isFused ? 'rgba(245, 158, 11, 0.8)' : (lvl >= 10 ? 'rgba(217, 119, 6, 0.7)' : 'rgba(217, 119, 6, 0.55)')
                 });
 
                 if (isFused) {
-                    for (let b = 0; b < 5; b++) {
+                    let beeScale = (isOpMode() && lvl >= 5) ? 2.2 : 1.0;
+                    for (let b = 0; b < 3; b++) {
                         let bProj = projectilePool.get();
-                        let beeDmg = 35 * this.player.baseDamageMult;
-                        bProj.spawn(px, py, 0, 0, 560, beeDmg, 9, '#f59e0b', true, 1);
+                        let beeDmg = 20 * this.player.baseDamageMult;
+                        bProj.spawn(px, py, 0, 0, 520, beeDmg, 8 * beeScale, '#f59e0b', true, 1);
                         bProj.target = getClosestEnemy({ x: px, y: py }, 1000);
                         bProj.customUpdate = (dtSec) => {
                             if (!bProj.target || !bProj.target.active) bProj.target = getClosestEnemy(bProj, 1000);
                             let tx = bProj.target ? bProj.target.x : bProj.x + Math.cos(animationTime * 8) * 70;
                             let ty = bProj.target ? bProj.target.y : bProj.y + Math.sin(animationTime * 8) * 70;
                             let dx = tx - bProj.x, dy = ty - bProj.y, dist = Math.sqrt(dx*dx + dy*dy) || 1;
-                            bProj.vx = dx/dist + Math.sin(animationTime * 22) * 0.4;
-                            bProj.vy = dy/dist + Math.cos(animationTime * 22) * 0.4;
+                            bProj.vx = dx/dist + Math.sin(animationTime * 20) * 0.35;
+                            bProj.vy = dy/dist + Math.cos(animationTime * 20) * 0.35;
                             bProj.x += bProj.vx * bProj.speed * dtSec; bProj.y += bProj.vy * bProj.speed * dtSec;
                             bProj.life -= dtSec; if (bProj.life <= 0) bProj.active = false;
                         };
                         bProj.customDraw = (c, cx, cy) => {
                             c.save(); c.translate(bProj.x - cx, bProj.y - cy);
-                            c.fillStyle = '#f59e0b'; c.beginPath(); c.ellipse(0, 0, 9, 6, 0, 0, Math.PI*2); c.fill();
-                            c.fillStyle = '#000000'; c.fillRect(-2, -6, 4, 12);
-                            c.fillStyle = 'rgba(255,255,255,0.9)'; c.beginPath(); c.arc(-3, -7, 5, 0, Math.PI*2); c.fill();
+                            c.scale(beeScale, beeScale);
+                            c.fillStyle = '#f59e0b'; c.beginPath(); c.ellipse(0, 0, 8, 5, 0, 0, Math.PI*2); c.fill();
+                            c.fillStyle = '#000000'; c.fillRect(-2, -5, 3, 10);
+                            c.fillStyle = 'rgba(255,255,255,0.85)'; c.beginPath(); c.arc(-3, -6, 4, 0, Math.PI*2); c.fill();
                             c.restore();
                         };
                         projectiles.push(bProj);
@@ -1732,13 +1748,13 @@ class BuzzingBeesWeapon {
         if (lvl === 1) { this.baseDamage = 3; this.count = 2; this.speed = 380; this.pierce = 1; this.cooldown = 1.1; }
         else if (lvl === 2) { this.count = 3; }
         else if (lvl === 3) { this.baseDamage = 5; }
-        else if (lvl === 4) { this.speed = 480; }
-        else if (lvl === 5) { this.count = 4; }
-        else if (lvl === 6) { this.baseDamage = 8; }
-        else if (lvl === 7) { this.count = 5; }
+        else if (lvl === 4) { this.speed = 440; }
+        else if (lvl === 5) { this.count = 3; }
+        else if (lvl === 6) { this.baseDamage = 7; }
+        else if (lvl === 7) { this.count = 4; }
         else if (lvl === 8) { this.pierce = 2; }
-        else if (lvl === 9) { this.speed = 580; }
-        else if (lvl >= 10) { this.count = 8; this.speed = 650; this.pierce = 3; this.baseDamage = 18; this.cooldown = 0.45; }
+        else if (lvl === 9) { this.speed = 500; }
+        else if (lvl >= 10) { this.count = 5; this.speed = 550; this.pierce = 2; this.baseDamage = 15; this.cooldown = 0.65; }
     }
     update(dt) {
         this.timer -= dt;
@@ -1746,10 +1762,11 @@ class BuzzingBeesWeapon {
             this.timer = this.cooldown;
             let beeCount = this.count;
             let dmg = this.baseDamage * this.player.baseDamageMult;
+            let beeScale = (isOpMode() && this.level >= 5) ? 2.2 : 1.0;
 
             for (let b = 0; b < beeCount; b++) {
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, 0, 0, this.speed, dmg, 8, '#facc15', false, this.pierce);
+                proj.spawn(this.player.x, this.player.y, 0, 0, this.speed, dmg, 8 * beeScale, '#facc15', false, this.pierce);
                 proj.target = getClosestEnemy(this.player, 1000);
                 proj.customUpdate = (dtSec) => {
                     if (!proj.target || !proj.target.active) proj.target = getClosestEnemy(proj, 1000);
@@ -1763,6 +1780,7 @@ class BuzzingBeesWeapon {
                 };
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy);
+                    c.scale(beeScale, beeScale);
                     c.fillStyle = '#facc15'; c.beginPath(); c.ellipse(0,0, 8, 5, 0, 0, Math.PI*2); c.fill();
                     c.fillStyle = '#000000'; c.fillRect(-2, -5, 3, 10);
                     c.fillStyle = 'rgba(255,255,255,0.8)'; c.beginPath(); c.arc(-3, -6, 4, 0, Math.PI*2); c.fill();
@@ -1784,21 +1802,22 @@ class SlimyBallsWeapon {
     applyUpgrade(lvl) {
         this.level = lvl;
         if (lvl === 1) { this.baseDamage = 4; this.count = 1; this.bounces = 4; this.radius = 12; this.cooldown = 1.1; }
-        else if (lvl === 2) { this.bounces = 6; }
-        else if (lvl === 3) { this.radius = 16; }
-        else if (lvl === 4) { this.baseDamage = 7; }
+        else if (lvl === 2) { this.bounces = 5; }
+        else if (lvl === 3) { this.radius = 15; }
+        else if (lvl === 4) { this.baseDamage = 6; }
         else if (lvl === 5) { this.count = 2; }
-        else if (lvl === 6) { this.bounces = 8; }
-        else if (lvl === 7) { this.baseDamage = 12; }
-        else if (lvl === 8) { this.radius = 22; }
-        else if (lvl === 9) { this.count = 3; }
-        else if (lvl >= 10) { this.count = 4; this.bounces = 99; this.radius = 28; this.baseDamage = 22; this.cooldown = 0.45; }
+        else if (lvl === 6) { this.bounces = 7; }
+        else if (lvl === 7) { this.baseDamage = 10; }
+        else if (lvl === 8) { this.radius = 18; }
+        else if (lvl === 9) { this.count = 2; }
+        else if (lvl >= 10) { this.count = 3; this.bounces = 10; this.radius = 22; this.baseDamage = 18; this.cooldown = 0.65; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
             let count = this.count, sRadius = this.radius, maxBounces = this.bounces;
+            if (isOpMode() && this.level >= 5) sRadius = Math.round(sRadius * 2.3);
             let dmg = this.baseDamage * this.player.baseDamageMult;
 
             let target = getClosestEnemy(this.player, 1000);
@@ -1809,7 +1828,7 @@ class SlimyBallsWeapon {
                 let ang = count === 1 ? baseAng : baseAng - spread/2 + (spread / (count - 1)) * i;
                 let proj = projectilePool.get();
                 proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 480, dmg, sRadius, '#22c55e', false, maxBounces);
-                proj.life = this.level >= 10 ? 8.0 : 4.5;
+                proj.life = this.level >= 10 ? 5.5 : 4.5;
                 proj.customUpdate = (dtSec) => {
                     proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
                     if (Math.abs(proj.x) >= MAP_LIMIT - 30) proj.vx *= -1;
@@ -1833,20 +1852,20 @@ class SpeedingArrowsWeapon {
     constructor(p) {
         this.player = p; this.id = 'arrows'; this.name = "Speeding Arrows";
         this.level = 1; this.cooldown = 0.75; this.timer = 0;
-        this.baseDamage = 5; this.arrows = 1; this.pierce = 3; this.speed = 720;
+        this.baseDamage = 5; this.arrows = 1; this.pierce = 2; this.speed = 720;
     }
     applyUpgrade(lvl) {
         this.level = lvl;
-        if (lvl === 1) { this.baseDamage = 5; this.arrows = 1; this.pierce = 3; this.speed = 720; this.cooldown = 0.75; }
-        else if (lvl === 2) { this.pierce = 5; }
-        else if (lvl === 3) { this.baseDamage = 8; }
+        if (lvl === 1) { this.baseDamage = 5; this.arrows = 1; this.pierce = 2; this.speed = 720; this.cooldown = 0.75; }
+        else if (lvl === 2) { this.pierce = 3; }
+        else if (lvl === 3) { this.baseDamage = 7; }
         else if (lvl === 4) { this.arrows = 2; }
-        else if (lvl === 5) { this.speed = 880; }
-        else if (lvl === 6) { this.baseDamage = 13; }
-        else if (lvl === 7) { this.pierce = 8; }
-        else if (lvl === 8) { this.arrows = 3; }
-        else if (lvl === 9) { this.cooldown = 0.45; }
-        else if (lvl >= 10) { this.arrows = 1; this.baseDamage = 25; this.pierce = 999; this.speed = 1050; this.cooldown = 0.35; }
+        else if (lvl === 5) { this.speed = 820; }
+        else if (lvl === 6) { this.baseDamage = 11; }
+        else if (lvl === 7) { this.pierce = 4; }
+        else if (lvl === 8) { this.arrows = 2; }
+        else if (lvl === 9) { this.cooldown = 0.55; }
+        else if (lvl >= 10) { this.arrows = 1; this.baseDamage = 22; this.pierce = 6; this.speed = 900; this.cooldown = 0.45; }
     }
     update(dt) {
         this.timer -= dt;
@@ -1855,12 +1874,13 @@ class SpeedingArrowsWeapon {
             let ang = this.player.facingAngle, lvl = this.level;
             let perpX = -Math.sin(ang), perpY = Math.cos(ang);
             const isFused = this.player.fusions && this.player.fusions.has('arrows_slime');
-            let dmg = this.baseDamage * (isFused ? 2.5 : 1) * this.player.baseDamageMult;
+            let dmg = this.baseDamage * (isFused ? 1.35 : 1) * this.player.baseDamageMult;
+            let arrowScale = (isOpMode() && lvl >= 5) ? 2.3 : 1.0;
 
             if (isFused) {
-                for (let off of [-16, 0, 16]) {
+                for (let off of [-10 * arrowScale, 10 * arrowScale]) {
                     let proj = projectilePool.get();
-                    proj.spawn(this.player.x + perpX * off, this.player.y + perpY * off, Math.cos(ang), Math.sin(ang), 950, dmg, 12, '#22c55e', true, 999);
+                    proj.spawn(this.player.x + perpX * off, this.player.y + perpY * off, Math.cos(ang), Math.sin(ang), 900, dmg, 10 * arrowScale, '#22c55e', true, 6);
                     proj.target = getClosestEnemy(this.player, 700);
                     proj.customUpdate = (dtSec) => {
                         if (proj.target && proj.target.active) {
@@ -1875,8 +1895,8 @@ class SpeedingArrowsWeapon {
                     };
                     proj.customDraw = (c, cx, cy) => {
                         c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(Math.atan2(proj.vy, proj.vx));
-                        c.strokeStyle = '#15803d'; c.lineWidth = 5; c.beginPath(); c.moveTo(-25,0); c.lineTo(18,0); c.stroke();
-                        c.fillStyle = '#4ade80'; c.beginPath(); c.moveTo(18,-8); c.lineTo(30,0); c.lineTo(18,8); c.fill();
+                        c.strokeStyle = '#15803d'; c.lineWidth = 4 * arrowScale; c.beginPath(); c.moveTo(-22 * arrowScale,0); c.lineTo(15 * arrowScale,0); c.stroke();
+                        c.fillStyle = '#4ade80'; c.beginPath(); c.moveTo(15 * arrowScale,-7 * arrowScale); c.lineTo(26 * arrowScale,0); c.lineTo(15 * arrowScale,7 * arrowScale); c.fill();
                         c.restore();
                     };
                     projectiles.push(proj);
@@ -1884,17 +1904,17 @@ class SpeedingArrowsWeapon {
 
                 const slimeBalls = projectiles.filter(p => p.active && p.color === '#22c55e' && p.radius >= 12);
                 slimeBalls.forEach(sb => {
-                    let sTarget = getClosestEnemy(sb, 500);
-                    let svx = sTarget ? (sTarget.x - sb.x) : Math.cos(ang);
-                    let svy = sTarget ? (sTarget.y - sb.y) : Math.sin(ang);
+                    let sTarget = getClosestEnemy(sb, 400);
+                    if (!sTarget) return;
+                    let svx = sTarget.x - sb.x, svy = sTarget.y - sb.y;
                     let sd = Math.sqrt(svx*svx + svy*svy) || 1; svx /= sd; svy /= sd;
 
                     let sProj = projectilePool.get();
-                    sProj.spawn(sb.x, sb.y, svx, svy, 850, dmg * 0.8, 10, '#22c55e', true, 4);
+                    sProj.spawn(sb.x, sb.y, svx, svy, 750, dmg * 0.65, 8 * arrowScale, '#22c55e', false, 2);
                     sProj.customDraw = (c, cx, cy) => {
                         c.save(); c.translate(sProj.x - cx, sProj.y - cy); c.rotate(Math.atan2(svy, svx));
-                        c.strokeStyle = '#166534'; c.lineWidth = 4; c.beginPath(); c.moveTo(-18,0); c.lineTo(12,0); c.stroke();
-                        c.fillStyle = '#86efac'; c.beginPath(); c.moveTo(12,-6); c.lineTo(22,0); c.lineTo(12,6); c.fill();
+                        c.strokeStyle = '#166534'; c.lineWidth = 3 * arrowScale; c.beginPath(); c.moveTo(-14 * arrowScale,0); c.lineTo(10 * arrowScale,0); c.stroke();
+                        c.fillStyle = '#86efac'; c.beginPath(); c.moveTo(10 * arrowScale,-5 * arrowScale); c.lineTo(18 * arrowScale,0); c.lineTo(10 * arrowScale,5 * arrowScale); c.fill();
                         c.restore();
                     };
                     projectiles.push(sProj);
@@ -1902,26 +1922,26 @@ class SpeedingArrowsWeapon {
 
             } else if (lvl >= 10) {
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), this.speed, dmg, 14, '#a16207', true, 999);
-                proj.life = 3.0;
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), this.speed, dmg, 12 * arrowScale, '#a16207', true, 6);
+                proj.life = 2.5;
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
-                    c.strokeStyle = '#451a03'; c.lineWidth = 7; c.beginPath(); c.moveTo(-40,0); c.lineTo(28,0); c.stroke();
-                    c.fillStyle = '#64748b'; c.beginPath(); c.moveTo(28,-12); c.lineTo(46,0); c.lineTo(28,12); c.fill();
+                    c.strokeStyle = '#451a03'; c.lineWidth = 6 * arrowScale; c.beginPath(); c.moveTo(-35 * arrowScale,0); c.lineTo(24 * arrowScale,0); c.stroke();
+                    c.fillStyle = '#64748b'; c.beginPath(); c.moveTo(24 * arrowScale,-10 * arrowScale); c.lineTo(40 * arrowScale,0); c.lineTo(24 * arrowScale,10 * arrowScale); c.fill();
                     c.restore();
                 };
                 projectiles.push(proj);
             } else {
                 let aCount = this.arrows || 1;
-                let step = 14;
+                let step = 14 * arrowScale;
                 for (let a = 0; a < aCount; a++) {
                     let off = (a - (aCount - 1) / 2) * step;
                     let proj = projectilePool.get();
-                    proj.spawn(this.player.x + perpX*off, this.player.y + perpY*off, Math.cos(ang), Math.sin(ang), this.speed, dmg, 6, '#a16207', false, this.pierce);
+                    proj.spawn(this.player.x + perpX*off, this.player.y + perpY*off, Math.cos(ang), Math.sin(ang), this.speed, dmg, 6 * arrowScale, '#a16207', false, this.pierce);
                     proj.customDraw = (c, cx, cy) => {
                         c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
-                        c.strokeStyle = '#78350f'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(-15,0); c.lineTo(10,0); c.stroke();
-                        c.fillStyle = '#94a3b8'; c.beginPath(); c.moveTo(10,-5); c.lineTo(16,0); c.lineTo(10,5); c.fill();
+                        c.strokeStyle = '#78350f'; c.lineWidth = 2.5 * arrowScale; c.beginPath(); c.moveTo(-15 * arrowScale,0); c.lineTo(10 * arrowScale,0); c.stroke();
+                        c.fillStyle = '#94a3b8'; c.beginPath(); c.moveTo(10 * arrowScale,-5 * arrowScale); c.lineTo(16 * arrowScale,0); c.lineTo(10 * arrowScale,5 * arrowScale); c.fill();
                         c.restore();
                     };
                     projectiles.push(proj);
@@ -1941,15 +1961,15 @@ class ReboundingShellWeapon {
     applyUpgrade(lvl) {
         this.level = lvl;
         if (lvl === 1) { this.baseDamage = 5; this.bounces = 4; this.speed = 420; this.radius = 12; this.knockback = 1.0; this.cooldown = 1.4; }
-        else if (lvl === 2) { this.bounces = 6; }
-        else if (lvl === 3) { this.baseDamage = 8; }
-        else if (lvl === 4) { this.speed = 520; }
-        else if (lvl === 5) { this.bounces = 9; }
-        else if (lvl === 6) { this.baseDamage = 13; }
-        else if (lvl === 7) { this.knockback = 2.5; }
-        else if (lvl === 8) { this.bounces = 14; }
-        else if (lvl === 9) { this.speed = 620; }
-        else if (lvl >= 10) { this.bounces = 50; this.baseDamage = 30; this.radius = 24; this.speed = 720; this.knockback = 3.5; this.cooldown = 0.55; }
+        else if (lvl === 2) { this.bounces = 5; }
+        else if (lvl === 3) { this.baseDamage = 7; }
+        else if (lvl === 4) { this.speed = 480; }
+        else if (lvl === 5) { this.bounces = 7; }
+        else if (lvl === 6) { this.baseDamage = 11; }
+        else if (lvl === 7) { this.knockback = 1.8; }
+        else if (lvl === 8) { this.bounces = 9; }
+        else if (lvl === 9) { this.speed = 540; }
+        else if (lvl >= 10) { this.bounces = 12; this.baseDamage = 24; this.radius = 18; this.speed = 600; this.knockback = 2.2; this.cooldown = 0.85; }
     }
     update(dt) {
         this.timer -= dt;
@@ -1960,9 +1980,11 @@ class ReboundingShellWeapon {
             let vy = target ? (target.y - this.player.y) : Math.sin(this.player.facingAngle);
             let d = Math.sqrt(vx*vx + vy*vy) || 1; vx /= d; vy /= d;
             let dmg = this.baseDamage * this.player.baseDamageMult;
+            let sRadius = this.radius;
+            if (isOpMode() && this.level >= 5) sRadius = Math.round(sRadius * 2.3);
 
             let proj = projectilePool.get();
-            proj.spawn(this.player.x, this.player.y, vx, vy, this.speed, dmg, this.radius, '#16a34a', false, this.bounces);
+            proj.spawn(this.player.x, this.player.y, vx, vy, this.speed, dmg, sRadius, '#16a34a', false, this.bounces);
             proj.target = target;
             proj.customUpdate = (dtSec) => {
                 if (!proj.target || !proj.target.active) {
@@ -1971,8 +1993,8 @@ class ReboundingShellWeapon {
                 if (proj.target && proj.target.active) {
                     let tdx = proj.target.x - proj.x, tdy = proj.target.y - proj.y;
                     let td = Math.sqrt(tdx * tdx + tdy * tdy) || 1;
-                    proj.vx = proj.vx * 0.85 + (tdx / td) * 0.15;
-                    proj.vy = proj.vy * 0.85 + (tdy / td) * 0.15;
+                    proj.vx = proj.vx * 0.88 + (tdx / td) * 0.12;
+                    proj.vy = proj.vy * 0.88 + (tdy / td) * 0.12;
                     let vlen = Math.sqrt(proj.vx * proj.vx + proj.vy * proj.vy) || 1;
                     proj.vx /= vlen; proj.vy /= vlen;
                 }
@@ -1984,9 +2006,9 @@ class ReboundingShellWeapon {
                 if (proj.life <= 0) proj.active = false;
             };
             proj.customDraw = (c, cx, cy) => {
-                c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(animationTime * (this.level >= 10 ? 16 : 8));
+                c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(animationTime * (this.level >= 10 ? 12 : 8));
                 c.fillStyle = this.level >= 10 ? '#4ade80' : '#16a34a'; c.beginPath(); c.arc(0,0, proj.radius, 0, Math.PI*2); c.fill();
-                c.strokeStyle = '#14532d'; c.lineWidth = 3; c.stroke();
+                c.strokeStyle = '#14532d'; c.lineWidth = (this.level >= 10 ? 4.5 : 3) * ((isOpMode() && this.level >= 5) ? 1.8 : 1.0); c.stroke();
                 c.restore();
             };
             projectiles.push(proj);
@@ -2005,14 +2027,14 @@ class CrazyAcornsWeapon {
         this.level = lvl;
         if (lvl === 1) { this.baseDamage = 6; this.count = 1; this.blastRadius = 55; this.cooldown = 1.2; }
         else if (lvl === 2) { this.count = 2; }
-        else if (lvl === 3) { this.blastRadius = 75; }
-        else if (lvl === 4) { this.baseDamage = 9; }
-        else if (lvl === 5) { this.count = 3; }
-        else if (lvl === 6) { this.blastRadius = 105; }
-        else if (lvl === 7) { this.baseDamage = 14; }
-        else if (lvl === 8) { this.cooldown = 0.70; }
-        else if (lvl === 9) { this.count = 4; }
-        else if (lvl >= 10) { this.count = 6; this.baseDamage = 28; this.blastRadius = 150; this.cooldown = 0.35; }
+        else if (lvl === 3) { this.blastRadius = 65; }
+        else if (lvl === 4) { this.baseDamage = 8; }
+        else if (lvl === 5) { this.count = 2; }
+        else if (lvl === 6) { this.blastRadius = 80; }
+        else if (lvl === 7) { this.baseDamage = 12; }
+        else if (lvl === 8) { this.cooldown = 0.85; }
+        else if (lvl === 9) { this.count = 3; }
+        else if (lvl >= 10) { this.count = 4; this.baseDamage = 22; this.blastRadius = 95; this.cooldown = 0.65; }
     }
     update(dt) {
         this.timer -= dt;
@@ -2020,14 +2042,16 @@ class CrazyAcornsWeapon {
             this.timer = this.cooldown;
             let dropCount = this.count;
             let aoeSize = this.blastRadius;
+            let acornScale = (isOpMode() && this.level >= 5) ? 2.3 : 1.0;
+            if (isOpMode() && this.level >= 5) aoeSize = Math.round(aoeSize * 2.3);
             let dmg = this.baseDamage * this.player.baseDamageMult;
 
             let target = getClosestEnemy(this.player, 1000);
             for (let i = 0; i < dropCount; i++) {
-                let dropX = target ? target.x + (i > 0 ? randRange(-40, 40) : 0) : this.player.x + randRange(-140, 140);
-                let dropY = target ? target.y + (i > 0 ? randRange(-40, 40) : 0) : this.player.y + randRange(-140, 140);
+                let dropX = target ? target.x + (i > 0 ? randRange(-35, 35) : 0) : this.player.x + randRange(-120, 120);
+                let dropY = target ? target.y + (i > 0 ? randRange(-35, 35) : 0) : this.player.y + randRange(-120, 120);
                 let proj = projectilePool.get();
-                proj.spawn(dropX, dropY, 0, 0, 0, dmg, 12, '#a16207', false, 1);
+                proj.spawn(dropX, dropY, 0, 0, 0, dmg, 12 * acornScale, '#a16207', false, 1);
                 proj.fuse = 0.6;
                 proj.customUpdate = (dtSec) => {
                     proj.fuse -= dtSec;
@@ -2038,6 +2062,7 @@ class CrazyAcornsWeapon {
                 };
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy);
+                    c.scale(acornScale, acornScale);
                     c.fillStyle = '#a16207'; c.beginPath(); c.arc(0,2,6,0,Math.PI*2); c.fill();
                     c.fillStyle = '#451a03'; c.fillRect(-5,-4,10,4);
                     c.restore();
@@ -2059,40 +2084,48 @@ class RevolvingHorseshoeWeapon {
         this.level = lvl;
         if (lvl === 1) { this.baseDamage = 5; this.count = 3; this.hSize = 9; this.speed = 6; this.radius = 48; }
         else if (lvl === 2) { this.count = 4; }
-        else if (lvl === 3) { this.baseDamage = 10; }
-        else if (lvl === 4) { this.count = 5; }
-        else if (lvl === 5) { this.hSize = 13; this.speed = 9; }
-        else if (lvl === 6) { this.radius = 58; this.speed = 10; }
-        else if (lvl === 7) { this.count = 6; }
-        else if (lvl === 8) { this.baseDamage = 20; }
-        else if (lvl === 9) { this.count = 7; }
-        else if (lvl >= 10) { this.count = 8; this.baseDamage = 30; this.hSize = 16; this.speed = 14; }
+        else if (lvl === 3) { this.baseDamage = 8; }
+        else if (lvl === 4) { this.count = 4; }
+        else if (lvl === 5) { this.hSize = 11; this.speed = 7.5; }
+        else if (lvl === 6) { this.radius = 54; this.speed = 8; }
+        else if (lvl === 7) { this.count = 5; }
+        else if (lvl === 8) { this.baseDamage = 14; }
+        else if (lvl === 9) { this.count = 5; }
+        else if (lvl >= 10) { this.count = 6; this.baseDamage = 24; this.hSize = 13; this.speed = 9.5; }
     }
     update(dt) {
-        let radius = this.radius, speed = this.speed;
+        let radius = this.radius, speed = this.speed, hSize = this.hSize;
+        if (isOpMode() && this.level >= 5) {
+            radius = Math.round(radius * 1.45);
+            hSize = Math.round(hSize * 2.3);
+        }
         let dmg = this.baseDamage * this.player.baseDamageMult;
 
         for (let i = 0; i < this.count; i++) {
             let ang = animationTime * speed + (i / this.count) * Math.PI * 2;
             let hx = this.player.x + Math.cos(ang) * radius;
             let hy = this.player.y + Math.sin(ang) * radius;
-            let nearby = enemyGrid.getNearby(hx, hy, 28);
+            let nearby = enemyGrid.getNearby(hx, hy, hSize + 15);
             for (let e of nearby) {
-                if (e.active && distSq(hx, hy, e.x, e.y) < (22 + e.radius)**2) {
-                    e.takeDamage(dmg * dt * 5, false, Math.cos(ang), Math.sin(ang), false);
+                if (e.active && distSq(hx, hy, e.x, e.y) < (hSize + 12 + e.radius)**2) {
+                    e.takeDamage(dmg * dt * 4, false, Math.cos(ang), Math.sin(ang), false);
                 }
             }
         }
     }
     drawOrbital(c, cx, cy) {
         let radius = this.radius, speed = this.speed, hSize = this.hSize;
+        if (isOpMode() && this.level >= 5) {
+            radius = Math.round(radius * 1.45);
+            hSize = Math.round(hSize * 2.3);
+        }
         for (let i = 0; i < this.count; i++) {
             let ang = animationTime * speed + (i / this.count) * Math.PI * 2;
             let hx = this.player.x + Math.cos(ang) * radius - cx;
             let hy = this.player.y + Math.sin(ang) * radius - cy;
             c.save(); c.translate(hx, hy); c.rotate(ang + Math.PI/2);
             c.strokeStyle = this.level >= 10 ? '#1e1b4b' : (this.level >= 5 ? '#475569' : '#94a3b8');
-            c.lineWidth = this.level >= 10 ? 6 : 4;
+            c.lineWidth = (this.level >= 10 ? 5 : 4) * ((isOpMode() && this.level >= 5) ? 1.8 : 1.0);
             c.beginPath(); c.arc(0,0, hSize, Math.PI*0.2, Math.PI*1.8); c.stroke();
             c.restore();
         }
@@ -2109,26 +2142,28 @@ class BoomerangPizzaWeapon {
     applyUpgrade(lvl) {
         this.level = lvl;
         if (lvl === 1) { this.baseDamage = 4; this.maxDist = 320; this.scale = 1.0; this.speed = 450; this.cooldown = 1.3; }
-        else if (lvl === 2) { this.maxDist = 420; }
-        else if (lvl === 3) { this.scale = 1.4; }
-        else if (lvl === 4) { this.baseDamage = 7; }
-        else if (lvl === 5) { this.speed = 560; }
-        else if (lvl === 6) { this.scale = 1.8; }
-        else if (lvl === 7) { this.baseDamage = 12; }
-        else if (lvl === 8) { this.maxDist = 550; }
-        else if (lvl === 9) { this.speed = 640; }
-        else if (lvl >= 10) { this.scale = 2.6; this.baseDamage = 24; this.maxDist = 650; this.speed = 700; this.cooldown = 0.55; }
+        else if (lvl === 2) { this.maxDist = 380; }
+        else if (lvl === 3) { this.scale = 1.2; }
+        else if (lvl === 4) { this.baseDamage = 6; }
+        else if (lvl === 5) { this.speed = 500; }
+        else if (lvl === 6) { this.scale = 1.4; }
+        else if (lvl === 7) { this.baseDamage = 10; }
+        else if (lvl === 8) { this.maxDist = 440; }
+        else if (lvl === 9) { this.speed = 540; }
+        else if (lvl >= 10) { this.scale = 1.9; this.baseDamage = 20; this.maxDist = 480; this.speed = 580; this.cooldown = 0.75; }
     }
     update(dt) {
         this.timer -= dt;
         if (this.timer <= 0) {
             this.timer = this.cooldown;
-            let ang = this.player.facingAngle;
-            let scale = this.scale, maxDist = this.maxDist;
+            let ang = this.player.facingAngle, lvl = this.level;
+            let scale = this.scale;
+            if (isOpMode() && lvl >= 5) scale *= 2.3;
+            let maxDist = this.maxDist;
             let dmg = this.baseDamage * this.player.baseDamageMult;
 
             let proj = projectilePool.get();
-            proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), this.speed, dmg, 14 * scale, '#eab308', false, 99);
+            proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), this.speed, dmg, 14 * scale, '#eab308', false, 12);
             proj.state = 'out'; proj.distTraveled = 0;
             proj.customUpdate = (dtSec) => {
                 if (proj.state === 'out') {
@@ -2138,7 +2173,7 @@ class BoomerangPizzaWeapon {
                 } else {
                     let dx = this.player.x - proj.x, dy = this.player.y - proj.y, d = Math.sqrt(dx*dx + dy*dy) || 1;
                     proj.x += (dx/d) * proj.speed * dtSec; proj.y += (dy/d) * proj.speed * dtSec;
-                    if (d < 25) proj.active = false;
+                    if (d < 25 * (scale > 1.5 ? 1.5 : 1.0)) proj.active = false;
                 }
             };
             proj.customDraw = (c, cx, cy) => {
@@ -2163,14 +2198,14 @@ class CurvingBananaWeapon {
         this.level = lvl;
         if (lvl === 1) { this.baseDamage = 3; this.count = 1; this.curveRate = 3.2; this.bScale = 1.0; this.cooldown = 0.8; }
         else if (lvl === 2) { this.count = 2; }
-        else if (lvl === 3) { this.curveRate = 4.0; }
+        else if (lvl === 3) { this.curveRate = 3.8; }
         else if (lvl === 4) { this.baseDamage = 5; }
-        else if (lvl === 5) { this.count = 3; }
-        else if (lvl === 6) { this.curveRate = 5.0; }
-        else if (lvl === 7) { this.baseDamage = 9; }
-        else if (lvl === 8) { this.count = 4; }
-        else if (lvl === 9) { this.curveRate = 6.0; }
-        else if (lvl >= 10) { this.count = 6; this.baseDamage = 20; this.bScale = 2.0; this.curveRate = 7.0; this.cooldown = 0.25; }
+        else if (lvl === 5) { this.count = 2; }
+        else if (lvl === 6) { this.curveRate = 4.5; }
+        else if (lvl === 7) { this.baseDamage = 8; }
+        else if (lvl === 8) { this.count = 3; }
+        else if (lvl === 9) { this.curveRate = 5.0; }
+        else if (lvl >= 10) { this.count = 4; this.baseDamage = 16; this.bScale = 1.5; this.curveRate = 5.5; this.cooldown = 0.45; }
     }
     update(dt) {
         this.timer -= dt;
@@ -2178,13 +2213,14 @@ class CurvingBananaWeapon {
             this.timer = this.cooldown;
             let bananaCount = this.count;
             let bScale = this.bScale;
+            if (isOpMode() && this.level >= 5) bScale *= 2.3;
             let dmg = this.baseDamage * this.player.baseDamageMult;
             let curveSpeed = this.curveRate;
 
             for (let i = 0; i < bananaCount; i++) {
                 let ang = this.player.facingAngle + (i * (Math.PI * 2 / bananaCount));
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 400, dmg, 10 * bScale, '#facc15', false, this.level >= 10 ? 6 : 3);
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), 400, dmg, 10 * bScale, '#facc15', false, 3);
                 proj.curveAng = ang; proj.curveDir = i % 2 === 0 ? 1 : -1;
                 proj.customUpdate = (dtSec) => {
                     proj.curveAng += dtSec * curveSpeed * proj.curveDir;
@@ -2215,15 +2251,15 @@ class JugglingSpheresWeapon {
     applyUpgrade(lvl) {
         this.level = lvl;
         if (lvl === 1) { this.baseDamage = 8; this.count = 2; this.sRadius = 9; this.cooldown = 0.58; }
-        else if (lvl === 2) { this.count = 3; }
-        else if (lvl === 3) { this.baseDamage = 11; }
-        else if (lvl === 4) { this.cooldown = 0.45; }
-        else if (lvl === 5) { this.count = 4; }
-        else if (lvl === 6) { this.baseDamage = 15; }
-        else if (lvl === 7) { this.cooldown = 0.35; }
-        else if (lvl === 8) { this.count = 5; }
-        else if (lvl === 9) { this.baseDamage = 20; }
-        else if (lvl >= 10) { this.count = 6; this.baseDamage = 40; this.sRadius = 18; this.cooldown = 0.20; }
+        else if (lvl === 2) { this.count = 2; }
+        else if (lvl === 3) { this.baseDamage = 10; }
+        else if (lvl === 4) { this.cooldown = 0.50; }
+        else if (lvl === 5) { this.count = 3; }
+        else if (lvl === 6) { this.baseDamage = 14; }
+        else if (lvl === 7) { this.cooldown = 0.42; }
+        else if (lvl === 8) { this.count = 3; }
+        else if (lvl === 9) { this.baseDamage = 18; }
+        else if (lvl >= 10) { this.count = 4; this.baseDamage = 26; this.sRadius = 14; this.cooldown = 0.35; }
     }
     update(dt) {
         this.timer -= dt;
@@ -2234,28 +2270,29 @@ class JugglingSpheresWeapon {
             let lvl = this.level;
             let count = this.count;
             let sRadius = this.sRadius;
+            if (isOpMode() && lvl >= 5) sRadius = Math.round(sRadius * 2.3);
             let dmg = this.baseDamage * this.player.baseDamageMult;
-            let speed = lvl >= 10 ? 560 : 460;
-            let pierceCount = lvl >= 10 ? 12 : (lvl >= 5 ? 5 : 3);
+            let speed = lvl >= 10 ? 520 : 460;
+            let pierceCount = lvl >= 10 ? 5 : 3;
 
             for (let i = 0; i < count; i++) {
                 let ballColor = this.colors[(this.colorCounter + i) % this.colors.length];
                 let proj = projectilePool.get();
                 let waveDir = (i % 2 === 0) ? 1 : -1;
-                let spread = (i - (count - 1) / 2) * (lvl >= 10 ? 0.22 : 0.16);
+                let spread = (i - (count - 1) / 2) * (lvl >= 10 ? 0.20 : 0.16);
                 let fireAng = baseAng + spread;
                 let vx = Math.cos(fireAng), vy = Math.sin(fireAng);
                 let perpX = -vy, perpY = vx;
 
                 proj.spawn(this.player.x, this.player.y, vx, vy, speed, dmg, sRadius, ballColor, Math.random() < this.player.critChance, pierceCount);
-                proj.life = lvl >= 10 ? 2.5 : 1.8;
+                proj.life = 1.9;
                 proj.travelDist = 0; proj.startX = this.player.x; proj.startY = this.player.y;
                 proj.wavePhase = i * 1.4;
 
                 proj.customUpdate = (dtSec) => {
                     proj.travelDist += proj.speed * dtSec;
                     let fwdX = Math.cos(fireAng) * proj.travelDist, fwdY = Math.sin(fireAng) * proj.travelDist;
-                    let waveAmp = (lvl >= 10 ? 34 : 22) * Math.sin(proj.travelDist * 0.05 + proj.wavePhase) * waveDir;
+                    let waveAmp = (lvl >= 10 ? 26 : 20) * Math.sin(proj.travelDist * 0.05 + proj.wavePhase) * waveDir;
                     proj.x = proj.startX + fwdX + perpX * waveAmp;
                     proj.y = proj.startY + fwdY + perpY * waveAmp;
                     proj.life -= dtSec; if (proj.life <= 0) proj.active = false;
@@ -2263,7 +2300,7 @@ class JugglingSpheresWeapon {
 
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy);
-                    if (lvl >= 10) { c.shadowColor = ballColor; c.shadowBlur = 16; }
+                    if (lvl >= 10 || isOpMode()) { c.shadowColor = ballColor; c.shadowBlur = 12 * ((isOpMode() && lvl >= 5) ? 1.8 : 1.0); }
                     c.fillStyle = ballColor; c.beginPath(); c.arc(0, 0, proj.radius, 0, Math.PI * 2); c.fill();
                     c.fillStyle = 'rgba(255, 255, 255, 0.7)'; c.beginPath(); c.arc(-proj.radius * 0.35, -proj.radius * 0.35, proj.radius * 0.32, 0, Math.PI * 2); c.fill();
                     c.strokeStyle = 'rgba(0, 0, 0, 0.2)'; c.lineWidth = 1.5; c.stroke();
@@ -2286,15 +2323,15 @@ class WhirlingBonesWeapon {
     applyUpgrade(lvl) {
         this.level = lvl;
         if (lvl === 1) { this.baseDamage = 5; this.count = 6; this.cooldown = 1.0; }
-        else if (lvl === 2) { this.count = 8; }
-        else if (lvl === 3) { this.baseDamage = 8; }
-        else if (lvl === 4) { this.cooldown = 0.85; }
-        else if (lvl === 5) { this.count = 11; }
-        else if (lvl === 6) { this.baseDamage = 12; }
-        else if (lvl === 7) { this.cooldown = 0.70; }
-        else if (lvl === 8) { this.count = 13; }
-        else if (lvl === 9) { this.baseDamage = 16; }
-        else if (lvl >= 10) { this.count = 16; this.baseDamage = 38; this.cooldown = 0.45; }
+        else if (lvl === 2) { this.count = 7; }
+        else if (lvl === 3) { this.baseDamage = 7; }
+        else if (lvl === 4) { this.cooldown = 0.88; }
+        else if (lvl === 5) { this.count = 8; }
+        else if (lvl === 6) { this.baseDamage = 11; }
+        else if (lvl === 7) { this.cooldown = 0.78; }
+        else if (lvl === 8) { this.count = 9; }
+        else if (lvl === 9) { this.baseDamage = 15; }
+        else if (lvl >= 10) { this.count = 10; this.baseDamage = 25; this.cooldown = 0.65; }
     }
     update(dt) {
         this.timer -= dt;
@@ -2302,14 +2339,15 @@ class WhirlingBonesWeapon {
             this.timer = this.cooldown;
             let lvl = this.level, count = this.count;
             let dmg = this.baseDamage * this.player.baseDamageMult;
+            let boneScale = (isOpMode() && lvl >= 5) ? 2.3 : 1.0;
 
             for (let i = 0; i < count; i++) {
                 let ang = (i / count) * Math.PI * 2;
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), lvl >= 10 ? 380 : 320, dmg, 8, '#f8fafc', false, lvl >= 10 ? 5 : 2);
-                proj.growScale = lvl >= 10 ? 1.5 : 1.0;
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), lvl >= 10 ? 350 : 320, dmg, 8 * boneScale, '#f8fafc', false, lvl >= 10 ? 3 : 2);
+                proj.growScale = (lvl >= 10 ? 1.3 : 1.0) * boneScale;
                 proj.customUpdate = (dtSec) => {
-                    proj.growScale += dtSec * 1.5;
+                    proj.growScale += dtSec * (1.2 * boneScale);
                     proj.x += proj.vx * proj.speed * dtSec; proj.y += proj.vy * proj.speed * dtSec;
                     proj.life -= dtSec; if (proj.life <= 0) proj.active = false;
                 };
@@ -2336,15 +2374,15 @@ class PeacockFeathersWeapon {
     applyUpgrade(lvl) {
         this.level = lvl;
         if (lvl === 1) { this.baseDamage = 6; this.count = 5; this.spread = 0.8; this.fLength = 12; this.cooldown = 1.5; }
-        else if (lvl === 2) { this.count = 7; }
-        else if (lvl === 3) { this.baseDamage = 9; }
-        else if (lvl === 4) { this.spread = 1.2; }
-        else if (lvl === 5) { this.count = 10; }
-        else if (lvl === 6) { this.baseDamage = 14; }
-        else if (lvl === 7) { this.cooldown = 1.1; }
-        else if (lvl === 8) { this.count = 12; }
-        else if (lvl === 9) { this.baseDamage = 21; }
-        else if (lvl >= 10) { this.count = 13; this.baseDamage = 50; this.spread = 2.4; this.fLength = 26; this.cooldown = 0.55; }
+        else if (lvl === 2) { this.count = 6; }
+        else if (lvl === 3) { this.baseDamage = 8; }
+        else if (lvl === 4) { this.spread = 1.0; }
+        else if (lvl === 5) { this.count = 7; }
+        else if (lvl === 6) { this.baseDamage = 12; }
+        else if (lvl === 7) { this.cooldown = 1.2; }
+        else if (lvl === 8) { this.count = 8; }
+        else if (lvl === 9) { this.baseDamage = 18; }
+        else if (lvl >= 10) { this.count = 9; this.baseDamage = 32; this.spread = 1.6; this.fLength = 20; this.cooldown = 0.85; }
     }
     update(dt) {
         this.timer -= dt;
@@ -2356,12 +2394,13 @@ class PeacockFeathersWeapon {
             let count = this.count;
             let spread = this.spread;
             let fLength = this.fLength;
+            if (isOpMode() && lvl >= 5) fLength = Math.round(fLength * 2.2);
             let dmg = this.baseDamage * this.player.baseDamageMult;
 
             for (let i = 0; i < count; i++) {
                 let ang = baseAng - spread/2 + (spread / count) * i;
                 let proj = projectilePool.get();
-                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), lvl >= 10 ? 550 : 420, dmg, fLength, '#0284c7', false, lvl >= 10 ? 8 : 4);
+                proj.spawn(this.player.x, this.player.y, Math.cos(ang), Math.sin(ang), lvl >= 10 ? 490 : 420, dmg, fLength, '#0284c7', false, lvl >= 10 ? 5 : 4);
                 proj.customDraw = (c, cx, cy) => {
                     c.save(); c.translate(proj.x - cx, proj.y - cy); c.rotate(ang);
                     c.fillStyle = '#0284c7'; c.beginPath(); c.ellipse(0,0, fLength, fLength*0.4, 0, 0, Math.PI*2); c.fill();
@@ -2570,7 +2609,14 @@ class Enemy {
                 for (let i = 0; i < 8; i++) {
                     spawnXpOrb(this.x + randRange(-30, 30), this.y + randRange(-30, 30), this.xpValue / 8);
                 }
-                if (wasFinalBoss) gameWin();
+                if (wasFinalBoss) {
+                    if (isInfiniteMode()) {
+                        totalPoints += 5000;
+                        spawnFloatingText(this.x, this.y - 30, `🌟 ¡YETI DERROTADO! +5000 PTS`, true);
+                    } else {
+                        gameWin();
+                    }
+                }
             } else {
                 spawnXpOrb(this.x, this.y, this.xpValue);
             }
@@ -3050,7 +3096,7 @@ function updateWaveSpawner(dt) {
         }
     }
 
-    if (player.level >= 60 && activeBoss && activeBoss.drawType === 'yeti') return;
+    if (!isInfiniteMode() && player.level >= 60 && activeBoss && activeBoss.drawType === 'yeti') return;
 
     // Protección para evitar congelamientos en niveles altos:
     if (enemies.length >= MAX_CONCURRENT_ENEMIES) return;
@@ -3193,6 +3239,53 @@ function createUpgradeCard({ name, levelBadge, statText, id, isFusion, apply }) 
     return btn;
 }
 
+const FUSION_PAIRS = [
+    {
+        key: 'dark_bubbles',
+        a: 'darkenergy', b: 'bubbles',
+        title: 'Dark Energy + Booming Bubbles',
+        desc: '🌌 Fusión Automática: Zonas Cósmicas Expansivas'
+    },
+    {
+        key: 'syrup_bees',
+        a: 'syrup', b: 'bees',
+        title: 'Sticky Syrup + Buzzing Bees',
+        desc: '🐝 Fusión Automática: Colmenas de Miel y Enjambre'
+    },
+    {
+        key: 'lasers_cards',
+        a: 'lasers', b: 'cards',
+        title: 'Rapid-Fire Lasers + Slicing Cards',
+        desc: '⚡ Fusión Automática: Abanico de Láseres Gigantes'
+    },
+    {
+        key: 'eggs_feathers',
+        a: 'rapideggs', b: 'feathers',
+        title: 'Rapid Eggs + Flying Feathers',
+        desc: '🐔 Fusión Automática: Torretas Lava Chicken'
+    },
+    {
+        key: 'arrows_slime',
+        a: 'arrows', b: 'slimyballs',
+        title: 'Speeding Arrows + Slimy Balls',
+        desc: '🏹 Fusión Automática: Flechas Teledirigidas de Slime'
+    }
+];
+
+function checkAutomaticFusions() {
+    FUSION_PAIRS.forEach(pair => {
+        const weaponA = player.weapons.find(w => w.id === pair.a);
+        const weaponB = player.weapons.find(w => w.id === pair.b);
+        if (weaponA && weaponB && weaponA.level >= 10 && weaponB.level >= 10 && !player.fusions.has(pair.key)) {
+            player.fusions.add(pair.key);
+            weaponA.applyUpgrade(11);
+            weaponB.applyUpgrade(11);
+            spawnFloatingText(player.x, player.y - 25, `⚡ ¡FUSIÓN AUTOMÁTICA!`, true);
+            spawnFloatingText(player.x, player.y, `⭐ ${pair.title}`, true);
+        }
+    });
+}
+
 function triggerInitialDraft() {
     currentState = GAME_STATE.LEVEL_UP;
     document.getElementById('draft-options').classList.remove('hidden');
@@ -3217,6 +3310,7 @@ function triggerInitialDraft() {
             isFusion: false,
             apply: () => {
                 player.weapons.push(tempWeapon);
+                checkAutomaticFusions();
                 updateInventoryDisplay();
                 updateHUD();
                 document.getElementById('level-up-screen').classList.add('hidden');
@@ -3238,7 +3332,7 @@ function updateInventoryDisplay() {
 }
 
 function triggerDraft() {
-    if (player.level >= 60) return; // Nivel 60: no se abren más ruletas
+    if (!isInfiniteMode() && player.level >= 60) return; // Nivel 60: no se abren más ruletas en modos estándar
 
     currentState = GAME_STATE.LEVEL_UP;
     document.getElementById('level-up-screen').classList.remove('hidden');
@@ -3264,63 +3358,6 @@ function generateRouletteCards() {
 
     let draftPool = [];
 
-    // CATÁLOGO DE LAS 5 FUSIONES PROGRAMADAS
-    const FUSION_PAIRS = [
-        {
-            key: 'dark_bubbles',
-            a: 'darkenergy', b: 'bubbles',
-            title: 'Dark Energy + Booming Bubbles',
-            desc: '🌌 Fusión Nivel 11: Zonas Cósmicas Masivas'
-        },
-        {
-            key: 'syrup_bees',
-            a: 'syrup', b: 'bees',
-            title: 'Sticky Syrup + Buzzing Bees',
-            desc: '🐝 Fusión Nivel 11: Enjambre y Miel Máxima'
-        },
-        {
-            key: 'lasers_cards',
-            a: 'lasers', b: 'cards',
-            title: 'Rapid-Fire Lasers + Slicing Cards',
-            desc: '⚡ Fusión Nivel 11: Abanico de Láseres Gigantes'
-        },
-        {
-            key: 'eggs_feathers',
-            a: 'rapideggs', b: 'feathers',
-            title: 'Rapid Eggs + Flying Feathers',
-            desc: '🐔 Fusión Nivel 11: Torretas Lava Chicken'
-        },
-        {
-            key: 'arrows_slime',
-            a: 'arrows', b: 'slimyballs',
-            title: 'Speeding Arrows + Slimy Balls',
-            desc: '🏹 Fusión Nivel 11: Flechas Teledirigidas de Slime'
-        }
-    ];
-
-    // Nivel 40+: Disparador de Fusión Nivel 11 con MÁXIMA PRIORIDAD para las 5 combinaciones
-    if (lvl >= 40) {
-        FUSION_PAIRS.forEach(pair => {
-            const weaponA = player.weapons.find(w => w.id === pair.a);
-            const weaponB = player.weapons.find(w => w.id === pair.b);
-            if (weaponA && weaponB && weaponA.level >= 10 && weaponB.level >= 10 && !player.fusions.has(pair.key)) {
-                draftPool.push({
-                    name: pair.title,
-                    levelBadge: 'Lvl 11',
-                    statText: pair.desc,
-                    id: pair.a,
-                    isFusion: true,
-                    priority: true,
-                    apply: () => {
-                        player.fusions.add(pair.key);
-                        weaponA.applyUpgrade(11);
-                        weaponB.applyUpgrade(11);
-                    }
-                });
-            }
-        });
-    }
-
     // Actualización de armas existentes (Depuración por tope: desaparecen si llegan a Lv 10 o 11)
     player.weapons.forEach(w => {
         if (w.level < 10) {
@@ -3333,7 +3370,10 @@ function generateRouletteCards() {
                 statText: statText,
                 id: w.id,
                 isFusion: false,
-                apply: () => w.applyUpgrade(nextLvl)
+                apply: () => {
+                    w.applyUpgrade(nextLvl);
+                    checkAutomaticFusions();
+                }
             });
         }
     });
@@ -3352,6 +3392,7 @@ function generateRouletteCards() {
                     apply: () => {
                         player.weapons.push(temp);
                         if (player.weapons.length >= 6) player.slotLock = true;
+                        checkAutomaticFusions();
                     }
                 });
             }
@@ -3396,36 +3437,60 @@ function generateRouletteCards() {
 
     // Nivel 56 al 59: Vaciado de Mazo (Fallback a curaciones o monedas si no hay opciones)
     if (draftPool.length === 0) {
-        draftPool.push({
-            name: 'Elixir de Vida Menor',
-            levelBadge: 'Item',
-            statText: '+30 puntos de salud',
-            id: 'hp',
-            isFusion: false,
-            apply: () => { player.hp = Math.min(player.maxHp, player.hp + 30); }
-        });
-        draftPool.push({
-            name: 'Bolsa de Monedas',
-            levelBadge: 'Item',
-            statText: '+150 puntos para la Tienda',
-            id: 'might',
-            isFusion: false,
-            apply: () => { totalPoints += 150; }
-        });
-        draftPool.push({
-            name: 'Coraza Temporal',
-            levelBadge: 'Item',
-            statText: '+15 salud máxima permanente',
-            id: 'armor',
-            isFusion: false,
-            apply: () => { player.maxHp += 15; player.hp += 15; }
-        });
+        if (isOpMode()) {
+            draftPool.push({
+                name: 'Bendición Titánica (OP)',
+                levelBadge: 'Poder',
+                statText: '+35% daño global continuo a todo el arsenal',
+                id: 'might',
+                isFusion: true,
+                apply: () => { player.baseDamageMult += 0.35; }
+            });
+            draftPool.push({
+                name: 'Cofre del Rey Infinito',
+                levelBadge: 'Tesoro',
+                statText: '+500 puntos para la Tienda',
+                id: 'speed',
+                isFusion: false,
+                apply: () => { totalPoints += 500; }
+            });
+            draftPool.push({
+                name: 'Regeneración Cósmica',
+                levelBadge: 'Vida',
+                statText: 'Restaura el 100% de HP y suma +40 HP máx.',
+                id: 'hp',
+                isFusion: false,
+                apply: () => { player.maxHp += 40; player.hp = player.maxHp; }
+            });
+        } else {
+            draftPool.push({
+                name: 'Elixir de Vida Menor',
+                levelBadge: 'Item',
+                statText: '+30 puntos de salud',
+                id: 'hp',
+                isFusion: false,
+                apply: () => { player.hp = Math.min(player.maxHp, player.hp + 30); }
+            });
+            draftPool.push({
+                name: 'Bolsa de Monedas',
+                levelBadge: 'Item',
+                statText: '+150 puntos para la Tienda',
+                id: 'might',
+                isFusion: false,
+                apply: () => { totalPoints += 150; }
+            });
+            draftPool.push({
+                name: 'Coraza Temporal',
+                levelBadge: 'Item',
+                statText: '+15 salud máxima permanente',
+                id: 'armor',
+                isFusion: false,
+                apply: () => { player.maxHp += 15; player.hp += 15; }
+            });
+        }
     }
 
-    // Si hay una carta de fusión prioritaria (Nivel 40), garantizarla en primer lugar
-    let priorityCard = draftPool.find(c => c.priority);
-    let remainingPool = draftPool.filter(c => !c.priority).sort(() => 0.5 - Math.random());
-    let choices = priorityCard ? [priorityCard, ...remainingPool.slice(0, 2)] : remainingPool.slice(0, 3);
+    let choices = draftPool.sort(() => 0.5 - Math.random()).slice(0, 3);
 
     const container = document.getElementById('draft-options');
     container.innerHTML = '';
@@ -3484,7 +3549,10 @@ function updateHUD() {
     document.getElementById('ui-max-hp').innerText = player.maxHp;
     document.getElementById('ui-xp-bar').style.width = `${(player.xp / player.maxXp) * 100}%`;
     document.getElementById('ui-time').innerText = formatTime(gameTimer);
-    document.getElementById('ui-diff-badge').innerText = currentDifficulty;
+    let diffName = currentDifficulty.toUpperCase();
+    if (currentDifficulty === 'infinito') diffName = 'INFINITO';
+    else if (currentDifficulty === 'hiper' || currentDifficulty === 'op') diffName = 'MODO HIPER';
+    document.getElementById('ui-diff-badge').innerText = diffName;
 }
 
 function gameWin() {
@@ -3639,7 +3707,7 @@ function gameLoop(timestamp) {
                 o.y += ((player.y - o.y)/dist) * 420 * dt;
             }
             if (dSq < (player.radius + o.radius)**2) { 
-                if (player.level < 60) {
+                if (isInfiniteMode() || player.level < 60) {
                     player.addXp(o.value); 
                 }
                 o.active = false; 
