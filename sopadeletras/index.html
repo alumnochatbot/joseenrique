@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sopa de Letras Pro | Generador y Juego Interactivo</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: JetBrains Mono (Grid), Inter (UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Roboto+Mono:wght@500;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+  
+  <!-- Tone.js for Native Synthesized Sound Effects -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+
+  <!-- Canvas Confetti for Victory Screen -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    /* Tipografías maestras intercambiables */
+    .font-grid-jetbrains { font-family: 'JetBrains Mono', monospace; }
+    .font-grid-roboto { font-family: 'Roboto Mono', monospace; }
+    .font-grid-space { font-family: 'Space Mono', monospace; }
+    .font-ui { font-family: 'Inter', system-ui, sans-serif; }
+
+    /* Prevención de scroll y selecciones espurias durante el arrastre táctil */
+    .puzzle-board-container {
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Animación suave para celdas */
+    .grid-cell {
+      aspect-ratio: 1 / 1;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .grid-cell:hover {
+      transform: scale(1.05);
+      z-index: 5;
+    }
+    .grid-cell:active {
+      transform: scale(0.92);
+    }
+    
+    /* Celda activa bajo el cursor / arrastre */
+    .grid-cell.selected-cursor {
+      background: linear-gradient(135deg, #ec4899, #8b5cf6) !important;
+      color: #ffffff !important;
+      transform: scale(1.15) !important;
+      z-index: 25 !important;
+      box-shadow: 0 0 16px rgba(236, 72, 153, 0.8), 0 0 30px rgba(139, 92, 246, 0.5) !important;
+      border-radius: 0.6rem;
+      animation: pulse-selection 0.8s infinite alternate ease-in-out;
+    }
+
+    /* Resplandor pulsante al trazar */
+    @keyframes pulse-selection {
+      0% { filter: brightness(1); }
+      100% { filter: brightness(1.25); }
+    }
+
+    /* Animación de entrada de palabra completada */
+    @keyframes pop-found {
+      0% { transform: scale(0.8); opacity: 0.5; }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop-found {
+      animation: pop-found 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    /* Efecto shimmer brillante en tarjeta */
+    .shimmer-badge {
+      background-size: 200% 100%;
+      animation: shimmer 3s infinite linear;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* =========================================================================
+     * 5 TEMAS VISUALES MAESTROS DE ALTO IMPACTO (CYBERPUNK, SYNTHWAVE, MATRIX, SOLAR, ABYSS)
+     * ========================================================================= */
+    /* 1. Cyberpunk 2099: Amarillo Neón Eléctrico, Cian y Negro Grafito */
+    body.theme-cyberpunk {
+      background: radial-gradient(circle at 12% 18%, #1f1b00 0%, #0d0e14 55%, #050608 100%);
+      --theme-accent: #fcee0a;
+      --theme-glow: rgba(252, 238, 10, 0.6);
+    }
+    body.theme-cyberpunk .puzzle-board-container {
+      border-color: rgba(252, 238, 10, 0.3) !important;
+      box-shadow: 0 0 30px rgba(252, 238, 10, 0.15), inset 0 0 20px rgba(0, 240, 255, 0.08) !important;
+    }
+    body.theme-cyberpunk .grid-cell:hover {
+      background: rgba(252, 238, 10, 0.15) !important;
+      border-color: rgba(252, 238, 10, 0.4) !important;
+    }
+
+    /* 2. Synthwave Outrun: Púrpura Profundo, Magenta Láser y Turquesa 80s */
+    body.theme-synthwave {
+      background: radial-gradient(circle at 80% 15%, #2e0839 0%, #120426 55%, #060112 100%);
+      --theme-accent: #ff2a85;
+      --theme-glow: rgba(255, 42, 133, 0.6);
+    }
+    body.theme-synthwave .puzzle-board-container {
+      border-color: rgba(255, 42, 133, 0.35) !important;
+      box-shadow: 0 0 30px rgba(255, 42, 133, 0.2), inset 0 0 20px rgba(139, 92, 246, 0.12) !important;
+    }
+    body.theme-synthwave .grid-cell:hover {
+      background: rgba(255, 42, 133, 0.18) !important;
+      border-color: rgba(255, 42, 133, 0.45) !important;
+    }
+
+    /* 3. Matrix Terminal: Verde Fósforo Terminal, Jade y Negro Abisal */
+    body.theme-matrix {
+      background: radial-gradient(circle at 50% 10%, #032b14 0%, #031409 50%, #010804 100%);
+      --theme-accent: #00ff66;
+      --theme-glow: rgba(0, 255, 102, 0.6);
+    }
+    body.theme-matrix .puzzle-board-container {
+      border-color: rgba(0, 255, 102, 0.35) !important;
+      box-shadow: 0 0 30px rgba(0, 255, 102, 0.18), inset 0 0 20px rgba(16, 185, 129, 0.1) !important;
+    }
+    body.theme-matrix .grid-cell:hover {
+      background: rgba(0, 255, 102, 0.15) !important;
+      border-color: rgba(0, 255, 102, 0.45) !important;
+    }
+
+    /* 4. Solar Flare: Magma Cósmico, Naranja Incandescente y Oro Solar */
+    body.theme-solar {
+      background: radial-gradient(circle at 20% 85%, #3d1000 0%, #1c0604 50%, #0a0202 100%);
+      --theme-accent: #ff5722;
+      --theme-glow: rgba(255, 87, 34, 0.6);
+    }
+    body.theme-solar .puzzle-board-container {
+      border-color: rgba(255, 87, 34, 0.35) !important;
+      box-shadow: 0 0 30px rgba(255, 87, 34, 0.2), inset 0 0 20px rgba(255, 193, 7, 0.1) !important;
+    }
+    body.theme-solar .grid-cell:hover {
+      background: rgba(255, 87, 34, 0.18) !important;
+      border-color: rgba(255, 87, 34, 0.45) !important;
+    }
+
+    /* 5. Abyssal Aurora: Glaciar Boreal, Cian Neón, Ultravioleta y Azul Marino Profundo */
+    body.theme-abyss {
+      background: radial-gradient(circle at 50% 15%, #052c42 0%, #071629 50%, #020914 100%);
+      --theme-accent: #06b6d4;
+      --theme-glow: rgba(6, 182, 212, 0.6);
+    }
+    body.theme-abyss .puzzle-board-container {
+      border-color: rgba(6, 182, 212, 0.35) !important;
+      box-shadow: 0 0 30px rgba(6, 182, 212, 0.2), inset 0 0 20px rgba(59, 130, 246, 0.12) !important;
+    }
+    body.theme-abyss .grid-cell:hover {
+      background: rgba(6, 182, 212, 0.15) !important;
+      border-color: rgba(6, 182, 212, 0.45) !important;
+    }
+
+    /* Estilos para impresión en papel estándar A4 / Carta */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .print-grid-container {
+        border: 2px solid #000000 !important;
+        page-break-inside: avoid;
+      }
+      .print-cell {
+        border: 1px solid #d1d5db !important;
+        color: #000000 !important;
+        font-weight: 700 !important;
+      }
+      .page-break {
+        page-break-after: always;
+      }
+    }
+    @media screen {
+      .print-only {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="theme-cyberpunk text-slate-100 font-ui min-h-screen flex flex-col antialiased selection:bg-fuchsia-500 selection:text-white transition-colors duration-700">
+
+  <!-- Top Navigation & Status Bar -->
+  <header class="no-print border-b border-white/10 bg-slate-950/70 backdrop-blur-xl sticky top-0 z-30 shadow-lg shadow-black/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo y Título -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-500 via-purple-500 to-cyan-400 p-0.5 shadow-lg shadow-pink-500/30 flex items-center justify-center font-grid-jetbrains font-extrabold text-xl text-white animate-pulse">
+          <div class="w-full h-full bg-slate-950/80 rounded-[14px] flex items-center justify-center">
+            <span class="bg-gradient-to-r from-pink-400 via-fuchsia-300 to-cyan-300 bg-clip-text text-transparent">S</span>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-1.5">
+              <span>Sopa de Letras</span>
+              <span class="text-xs px-2 py-0.5 rounded-lg bg-gradient-to-r from-pink-500 to-violet-500 text-white font-extrabold tracking-wider shadow-sm shadow-pink-500/50">PRO</span>
+            </h1>
+            <span id="badge-category" class="hidden sm:inline-block text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold">Tecnología</span>
+          </div>
+          <p class="text-[11px] text-slate-400">Distribución probabilística RAE + Multiplicador de Racha</p>
+        </div>
+      </div>
+
+      <!-- Métricas en vivo (Cronómetro, Puntuación, Combo, Contador) -->
+      <div class="flex items-center gap-2 sm:gap-4">
+        
+        <!-- Puntuación Dinámica -->
+        <div class="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-amber-500/15 to-orange-500/15 border border-amber-500/30 shadow-sm shadow-amber-500/20">
+          <span class="text-amber-400 text-xs">⭐</span>
+          <span id="score-display" class="font-grid-jetbrains font-bold text-amber-300 text-xs sm:text-sm">0</span>
+          <span class="text-[10px] text-amber-400/80 uppercase tracking-tighter">pts</span>
+        </div>
+
+        <!-- Multiplicador de Racha (Combo) -->
+        <div id="combo-badge" class="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-gradient-to-r from-rose-500/25 to-pink-500/25 border border-rose-500/40 opacity-0 transition-opacity duration-300">
+          <span class="text-xs animate-bounce">🔥</span>
+          <span id="combo-display" class="font-grid-jetbrains font-extrabold text-xs text-rose-300">x1</span>
+        </div>
+
+        <!-- Cronómetro -->
+        <div class="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/5 border border-white/10">
+          <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span id="timer-display" class="font-grid-jetbrains font-semibold text-slate-200 text-xs">00:00</span>
+        </div>
+
+        <!-- Palabras Halladas -->
+        <div class="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30">
+          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span id="words-found-count" class="font-grid-jetbrains font-bold text-emerald-300 text-xs sm:text-sm">0/0</span>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="flex items-center gap-1.5">
+          <!-- Selector Dinámico de los 5 Temas Visuales con Menú Desplegable -->
+          <div class="relative">
+            <button id="btn-theme-toggle" title="Cambiar entre los 5 temas visuales" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-yellow-300 hover:text-white transition-all border border-white/10 flex items-center gap-1.5 text-xs font-bold active:scale-95 shadow-sm">
+              <span id="theme-btn-icon">⚡</span>
+              <span class="hidden md:inline" id="theme-btn-label">Cyberpunk</span>
+              <svg class="w-3 h-3 text-slate-400 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+
+            <!-- Menú Flotante con los 5 Temas -->
+            <div id="theme-menu" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-slate-900/95 border border-white/15 backdrop-blur-xl shadow-2xl shadow-black/80 p-2 z-50 flex-col gap-1 transition-all">
+              <div class="px-2 py-1 text-[10px] uppercase font-black text-slate-400 tracking-wider border-b border-white/10 mb-1 flex justify-between items-center">
+                <span>Temas Visuales (5)</span>
+                <span class="text-pink-400 font-mono text-[9px]">HD FX</span>
+              </div>
+              <button data-theme="theme-cyberpunk" class="theme-option w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2.5 hover:bg-yellow-500/20 text-yellow-300 border border-transparent hover:border-yellow-500/30 transition-all">
+                <span class="w-3 h-3 rounded-full bg-[#fcee0a] shadow-sm shadow-yellow-400 ring-2 ring-black"></span>
+                <span>Cyberpunk 2099</span>
+              </button>
+              <button data-theme="theme-synthwave" class="theme-option w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2.5 hover:bg-pink-500/20 text-pink-300 border border-transparent hover:border-pink-500/30 transition-all">
+                <span class="w-3 h-3 rounded-full bg-[#ff2a85] shadow-sm shadow-pink-500 ring-2 ring-black"></span>
+                <span>Synthwave Outrun</span>
+              </button>
+              <button data-theme="theme-matrix" class="theme-option w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2.5 hover:bg-emerald-500/20 text-emerald-300 border border-transparent hover:border-emerald-500/30 transition-all">
+                <span class="w-3 h-3 rounded-full bg-[#00ff66] shadow-sm shadow-emerald-400 ring-2 ring-black"></span>
+                <span>Matrix Terminal</span>
+              </button>
+              <button data-theme="theme-solar" class="theme-option w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2.5 hover:bg-orange-500/20 text-orange-300 border border-transparent hover:border-orange-500/30 transition-all">
+                <span class="w-3 h-3 rounded-full bg-[#ff5722] shadow-sm shadow-orange-500 ring-2 ring-black"></span>
+                <span>Solar Flare</span>
+              </button>
+              <button data-theme="theme-abyss" class="theme-option w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2.5 hover:bg-cyan-500/20 text-cyan-300 border border-transparent hover:border-cyan-500/30 transition-all">
+                <span class="w-3 h-3 rounded-full bg-[#06b6d4] shadow-sm shadow-cyan-400 ring-2 ring-black"></span>
+                <span>Abyssal Aurora</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Sonido Toggle -->
+          <button id="btn-sound-toggle" title="Activar/Silenciar sonido" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors border border-white/10">
+            <svg id="icon-sound-on" class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+            <svg id="icon-sound-off" class="w-4 h-4 hidden text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z m12 0l-6-6m0 6l6-6"/></svg>
+          </button>
+
+          <!-- Imprimir Pasatiempo -->
+          <button id="btn-print-action" title="Imprimir o exportar PDF" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors border border-white/10">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          </button>
+
+          <!-- Nueva Partida -->
+          <button id="btn-open-config" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 hover:opacity-95 text-white font-bold text-xs sm:text-sm transition-all shadow-md shadow-pink-500/25 flex items-center gap-1.5 active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            <span class="hidden sm:inline">Nueva Partida</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Interactive Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 items-start justify-center">
+
+    <!-- Tablero de Juego (Columna Principal) -->
+    <section class="w-full lg:flex-1 flex flex-col items-center">
+      
+      <!-- Indicador Flotante Dinámico de la Palabra Seleccionada en Tiempo Real -->
+      <div id="live-selection-pill" class="h-10 mb-3 px-5 py-1 rounded-2xl bg-slate-900/90 border border-fuchsia-500/40 backdrop-blur-md flex items-center justify-center gap-2 shadow-lg shadow-fuchsia-500/20 transition-all duration-150 opacity-0 scale-90 pointer-events-none">
+        <span class="text-xs uppercase font-extrabold tracking-widest text-pink-400">Trazando:</span>
+        <span id="live-selection-text" class="font-grid-jetbrains font-black text-sm sm:text-base text-white tracking-widest bg-gradient-to-r from-pink-400 via-fuchsia-300 to-cyan-300 bg-clip-text text-transparent">---</span>
+      </div>
+
+      <!-- Barra de herramientas superior del tablero -->
+      <div class="w-full max-w-2xl mb-4 flex items-center justify-between bg-white/[0.04] backdrop-blur-md p-3 rounded-2xl border border-white/10 shadow-lg shadow-black/30">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Modo:</span>
+          <span id="difficulty-badge" class="text-xs px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">Normal (4 Dir.)</span>
+          <span id="theme-badge-name" class="hidden sm:inline-block text-[11px] px-2.5 py-0.5 rounded-lg bg-yellow-500/15 text-yellow-300 font-semibold border border-yellow-500/30">⚡ Cyberpunk 2099</span>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <!-- Botón Pista -->
+          <button id="btn-hint" class="px-3 py-1.5 text-xs font-bold rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 transition-all active:scale-95 shadow-sm shadow-amber-500/20">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            <span>Pista (<span id="hints-left">3</span>)</span>
+          </button>
+
+          <!-- Botón Resolver Todo -->
+          <button id="btn-solve" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 transition-all active:scale-95">
+            Resolver
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor del Tablero, Líneas SVG y Partículas Canvas -->
+      <div class="relative w-full max-w-2xl bg-slate-900/90 backdrop-blur-2xl rounded-3xl p-3 sm:p-5 border border-white/15 shadow-2xl shadow-black/80 flex items-center justify-center">
+        
+        <!-- Tablero de Celdas (Grid interactivo) -->
+        <div id="puzzle-grid" class="puzzle-board-container font-grid-jetbrains relative grid w-full select-none cursor-pointer rounded-2xl overflow-hidden bg-slate-950/90 p-1.5 sm:p-2 border border-white/10 shadow-inner">
+          <!-- Las celdas se inyectan dinámicamente -->
+        </div>
+
+        <!-- Capa SVG para trazar líneas continuas de palabras encontradas y selección activa -->
+        <svg id="selection-svg" class="absolute inset-0 pointer-events-none w-full h-full p-3 sm:p-5 z-10" xmlns="http://www.w3.org/2000/svg">
+          <!-- Trazos de selección y palabras resueltas -->
+          <g id="svg-completed-lines"></g>
+          <line id="svg-active-line" x1="0" y1="0" x2="0" y2="0" stroke="#f43f5e" stroke-width="26" stroke-linecap="round" opacity="0" class="transition-opacity duration-75"></line>
+        </svg>
+
+        <!-- Capa Canvas para Partículas y Chispas Reactivas -->
+        <canvas id="fx-canvas" class="absolute inset-0 pointer-events-none w-full h-full z-20"></canvas>
+
+      </div>
+
+      <!-- Barra de progreso visual con degradado arcoíris -->
+      <div class="w-full max-w-2xl mt-4 px-2">
+        <div class="flex justify-between text-xs text-slate-300 mb-1.5 font-bold">
+          <span class="flex items-center gap-1.5">
+            <span>Progreso del reto</span>
+            <span id="combo-multiplier-label" class="text-[10px] text-pink-400 font-extrabold uppercase"></span>
+          </span>
+          <span id="progress-percent" class="font-mono text-cyan-400">0%</span>
+        </div>
+        <div class="w-full h-2.5 rounded-full bg-slate-950/80 p-0.5 border border-white/10 overflow-hidden shadow-inner">
+          <div id="progress-bar-fill" class="h-full rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 transition-all duration-300 w-0 shadow-sm shadow-cyan-400/50"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Banco de Palabras y Opciones (Columna Lateral) -->
+    <aside class="w-full lg:w-80 flex flex-col gap-4">
+      
+      <!-- Tarjeta del Banco de Palabras -->
+      <div class="bg-slate-900/80 backdrop-blur-xl rounded-3xl p-5 border border-white/10 shadow-xl shadow-black/50">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+          <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-pink-500 animate-ping"></span>
+            Palabras a Encontrar
+          </h2>
+          <span id="words-left-pill" class="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono font-bold">0 restantes</span>
+        </div>
+
+        <!-- Lista dinámica de palabras -->
+        <div id="word-list-container" class="grid grid-cols-2 lg:grid-cols-1 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
+          <!-- Renderizado dinámico -->
+        </div>
+      </div>
+
+      <!-- Resumen Tipográfico y Estadístico -->
+      <div class="bg-slate-900/50 backdrop-blur-md rounded-3xl p-4 border border-white/10 text-xs text-slate-400 space-y-2.5">
+        <div class="flex justify-between items-center">
+          <span>Tipografía en grilla:</span>
+          <select id="select-font" class="bg-slate-950 text-slate-200 border border-white/10 rounded-xl px-2.5 py-1 text-xs focus:ring-1 focus:ring-pink-500 outline-none">
+            <option value="font-grid-jetbrains">JetBrains Mono</option>
+            <option value="font-grid-roboto">Roboto Mono</option>
+            <option value="font-grid-space">Space Mono</option>
+          </select>
+        </div>
+        <div class="flex justify-between">
+          <span>Dimensiones matriz:</span>
+          <span id="meta-grid-size" class="font-mono text-slate-200 font-bold">12 x 12</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Densidad léxica:</span>
+          <span id="meta-grid-density" class="font-mono text-emerald-400 font-bold">41.2%</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Alfabeto fonético:</span>
+          <span class="font-mono text-cyan-300 font-semibold">Español (A-Z + Ñ)</span>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- Plantilla de Impresión Editorial (Oculta en pantalla, visible al imprimir con Ctrl+P) -->
+  <div class="print-only max-w-2xl mx-auto p-8 font-serif text-black">
+    <div class="text-center mb-6 border-b-2 border-black pb-4">
+      <h1 id="print-title" class="text-2xl font-black uppercase tracking-widest">SOPA DE LETRAS: TECNOLOGÍA</h1>
+      <p class="text-xs italic text-gray-700 mt-1">Encuentra todas las palabras escondidas en la matriz en cualquier dirección.</p>
+    </div>
+
+    <!-- Grilla de Impresión de Alta Definición -->
+    <div id="print-grid-target" class="w-full aspect-square border-2 border-black grid mb-6">
+      <!-- Se clona para imprimir con caracteres en tinta negra limpia -->
+    </div>
+
+    <!-- Lista de Palabras para Tachar -->
+    <div class="mt-4">
+      <h3 class="text-xs font-bold uppercase tracking-wider mb-2 border-b border-gray-400 pb-1">Palabras a Buscar:</h3>
+      <div id="print-word-list" class="grid grid-cols-4 gap-2 text-xs font-mono font-semibold">
+        <!-- Palabras imprimibles -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Nueva Partida / Ajustes de Generación -->
+  <div id="modal-config" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl shadow-indigo-900/30">
+      
+      <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-800">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+          Configurar Nueva Sopa
+        </h3>
+        <button id="modal-close-btn" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="form-new-game" class="space-y-4 text-sm">
+        
+        <!-- Temática -->
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Temática o Categoría</label>
+          <select id="config-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:border-sky-500 focus:outline-none">
+            <option value="tecnologia">Tecnología & Programación</option>
+            <option value="ciudades">Capitales y Países Hispanos</option>
+            <option value="fauna">Fauna y Animales Silvestres</option>
+            <option value="ciencias">Ciencia, Física y Cosmos</option>
+            <option value="gastronomia">Gastronomía Iberoamericana</option>
+            <option value="custom">-- Lista Personalizada --</option>
+          </select>
+        </div>
+
+        <!-- Campo para lista personalizada (oculto por defecto) -->
+        <div id="custom-words-wrapper" class="hidden">
+          <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Introduce tus palabras (separadas por comas)</label>
+          <textarea id="config-custom-words" rows="3" placeholder="COMPUTADORA, CODIGO, LOGICA, MATRIZ, RED" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:border-sky-500 focus:outline-none text-xs font-mono"></textarea>
+          <span class="text-[11px] text-slate-500">Se aceptan mayúsculas/minúsculas y acentos (se normalizan automáticamente). La Ñ se conserva.</span>
+        </div>
+
+        <!-- Tamaño de la Grilla -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Tamaño de Grilla</label>
+            <select id="config-size" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:border-sky-500 focus:outline-none">
+              <option value="10">10 x 10 (Rápida)</option>
+              <option value="12" selected>12 x 12 (Estándar)</option>
+              <option value="15">15 x 15 (Intermedia)</option>
+              <option value="18">18 x 18 (Gran Reto)</option>
+            </select>
+          </div>
+
+          <!-- Nivel de Dificultad -->
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Dificultad</label>
+            <select id="config-difficulty" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:border-sky-500 focus:outline-none">
+              <option value="easy">Fácil (Horiz / Vert)</option>
+              <option value="medium" selected>Normal (+ Diagonales)</option>
+              <option value="hard">Experto (8 Dir. + Reversas)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Botón Generar -->
+        <div class="pt-3">
+          <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold transition-all shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Generar Tablero Maestro
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Pantalla de Victoria -->
+  <div id="modal-victory" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl shadow-emerald-500/20 animate-in fade-in zoom-in duration-300">
+      
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+      </div>
+
+      <h2 class="text-2xl font-extrabold text-white mb-1">¡Sopa Completada!</h2>
+      <p class="text-xs text-slate-400 mb-6">Has localizado todas las palabras con éxito.</p>
+
+      <div class="grid grid-cols-2 gap-3 mb-6 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+        <div>
+          <span class="block text-slate-500 text-xs uppercase">Tiempo Empleado</span>
+          <span id="victory-time" class="font-grid-jetbrains text-lg font-bold text-sky-400">01:45</span>
+        </div>
+        <div>
+          <span class="block text-slate-500 text-xs uppercase">Palabras Halladas</span>
+          <span id="victory-words" class="font-grid-jetbrains text-lg font-bold text-emerald-400">10 / 10</span>
+        </div>
+      </div>
+
+      <div class="mb-5 p-3 rounded-2xl bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-amber-500/20 border border-pink-500/30 flex items-center justify-around">
+        <div class="text-center">
+          <span class="text-[10px] text-pink-300 uppercase font-bold block">Puntuación Total</span>
+          <span id="victory-score" class="font-grid-jetbrains text-xl font-black text-amber-300">12,500</span>
+        </div>
+        <div class="text-center">
+          <span class="text-[10px] text-pink-300 uppercase font-bold block">Racha Máxima</span>
+          <span id="victory-max-combo" class="font-grid-jetbrains text-xl font-black text-rose-400">x4 🔥</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button id="btn-victory-replay" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all">
+          Jugar de Nuevo
+        </button>
+        <button id="btn-victory-close" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all font-medium">
+          Ver Tablero
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div id="toast-box" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    /* =========================================================================
+     * 1. MOTOR LÉXICO Y NORMALIZACIÓN LINGÜÍSTICA EN ESPAÑOL
+     * ========================================================================= */
+    const LexicalEngine = {
+      // Distribución probabilística según frecuencias de letras en castellano (CREA / RAE)
+      spanishFrequencies: [
+        { letter: 'E', weight: 13.68 },
+        { letter: 'A', weight: 12.53 },
+        { letter: 'O', weight: 8.68 },
+        { letter: 'S', weight: 7.98 },
+        { letter: 'R', weight: 6.87 },
+        { letter: 'N', weight: 6.71 },
+        { letter: 'I', weight: 6.25 },
+        { letter: 'D', weight: 5.86 },
+        { letter: 'L', weight: 4.97 },
+        { letter: 'C', weight: 4.68 },
+        { letter: 'T', weight: 4.63 },
+        { letter: 'U', weight: 3.93 },
+        { letter: 'M', weight: 3.15 },
+        { letter: 'P', weight: 2.51 },
+        { letter: 'B', weight: 1.42 },
+        { letter: 'G', weight: 1.01 },
+        { letter: 'V', weight: 0.90 },
+        { letter: 'Y', weight: 0.90 },
+        { letter: 'Q', weight: 0.88 },
+        { letter: 'H', weight: 0.70 },
+        { letter: 'F', weight: 0.69 },
+        { letter: 'Z', weight: 0.52 },
+        { letter: 'J', weight: 0.44 },
+        { letter: 'Ñ', weight: 0.31 }, // Preservación estricta de la Ñ
+        { letter: 'X', weight: 0.22 },
+        { letter: 'K', weight: 0.05 },
+        { letter: 'W', weight: 0.02 }
+      ],
+
+      // Ruleta de probabilidades acumulada para muestreo veloz O(log N)
+      cumulativeTable: [],
+
+      init() {
+        let sum = 0;
+        this.cumulativeTable = this.spanishFrequencies.map(item => {
+          sum += item.weight;
+          return { letter: item.letter, threshold: sum };
+        });
+        this.totalWeight = sum;
+      },
+
+      getRandomSpanishLetter() {
+        const rand = Math.random() * this.totalWeight;
+        for (let i = 0; i < this.cumulativeTable.length; i++) {
+          if (rand <= this.cumulativeTable[i].threshold) {
+            return this.cumulativeTable[i].letter;
+          }
+        }
+        return 'E';
+      },
+
+      // Pipeline de normalización de cadenas: Desacentuación preservando Ñ
+      normalize(word) {
+        if (!word) return '';
+        let clean = word.trim().toUpperCase();
+        
+        // Mapeo seguro de tildes y diéresis
+        const accentsMap = {
+          'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+          'À': 'A', 'È': 'E', 'Ì': 'I', 'Ò': 'O', 'Ù': 'U',
+          'Ü': 'U'
+        };
+
+        let result = '';
+        for (let char of clean) {
+          if (accentsMap[char]) {
+            result += accentsMap[char];
+          } else if ((char >= 'A' && char <= 'Z') || char === 'Ñ') {
+            result += char;
+          }
+        }
+        return result;
+      }
+    };
+
+    LexicalEngine.init();
+
+    /* =========================================================================
+     * 2. CATÁLOGO MAESTRO DE PALABRAS POR TEMÁTICA
+     * ========================================================================= */
+    const WORD_CATALOG = {
+      tecnologia: {
+        name: "Tecnología & Programación",
+        words: [
+          "ALGORITMO", "PYTHON", "SERVIDOR", "MEMORIA", "COMPILADOR",
+          "INTERNET", "CODIGO", "BITCOIN", "DATABASE", "FRONTEND",
+          "REPOSITORIO", "SISTEMA", "VIRTUAL", "FUNCION", "LOGICA", "MATRIZ"
+        ]
+      },
+      ciudades: {
+        name: "Capitales y Países Hispanos",
+        words: [
+          "MADRID", "BOGOTA", "SANTIAGO", "LIMA", "HABANA",
+          "CARACAS", "MONTEVIDEO", "QUITO", "ASUNCION", "BUENOSAIRES",
+          "PANAMA", "BOLIVIA", "MEXICO", "COLOMBIA", "ESPAÑA"
+        ]
+      },
+      fauna: {
+        name: "Fauna y Animales Silvestres",
+        words: [
+          "JAGUAR", "CONDOR", "FLAMENCO", "DELFIN", "BALLENA",
+          "TUCAN", "GUACAMAYO", "LEOPARDO", "PINGÜINO", "CAMALEON",
+          "TORTUGA", "CIGÜEÑA", "GACELA", "NUTRIA", "COATÍ"
+        ]
+      },
+      ciencias: {
+        name: "Ciencia, Física y Cosmos",
+        words: [
+          "GRAVEDAD", "ATOMO", "PLANETA", "GALAXIA", "ELECTRON",
+          "QUIMICA", "ORBITA", "MOLECULA", "QUASAR", "TELESCOPIO",
+          "PROTON", "ENERGIA", "ECLIPSE", "MATERIA", "FUSION"
+        ]
+      },
+      gastronomia: {
+        name: "Gastronomía Iberoamericana",
+        words: [
+          "EMPANADA", "CEVICHE", "PAELLA", "TORTILLA", "AREPA",
+          "GUACAMOLE", "CHURROS", "ASADO", "TACOS", "SANCOCHO",
+          "ALFAJOR", "GAZPACHO", "JAMON", "MAIZ", "TAMAL"
+        ]
+      }
+    };
+
+    // Paleta de colores pastel vibrantes para destacar palabras resueltas
+    const PALETTE = [
+      { bg: 'rgba(236, 72, 153, 0.35)', stroke: '#ec4899', border: '#f43f5e', glow: 'rgba(236, 72, 153, 0.7)' }, // Hot Pink
+      { bg: 'rgba(139, 92, 246, 0.35)', stroke: '#8b5cf6', border: '#7c3aed', glow: 'rgba(139, 92, 246, 0.7)' }, // Purple Glow
+      { bg: 'rgba(6, 182, 212, 0.35)', stroke: '#06b6d4', border: '#0891b2', glow: 'rgba(6, 182, 212, 0.7)' },   // Neon Cyan
+      { bg: 'rgba(245, 158, 11, 0.35)', stroke: '#f59e0b', border: '#d97706', glow: 'rgba(245, 158, 11, 0.7)' }, // Golden Amber
+      { bg: 'rgba(16, 185, 129, 0.35)', stroke: '#10b981', border: '#059669', glow: 'rgba(16, 185, 129, 0.7)' }, // Emerald
+      { bg: 'rgba(239, 68, 68, 0.35)', stroke: '#ef4444', border: '#dc2626', glow: 'rgba(239, 68, 68, 0.7)' },   // Crimson
+      { bg: 'rgba(168, 85, 247, 0.35)', stroke: '#a855f7', border: '#9333ea', glow: 'rgba(168, 85, 247, 0.7)' }, // Neon Violet
+      { bg: 'rgba(59, 130, 246, 0.35)', stroke: '#3b82f6', border: '#2563eb', glow: 'rgba(59, 130, 246, 0.7)' }  // Electric Blue
+    ];
+
+    // Catálogo Maestro de los 5 Temas Visuales
+    const THEMES = [
+      {
+        id: 'theme-cyberpunk',
+        name: 'Cyberpunk 2099',
+        icon: '⚡',
+        accentColor: '#fcee0a',
+        badgeClass: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30',
+        lineColor: '#fcee0a',
+        btnTextClass: 'text-yellow-300'
+      },
+      {
+        id: 'theme-synthwave',
+        name: 'Synthwave Outrun',
+        icon: '🌆',
+        accentColor: '#ff2a85',
+        badgeClass: 'bg-pink-500/15 text-pink-300 border-pink-500/30',
+        lineColor: '#ff2a85',
+        btnTextClass: 'text-pink-300'
+      },
+      {
+        id: 'theme-matrix',
+        name: 'Matrix Terminal',
+        icon: '💻',
+        accentColor: '#00ff66',
+        badgeClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+        lineColor: '#00ff66',
+        btnTextClass: 'text-emerald-300'
+      },
+      {
+        id: 'theme-solar',
+        name: 'Solar Flare',
+        icon: '🔥',
+        accentColor: '#ff5722',
+        badgeClass: 'bg-orange-500/15 text-orange-300 border-orange-500/30',
+        lineColor: '#ff5722',
+        btnTextClass: 'text-orange-300'
+      },
+      {
+        id: 'theme-abyss',
+        name: 'Abyssal Aurora',
+        icon: '🌌',
+        accentColor: '#06b6d4',
+        badgeClass: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
+        lineColor: '#06b6d4',
+        btnTextClass: 'text-cyan-300'
+      }
+    ];
+
+    /* =========================================================================
+     * 3. CONTROLADOR DE AUDIO (TONE.JS) CON NOTAS DE RACHA DINÁMICA
+     * ========================================================================= */
+    const SoundController = {
+      enabled: true,
+      polySynth: null,
+      membrane: null,
+
+      init() {
+        try {
+          this.polySynth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: 'triangle' },
+            envelope: { attack: 0.005, decay: 0.15, sustain: 0.05, release: 0.2 }
+          }).toDestination();
+          this.polySynth.volume.value = -10;
+
+          this.membrane = new Tone.MembraneSynth({
+            pitchDecay: 0.05,
+            octaves: 3,
+            envelope: { attack: 0.001, decay: 0.1, sustain: 0.01, release: 0.1 }
+          }).toDestination();
+          this.membrane.volume.value = -10;
+        } catch (e) {
+          console.warn("Audio Context inicializado bajo demanda.");
+        }
+      },
+
+      ensureContext() {
+        if (Tone.context.state !== 'running') {
+          Tone.start();
+        }
+      },
+
+      playHover(letterIndex = 0) {
+        if (!this.enabled || !this.polySynth) return;
+        this.ensureContext();
+        try {
+          const notes = ["C5", "D5", "E5", "G5", "A5", "C6", "D6", "E6"];
+          const note = notes[Math.min(letterIndex, notes.length - 1)];
+          this.polySynth.triggerAttackRelease(note, "32n", undefined, 0.15);
+        } catch (e) {}
+      },
+
+      playFound(combo = 1) {
+        if (!this.enabled || !this.polySynth) return;
+        this.ensureContext();
+        try {
+          const now = Tone.now();
+          // Escala armónica en función del multiplicador de racha
+          const baseOctave = Math.min(5 + Math.floor(combo / 2), 6);
+          const chords = [
+            [`C${baseOctave}`, `E${baseOctave}`, `G${baseOctave}`],
+            [`E${baseOctave}`, `G${baseOctave}`, `B${baseOctave}`, `E${baseOctave + 1}`],
+            [`G${baseOctave}`, `B${baseOctave}`, `D${baseOctave + 1}`, `G${baseOctave + 1}`]
+          ];
+          const chosenChord = chords[Math.min(combo - 1, chords.length - 1)];
+          chosenChord.forEach((note, i) => {
+            this.polySynth.triggerAttackRelease(note, "16n", now + (i * 0.06), 0.3);
+          });
+        } catch (e) {}
+      },
+
+      playError() {
+        if (!this.enabled || !this.membrane) return;
+        this.ensureContext();
+        try {
+          this.membrane.triggerAttackRelease("E2", "16n");
+        } catch (e) {}
+      },
+
+      playVictory() {
+        if (!this.enabled || !this.polySynth) return;
+        this.ensureContext();
+        try {
+          const now = Tone.now();
+          ["C5", "E5", "G5", "B5", "C6", "E6", "G6"].forEach((note, idx) => {
+            this.polySynth.triggerAttackRelease(note, "8n", now + (idx * 0.08), 0.35);
+          });
+        } catch (e) {}
+      }
+    };
+
+    /* =========================================================================
+     * 3.1 MOTOR DE PARTÍCULAS Y DESTELLOS LUMINOSOS (CANVAS FX)
+     * ========================================================================= */
+    const ParticleEngine = {
+      canvas: null,
+      ctx: null,
+      particles: [],
+      animationId: null,
+
+      init(canvasEl) {
+        this.canvas = canvasEl;
+        this.ctx = canvasEl.getContext('2d');
+        this.resize();
+        this.loop();
+      },
+
+      resize() {
+        if (!this.canvas) return;
+        const rect = this.canvas.getBoundingClientRect();
+        this.canvas.width = rect.width * window.devicePixelRatio;
+        this.canvas.height = rect.height * window.devicePixelRatio;
+        this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      },
+
+      spawnSparkles(x, y, color = '#ec4899', count = 24) {
+        const rect = this.canvas.getBoundingClientRect();
+        const baseWidth = rect.width;
+        const baseHeight = rect.height;
+
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 1.5 + Math.random() * 4.5;
+          this.particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: 2 + Math.random() * 3.5,
+            color: color,
+            alpha: 1,
+            decay: 0.02 + Math.random() * 0.025,
+            shape: Math.random() > 0.5 ? 'circle' : 'star'
+          });
+        }
+      },
+
+      spawnWordTrail(cellsCoords, color = '#8b5cf6') {
+        cellsCoords.forEach(pos => {
+          const center = getCellCenter(pos.r, pos.c);
+          this.spawnSparkles(center.x, center.y, color, 8);
+        });
+      },
+
+      loop() {
+        if (!this.ctx || !this.canvas) return;
+        const rect = this.canvas.getBoundingClientRect();
+        this.ctx.clearRect(0, 0, rect.width, rect.height);
+
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+          const p = this.particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.08; // ligera gravedad
+          p.alpha -= p.decay;
+
+          if (p.alpha <= 0) {
+            this.particles.splice(i, 1);
+            continue;
+          }
+
+          this.ctx.save();
+          this.ctx.globalAlpha = p.alpha;
+          this.ctx.fillStyle = p.color;
+          this.ctx.shadowColor = p.color;
+          this.ctx.shadowBlur = 8;
+          this.ctx.beginPath();
+          this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          this.ctx.fill();
+          this.ctx.restore();
+        }
+
+        requestAnimationFrame(() => this.loop());
+      }
+    };
+
+    /* =========================================================================
+     * 4. GENERADOR MATRICIAL DE SOPA DE LETRAS (ALGORITMO ESTOCÁSTICO CON SOLAPAMIENTO)
+     * ========================================================================= */
+    class WordSearchGenerator {
+      constructor(size = 12, difficulty = 'medium') {
+        this.size = size;
+        this.difficulty = difficulty;
+        this.grid = [];
+        this.placedWords = [];
+        this.directions = this.getDirectionsForDifficulty(difficulty);
+      }
+
+      getDirectionsForDifficulty(diff) {
+        // Direcciones cardinales e intercardinales en formato [dRow, dCol]
+        const E = [0, 1];   // Horizontal derecha
+        const S = [1, 0];   // Vertical abajo
+        const SE = [1, 1];  // Diagonal abajo-derecha
+        const NE = [-1, 1]; // Diagonal arriba-derecha
+        const W = [0, -1];  // Horizontal izquierda (reversa)
+        const N = [-1, 0];  // Vertical arriba (reversa)
+        const NW = [-1, -1];// Diagonal arriba-izquierda (reversa)
+        const SW = [1, -1]; // Diagonal abajo-izquierda (reversa)
+
+        if (diff === 'easy') {
+          return [E, S]; // 2 direcciones estándar
+        } else if (diff === 'medium') {
+          return [E, S, SE, NE]; // 4 direcciones (sin reversas)
+        } else {
+          return [E, S, SE, NE, W, N, NW, SW]; // 8 direcciones completas
+        }
+      }
+
+      generate(rawWords, maxWordsCount = 12) {
+        // 1. Filtrar y normalizar palabras candidatas
+        const validWords = rawWords
+          .map(w => LexicalEngine.normalize(w))
+          .filter(w => w.length >= 3 && w.length <= this.size);
+
+        // Barajar aleatoriamente y ordenar por longitud decreciente (heurística First-Fit Decreasing)
+        const shuffled = [...new Set(validWords)].sort(() => Math.random() - 0.5);
+        shuffled.sort((a, b) => b.length - a.length);
+
+        const targetWords = shuffled.slice(0, maxWordsCount);
+
+        // 2. Inicializar matriz vacía
+        this.grid = Array.from({ length: this.size }, () => Array(this.size).fill(''));
+        this.placedWords = [];
+
+        // 3. Intento de colocación de palabras con heurística de cruce
+        for (const word of targetWords) {
+          this.placeWordWithOverlapPriority(word);
+        }
+
+        // 4. Calcular métrica de densidad espacial antes de rellenar
+        const totalPlacedLetters = this.placedWords.reduce((acc, item) => acc + item.word.length, 0);
+        let nonNullCells = 0;
+        for (let r = 0; r < this.size; r++) {
+          for (let c = 0; c < this.size; c++) {
+            if (this.grid[r][c] !== '') nonNullCells++;
+          }
+        }
+        const density = ((nonNullCells / (this.size * this.size)) * 100).toFixed(1);
+
+        // 5. Relleno probabilístico de celdas nulas con distribución real del español
+        for (let r = 0; r < this.size; r++) {
+          for (let c = 0; c < this.size; c++) {
+            if (this.grid[r][c] === '') {
+              this.grid[r][c] = LexicalEngine.getRandomSpanishLetter();
+            }
+          }
+        }
+
+        return {
+          grid: this.grid,
+          placedWords: this.placedWords,
+          density: density
+        };
+      }
+
+      placeWordWithOverlapPriority(word) {
+        const potentialPositions = [];
+
+        // Evaluar todas las celdas y direcciones posibles
+        for (let r = 0; r < this.size; r++) {
+          for (let c = 0; c < this.size; c++) {
+            for (const [dr, dc] of this.directions) {
+              const fit = this.canPlaceWord(word, r, c, dr, dc);
+              if (fit.possible) {
+                potentialPositions.push({
+                  r, c, dr, dc,
+                  overlaps: fit.overlaps
+                });
+              }
+            }
+          }
+        }
+
+        if (potentialPositions.length === 0) return false;
+
+        // Ordenar con preferencia a posiciones con solapamiento (cruces)
+        potentialPositions.sort((a, b) => b.overlaps - a.overlaps);
+
+        // Selección estocástica entre los mejores candidatos
+        const topCandidates = potentialPositions.slice(0, Math.min(5, potentialPositions.length));
+        const chosen = topCandidates[Math.floor(Math.random() * topCandidates.length)];
+
+        // Escribir en la grilla
+        const wordCoordinates = [];
+        for (let i = 0; i < word.length; i++) {
+          const currR = chosen.r + i * chosen.dr;
+          const currC = chosen.c + i * chosen.dc;
+          this.grid[currR][currC] = word[i];
+          wordCoordinates.push({ r: currR, c: currC });
+        }
+
+        this.placedWords.push({
+          word: word,
+          start: { r: chosen.r, c: chosen.c },
+          end: {
+            r: chosen.r + (word.length - 1) * chosen.dr,
+            c: chosen.c + (word.length - 1) * chosen.dc
+          },
+          coords: wordCoordinates,
+          colorIdx: this.placedWords.length % PALETTE.length,
+          found: false
+        });
+
+        return true;
+      }
+
+      canPlaceWord(word, r, c, dr, dc) {
+        const endR = r + (word.length - 1) * dr;
+        const endC = c + (word.length - 1) * dc;
+
+        // Fuera de límites
+        if (endR < 0 || endR >= this.size || endC < 0 || endC >= this.size) {
+          return { possible: false, overlaps: 0 };
+        }
+
+        let overlaps = 0;
+        for (let i = 0; i < word.length; i++) {
+          const currR = r + i * dr;
+          const currC = c + i * dc;
+          const cellChar = this.grid[currR][currC];
+
+          if (cellChar !== '' && cellChar !== word[i]) {
+            return { possible: false, overlaps: 0 };
+          }
+          if (cellChar === word[i]) {
+            overlaps++;
+          }
+        }
+
+        return { possible: true, overlaps: overlaps };
+      }
+    }
+
+    /* =========================================================================
+     * 5. CONTROLADOR PRINCIPAL DE LA INTERFAZ Y EVENTOS DE JUEGO
+     * ========================================================================= */
+    const AppState = {
+      size: 12,
+      difficulty: 'medium',
+      categoryKey: 'tecnologia',
+      customWords: [],
+      generator: null,
+      gameData: null,
+      foundCount: 0,
+      totalCount: 0,
+      timerSeconds: 0,
+      timerInterval: null,
+      hintsRemaining: 3,
+      isSelecting: false,
+      selectionStart: null,
+      selectionCurrent: null,
+      selectedCells: [],
+      isFinished: false,
+      score: 0,
+      combo: 1,
+      maxCombo: 1,
+      lastFoundTimestamp: 0,
+      currentThemeIndex: 0
+    };
+
+    // Referencias al DOM
+    const DOM = {
+      grid: document.getElementById('puzzle-grid'),
+      svgOverlay: document.getElementById('selection-svg'),
+      svgActiveLine: document.getElementById('svg-active-line'),
+      svgCompletedLines: document.getElementById('svg-completed-lines'),
+      fxCanvas: document.getElementById('fx-canvas'),
+      liveSelectionPill: document.getElementById('live-selection-pill'),
+      liveSelectionText: document.getElementById('live-selection-text'),
+      scoreDisplay: document.getElementById('score-display'),
+      comboBadge: document.getElementById('combo-badge'),
+      comboDisplay: document.getElementById('combo-display'),
+      comboMultiplierLabel: document.getElementById('combo-multiplier-label'),
+      btnThemeToggle: document.getElementById('btn-theme-toggle'),
+      themeBtnIcon: document.getElementById('theme-btn-icon'),
+      themeBtnLabel: document.getElementById('theme-btn-label'),
+      themeMenu: document.getElementById('theme-menu'),
+      themeBadgeName: document.getElementById('theme-badge-name'),
+      wordListContainer: document.getElementById('word-list-container'),
+      timerDisplay: document.getElementById('timer-display'),
+      wordsFoundCount: document.getElementById('words-found-count'),
+      wordsLeftPill: document.getElementById('words-left-pill'),
+      progressBar: document.getElementById('progress-bar-fill'),
+      progressPercent: document.getElementById('progress-percent'),
+      badgeCategory: document.getElementById('badge-category'),
+      difficultyBadge: document.getElementById('difficulty-badge'),
+      metaSize: document.getElementById('meta-grid-size'),
+      metaDensity: document.getElementById('meta-grid-density'),
+      hintsLeft: document.getElementById('hints-left'),
+      btnHint: document.getElementById('btn-hint'),
+      btnSolve: document.getElementById('btn-solve'),
+      btnSoundToggle: document.getElementById('btn-sound-toggle'),
+      iconSoundOn: document.getElementById('icon-sound-on'),
+      iconSoundOff: document.getElementById('icon-sound-off'),
+      btnPrintAction: document.getElementById('btn-print-action'),
+      btnOpenConfig: document.getElementById('btn-open-config'),
+      selectFont: document.getElementById('select-font'),
+      modalConfig: document.getElementById('modal-config'),
+      modalCloseBtn: document.getElementById('modal-close-btn'),
+      formNewGame: document.getElementById('form-new-game'),
+      configCategory: document.getElementById('config-category'),
+      configSize: document.getElementById('config-size'),
+      configDifficulty: document.getElementById('config-difficulty'),
+      customWordsWrapper: document.getElementById('custom-words-wrapper'),
+      configCustomWords: document.getElementById('config-custom-words'),
+      modalVictory: document.getElementById('modal-victory'),
+      victoryTime: document.getElementById('victory-time'),
+      victoryWords: document.getElementById('victory-words'),
+      victoryScore: document.getElementById('victory-score'),
+      victoryMaxCombo: document.getElementById('victory-max-combo'),
+      btnVictoryReplay: document.getElementById('btn-victory-replay'),
+      btnVictoryClose: document.getElementById('btn-victory-close'),
+      toastBox: document.getElementById('toast-box'),
+      printGridTarget: document.getElementById('print-grid-target'),
+      printWordList: document.getElementById('print-word-list'),
+      printTitle: document.getElementById('print-title')
+    };
+
+    function startNewGame() {
+      // Detener cronómetro
+      if (AppState.timerInterval) clearInterval(AppState.timerInterval);
+      AppState.timerSeconds = 0;
+      AppState.isFinished = false;
+      AppState.foundCount = 0;
+      AppState.hintsRemaining = 3;
+      AppState.selectedCells = [];
+      AppState.isSelecting = false;
+      AppState.score = 0;
+      AppState.combo = 1;
+      AppState.maxCombo = 1;
+      AppState.lastFoundTimestamp = 0;
+
+      DOM.hintsLeft.textContent = AppState.hintsRemaining;
+      DOM.timerDisplay.textContent = "00:00";
+      DOM.scoreDisplay.textContent = "0";
+      updateComboDisplay();
+
+      // Obtener lista de palabras según la categoría
+      let wordsSource = [];
+      let categoryTitle = "";
+      if (AppState.categoryKey === 'custom' && AppState.customWords.length > 0) {
+        wordsSource = AppState.customWords;
+        categoryTitle = "Lista Personalizada";
+      } else {
+        const cat = WORD_CATALOG[AppState.categoryKey] || WORD_CATALOG.tecnologia;
+        wordsSource = cat.words;
+        categoryTitle = cat.name;
+      }
+
+      DOM.badgeCategory.textContent = categoryTitle;
+      DOM.printTitle.textContent = `SOPA DE LETRAS: ${categoryTitle.toUpperCase()}`;
+
+      // Configurar y ejecutar el generador
+      AppState.generator = new WordSearchGenerator(AppState.size, AppState.difficulty);
+      const maxCount = AppState.size >= 15 ? 16 : (AppState.size <= 10 ? 8 : 12);
+      AppState.gameData = AppState.generator.generate(wordsSource, maxCount);
+      AppState.totalCount = AppState.gameData.placedWords.length;
+
+      // Actualizar Metadatos UI
+      DOM.metaSize.textContent = `${AppState.size} x ${AppState.size}`;
+      DOM.metaDensity.textContent = `${AppState.gameData.density}%`;
+
+      const diffLabels = {
+        easy: 'Fácil (Horiz / Vert)',
+        medium: 'Normal (4 Dir.)',
+        hard: 'Experto (8 Dir. Reversas)'
+      };
+      DOM.difficultyBadge.textContent = diffLabels[AppState.difficulty];
+
+      // Renderizar tablero y palabras
+      renderGrid();
+      renderWordList();
+      updateProgress();
+      setupPrintView();
+      ParticleEngine.resize();
+
+      // Iniciar cronómetro
+      AppState.timerInterval = setInterval(() => {
+        AppState.timerSeconds++;
+        const mins = String(Math.floor(AppState.timerSeconds / 60)).padStart(2, '0');
+        const secs = String(AppState.timerSeconds % 60).padStart(2, '0');
+        DOM.timerDisplay.textContent = `${mins}:${secs}`;
+
+        // Reinicio gradual de combo tras 12 segundos sin encontrar
+        if (AppState.combo > 1 && Date.now() - AppState.lastFoundTimestamp > 12000) {
+          AppState.combo = 1;
+          updateComboDisplay();
+        }
+      }, 1000);
+    }
+
+    function renderGrid() {
+      DOM.grid.innerHTML = '';
+      DOM.svgCompletedLines.innerHTML = '';
+      DOM.svgActiveLine.setAttribute('opacity', '0');
+
+      DOM.grid.style.gridTemplateColumns = `repeat(${AppState.size}, minmax(0, 1fr))`;
+
+      const currentFont = DOM.selectFont.value;
+      DOM.grid.className = `puzzle-board-container relative grid w-full select-none cursor-pointer rounded-2xl overflow-hidden bg-slate-950/80 p-1.5 sm:p-2 border border-white/10 ${currentFont}`;
+
+      for (let r = 0; r < AppState.size; r++) {
+        for (let c = 0; c < AppState.size; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'grid-cell flex items-center justify-center font-bold text-slate-200 text-sm sm:text-base md:text-lg rounded-xl select-none transition-all duration-100 border border-white/5 bg-white/[0.02] hover:bg-white/[0.08]';
+          cell.dataset.r = r;
+          cell.dataset.c = c;
+          cell.textContent = AppState.gameData.grid[r][c];
+          DOM.grid.appendChild(cell);
+        }
+      }
+    }
+
+    function renderWordList() {
+      DOM.wordListContainer.innerHTML = '';
+      AppState.gameData.placedWords.forEach((item, idx) => {
+        const color = PALETTE[item.colorIdx];
+        const badge = document.createElement('div');
+        badge.id = `word-badge-${item.word}`;
+        badge.className = 'flex items-center justify-between p-2.5 rounded-2xl bg-white/[0.03] border border-white/10 text-slate-300 font-mono text-xs font-semibold tracking-wider transition-all duration-300 hover:border-white/20';
+        badge.innerHTML = `
+          <div class="flex items-center gap-2 truncate">
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${color.stroke}; box-shadow: 0 0 8px ${color.glow};"></span>
+            <span class="word-text truncate font-bold">${item.word}</span>
+          </div>
+          <span class="status-icon text-slate-500 font-sans text-xs">○</span>
+        `;
+        DOM.wordListContainer.appendChild(badge);
+      });
+    }
+
+    function updateProgress() {
+      DOM.wordsFoundCount.textContent = `${AppState.foundCount}/${AppState.totalCount}`;
+      DOM.wordsLeftPill.textContent = `${AppState.totalCount - AppState.foundCount} restantes`;
+      const pct = AppState.totalCount > 0 ? Math.round((AppState.foundCount / AppState.totalCount) * 100) : 0;
+      DOM.progressPercent.textContent = `${pct}%`;
+      DOM.progressBar.style.width = `${pct}%`;
+    }
+
+    function updateComboDisplay() {
+      if (AppState.combo > 1) {
+        DOM.comboBadge.classList.remove('hidden', 'opacity-0');
+        DOM.comboBadge.classList.add('opacity-100');
+        DOM.comboDisplay.textContent = `x${AppState.combo}`;
+        DOM.comboMultiplierLabel.textContent = `• Racha x${AppState.combo} 🔥`;
+      } else {
+        DOM.comboBadge.classList.add('opacity-0');
+        DOM.comboMultiplierLabel.textContent = '';
+      }
+    }
+
+    /* =========================================================================
+     * 6. FÍSICA Y VECTORIZACIÓN DEL ARRASTRE (MOUSE Y TOUCH)
+     * ========================================================================= */
+    function getCellCenter(r, c) {
+      const cell = DOM.grid.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+      if (!cell) return { x: 0, y: 0 };
+      const gridRect = DOM.grid.getBoundingClientRect();
+      const cellRect = cell.getBoundingClientRect();
+      return {
+        x: (cellRect.left + cellRect.width / 2) - gridRect.left,
+        y: (cellRect.top + cellRect.height / 2) - gridRect.top
+      };
+    }
+
+    function calculateRayLine(start, current) {
+      const dr = current.r - start.r;
+      const dc = current.c - start.c;
+
+      if (dr === 0 && dc === 0) {
+        return [start];
+      }
+
+      // Proyección angular: determinar si el vector se orienta a 0°, 45°, 90°, etc.
+      const angle = Math.atan2(dr, dc); // [-PI, PI]
+      const octant = Math.round((8 * angle) / (2 * Math.PI) + 8) % 8;
+
+      // Direcciones discretas normalizadas correspondientes a cada octante
+      const dirMap = [
+        [0, 1],   // 0: Este (Derecha)
+        [1, 1],   // 1: Sureste (Diag Abajo-Der)
+        [1, 0],   // 2: Sur (Abajo)
+        [1, -1],  // 3: Suroeste (Diag Abajo-Izq)
+        [0, -1],  // 4: Oeste (Izquierda)
+        [-1, -1], // 5: Noroeste (Diag Arriba-Izq)
+        [-1, 0],  // 6: Norte (Arriba)
+        [-1, 1]   // 7: Noreste (Diag Arriba-Der)
+      ];
+
+      const [stepR, stepC] = dirMap[octant];
+      
+      // Proyectar longitud basada en la distancia máxima Chebyshev
+      const length = Math.max(Math.abs(dr), Math.abs(dc));
+      const cells = [];
+
+      for (let i = 0; i <= length; i++) {
+        const r = start.r + i * stepR;
+        const c = start.c + i * stepC;
+        if (r >= 0 && r < AppState.size && c >= 0 && c < AppState.size) {
+          cells.push({ r, c });
+        } else {
+          break;
+        }
+      }
+
+      return cells;
+    }
+
+    // Identificar celda a partir de coordenadas absolutas del viewport
+    function getCellFromCoordinates(clientX, clientY) {
+      const el = document.elementFromPoint(clientX, clientY);
+      if (el && el.classList.contains('grid-cell')) {
+        return {
+          r: parseInt(el.dataset.r, 10),
+          c: parseInt(el.dataset.c, 10)
+        };
+      }
+      return null;
+    }
+
+    function onPointerDown(e) {
+      if (AppState.isFinished) return;
+      const cellPos = getCellFromCoordinates(e.clientX, e.clientY);
+      if (!cellPos) return;
+
+      SoundController.ensureContext();
+      AppState.isSelecting = true;
+      AppState.selectionStart = cellPos;
+      AppState.selectionCurrent = cellPos;
+      AppState.selectedCells = [cellPos];
+
+      updateSelectionVisuals();
+      SoundController.playHover(0);
+    }
+
+    function onPointerMove(e) {
+      if (!AppState.isSelecting || AppState.isFinished) return;
+      const cellPos = getCellFromCoordinates(e.clientX, e.clientY);
+      if (!cellPos) return;
+
+      if (cellPos.r !== AppState.selectionCurrent.r || cellPos.c !== AppState.selectionCurrent.c) {
+        AppState.selectionCurrent = cellPos;
+        const previousLen = AppState.selectedCells.length;
+        AppState.selectedCells = calculateRayLine(AppState.selectionStart, AppState.selectionCurrent);
+        
+        if (AppState.selectedCells.length !== previousLen) {
+          SoundController.playHover(AppState.selectedCells.length);
+        }
+        updateSelectionVisuals();
+      }
+    }
+
+    function onPointerUp() {
+      if (!AppState.isSelecting) return;
+      AppState.isSelecting = false;
+      DOM.svgActiveLine.setAttribute('opacity', '0');
+
+      // Ocultar burbuja dinámica
+      DOM.liveSelectionPill.classList.add('opacity-0', 'scale-90');
+
+      // Validar si la selección forma una palabra buscada
+      checkSelectedWord();
+
+      // Limpiar resaltado temporal
+      document.querySelectorAll('.grid-cell.selected-cursor').forEach(el => {
+        el.classList.remove('selected-cursor');
+      });
+      AppState.selectedCells = [];
+    }
+
+    function updateSelectionVisuals() {
+      // Limpiar cursor anterior
+      document.querySelectorAll('.grid-cell.selected-cursor').forEach(el => {
+        el.classList.remove('selected-cursor');
+      });
+
+      if (AppState.selectedCells.length === 0) {
+        DOM.svgActiveLine.setAttribute('opacity', '0');
+        DOM.liveSelectionPill.classList.add('opacity-0', 'scale-90');
+        return;
+      }
+
+      // Marcar celdas activas y formar texto en vivo
+      let liveWord = '';
+      AppState.selectedCells.forEach(pos => {
+        const cell = DOM.grid.querySelector(`[data-r="${pos.r}"][data-c="${pos.c}"]`);
+        if (cell) cell.classList.add('selected-cursor');
+        liveWord += AppState.gameData.grid[pos.r][pos.c];
+      });
+
+      // Mostrar burbuja flotante reactiva
+      DOM.liveSelectionText.textContent = liveWord;
+      DOM.liveSelectionPill.classList.remove('opacity-0', 'scale-90');
+
+      // Actualizar trazo SVG activo
+      const startCenter = getCellCenter(AppState.selectedCells[0].r, AppState.selectedCells[0].c);
+      const endCenter = getCellCenter(
+        AppState.selectedCells[AppState.selectedCells.length - 1].r,
+        AppState.selectedCells[AppState.selectedCells.length - 1].c
+      );
+
+      DOM.svgActiveLine.setAttribute('x1', startCenter.x);
+      DOM.svgActiveLine.setAttribute('y1', startCenter.y);
+      DOM.svgActiveLine.setAttribute('x2', endCenter.x);
+      DOM.svgActiveLine.setAttribute('y2', endCenter.y);
+      DOM.svgActiveLine.setAttribute('opacity', '0.75');
+    }
+
+    function checkSelectedWord() {
+      if (AppState.selectedCells.length < 2) return;
+
+      // Obtener cadena en ambos sentidos (hacia adelante y reversa)
+      let forwardWord = '';
+      let reverseWord = '';
+      for (let i = 0; i < AppState.selectedCells.length; i++) {
+        const { r, c } = AppState.selectedCells[i];
+        forwardWord += AppState.gameData.grid[r][c];
+      }
+      reverseWord = forwardWord.split('').reverse().join('');
+
+      // Buscar coincidencia en las palabras del tablero no encontradas
+      const matched = AppState.gameData.placedWords.find(
+        item => !item.found && (item.word === forwardWord || item.word === reverseWord)
+      );
+
+      if (matched) {
+        // ¡Palabra encontrada!
+        matched.found = true;
+        AppState.foundCount++;
+
+        // Calcular Combo y Racha
+        const now = Date.now();
+        if (AppState.lastFoundTimestamp > 0 && now - AppState.lastFoundTimestamp <= 12000) {
+          AppState.combo++;
+        } else {
+          AppState.combo = 1;
+        }
+        AppState.lastFoundTimestamp = now;
+        if (AppState.combo > AppState.maxCombo) {
+          AppState.maxCombo = AppState.combo;
+        }
+
+        // Puntuación = (Largo de palabra * 100) * Combo
+        const earnedPoints = (matched.word.length * 100) * AppState.combo;
+        AppState.score += earnedPoints;
+        DOM.scoreDisplay.textContent = AppState.score.toLocaleString();
+        updateComboDisplay();
+
+        SoundController.playFound(AppState.combo);
+
+        // Desencadenar fuegos artificiales y chispas en el canvas
+        const color = PALETTE[matched.colorIdx];
+        ParticleEngine.spawnWordTrail(matched.coords, color.stroke);
+
+        // Fijar línea SVG permanente con color asignado
+        drawCompletedWordHighlight(matched);
+
+        // Actualizar tarjeta lateral con animación de éxito
+        const badge = document.getElementById(`word-badge-${matched.word}`);
+        if (badge) {
+          badge.style.backgroundColor = color.bg;
+          badge.style.borderColor = color.border;
+          badge.classList.remove('text-slate-300');
+          badge.classList.add('text-white', 'line-through', 'animate-pop-found');
+          badge.style.boxShadow = `0 0 16px ${color.glow}`;
+          const icon = badge.querySelector('.status-icon');
+          icon.textContent = '✓';
+          icon.style.color = color.stroke;
+          icon.classList.add('font-bold', 'text-sm');
+        }
+
+        updateProgress();
+        const comboMsg = AppState.combo > 1 ? ` (¡Racha x${AppState.combo}! +${earnedPoints} pts)` : ` (+${earnedPoints} pts)`;
+        showToast(`¡Encontraste: ${matched.word}!${comboMsg}`, 'success');
+
+        // Comprobar condición de victoria total
+        if (AppState.foundCount === AppState.totalCount) {
+          handleVictory();
+        }
+      } else {
+        SoundController.playError();
+      }
+    }
+
+    function drawCompletedWordHighlight(placedItem) {
+      const startCenter = getCellCenter(placedItem.start.r, placedItem.start.c);
+      const endCenter = getCellCenter(placedItem.end.r, placedItem.end.c);
+      const color = PALETTE[placedItem.colorIdx];
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', startCenter.x);
+      line.setAttribute('y1', startCenter.y);
+      line.setAttribute('x2', endCenter.x);
+      line.setAttribute('y2', endCenter.y);
+      line.setAttribute('stroke', color.stroke);
+      line.setAttribute('stroke-width', '24');
+      line.setAttribute('stroke-linecap', 'round');
+      line.setAttribute('opacity', '0.65');
+      line.setAttribute('style', `filter: drop-shadow(0 0 8px ${color.glow})`);
+      line.setAttribute('class', 'transition-all duration-300');
+
+      DOM.svgCompletedLines.appendChild(line);
+    }
+
+    function handleVictory() {
+      AppState.isFinished = true;
+      if (AppState.timerInterval) clearInterval(AppState.timerInterval);
+      SoundController.playVictory();
+
+      // Efecto Confetti Multicolor
+      try {
+        confetti({
+          particleCount: 150,
+          spread: 90,
+          origin: { y: 0.55 },
+          colors: ['#ec4899', '#8b5cf6', '#06b6d4', '#f59e0b', '#10b981']
+        });
+      } catch (e) {}
+
+      // Llenar modal de victoria
+      const mins = String(Math.floor(AppState.timerSeconds / 60)).padStart(2, '0');
+      const secs = String(AppState.timerSeconds % 60).padStart(2, '0');
+      DOM.victoryTime.textContent = `${mins}:${secs}`;
+      DOM.victoryWords.textContent = `${AppState.foundCount} / ${AppState.totalCount}`;
+      DOM.victoryScore.textContent = AppState.score.toLocaleString();
+      DOM.victoryMaxCombo.textContent = `x${AppState.maxCombo} 🔥`;
+
+      setTimeout(() => {
+        DOM.modalVictory.classList.remove('hidden');
+        DOM.modalVictory.classList.add('flex');
+      }, 500);
+    }
+
+    // Sistema de Pistas
+    DOM.btnHint.addEventListener('click', () => {
+      if (AppState.isFinished || AppState.hintsRemaining <= 0) {
+        showToast("No te quedan más pistas disponibles en esta partida.", "info");
+        return;
+      }
+
+      // Buscar primera palabra no encontrada
+      const unfound = AppState.gameData.placedWords.find(item => !item.found);
+      if (!unfound) return;
+
+      AppState.hintsRemaining--;
+      DOM.hintsLeft.textContent = AppState.hintsRemaining;
+
+      // Resaltar con animación parpadeante la primera letra de la palabra
+      const startCell = DOM.grid.querySelector(`[data-r="${unfound.start.r}"][data-c="${unfound.start.c}"]`);
+      if (startCell) {
+        startCell.classList.add('bg-amber-400', 'text-slate-950', 'scale-125', 'ring-4', 'ring-amber-300', 'shadow-lg', 'shadow-amber-400');
+        const center = getCellCenter(unfound.start.r, unfound.start.c);
+        ParticleEngine.spawnSparkles(center.x, center.y, '#f59e0b', 18);
+        showToast(`Pista: '${unfound.word}' comienza con '${unfound.word[0]}'`, 'warning');
+        setTimeout(() => {
+          startCell.classList.remove('bg-amber-400', 'text-slate-950', 'scale-125', 'ring-4', 'ring-amber-300', 'shadow-lg', 'shadow-amber-400');
+        }, 2500);
+      }
+    });
+
+    // Resolver Todo
+    DOM.btnSolve.addEventListener('click', () => {
+      if (AppState.isFinished) return;
+      
+      AppState.gameData.placedWords.forEach(item => {
+        if (!item.found) {
+          item.found = true;
+          drawCompletedWordHighlight(item);
+          const badge = document.getElementById(`word-badge-${item.word}`);
+          if (badge) {
+            const color = PALETTE[item.colorIdx];
+            badge.style.backgroundColor = color.bg;
+            badge.style.borderColor = color.border;
+            badge.classList.remove('text-slate-300');
+            badge.classList.add('text-white', 'line-through');
+            badge.querySelector('.status-icon').textContent = '✓';
+            badge.querySelector('.status-icon').style.color = color.stroke;
+          }
+        }
+      });
+
+      AppState.foundCount = AppState.totalCount;
+      updateProgress();
+      showToast("Se han revelado todas las soluciones.", "info");
+      handleVictory();
+    });
+
+    // Función centralizada para aplicar cualquiera de los 5 temas
+    function applyTheme(themeIndex) {
+      AppState.currentThemeIndex = themeIndex;
+      const theme = THEMES[AppState.currentThemeIndex];
+
+      // Reemplazar clases en el elemento body
+      THEMES.forEach(t => document.body.classList.remove(t.id));
+      document.body.classList.add(theme.id);
+
+      // Actualizar botón de navegación y etiqueta
+      DOM.themeBtnIcon.textContent = theme.icon;
+      DOM.themeBtnLabel.textContent = theme.name.split(' ')[0];
+      DOM.btnThemeToggle.className = `px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 ${theme.btnTextClass} transition-all border border-white/10 flex items-center gap-1.5 text-xs font-bold active:scale-95 shadow-sm`;
+
+      // Actualizar insignia informativa en la barra del tablero
+      DOM.themeBadgeName.textContent = `${theme.icon} ${theme.name}`;
+      DOM.themeBadgeName.className = `hidden sm:inline-block text-[11px] px-2.5 py-0.5 rounded-lg font-semibold border ${theme.badgeClass}`;
+
+      // Ajustar línea activa del trazado SVG
+      DOM.svgActiveLine.setAttribute('stroke', theme.lineColor);
+
+      // Destello de partículas con el color del tema
+      const rect = DOM.grid.getBoundingClientRect();
+      ParticleEngine.spawnSparkles(rect.width / 2, rect.height / 2, theme.accentColor, 20);
+
+      showToast(`Tema activado: ${theme.icon} ${theme.name}`, 'info');
+    }
+
+    // Alternar menú desplegable al hacer clic en el botón de tema
+    DOM.btnThemeToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = DOM.themeMenu.classList.contains('hidden');
+      if (isHidden) {
+        DOM.themeMenu.classList.remove('hidden');
+        DOM.themeMenu.classList.add('flex');
+      } else {
+        DOM.themeMenu.classList.add('hidden');
+        DOM.themeMenu.classList.remove('flex');
+      }
+    });
+
+    // Cerrar menú si se hace clic fuera de él
+    document.addEventListener('click', (e) => {
+      if (!DOM.themeMenu.contains(e.target) && e.target !== DOM.btnThemeToggle) {
+        DOM.themeMenu.classList.add('hidden');
+        DOM.themeMenu.classList.remove('flex');
+      }
+    });
+
+    // Delegación de eventos para la selección de cada tema del menú
+    document.querySelectorAll('.theme-option').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const themeId = btn.getAttribute('data-theme');
+        const targetIdx = THEMES.findIndex(t => t.id === themeId);
+        if (targetIdx !== -1) {
+          applyTheme(targetIdx);
+        }
+        DOM.themeMenu.classList.add('hidden');
+        DOM.themeMenu.classList.remove('flex');
+      });
+    });
+
+    // Toast de notificación integrado
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      const colors = {
+        success: 'bg-gradient-to-r from-emerald-600 to-teal-600 border-emerald-400 text-white shadow-emerald-500/30',
+        warning: 'bg-gradient-to-r from-amber-600 to-orange-600 border-amber-400 text-white shadow-amber-500/30',
+        info: 'bg-gradient-to-r from-pink-600 to-purple-600 border-pink-400 text-white shadow-pink-500/30'
+      };
+      toast.className = `px-4 py-2.5 rounded-2xl border backdrop-blur-xl shadow-xl text-xs font-bold tracking-wide transition-all duration-300 transform translate-y-4 opacity-0 ${colors[type] || colors.info}`;
+      toast.textContent = message;
+
+      DOM.toastBox.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-4', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Generación de Grilla para Impresión Editorial
+    function setupPrintView() {
+      DOM.printGridTarget.innerHTML = '';
+      DOM.printWordList.innerHTML = '';
+
+      DOM.printGridTarget.style.gridTemplateColumns = `repeat(${AppState.size}, minmax(0, 1fr))`;
+
+      for (let r = 0; r < AppState.size; r++) {
+        for (let c = 0; c < AppState.size; c++) {
+          const pCell = document.createElement('div');
+          pCell.className = 'print-cell flex items-center justify-center font-grid-jetbrains font-bold text-sm border border-gray-300';
+          pCell.textContent = AppState.gameData.grid[r][c];
+          DOM.printGridTarget.appendChild(pCell);
+        }
+      }
+
+      AppState.gameData.placedWords.forEach(item => {
+        const wItem = document.createElement('div');
+        wItem.className = 'flex items-center gap-1.5';
+        wItem.innerHTML = `<span class="inline-block w-3 h-3 border border-black rounded-sm"></span> <span>${item.word}</span>`;
+        DOM.printWordList.appendChild(wItem);
+      });
+    }
+
+    // Modal de Nueva Partida / Configuración
+    DOM.btnOpenConfig.addEventListener('click', () => {
+      DOM.modalConfig.classList.remove('hidden');
+      DOM.modalConfig.classList.add('flex');
+    });
+
+    DOM.modalCloseBtn.addEventListener('click', () => {
+      DOM.modalConfig.classList.add('hidden');
+      DOM.modalConfig.classList.remove('flex');
+    });
+
+    DOM.configCategory.addEventListener('change', (e) => {
+      if (e.target.value === 'custom') {
+        DOM.customWordsWrapper.classList.remove('hidden');
+      } else {
+        DOM.customWordsWrapper.classList.add('hidden');
+      }
+    });
+
+    DOM.formNewGame.addEventListener('submit', (e) => {
+      e.preventDefault();
+      AppState.categoryKey = DOM.configCategory.value;
+      AppState.size = parseInt(DOM.configSize.value, 10);
+      AppState.difficulty = DOM.configDifficulty.value;
+
+      if (AppState.categoryKey === 'custom') {
+        const raw = DOM.configCustomWords.value;
+        const parsed = raw.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+        if (parsed.length < 3) {
+          showToast("Introduce al menos 3 palabras válidas para la lista personalizada.", "warning");
+          return;
+        }
+        AppState.customWords = parsed;
+      }
+
+      DOM.modalConfig.classList.add('hidden');
+      DOM.modalConfig.classList.remove('flex');
+      startNewGame();
+      showToast("¡Nueva sopa de letras generada!", "success");
+    });
+
+    // Control de Fuentes Tipográficas
+    DOM.selectFont.addEventListener('change', (e) => {
+      const selected = e.target.value;
+      DOM.grid.classList.remove('font-grid-jetbrains', 'font-grid-roboto', 'font-grid-space');
+      DOM.grid.classList.add(selected);
+    });
+
+    // Control de Audio (Mute)
+    DOM.btnSoundToggle.addEventListener('click', () => {
+      SoundController.enabled = !SoundController.enabled;
+      if (SoundController.enabled) {
+        DOM.iconSoundOn.classList.remove('hidden');
+        DOM.iconSoundOff.classList.add('hidden');
+        showToast("Sonido activado", "info");
+      } else {
+        DOM.iconSoundOn.classList.add('hidden');
+        DOM.iconSoundOff.classList.remove('hidden');
+        showToast("Sonido silenciado", "info");
+      }
+    });
+
+    // Botón Imprimir
+    DOM.btnPrintAction.addEventListener('click', () => {
+      window.print();
+    });
+
+    // Modal Victoria
+    DOM.btnVictoryReplay.addEventListener('click', () => {
+      DOM.modalVictory.classList.add('hidden');
+      DOM.modalVictory.classList.remove('flex');
+      startNewGame();
+    });
+
+    DOM.btnVictoryClose.addEventListener('click', () => {
+      DOM.modalVictory.classList.add('hidden');
+      DOM.modalVictory.classList.remove('flex');
+    });
+
+    // Enlace de Eventos de Puntero (Mouse y Touch unificados)
+    DOM.grid.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
+
+    // Reajuste de líneas SVG y Canvas al cambiar el tamaño de ventana
+    window.addEventListener('resize', () => {
+      ParticleEngine.resize();
+      if (!AppState.gameData) return;
+      DOM.svgCompletedLines.innerHTML = '';
+      AppState.gameData.placedWords.forEach(item => {
+        if (item.found) drawCompletedWordHighlight(item);
+      });
+      if (AppState.isSelecting) {
+        updateSelectionVisuals();
+      }
+    });
+
+    // Inicialización al cargar el documento
+    window.onload = function() {
+      SoundController.init();
+      ParticleEngine.init(DOM.fxCanvas);
+      startNewGame();
+    };
+  </script>
+</body>
+</html>
