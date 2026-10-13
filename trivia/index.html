@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TriviaX Enterprise · Adaptive IRT 3PL Psychometric Quiz</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#1e1b4b',
+            },
+            dark: {
+              bg: '#090d16',
+              surface: '#0f172a',
+              card: '#1e293b',
+              border: '#334155'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & Tone.js & Chart.js -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #090d16;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+    
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Custom Glassmorphism */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(51, 65, 85, 0.6);
+    }
+    
+    .glass-card {
+      background: rgba(30, 41, 59, 0.65);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(71, 85, 105, 0.4);
+    }
+
+    /* Smooth option transitions */
+    .option-btn {
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .option-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.25);
+    }
+
+    /* Timer circle animation */
+    .timer-ring-circle {
+      transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+
+    /* Scanline tech effect */
+    .tech-grid {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+  </style>
+</head>
+<body class="tech-grid min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+  <header class="border-b border-dark-border/60 bg-dark-surface/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo & Engine info -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
+          <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-200 bg-clip-text text-transparent">TriviaX</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-400 font-mono font-medium border border-brand-500/30">IRT 3PL</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Motor Adaptativo Psicométrico · CAT Enterprise</p>
+        </div>
+      </div>
+
+      <!-- Live Session Telemetry -->
+      <div class="flex items-center gap-3">
+        <!-- Live Theta Tracker badge -->
+        <div id="header-theta-container" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg glass-card text-xs font-mono">
+          <span class="text-slate-400">Habilidad Latente (θ):</span>
+          <span id="header-theta-value" class="text-emerald-400 font-bold">0.00</span>
+          <span id="header-theta-tier" class="text-slate-400 text-[10px] uppercase font-semibold">Neutro</span>
+        </div>
+
+        <!-- Audio mute toggle -->
+        <button id="audio-toggle-btn" class="p-2 rounded-lg glass-card hover:bg-slate-700/60 text-slate-300 transition-colors" title="Activar/Silenciar Efectos de Sonido">
+          <svg id="audio-on-icon" class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+          </svg>
+          <svg id="audio-off-icon" class="w-5 h-5 text-slate-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+          </svg>
+        </button>
+
+        <!-- Help / Math Modal trigger -->
+        <button id="info-modal-btn" class="p-2 rounded-lg glass-card hover:bg-slate-700/60 text-slate-300 transition-colors" title="Fórmula y Psicométrica IRT 3PL">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="flex-grow flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div class="w-full max-w-4xl mx-auto">
+      
+      <!-- VIEW 1: LOBBY & ENGINE SETUP -->
+      <section id="view-lobby" class="glass-panel rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden transition-all duration-300">
+        <!-- Background decorative blurs -->
+        <div class="absolute -top-24 -right-24 w-72 h-72 bg-brand-600/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-cyan-600/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10">
+          <div class="text-center max-w-2xl mx-auto mb-8">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-300 text-xs font-semibold uppercase tracking-wider mb-3">
+              Computerized Adaptive Testing (CAT)
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+              Evaluación Adaptativa de Inteligencia
+            </h1>
+            <p class="mt-2 text-sm sm:text-base text-slate-400">
+              A diferencia de las trivias comunes que suman puntos planos, TriviaX estima tu parámetro de habilidad latente <span class="text-brand-300 font-mono font-semibold">θ (Theta)</span> en tiempo real mediante el modelo matemático logístico 3PL.
+            </p>
+          </div>
+
+          <!-- Configuration Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            
+            <!-- Game Mode Card -->
+            <div class="glass-card rounded-xl p-5 border border-dark-border">
+              <label class="block text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
+                <svg class="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                Modalidad de Ingesta & Banco
+              </label>
+              <select id="config-mode" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="adaptive_hybrid">Modo Híbrido Adaptativo (OpenTDB + Banco IRT)</option>
+                <option value="generative_gemini">Modo Sintético Inteligente (Gemini 3 Flash LLM)</option>
+                <option value="science_only">Especialidad: Ciencia & Naturaleza</option>
+                <option value="history_only">Especialidad: Historia Universal</option>
+                <option value="tech_only">Especialidad: Computación & Tecnología</option>
+              </select>
+              <p class="mt-2 text-xs text-slate-400" id="mode-hint">
+                Balancea preguntas consumidas vía Open Trivia DB con calibración dinámica de discriminación y dificultad.
+              </p>
+            </div>
+
+            <!-- Custom Topic for Gemini Mode (Dynamic toggle) -->
+            <div id="custom-topic-container" class="glass-card rounded-xl p-5 border border-dark-border hidden">
+              <label class="block text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
+                <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                </svg>
+                Tema Generativo de la IA
+              </label>
+              <input type="text" id="custom-topic-input" placeholder="Ej: Astrofísica cuántica, Cine de Sci-Fi, Filosofía Estoica..." value="Exploración Espacial y Astronomía" class="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 placeholder-slate-500">
+              <p class="mt-2 text-xs text-slate-400">
+                El modelo generará preguntas estructuradas con distractores psicométricamente calibrados.
+              </p>
+            </div>
+
+            <!-- Number of Items & Prior Skill Setup -->
+            <div class="glass-card rounded-xl p-5 border border-dark-border flex flex-col justify-between">
+              <div>
+                <label class="block text-sm font-semibold text-slate-200 mb-2 flex items-center justify-between">
+                  <span>Longitud del Test (Ítems):</span>
+                  <span id="items-count-label" class="font-mono text-brand-400 font-bold">10 preguntas</span>
+                </label>
+                <input type="range" id="config-items-count" min="6" max="18" step="2" value="10" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-brand-500">
+              </div>
+
+              <div class="mt-4 pt-4 border-t border-slate-700/60 flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-semibold text-slate-300 block">Habilidad Inicial (Prior θ):</span>
+                  <span class="text-[11px] text-slate-500">Punto de partida bayesiano</span>
+                </div>
+                <div class="flex gap-1.5" id="prior-theta-selector">
+                  <button type="button" data-val="-1.0" class="px-2.5 py-1 text-xs rounded border border-slate-700 text-slate-400 hover:text-white transition-colors">Principiante</button>
+                  <button type="button" data-val="0.0" class="px-2.5 py-1 text-xs rounded border border-brand-500/80 bg-brand-500/20 text-brand-300 font-semibold transition-colors">Promedio</button>
+                  <button type="button" data-val="1.2" class="px-2.5 py-1 text-xs rounded border border-slate-700 text-slate-400 hover:text-white transition-colors">Avanzado</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- IRT Model Parameter Reference Pills -->
+          <div class="mb-8 p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 flex flex-wrap items-center justify-around gap-4 font-mono">
+            <div><span class="text-brand-400 font-bold">θ ∈ [-3.0, +3.0]</span> (Habilidad Latente)</div>
+            <div><span class="text-cyan-400 font-bold">b_i ∈ [-3.0, +3.0]</span> (Dificultad Ítem)</div>
+            <div><span class="text-emerald-400 font-bold">a_i ∈ [0.5, 2.5]</span> (Discriminación)</div>
+            <div><span class="text-amber-400 font-bold">c_i = 0.25</span> (Adivinación 4-Opc)</div>
+          </div>
+
+          <!-- Launch Button -->
+          <div class="text-center">
+            <button id="start-game-btn" class="w-full sm:w-auto min-w-[280px] px-8 py-4 rounded-xl font-bold text-base text-white bg-gradient-to-r from-brand-600 via-indigo-600 to-cyan-600 hover:from-brand-500 hover:to-cyan-500 shadow-xl shadow-brand-600/30 active:scale-[0.99] transition-all flex items-center justify-center gap-3 mx-auto">
+              <span>Iniciar Sesión Adaptativa</span>
+              <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-game" class="glass-panel rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden hidden transition-all duration-300">
+        
+        <!-- Live HUD Status Bar -->
+        <div class="flex items-center justify-between pb-6 border-b border-dark-border gap-4">
+          
+          <!-- Question progress & Category badge -->
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+              <span id="game-progress-text" class="text-xs font-mono font-bold text-brand-400 uppercase tracking-wider">Pregunta 1 de 10</span>
+              <span id="game-category-badge" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 truncate max-w-[170px] sm:max-w-xs">General Knowledge</span>
+            </div>
+            <!-- Item IRT properties -->
+            <div class="flex items-center gap-3 text-[11px] font-mono text-slate-400">
+              <span title="Dificultad del ítem">Dificultad (b): <strong id="hud-item-b" class="text-slate-200">0.00</strong></span>
+              <span title="Discriminación">Disc (a): <strong id="hud-item-a" class="text-slate-200">1.20</strong></span>
+            </div>
+          </div>
+
+          <!-- Circular SVG Countdown Timer & Streak Counter -->
+          <div class="flex items-center gap-4">
+            
+            <div class="hidden sm:flex flex-col items-end">
+              <span class="text-[10px] text-slate-400 uppercase font-mono">Racha</span>
+              <span id="hud-streak" class="text-base font-bold font-mono text-amber-400">0 🔥</span>
+            </div>
+
+            <!-- 15s Timer Ring -->
+            <div class="relative w-14 h-14 flex items-center justify-center">
+              <svg class="w-14 h-14">
+                <circle cx="28" cy="28" r="23" stroke="currentColor" stroke-width="3" fill="transparent" class="text-slate-800"/>
+                <circle id="timer-circle" cx="28" cy="28" r="23" stroke="currentColor" stroke-width="3.5" fill="transparent" stroke-dasharray="144.5" stroke-dashoffset="0" class="timer-ring-circle text-brand-500"/>
+              </svg>
+              <span id="timer-text" class="absolute font-mono font-bold text-sm text-white">15</span>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Theta trajectory mini-meter -->
+        <div class="py-3 px-4 my-4 rounded-xl bg-slate-900/80 border border-slate-800/80 flex items-center justify-between text-xs font-mono">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400">Habilidad estimada θ:</span>
+            <span id="game-theta-live" class="text-emerald-400 font-bold text-sm">0.00</span>
+            <span id="game-theta-delta" class="text-xs px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 hidden">0.00</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500">Puntaje CAT:</span>
+            <span id="game-score-live" class="font-bold text-white">0 pts</span>
+          </div>
+        </div>
+
+        <!-- Question Prompt Container -->
+        <div class="mt-4 mb-6">
+          <h2 id="question-text" class="text-lg sm:text-xl lg:text-2xl font-bold text-white leading-snug">
+            Cargando y calibrando la siguiente pregunta según tu nivel de habilidad...
+          </h2>
+        </div>
+
+        <!-- Options Grid (4 buttons) -->
+        <div id="options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-6">
+          <!-- Dynamically populated buttons -->
+        </div>
+
+        <!-- Feedback & Explanation Banner (Hidden until answer) -->
+        <div id="feedback-panel" class="p-4 rounded-xl border hidden transition-all duration-200">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-grow">
+              <div class="flex items-center gap-2 mb-1">
+                <span id="feedback-result-tag" class="px-2 py-0.5 rounded text-xs font-bold uppercase font-mono"></span>
+                <span id="feedback-theta-shift" class="text-xs font-mono text-slate-300"></span>
+              </div>
+              <p id="feedback-explanation" class="text-xs sm:text-sm text-slate-300 leading-relaxed"></p>
+            </div>
+            
+            <button id="next-question-btn" class="px-5 py-2.5 rounded-lg bg-white text-slate-900 hover:bg-slate-200 font-bold text-xs uppercase tracking-wider font-mono shadow-md transition-transform active:scale-95 flex-shrink-0">
+              Continuar &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- Keyboard Shortcut Hint Footer -->
+        <div class="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
+          <span>Atajos de teclado: Pulsa <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">1</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">2</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">3</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">4</kbd> para responder · <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-slate-300">Enter</kbd> para continuar</span>
+          <span id="item-source-badge" class="font-mono text-slate-600 uppercase">Banco IRT</span>
+        </div>
+
+      </section>
+
+      <section id="view-summary" class="glass-panel rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden hidden transition-all duration-300">
+        
+        <div class="text-center max-w-xl mx-auto mb-8">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-2">
+            Sesión Concluida · Calibración Exitosa
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Informe Psicométrico de Habilidad</h2>
+          <p class="text-sm text-slate-400 mt-1">Estimación de aptitud basada en el modelo logístico de 3 parámetros</p>
+        </div>
+
+        <!-- Key Metrics Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          
+          <div class="glass-card rounded-xl p-4 border border-dark-border text-center">
+            <span class="text-xs text-slate-400 font-mono block mb-1">Habilidad Final (θ)</span>
+            <span id="summary-theta" class="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-400">+1.45</span>
+            <span id="summary-tier-badge" class="mt-1 inline-block text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Avanzado</span>
+          </div>
+
+          <div class="glass-card rounded-xl p-4 border border-dark-border text-center">
+            <span class="text-xs text-slate-400 font-mono block mb-1">Precisión Factual</span>
+            <span id="summary-accuracy" class="text-2xl sm:text-3xl font-extrabold font-mono text-cyan-400">80%</span>
+            <span id="summary-correct-counts" class="mt-1 text-[11px] text-slate-400 block font-mono">8 / 10 aciertos</span>
+          </div>
+
+          <div class="glass-card rounded-xl p-4 border border-dark-border text-center">
+            <span class="text-xs text-slate-400 font-mono block mb-1">Puntaje Ponderado</span>
+            <span id="summary-score" class="text-2xl sm:text-3xl font-extrabold font-mono text-brand-400">1,420</span>
+            <span class="mt-1 text-[11px] text-slate-500 block font-mono">Puntos IRT</span>
+          </div>
+
+          <div class="glass-card rounded-xl p-4 border border-dark-border text-center">
+            <span class="text-xs text-slate-400 font-mono block mb-1">Tiempo Medio</span>
+            <span id="summary-time" class="text-2xl sm:text-3xl font-extrabold font-mono text-amber-400">6.4s</span>
+            <span class="mt-1 text-[11px] text-slate-500 block font-mono">Velocidad</span>
+          </div>
+
+        </div>
+
+        <!-- IRT Theta Evolution Chart -->
+        <div class="glass-card rounded-xl p-4 sm:p-5 border border-dark-border mb-8">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-white">Trayectoria de Convergencia del Rasgo Latente θ</h3>
+              <p class="text-xs text-slate-400">Evolución de tu habilidad estimada pregunta tras pregunta</p>
+            </div>
+            <span class="text-xs font-mono text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20">3PL CAT Curve</span>
+          </div>
+          <div class="h-60 sm:h-72 w-full">
+            <canvas id="irt-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Question Breakdown Table / List -->
+        <div class="glass-card rounded-xl p-4 sm:p-5 border border-dark-border mb-8">
+          <h3 class="text-sm font-bold text-white mb-3">Desglose de Ítems Respondidos</h3>
+          <div id="summary-items-list" class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+            <!-- Dynamically populated rows -->
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button id="summary-restart-btn" class="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-brand-600 hover:bg-brand-500 transition-colors shadow-lg shadow-brand-600/30">
+            Iniciar Nueva Partida
+          </button>
+          <button id="summary-copy-btn" class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-semibold text-sm text-slate-300 hover:text-white glass-card hover:bg-slate-700/60 transition-colors flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+            </svg>
+            Copiar Certificado Psicométrico
+          </button>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <div id="info-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-panel max-w-lg w-full rounded-2xl p-6 border border-dark-border shadow-2xl relative">
+      <button id="close-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+
+      <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-brand-400"></span>
+        Modelo Logístico 3PL (IRT)
+      </h3>
+      <p class="text-xs text-slate-400 mb-4">Item Response Theory aplicada a evaluación computarizada adaptativa.</p>
+
+      <div class="space-y-3 text-xs text-slate-300">
+        <div class="p-3 rounded-lg bg-slate-900 border border-slate-800 font-mono text-[11px] text-cyan-300 overflow-x-auto">
+          P_i(θ) = c_i + (1 - c_i) / (1 + exp(-1.702 · a_i · (θ - b_i)))
+        </div>
+
+        <p><strong class="text-white">θ (Theta):</strong> Rasgo latente de habilidad del participante [-3.0 a +3.0]. La media poblacional es 0.0.</p>
+        <p><strong class="text-white">b_i (Dificultad):</strong> Nivel de habilidad donde la probabilidad de responder correctamente supera el azar.</p>
+        <p><strong class="text-white">a_i (Discriminación):</strong> Pendiente de la curva característica. Determina la precisión con la que el ítem separa participantes hábiles de inexpertos.</p>
+        <p><strong class="text-white">c_i (Pseudo-adivinanza):</strong> Probabilidad de acertar por puro azar (fijada en 0.25 para preguntas de 4 alternativas).</p>
+      </div>
+
+      <div class="mt-6 text-right">
+        <button id="confirm-modal-btn" class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 font-semibold text-xs text-white">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification banner -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl glass-panel border border-brand-500/40 text-xs font-semibold text-white shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-2">
+    <span id="toast-message">Mensaje</span>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-dark-border/40 py-4 text-center text-xs text-slate-600 font-mono">
+    TriviaX Enterprise Engine · IRT 3PL & Gemini AI · Desacoplamiento Zero-Client-Knowledge
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT CORE ENGINE: SOUNDS, IRT 3PL, APIS & UI ORCHESTRATION -->
+  <!-- ========================================================================= -->
+  <script>
+    
+    // Audio synthesizer helper with Tone.js
+    class SoundEngine {
+      constructor() {
+        this.enabled = true;
+        this.synth = null;
+        this.chordSynth = null;
+        this.initialized = false;
+      }
+
+      async init() {
+        if (this.initialized) return;
+        try {
+          await Tone.start();
+          this.synth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "triangle" },
+            envelope: { attack: 0.005, decay: 0.1, sustain: 0.05, release: 0.1 }
+          }).toDestination();
+          this.synth.volume.value = -8;
+          this.initialized = true;
+        } catch (e) {
+          console.warn("Tone.js could not be initialized automatically:", e);
+        }
+      }
+
+      playClick() {
+        if (!this.enabled || !this.initialized) return;
+        try {
+          this.synth.triggerAttackRelease("A5", "32n");
+        } catch (_) {}
+      }
+
+      playCorrect() {
+        if (!this.enabled || !this.initialized) return;
+        try {
+          const now = Tone.now();
+          this.synth.triggerAttackRelease("C5", "16n", now);
+          this.synth.triggerAttackRelease("E5", "16n", now + 0.08);
+          this.synth.triggerAttackRelease("G5", "8n", now + 0.16);
+        } catch (_) {}
+      }
+
+      playIncorrect() {
+        if (!this.enabled || !this.initialized) return;
+        try {
+          const now = Tone.now();
+          this.synth.triggerAttackRelease("Eb3", "16n", now);
+          this.synth.triggerAttackRelease("Bb2", "8n", now + 0.1);
+        } catch (_) {}
+      }
+
+      playTick() {
+        if (!this.enabled || !this.initialized) return;
+        try {
+          this.synth.triggerAttackRelease("F#5", "64n");
+        } catch (_) {}
+      }
+
+      playFinish() {
+        if (!this.enabled || !this.initialized) return;
+        try {
+          const now = Tone.now();
+          this.synth.triggerAttackRelease("C5", "16n", now);
+          this.synth.triggerAttackRelease("G5", "16n", now + 0.1);
+          this.synth.triggerAttackRelease("C6", "4n", now + 0.2);
+        } catch (_) {}
+      }
+    }
+
+    const soundEngine = new SoundEngine();
+
+
+    class IRT3PLEngine {
+      constructor(initialTheta = 0.0) {
+        this.theta = Math.max(-3.0, Math.min(3.0, initialTheta));
+        this.initialTheta = this.theta;
+        this.D = 1.702; // Scaling factor for normal ogive approximation
+        this.history = []; // Array of { qIndex, thetaBefore, thetaAfter, isCorrect, timeMs, item }
+      }
+
+      /**
+       * Calculates the 3PL probability of a correct response
+       * P_i(theta) = c + (1 - c) / (1 + exp(-D * a * (theta - b)))
+       */
+      calculateProbability(theta, a, b, c = 0.25) {
+        const exponent = -this.D * a * (theta - b);
+        const expVal = Math.exp(Math.max(-20, Math.min(20, exponent))); // Numerical stability clamping
+        return c + (1 - c) / (1 + expVal);
+      }
+
+      /**
+       * Calculates Fisher Item Information I_i(theta)
+       * I_i(theta) = [a^2 * (P - c)^2 * (1 - P)] / [(1 - c)^2 * P]
+       */
+      calculateItemInformation(theta, a, b, c = 0.25) {
+        const P = this.calculateProbability(theta, a, b, c);
+        const numerator = Math.pow(a, 2) * Math.pow(P - c, 2) * (1 - P);
+        const denominator = Math.pow(1 - c, 2) * P;
+        return denominator === 0 ? 0 : numerator / denominator;
+      }
+
+      /**
+       * Bayesian adaptive skill updating
+       * Updates theta in response to user performance and response time
+       */
+      updateTheta(item, isCorrect, responseTimeMs) {
+        const thetaBefore = this.theta;
+        const P = this.calculateProbability(this.theta, item.discriminationA, item.difficultyB, item.guessingC);
+        const u = isCorrect ? 1.0 : 0.0;
+        
+        // Speed bonus/penalty factor: Fast response (< 6s) slightly increases weight; slow (> 12s) reduces it
+        const tSec = responseTimeMs / 1000;
+        let timeFactor = 1.0;
+        if (isCorrect) {
+          timeFactor = tSec < 5 ? 1.25 : (tSec > 12 ? 0.85 : 1.0);
+        }
+
+        // Learning rate alpha modulates steps as test progresses
+        const stepNum = this.history.length + 1;
+        const alpha = Math.max(0.35, 0.95 / Math.sqrt(stepNum));
+
+        // Gradient step
+        const delta = alpha * (item.discriminationA * (u - P) / (1 - item.guessingC)) * timeFactor;
+        
+        // Clamping within theoretical bounds [-3.0, 3.0]
+        this.theta = Math.max(-3.0, Math.min(3.0, this.theta + delta));
+
+        const record = {
+          step: stepNum,
+          thetaBefore,
+          thetaAfter: this.theta,
+          deltaTheta: this.theta - thetaBefore,
+          isCorrect,
+          responseTimeMs,
+          item
+        };
+        this.history.push(record);
+        return record;
+      }
+
+      getTierName(theta = this.theta) {
+        if (theta >= 2.0) return "Gran Maestro";
+        if (theta >= 1.2) return "Élite";
+        if (theta >= 0.4) return "Avanzado";
+        if (theta >= -0.4) return "Competente";
+        if (theta >= -1.2) return "Intermedio";
+        return "Principiante";
+      }
+    }
+
+
+    const INTERNAL_QUESTION_BANK = [
+      {
+        id: "seed_1",
+        question: "¿Cuál de los siguientes principios físicos describe la imposibilidad de conocer simultáneamente y con precisión absoluta la posición y el momento de una partícula?",
+        options: ["Principio de Exclusión de Pauli", "Principio de Incertidumbre de Heisenberg", "Efecto Fotoeléctrico de Einstein", "Ley de Desplazamiento de Wien"],
+        correct_index: 1,
+        explanation: "Formulado por Werner Heisenberg en 1927, establece que el producto de las incertidumbres en posición y momento no puede ser menor a ħ/2.",
+        category: "Ciencia: Física Cuántica",
+        difficultyB: 1.4,
+        discriminationA: 1.8,
+        guessingC: 0.25,
+        source: "INTERNAL_BANK"
+      },
+      {
+        id: "seed_2",
+        question: "¿En qué año se firmó el Tratado de Westfalia, marcando el nacimiento del concepto moderno de estado-nación soberano?",
+        options: ["1492", "1648", "1789", "1815"],
+        correct_index: 1,
+        explanation: "La Paz de Westfalia se firmó en 1648, poniendo fin a la Guerra de los Treinta Años y sentando las bases del orden diplomático moderno.",
+        category: "Historia Universal",
+        difficultyB: 0.8,
+        discriminationA: 1.4,
+        guessingC: 0.25,
+        source: "INTERNAL_BANK"
+      },
+      {
+        id: "seed_3",
+        question: "¿Cuál es la complejidad temporal promedio en el peor de los casos para el algoritmo de ordenamiento QuickSort?",
+        options: ["O(n)", "O(n log n)", "O(n²)", "O(log n)"],
+        correct_index: 2,
+        explanation: "Aunque en promedio tiene complejidad O(n log n), en el peor de los casos (ej. con pivotes mal escogidos sobre listas ordenadas) degenera a O(n²).",
+        category: "Computación",
+        difficultyB: 1.1,
+        discriminationA: 1.6,
+        guessingC: 0.25,
+        source: "INTERNAL_BANK"
+      },
+      {
+        id: "seed_4",
+        question: "¿Qué orgánulo celular es responsable directo de la síntesis de ATP mediante la cadena transportadora de electrones?",
+        options: ["Ribosoma", "Mitocondria", "Aparato de Golgi", "Retículo Endoplasmático"],
+        correct_index: 1,
+        explanation: "La mitocondria genera la mayor parte del ATP celular a través de la fosforilación oxidativa.",
+        category: "Ciencia: Biología",
+        difficultyB: -0.8,
+        discriminationA: 1.1,
+        guessingC: 0.25,
+        source: "INTERNAL_BANK"
+      },
+      {
+        id: "seed_5",
+        question: "¿Quién escribió la obra filosófica 'Crítica de la razón pura'?",
+        options: ["Friedrich Nietzsche", "Jean-Paul Sartre", "Immanuel Kant", "Arthur Schopenhauer"],
+        correct_index: 2,
+        explanation: "Publicada en 1781 por Immanuel Kant, es considerada una de las obras cumbres de la epistemología moderna.",
+        category: "Filosofía",
+        difficultyB: 0.3,
+        discriminationA: 1.3,
+        guessingC: 0.25,
+        source: "INTERNAL_BANK"
+      },
+      {
+        id: "seed_6",
+        question: "¿Cuál es el gas más abundante en la atmósfera del planeta Tierra?",
+        options: ["Oxígeno", "Dióxido de Carbono", "Nitrógeno", "Argón"],
+        correct_index: 2,
+        explanation: "El nitrógeno compone aproximadamente el 78.08% de la atmósfera terrestre.",
+        category: "Ciencia: Química",
+        difficultyB: -1.2,
+        discriminationA: 0.9,
+        guessingC: 0.25,
+        source: "INTERNAL_BANK"
+      },
+      {
+        id: "seed_7",
+        question: "¿Cuál es la capital de Australia?",
+        options: ["Sídney", "Melbourne", "Canberra", "Brisbane"],
+        correct_index: 2,
+        explanation: "Canberra fue elegida como compromiso entre Sídney y Melbourne en 1908.",
+        category: "Geografía",
+        difficultyB: -0.2,
+        discriminationA: 1.5,
+        guessingC: 0.25,
+        source: "INTERNAL_BANK"
+      },
+      {
+        id: "seed_8",
+        question: "¿Qué teorema matemático establece que todo entero mayor que 1 es primo o se puede descomponer de manera única en factores primos?",
+        options: ["Teorema Fundamental del Álgebra", "Teorema de Fermat", "Teorema Fundamental de la Aritmética", "Conjetura de Goldbach"],
+        correct_index: 2,
+        explanation: "El Teorema Fundamental de la Aritmética garantiza la factorización única en números primos para cualquier entero > 1.",
+        category: "Matemáticas",
+        difficultyB: 1.6,
+        discriminationA: 1.7,
+        guessingC: 0.25,
+        source: "INTERNAL_BANK"
+      },
+      {
+        id: "seed_9",
+        question: "¿Cuál de estos lenguajes de programación introdujo por primera vez el modelo de memoria de propiedad ('ownership') sin recolector de basura?",
+        options: ["Go", "Rust", "Swift", "Kotlin"],
+        correct_index: 1,
+        explanation: "Rust diseñó su sistema de 'borrow checker' y propiedad para ofrecer seguridad de memoria garantizada en tiempo de compilación.",
+        category: "Computación",
+        difficultyB: 0.9,
+        discriminationA: 1.5,
+        guessingC: 0.25,
+        source: "INTERNAL_BANK"
+      },
+      {
+        id: "seed_10",
+        question: "¿Cuál es la velocidad aproximada de la luz en el vacío?",
+        options: ["150,000 km/s", "300,000 km/s", "450,000 km/s", "1,000,000 km/s"],
+        correct_index: 1,
+        explanation: "La velocidad de la luz en el vacío es de exactamente 299,792,458 metros por segundo (~300,000 km/s).",
+        category: "Ciencia: Física",
+        difficultyB: -1.4,
+        discriminationA: 0.9,
+        guessingC: 0.25,
+        source: "INTERNAL_BANK"
+      },
+      {
+        id: "seed_11",
+        question: "¿En qué batalla de 1815 fue derrotado definitivamente Napoleón Bonaparte?",
+        options: ["Austerlitz", "Waterloo", "Trafalgar", "Leipzig"],
+        correct_index: 1,
+        explanation: "Napoleón fue vencido el 18 de junio de 1815 en Waterloo por las fuerzas anglo-aliadas y prusianas.",
+        category: "Historia Universal",
+        difficultyB: -0.6,
+        discriminationA: 1.2,
+        guessingC: 0.25,
+        source: "INTERNAL_BANK"
+      },
+      {
+        id: "seed_12",
+        question: "¿Qué científico dedujo la estructura tridimensional de doble hélice del ADN con la ayuda de la Fotografía 51 de Rosalind Franklin?",
+        options: ["Louis Pasteur & Robert Koch", "Watson & Crick", "Mendel & Morgan", "Bohr & Rutherford"],
+        correct_index: 1,
+        explanation: "James Watson y Francis Crick propusieron en 1953 el modelo de doble hélice para la molécula de ADN.",
+        category: "Ciencia: Genética",
+        difficultyB: -0.4,
+        discriminationA: 1.2,
+        guessingC: 0.25,
+        source: "INTERNAL_BANK"
+      }
+    ];
+
+
+    class OpenTriviaClient {
+      constructor() {
+        this.sessionToken = null;
+        this.lastRequestTime = 0;
+      }
+
+      async ensureToken() {
+        if (this.sessionToken) return this.sessionToken;
+        try {
+          const res = await fetch("https://opentdb.com/api_token.php?command=request");
+          const data = await res.json();
+          if (data.response_code === 0 && data.token) {
+            this.sessionToken = data.token;
+          }
+        } catch (e) {
+          console.warn("Could not retrieve OpenTDB session token, proceeding stateless:", e);
+        }
+        return this.sessionToken;
+      }
+
+      decodeHtml(str) {
+        if (!str) return "";
+        const txt = document.createElement("textarea");
+        txt.innerHTML = str;
+        return txt.value;
+      }
+
+      difficultyToB(diff) {
+        if (diff === "easy") return -1.2;
+        if (diff === "hard") return 1.4;
+        return 0.1; // medium
+      }
+
+      async fetchQuestions(targetTheta = 0.0, category = null) {
+        // Enforce basic rate limit tolerance (OpenTDB limits to 1 req per 5s)
+        const now = Date.now();
+        const elapsed = now - this.lastRequestTime;
+        if (elapsed < 3000) {
+          await new Promise(r => setTimeout(r, 3000 - elapsed));
+        }
+        this.lastRequestTime = Date.now();
+
+        await this.ensureToken();
+
+        // Translate target theta into OpenTDB difficulty parameter
+        let difficultyParam = "medium";
+        if (targetTheta < -0.6) difficultyParam = "easy";
+        else if (targetTheta > 0.8) difficultyParam = "hard";
+
+        let url = `https://opentdb.com/api.php?amount=5&type=multiple&difficulty=${difficultyParam}`;
+        if (category) url += `&category=${category}`;
+        if (this.sessionToken) url += `&token=${this.sessionToken}`;
+
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+
+          // Defensively handle response codes
+          if (data.response_code === 0 && data.results && data.results.length > 0) {
+            return data.results.map((q, idx) => {
+              const decodedCorrect = this.decodeHtml(q.correct_answer);
+              const decodedIncorrects = q.incorrect_answers.map(a => this.decodeHtml(a));
+              
+              // Shuffle options
+              const options = [...decodedIncorrects];
+              const correctIndex = Math.floor(Math.random() * (options.length + 1));
+              options.splice(correctIndex, 0, decodedCorrect);
+
+              return {
+                id: `opentdb_${Date.now()}_${idx}`,
+                question: this.decodeHtml(q.question),
+                options: options,
+                correct_index: correctIndex,
+                explanation: `La respuesta verificada es: "${decodedCorrect}". Ítem adaptado de OpenTDB.`,
+                category: this.decodeHtml(q.category),
+                difficultyB: this.difficultyToB(q.difficulty),
+                discriminationA: 1.25,
+                guessingC: 0.25,
+                source: "OPENTDB"
+              };
+            });
+          }
+        } catch (e) {
+          console.warn("OpenTDB API network error, falling back:", e);
+        }
+        return [];
+      }
+    }
+
+    const openTDBClient = new OpenTriviaClient();
+
+
+    class GeminiTriviaGenerator {
+      constructor() {
+        this.apiKey = ""; // Automatically provided at runtime
+        this.apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${this.apiKey}`;
+      }
+
+      async generateAdaptiveQuestions(topic, currentTheta, count = 3) {
+        const difficultyLevel = currentTheta < -0.5 ? "introductoria y conceptual" : (currentTheta > 0.8 ? "avanzada, rigurosa y altamente discriminativa" : "intermedia");
+        
+        const systemPrompt = `Actúa como un psicómetra senior y generador de trivias adaptativas (CAT).
+Tu objetivo es producir exactamente ${count} preguntas de opción múltiple (4 opciones por pregunta) en español sobre el tema: "${topic}".
+El nivel de habilidad del usuario es theta = ${currentTheta.toFixed(2)} (${difficultyLevel}).
+Debes forzar distractores semánticamente verosímiles, homogéneos en longitud y mutuamente excluyentes. No uses 'todas las anteriores'.
+Devuelve ÚNICAMENTE un arreglo JSON que cumpla estrictamente con este formato:
+[
+  {
+    "question": "string",
+    "options": ["string", "string", "string", "string"],
+    "correct_index": 0,
+    "explanation": "string con fundamentación fáctica clara",
+    "difficultyB": number entre -3.0 y 3.0,
+    "discriminationA": number entre 0.8 y 2.2
+  }
+]`;
+
+        const payload = {
+          contents: [{ parts: [{ text: `Genera ${count} preguntas de opción múltiple sobre ${topic}. Habilidad de destino: ${currentTheta.toFixed(2)}.` }] }],
+          generationConfig: {
+            responseMimeType: "application/json"
+          },
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          }
+        };
+
+        try {
+          const response = await fetch(this.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Gemini API error status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawText) {
+            const parsed = JSON.parse(rawText);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              return parsed.map((item, idx) => ({
+                id: `gemini_${Date.now()}_${idx}`,
+                question: item.question,
+                options: item.options,
+                correct_index: item.correct_index,
+                explanation: item.explanation || "Respuesta validada por el generador psicométrico.",
+                category: topic,
+                difficultyB: typeof item.difficultyB === 'number' ? item.difficultyB : currentTheta,
+                discriminationA: typeof item.discriminationA === 'number' ? item.discriminationA : 1.3,
+                guessingC: 0.25,
+                source: "GEMINI_AI"
+              }));
+            }
+          }
+        } catch (err) {
+          console.warn("Gemini generation failed, reverting to internal bank fallback:", err);
+        }
+        return [];
+      }
+    }
+
+    const geminiGenerator = new GeminiTriviaGenerator();
+
+
+    class GameOrchestrator {
+      constructor() {
+        this.engine = new IRT3PLEngine(0.0);
+        this.targetQuestionsCount = 10;
+        this.mode = "adaptive_hybrid";
+        this.customTopic = "";
+        
+        this.questionPool = [];
+        this.usedQuestionIds = new Set();
+        this.currentQuestion = null;
+        this.currentStep = 0;
+        this.score = 0;
+        this.streak = 0;
+
+        this.timer = null;
+        this.timeLeft = 15;
+        this.questionStartTime = 0;
+        this.isResolving = false;
+        this.chartInstance = null;
+
+        this.initDOMElements();
+        this.bindEvents();
+      }
+
+      initDOMElements() {
+        // Views
+        this.viewLobby = document.getElementById("view-lobby");
+        this.viewGame = document.getElementById("view-game");
+        this.viewSummary = document.getElementById("view-summary");
+
+        // Lobby inputs
+        this.configMode = document.getElementById("config-mode");
+        this.customTopicContainer = document.getElementById("custom-topic-container");
+        this.customTopicInput = document.getElementById("custom-topic-input");
+        this.modeHint = document.getElementById("mode-hint");
+        this.itemsCountSlider = document.getElementById("config-items-count");
+        this.itemsCountLabel = document.getElementById("items-count-label");
+        this.priorButtons = document.querySelectorAll("#prior-theta-selector button");
+        this.startGameBtn = document.getElementById("start-game-btn");
+
+        // Game HUD
+        this.gameProgressText = document.getElementById("game-progress-text");
+        this.gameCategoryBadge = document.getElementById("game-category-badge");
+        this.hudItemB = document.getElementById("hud-item-b");
+        this.hudItemA = document.getElementById("hud-item-a");
+        this.hudStreak = document.getElementById("hud-streak");
+        this.timerCircle = document.getElementById("timer-circle");
+        this.timerText = document.getElementById("timer-text");
+        this.gameThetaLive = document.getElementById("game-theta-live");
+        this.gameThetaDelta = document.getElementById("game-theta-delta");
+        this.gameScoreLive = document.getElementById("game-score-live");
+        this.questionText = document.getElementById("question-text");
+        this.optionsGrid = document.getElementById("options-grid");
+        this.feedbackPanel = document.getElementById("feedback-panel");
+        this.feedbackResultTag = document.getElementById("feedback-result-tag");
+        this.feedbackThetaShift = document.getElementById("feedback-theta-shift");
+        this.feedbackExplanation = document.getElementById("feedback-explanation");
+        this.nextQuestionBtn = document.getElementById("next-question-btn");
+        this.itemSourceBadge = document.getElementById("item-source-badge");
+
+        // Header telemetry
+        this.headerThetaContainer = document.getElementById("header-theta-container");
+        this.headerThetaValue = document.getElementById("header-theta-value");
+        this.headerThetaTier = document.getElementById("header-theta-tier");
+
+        // Audio and Modals
+        this.audioToggleBtn = document.getElementById("audio-toggle-btn");
+        this.audioOnIcon = document.getElementById("audio-on-icon");
+        this.audioOffIcon = document.getElementById("audio-off-icon");
+        this.infoModalBtn = document.getElementById("info-modal-btn");
+        this.infoModal = document.getElementById("info-modal");
+        this.closeModalBtn = document.getElementById("close-modal-btn");
+        this.confirmModalBtn = document.getElementById("confirm-modal-btn");
+        this.toast = document.getElementById("toast");
+        this.toastMessage = document.getElementById("toast-message");
+
+        // Summary elements
+        this.summaryTheta = document.getElementById("summary-theta");
+        this.summaryTierBadge = document.getElementById("summary-tier-badge");
+        this.summaryAccuracy = document.getElementById("summary-accuracy");
+        this.summaryCorrectCounts = document.getElementById("summary-correct-counts");
+        this.summaryScore = document.getElementById("summary-score");
+        this.summaryTime = document.getElementById("summary-time");
+        this.summaryItemsList = document.getElementById("summary-items-list");
+        this.summaryRestartBtn = document.getElementById("summary-restart-btn");
+        this.summaryCopyBtn = document.getElementById("summary-copy-btn");
+      }
+
+      bindEvents() {
+        // Mode dropdown change
+        this.configMode.addEventListener("change", (e) => {
+          const val = e.target.value;
+          if (val === "generative_gemini") {
+            this.customTopicContainer.classList.remove("hidden");
+            this.modeHint.textContent = "Genera preguntas sintéticas en tiempo real con Gemini 3 Flash estructuradas con metadatos IRT.";
+          } else {
+            this.customTopicContainer.classList.add("hidden");
+            this.modeHint.textContent = "Balancea preguntas consumidas vía Open Trivia DB con calibración dinámica de discriminación y dificultad.";
+          }
+        });
+
+        // Items count slider
+        this.itemsCountSlider.addEventListener("input", (e) => {
+          this.itemsCountLabel.textContent = `${e.target.value} preguntas`;
+          this.targetQuestionsCount = parseInt(e.target.value, 10);
+        });
+
+        // Prior Theta buttons
+        this.priorButtons.forEach(btn => {
+          btn.addEventListener("click", () => {
+            this.priorButtons.forEach(b => {
+              b.className = "px-2.5 py-1 text-xs rounded border border-slate-700 text-slate-400 hover:text-white transition-colors";
+            });
+            btn.className = "px-2.5 py-1 text-xs rounded border border-brand-500/80 bg-brand-500/20 text-brand-300 font-semibold transition-colors";
+            const val = parseFloat(btn.getAttribute("data-val"));
+            this.engine = new IRT3PLEngine(val);
+            this.updateHeaderTelemetry();
+          });
+        });
+
+        // Start Game
+        this.startGameBtn.addEventListener("click", () => {
+          soundEngine.init();
+          soundEngine.playClick();
+          this.startQuizSession();
+        });
+
+        // Next Question
+        this.nextQuestionBtn.addEventListener("click", () => {
+          soundEngine.playClick();
+          this.advanceToNextQuestion();
+        });
+
+        // Summary restart
+        this.summaryRestartBtn.addEventListener("click", () => {
+          soundEngine.playClick();
+          this.showView("lobby");
+        });
+
+        // Summary copy certificate
+        this.summaryCopyBtn.addEventListener("click", () => {
+          this.copyPsychometricSummary();
+        });
+
+        // Audio mute toggle
+        this.audioToggleBtn.addEventListener("click", () => {
+          soundEngine.init();
+          soundEngine.enabled = !soundEngine.enabled;
+          if (soundEngine.enabled) {
+            this.audioOnIcon.classList.remove("hidden");
+            this.audioOffIcon.classList.add("hidden");
+            this.showToast("Sonidos activados");
+            soundEngine.playClick();
+          } else {
+            this.audioOnIcon.classList.add("hidden");
+            this.audioOffIcon.classList.remove("hidden");
+            this.showToast("Sonidos silenciados");
+          }
+        });
+
+        // Modal triggers
+        this.infoModalBtn.addEventListener("click", () => this.infoModal.classList.remove("hidden"));
+        this.closeModalBtn.addEventListener("click", () => this.infoModal.classList.add("hidden"));
+        this.confirmModalBtn.addEventListener("click", () => this.infoModal.classList.add("hidden"));
+
+        // Keyboard hotkeys (1, 2, 3, 4, Enter)
+        window.addEventListener("keydown", (e) => {
+          if (this.viewGame.classList.contains("hidden")) return;
+          
+          if (!this.isResolving) {
+            if (["1", "2", "3", "4"].includes(e.key)) {
+              const idx = parseInt(e.key, 10) - 1;
+              const btn = this.optionsGrid.querySelector(`[data-option-index="${idx}"]`);
+              if (btn) btn.click();
+            }
+          } else {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              this.nextQuestionBtn.click();
+            }
+          }
+        });
+      }
+
+      showToast(msg) {
+        this.toastMessage.textContent = msg;
+        this.toast.classList.remove("translate-y-20", "opacity-0");
+        setTimeout(() => {
+          this.toast.classList.add("translate-y-20", "opacity-0");
+        }, 2400);
+      }
+
+      showView(viewName) {
+        this.viewLobby.classList.add("hidden");
+        this.viewGame.classList.add("hidden");
+        this.viewSummary.classList.add("hidden");
+
+        if (viewName === "lobby") {
+          this.viewLobby.classList.remove("hidden");
+          this.headerThetaContainer.classList.add("hidden");
+        } else if (viewName === "game") {
+          this.viewGame.classList.remove("hidden");
+          this.headerThetaContainer.classList.remove("hidden");
+        } else if (viewName === "summary") {
+          this.viewSummary.classList.remove("hidden");
+          this.headerThetaContainer.classList.remove("hidden");
+        }
+      }
+
+
+      async startQuizSession() {
+        this.mode = this.configMode.value;
+        this.customTopic = this.customTopicInput.value.trim() || "Cultura General";
+        this.targetQuestionsCount = parseInt(this.itemsCountSlider.value, 10);
+        
+        // Reset state
+        this.currentStep = 0;
+        this.score = 0;
+        this.streak = 0;
+        this.usedQuestionIds.clear();
+        this.questionPool = JSON.parse(JSON.stringify(INTERNAL_QUESTION_BANK)); // Clone seed bank
+
+        this.updateHeaderTelemetry();
+        this.showView("game");
+        this.showToast("Iniciando motor psicométrico...");
+
+        // Background pre-fetch of questions based on chosen mode
+        this.hydrateQuestionPool();
+
+        // Serve first calibrated item
+        await this.serveNextAdaptiveQuestion();
+      }
+
+      async hydrateQuestionPool() {
+        try {
+          if (this.mode === "generative_gemini") {
+            const aiQuestions = await geminiGenerator.generateAdaptiveQuestions(this.customTopic, this.engine.theta, 4);
+            if (aiQuestions.length > 0) {
+              this.questionPool.unshift(...aiQuestions);
+            }
+          } else {
+            let catCode = null;
+            if (this.mode === "science_only") catCode = "17"; // Science & Nature
+            else if (this.mode === "history_only") catCode = "23"; // History
+            else if (this.mode === "tech_only") catCode = "18"; // Computers
+
+            const openTdbQuestions = await openTDBClient.fetchQuestions(this.engine.theta, catCode);
+            if (openTdbQuestions.length > 0) {
+              this.questionPool.push(...openTdbQuestions);
+            }
+          }
+        } catch (e) {
+          console.warn("Hydration failed, seed bank remains active:", e);
+        }
+      }
+
+      /**
+       * IRT Optimal Item Selection:
+       * Finds the unused question in the pool that maximizes Fisher Information I_i(theta)
+       * which is equivalent to finding the question with difficulty b_i closest to current theta.
+       */
+      selectNextOptimalItem() {
+        const available = this.questionPool.filter(q => !this.usedQuestionIds.has(q.id));
+        
+        if (available.length === 0) {
+          // If pool exhausted, fallback to reusing seeds with slight jitter
+          const randSeed = INTERNAL_QUESTION_BANK[Math.floor(Math.random() * INTERNAL_QUESTION_BANK.length)];
+          return {
+            ...randSeed,
+            id: `seed_reused_${Date.now()}`,
+            difficultyB: Math.max(-2.5, Math.min(2.5, this.engine.theta + (Math.random() * 0.4 - 0.2)))
+          };
+        }
+
+        let bestItem = available[0];
+        let maxInfo = -1;
+
+        for (const item of available) {
+          const info = this.engine.calculateItemInformation(this.engine.theta, item.discriminationA, item.difficultyB, item.guessingC);
+          if (info > maxInfo) {
+            maxInfo = info;
+            bestItem = item;
+          }
+        }
+
+        return bestItem;
+      }
+
+
+      async serveNextAdaptiveQuestion() {
+        this.currentStep++;
+        if (this.currentStep > this.targetQuestionsCount) {
+          this.finishSession();
+          return;
+        }
+
+        // Check if pool is getting low in generative mode
+        if (this.mode === "generative_gemini" && this.questionPool.filter(q => !this.usedQuestionIds.has(q.id)).length < 2) {
+          geminiGenerator.generateAdaptiveQuestions(this.customTopic, this.engine.theta, 3).then(moreQuestions => {
+            if (moreQuestions.length > 0) this.questionPool.push(...moreQuestions);
+          });
+        }
+
+        this.currentQuestion = this.selectNextOptimalItem();
+        this.usedQuestionIds.add(this.currentQuestion.id);
+        this.isResolving = false;
+
+        // Update HUD
+        this.gameProgressText.textContent = `Pregunta ${this.currentStep} de ${this.targetQuestionsCount}`;
+        this.gameCategoryBadge.textContent = this.currentQuestion.category || "General";
+        this.hudItemB.textContent = (this.currentQuestion.difficultyB >= 0 ? "+" : "") + this.currentQuestion.difficultyB.toFixed(2);
+        this.hudItemA.textContent = this.currentQuestion.discriminationA.toFixed(2);
+        this.hudStreak.textContent = `${this.streak} 🔥`;
+        this.itemSourceBadge.textContent = this.currentQuestion.source || "IRT BANK";
+
+        this.questionText.textContent = this.currentQuestion.question;
+
+        // Render Options
+        this.optionsGrid.innerHTML = "";
+        this.feedbackPanel.classList.add("hidden");
+
+        const hotkeys = ["1", "2", "3", "4"];
+        this.currentQuestion.options.forEach((optText, index) => {
+          const btn = document.createElement("button");
+          btn.setAttribute("data-option-index", index);
+          btn.className = "option-btn text-left p-4 rounded-xl border border-slate-700/80 bg-slate-900/60 hover:border-brand-500/80 hover:bg-slate-800/80 text-sm font-medium text-slate-200 flex items-center justify-between gap-3 group";
+          
+          btn.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="w-6 h-6 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 group-hover:text-brand-300 group-hover:border-brand-500/50 flex items-center justify-center text-xs font-mono font-bold transition-colors">
+                ${hotkeys[index]}
+              </span>
+              <span class="leading-snug">${optText}</span>
+            </div>
+          `;
+
+          btn.addEventListener("click", () => {
+            this.handleOptionSelection(index);
+          });
+
+          this.optionsGrid.appendChild(btn);
+        });
+
+        // Start 15s Timer
+        this.startTimer();
+      }
+
+      startTimer() {
+        clearInterval(this.timer);
+        this.timeLeft = 15;
+        this.questionStartTime = Date.now();
+        this.updateTimerDisplay();
+
+        const circumference = 2 * Math.PI * 23; // 144.51
+        this.timerCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+
+        this.timer = setInterval(() => {
+          this.timeLeft--;
+          this.updateTimerDisplay();
+
+          if (this.timeLeft <= 3 && this.timeLeft > 0) {
+            soundEngine.playTick();
+          }
+
+          if (this.timeLeft <= 0) {
+            clearInterval(this.timer);
+            this.handleTimeout();
+          }
+        }, 1000);
+      }
+
+      updateTimerDisplay() {
+        this.timerText.textContent = Math.max(0, this.timeLeft);
+        const circumference = 2 * Math.PI * 23;
+        const progress = Math.max(0, this.timeLeft) / 15;
+        const offset = circumference - progress * circumference;
+        this.timerCircle.style.strokeDashoffset = offset;
+
+        if (this.timeLeft <= 4) {
+          this.timerCircle.setAttribute("class", "timer-ring-circle text-rose-500 animate-pulse");
+          this.timerText.classList.add("text-rose-400");
+        } else {
+          this.timerCircle.setAttribute("class", "timer-ring-circle text-brand-500");
+          this.timerText.classList.remove("text-rose-400");
+        }
+      }
+
+      handleTimeout() {
+        if (this.isResolving) return;
+        this.resolveAnswer(-1, 15000); // -1 denotes timeout
+      }
+
+      handleOptionSelection(selectedIndex) {
+        if (this.isResolving) return;
+        const responseTimeMs = Date.now() - this.questionStartTime;
+        clearInterval(this.timer);
+        this.resolveAnswer(selectedIndex, responseTimeMs);
+      }
+
+
+      resolveAnswer(selectedIndex, responseTimeMs) {
+        this.isResolving = true;
+        clearInterval(this.timer);
+
+        const isCorrect = selectedIndex === this.currentQuestion.correct_index;
+        
+        // Update IRT Theta in Psychometric Engine
+        const irtRecord = this.engine.updateTheta(this.currentQuestion, isCorrect, responseTimeMs);
+
+        // Sound & Streak
+        if (isCorrect) {
+          soundEngine.playCorrect();
+          this.streak++;
+          const speedBonus = Math.max(10, Math.floor((15000 - responseTimeMs) / 100));
+          const difficultyMultiplier = Math.max(1, Math.round((this.currentQuestion.difficultyB + 3.5) * 10));
+          this.score += 100 + speedBonus + difficultyMultiplier;
+        } else {
+          soundEngine.playIncorrect();
+          this.streak = 0;
+        }
+
+        // Highlight options visually
+        const optionButtons = this.optionsGrid.querySelectorAll(".option-btn");
+        optionButtons.forEach((btn, idx) => {
+          btn.disabled = true;
+          btn.classList.remove("hover:border-brand-500/80", "hover:bg-slate-800/80");
+
+          if (idx === this.currentQuestion.correct_index) {
+            btn.className += " border-emerald-500 bg-emerald-950/60 text-emerald-200 ring-2 ring-emerald-500/40";
+          } else if (idx === selectedIndex && !isCorrect) {
+            btn.className += " border-rose-500 bg-rose-950/60 text-rose-200 ring-2 ring-rose-500/40";
+          } else {
+            btn.className += " opacity-40 border-slate-800 bg-slate-900/40 text-slate-500";
+          }
+        });
+
+        // Feedback Panel Details
+        this.feedbackPanel.classList.remove("hidden");
+        if (isCorrect) {
+          this.feedbackPanel.className = "p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/40";
+          this.feedbackResultTag.className = "px-2 py-0.5 rounded text-xs font-bold uppercase font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+          this.feedbackResultTag.textContent = "Respuesta Correcta";
+        } else if (selectedIndex === -1) {
+          this.feedbackPanel.className = "p-4 rounded-xl border border-rose-500/40 bg-rose-950/40";
+          this.feedbackResultTag.className = "px-2 py-0.5 rounded text-xs font-bold uppercase font-mono bg-rose-500/20 text-rose-300 border border-rose-500/40";
+          this.feedbackResultTag.textContent = "Tiempo Agotado";
+        } else {
+          this.feedbackPanel.className = "p-4 rounded-xl border border-rose-500/40 bg-rose-950/40";
+          this.feedbackResultTag.className = "px-2 py-0.5 rounded text-xs font-bold uppercase font-mono bg-rose-500/20 text-rose-300 border border-rose-500/40";
+          this.feedbackResultTag.textContent = "Respuesta Incorrecta";
+        }
+
+        const deltaFormatted = (irtRecord.deltaTheta >= 0 ? "+" : "") + irtRecord.deltaTheta.toFixed(2);
+        this.feedbackThetaShift.innerHTML = `Ajuste IRT: <strong class="${irtRecord.deltaTheta >= 0 ? 'text-emerald-400' : 'text-rose-400'} font-mono">${deltaFormatted} θ</strong>`;
+        this.feedbackExplanation.textContent = this.currentQuestion.explanation;
+
+        // Update live HUD numbers
+        this.updateHeaderTelemetry();
+        this.gameThetaLive.textContent = (this.engine.theta >= 0 ? "+" : "") + this.engine.theta.toFixed(2);
+        this.gameThetaDelta.classList.remove("hidden");
+        this.gameThetaDelta.textContent = deltaFormatted;
+        this.gameThetaDelta.className = `text-xs px-1.5 py-0.5 rounded font-mono ${irtRecord.deltaTheta >= 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`;
+        this.gameScoreLive.textContent = `${this.score} pts`;
+      }
+
+      updateHeaderTelemetry() {
+        const val = this.engine.theta;
+        const formatted = (val >= 0 ? "+" : "") + val.toFixed(2);
+        this.headerThetaValue.textContent = formatted;
+        this.headerThetaTier.textContent = this.engine.getTierName(val);
+        
+        if (val >= 1.0) this.headerThetaValue.className = "text-cyan-400 font-bold";
+        else if (val >= 0.0) this.headerThetaValue.className = "text-emerald-400 font-bold";
+        else this.headerThetaValue.className = "text-amber-400 font-bold";
+      }
+
+      advanceToNextQuestion() {
+        this.serveNextAdaptiveQuestion();
+      }
+
+
+      finishSession() {
+        soundEngine.playFinish();
+        this.showView("summary");
+
+        const history = this.engine.history;
+        const total = history.length;
+        const correctCount = history.filter(h => h.isCorrect).length;
+        const accuracyPct = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+        const avgTimeMs = total > 0 ? history.reduce((acc, h) => acc + h.responseTimeMs, 0) / total : 0;
+
+        // Metric display
+        this.summaryTheta.textContent = (this.engine.theta >= 0 ? "+" : "") + this.engine.theta.toFixed(2);
+        this.summaryTierBadge.textContent = this.engine.getTierName();
+        this.summaryAccuracy.textContent = `${accuracyPct}%`;
+        this.summaryCorrectCounts.textContent = `${correctCount} / ${total} aciertos`;
+        this.summaryScore.textContent = this.score.toLocaleString();
+        this.summaryTime.textContent = `${(avgTimeMs / 1000).toFixed(1)}s`;
+
+        // Populate items breakdown list
+        this.summaryItemsList.innerHTML = "";
+        history.forEach((h, idx) => {
+          const row = document.createElement("div");
+          row.className = "p-3 rounded-lg bg-slate-900/60 border border-slate-800 flex items-center justify-between text-xs";
+          const deltaSign = h.deltaTheta >= 0 ? "+" : "";
+          row.innerHTML = `
+            <div class="flex items-center gap-3 truncate max-w-[70%]">
+              <span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] ${h.isCorrect ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'}">
+                ${h.isCorrect ? '✓' : '✗'}
+              </span>
+              <span class="text-slate-300 truncate">${idx + 1}. ${h.item.question}</span>
+            </div>
+            <div class="flex items-center gap-3 font-mono text-[11px] flex-shrink-0">
+              <span class="text-slate-400">b: ${h.item.difficultyB.toFixed(1)}</span>
+              <span class="${h.deltaTheta >= 0 ? 'text-emerald-400' : 'text-rose-400'} font-semibold">${deltaSign}${h.deltaTheta.toFixed(2)} θ</span>
+            </div>
+          `;
+          this.summaryItemsList.appendChild(row);
+        });
+
+        // Render IRT Ability Chart with Chart.js
+        this.renderIrtTrajectoryChart(history);
+      }
+
+      renderIrtTrajectoryChart(history) {
+        const ctx = document.getElementById("irt-chart").getContext("2d");
+        
+        if (this.chartInstance) {
+          this.chartInstance.destroy();
+        }
+
+        const labels = ["Inicio", ...history.map((_, i) => `Ítem ${i + 1}`)];
+        const thetaData = [this.engine.initialTheta, ...history.map(h => parseFloat(h.thetaAfter.toFixed(2)))];
+        const itemDifficultyData = [null, ...history.map(h => parseFloat(h.item.difficultyB.toFixed(2)))];
+
+        this.chartInstance = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Habilidad Latente (θ)",
+                data: thetaData,
+                borderColor: "#6366f1",
+                backgroundColor: "rgba(99, 102, 241, 0.15)",
+                borderWidth: 3,
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: "#818cf8",
+                pointRadius: 4,
+                pointHoverRadius: 6
+              },
+              {
+                label: "Dificultad del Ítem (b)",
+                data: itemDifficultyData,
+                borderColor: "#06b6d4",
+                borderDash: [5, 5],
+                borderWidth: 2,
+                tension: 0.1,
+                fill: false,
+                pointBackgroundColor: "#22d3ee",
+                pointRadius: 3
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                min: -3.0,
+                max: 3.0,
+                grid: { color: "rgba(51, 65, 85, 0.4)" },
+                ticks: { color: "#94a3b8", font: { family: "JetBrains Mono" } }
+              },
+              x: {
+                grid: { color: "rgba(51, 65, 85, 0.2)" },
+                ticks: { color: "#94a3b8", font: { family: "Inter" } }
+              }
+            },
+            plugins: {
+              legend: {
+                labels: { color: "#cbd5e1", font: { family: "Inter", size: 11 } }
+              },
+              tooltip: {
+                backgroundColor: "#0f172a",
+                titleColor: "#f1f5f9",
+                bodyColor: "#cbd5e1",
+                borderColor: "#334155",
+                borderWidth: 1,
+                padding: 10
+              }
+            }
+          }
+        });
+      }
+
+      copyPsychometricSummary() {
+        const text = `🏆 TriviaX Enterprise · Certificado IRT 3PL\n` +
+                     `Habilidad Latente Final: θ = ${(this.engine.theta >= 0 ? '+' : '')}${this.engine.theta.toFixed(2)} (${this.engine.getTierName()})\n` +
+                     `Puntaje Ponderado: ${this.score} pts | Aciertos: ${this.engine.history.filter(h => h.isCorrect).length}/${this.engine.history.length}\n` +
+                     `Modelo: CAT 3-Parameter Logistic (D=1.702)`;
+        
+        // Use document.execCommand fallback for iframe clipboard compliance
+        const tempTextArea = document.createElement("textarea");
+        tempTextArea.value = text;
+        document.body.appendChild(tempTextArea);
+        tempTextArea.select();
+        try {
+          document.execCommand('copy');
+          this.showToast("Certificado copiado al portapapeles");
+        } catch (err) {
+          this.showToast("No se pudo copiar automáticamente");
+        }
+        document.body.removeChild(tempTextArea);
+      }
+    }
+
+    // Initialize application when DOM is ready
+    window.addEventListener("DOMContentLoaded", () => {
+      new GameOrchestrator();
+    });
+  </script>
+</body>
+</html>
