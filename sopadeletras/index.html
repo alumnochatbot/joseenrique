@@ -8,10 +8,10 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Google Fonts: JetBrains Mono (Grid), Inter (UI) -->
+  <!-- Google Fonts: JetBrains Mono, Roboto Mono, Space Mono, Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Roboto+Mono:wght@500;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&family=Roboto+Mono:wght@500;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
   
   <!-- Tone.js for Native Synthesized Sound Effects -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
@@ -26,20 +26,20 @@
     .font-grid-space { font-family: 'Space Mono', monospace; }
     .font-ui { font-family: 'Inter', system-ui, sans-serif; }
 
-    /* Prevención de scroll y selecciones espurias durante el arrastre táctil */
+    /* Prevención estricta de scroll y selecciones durante el arrastre táctil */
     .puzzle-board-container {
       touch-action: none;
       user-select: none;
       -webkit-user-select: none;
     }
 
-    /* Animación suave para celdas */
+    /* Animación suave y feedback táctil para celdas */
     .grid-cell {
       aspect-ratio: 1 / 1;
-      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+      transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
     }
     .grid-cell:hover {
-      transform: scale(1.05);
+      transform: scale(1.06);
       z-index: 5;
     }
     .grid-cell:active {
@@ -48,45 +48,67 @@
     
     /* Celda activa bajo el cursor / arrastre */
     .grid-cell.selected-cursor {
-      background: linear-gradient(135deg, #ec4899, #8b5cf6) !important;
-      color: #ffffff !important;
       transform: scale(1.15) !important;
       z-index: 25 !important;
-      box-shadow: 0 0 16px rgba(236, 72, 153, 0.8), 0 0 30px rgba(139, 92, 246, 0.5) !important;
-      border-radius: 0.6rem;
-      animation: pulse-selection 0.8s infinite alternate ease-in-out;
+      border-radius: 0.65rem;
+      animation: pulse-selection 0.6s infinite alternate ease-in-out;
     }
 
     /* Resplandor pulsante al trazar */
     @keyframes pulse-selection {
       0% { filter: brightness(1); }
-      100% { filter: brightness(1.25); }
+      100% { filter: brightness(1.35) drop-shadow(0 0 10px currentColor); }
     }
 
     /* Animación de entrada de palabra completada */
     @keyframes pop-found {
       0% { transform: scale(0.8); opacity: 0.5; }
-      50% { transform: scale(1.2); }
+      50% { transform: scale(1.22); }
       100% { transform: scale(1); opacity: 1; }
     }
     .animate-pop-found {
       animation: pop-found 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
 
-    /* Efecto shimmer brillante en tarjeta */
-    .shimmer-badge {
-      background-size: 200% 100%;
-      animation: shimmer 3s infinite linear;
-    }
+    /* Efecto shimmer brillante */
     @keyframes shimmer {
       0% { background-position: -200% 0; }
       100% { background-position: 200% 0; }
     }
+    .shimmer-badge {
+      background-size: 200% 100%;
+      animation: shimmer 2.5s infinite linear;
+    }
+
+    /* Gradientes dinámicos para colores exclusivos */
+    .bg-gradient-galaxy {
+      background: linear-gradient(135deg, #7928ca 0%, #ff0080 50%, #0070f3 100%) !important;
+    }
+    .bg-gradient-rainbow-holo {
+      background: linear-gradient(90deg, #ff0055, #ff9900, #ffff00, #00ff66, #00f0ff, #7928ca, #ff0055) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer 3s infinite linear !important;
+    }
+    .bg-gradient-gold {
+      background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%) !important;
+    }
+    .bg-gradient-water {
+      background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 40%, #06b6d4 70%, #0284c7 100%) !important;
+    }
+
+    /* Animación de pulso para la moneda de la tienda */
+    @keyframes coin-shine {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.18) rotate(12deg); }
+    }
+    .coin-icon-anim {
+      display: inline-block;
+      animation: coin-shine 2s infinite ease-in-out;
+    }
 
     /* =========================================================================
-     * 5 TEMAS VISUALES MAESTROS DE ALTO IMPACTO (CYBERPUNK, SYNTHWAVE, MATRIX, SOLAR, ABYSS)
+     * 5 TEMAS VISUALES MAESTROS DE ALTO IMPACTO
      * ========================================================================= */
-    /* 1. Cyberpunk 2099: Amarillo Neón Eléctrico, Cian y Negro Grafito */
     body.theme-cyberpunk {
       background: radial-gradient(circle at 12% 18%, #1f1b00 0%, #0d0e14 55%, #050608 100%);
       --theme-accent: #fcee0a;
@@ -96,12 +118,7 @@
       border-color: rgba(252, 238, 10, 0.3) !important;
       box-shadow: 0 0 30px rgba(252, 238, 10, 0.15), inset 0 0 20px rgba(0, 240, 255, 0.08) !important;
     }
-    body.theme-cyberpunk .grid-cell:hover {
-      background: rgba(252, 238, 10, 0.15) !important;
-      border-color: rgba(252, 238, 10, 0.4) !important;
-    }
 
-    /* 2. Synthwave Outrun: Púrpura Profundo, Magenta Láser y Turquesa 80s */
     body.theme-synthwave {
       background: radial-gradient(circle at 80% 15%, #2e0839 0%, #120426 55%, #060112 100%);
       --theme-accent: #ff2a85;
@@ -111,12 +128,7 @@
       border-color: rgba(255, 42, 133, 0.35) !important;
       box-shadow: 0 0 30px rgba(255, 42, 133, 0.2), inset 0 0 20px rgba(139, 92, 246, 0.12) !important;
     }
-    body.theme-synthwave .grid-cell:hover {
-      background: rgba(255, 42, 133, 0.18) !important;
-      border-color: rgba(255, 42, 133, 0.45) !important;
-    }
 
-    /* 3. Matrix Terminal: Verde Fósforo Terminal, Jade y Negro Abisal */
     body.theme-matrix {
       background: radial-gradient(circle at 50% 10%, #032b14 0%, #031409 50%, #010804 100%);
       --theme-accent: #00ff66;
@@ -126,12 +138,7 @@
       border-color: rgba(0, 255, 102, 0.35) !important;
       box-shadow: 0 0 30px rgba(0, 255, 102, 0.18), inset 0 0 20px rgba(16, 185, 129, 0.1) !important;
     }
-    body.theme-matrix .grid-cell:hover {
-      background: rgba(0, 255, 102, 0.15) !important;
-      border-color: rgba(0, 255, 102, 0.45) !important;
-    }
 
-    /* 4. Solar Flare: Magma Cósmico, Naranja Incandescente y Oro Solar */
     body.theme-solar {
       background: radial-gradient(circle at 20% 85%, #3d1000 0%, #1c0604 50%, #0a0202 100%);
       --theme-accent: #ff5722;
@@ -141,12 +148,7 @@
       border-color: rgba(255, 87, 34, 0.35) !important;
       box-shadow: 0 0 30px rgba(255, 87, 34, 0.2), inset 0 0 20px rgba(255, 193, 7, 0.1) !important;
     }
-    body.theme-solar .grid-cell:hover {
-      background: rgba(255, 87, 34, 0.18) !important;
-      border-color: rgba(255, 87, 34, 0.45) !important;
-    }
 
-    /* 5. Abyssal Aurora: Glaciar Boreal, Cian Neón, Ultravioleta y Azul Marino Profundo */
     body.theme-abyss {
       background: radial-gradient(circle at 50% 15%, #052c42 0%, #071629 50%, #020914 100%);
       --theme-accent: #06b6d4;
@@ -156,24 +158,16 @@
       border-color: rgba(6, 182, 212, 0.35) !important;
       box-shadow: 0 0 30px rgba(6, 182, 212, 0.2), inset 0 0 20px rgba(59, 130, 246, 0.12) !important;
     }
-    body.theme-abyss .grid-cell:hover {
-      background: rgba(6, 182, 212, 0.15) !important;
-      border-color: rgba(6, 182, 212, 0.45) !important;
-    }
 
-    /* Estilos para impresión en papel estándar A4 / Carta */
+    /* Estilos para impresión editorial */
     @media print {
       body {
         background: #ffffff !important;
         color: #000000 !important;
         padding: 0 !important;
       }
-      .no-print {
-        display: none !important;
-      }
-      .print-only {
-        display: block !important;
-      }
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
       .print-grid-container {
         border: 2px solid #000000 !important;
         page-break-inside: avoid;
@@ -183,21 +177,17 @@
         color: #000000 !important;
         font-weight: 700 !important;
       }
-      .page-break {
-        page-break-after: always;
-      }
     }
     @media screen {
-      .print-only {
-        display: none !important;
-      }
+      .print-only { display: none !important; }
     }
   </style>
 </head>
+
 <body class="theme-cyberpunk text-slate-100 font-ui min-h-screen flex flex-col antialiased selection:bg-fuchsia-500 selection:text-white transition-colors duration-700">
 
-  <!-- Top Navigation & Status Bar -->
-  <header class="no-print border-b border-white/10 bg-slate-950/70 backdrop-blur-xl sticky top-0 z-30 shadow-lg shadow-black/40">
+  <!-- Barra de Navegación Superior -->
+  <header class="no-print border-b border-white/10 bg-slate-950/75 backdrop-blur-xl sticky top-0 z-30 shadow-lg shadow-black/40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       
       <!-- Logo y Título -->
@@ -215,11 +205,11 @@
             </h1>
             <span id="badge-category" class="hidden sm:inline-block text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold">Tecnología</span>
           </div>
-          <p class="text-[11px] text-slate-400">Distribución probabilística RAE + Multiplicador de Racha</p>
+          <p class="text-[11px] text-slate-400">Resaltado reactivo con partículas en vivo + FX dinámicos</p>
         </div>
       </div>
 
-      <!-- Métricas en vivo (Cronómetro, Puntuación, Combo, Contador) -->
+      <!-- Métricas en vivo (Puntos, Combo, Cronómetro, Contador) -->
       <div class="flex items-center gap-2 sm:gap-4">
         
         <!-- Puntuación Dinámica -->
@@ -227,6 +217,12 @@
           <span class="text-amber-400 text-xs">⭐</span>
           <span id="score-display" class="font-grid-jetbrains font-bold text-amber-300 text-xs sm:text-sm">0</span>
           <span class="text-[10px] text-amber-400/80 uppercase tracking-tighter">pts</span>
+        </div>
+
+        <!-- Monedero de Monedas / Gemas -->
+        <div class="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-yellow-500/20 via-amber-500/20 to-orange-500/20 border border-yellow-500/40 shadow-sm shadow-yellow-500/20">
+          <span class="coin-icon-anim text-xs">🪙</span>
+          <span id="coins-display" class="font-grid-jetbrains font-extrabold text-yellow-300 text-xs sm:text-sm">1,200</span>
         </div>
 
         <!-- Multiplicador de Racha (Combo) -->
@@ -249,15 +245,28 @@
 
         <!-- Acciones Rápidas -->
         <div class="flex items-center gap-1.5">
-          <!-- Selector Dinámico de los 5 Temas Visuales con Menú Desplegable -->
+          <!-- Botón de la Tienda de Efectos y Colores -->
+          <button id="btn-open-shop" title="Abrir Tienda de Efectos y Colores Exclusivos" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 hover:opacity-95 text-white font-extrabold text-xs sm:text-sm transition-all shadow-md shadow-fuchsia-500/30 flex items-center gap-1.5 active:scale-95 border border-fuchsia-400/40">
+            <span>🛒</span>
+            <span class="hidden sm:inline">Tienda</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 text-yellow-300 font-mono font-bold">PRO</span>
+          </button>
+
+          <!-- Botón Rápido: Siguiente Reto (Cambio Automático de Tema y Palabras) -->
+          <button id="btn-next-challenge" title="Rotar a un nuevo tema y palabras inmediatamente" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:opacity-95 text-white font-bold text-xs sm:text-sm transition-all shadow-md shadow-cyan-500/25 flex items-center gap-1.5 active:scale-95">
+            <span>🎲</span>
+            <span class="hidden sm:inline">Siguiente Reto</span>
+          </button>
+
+          <!-- Selector de Temas Visuales -->
           <div class="relative">
-            <button id="btn-theme-toggle" title="Cambiar entre los 5 temas visuales" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-yellow-300 hover:text-white transition-all border border-white/10 flex items-center gap-1.5 text-xs font-bold active:scale-95 shadow-sm">
+            <button id="btn-theme-toggle" title="Cambiar tema visual" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-yellow-300 hover:text-white transition-all border border-white/10 flex items-center gap-1.5 text-xs font-bold active:scale-95 shadow-sm">
               <span id="theme-btn-icon">⚡</span>
               <span class="hidden md:inline" id="theme-btn-label">Cyberpunk</span>
               <svg class="w-3 h-3 text-slate-400 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
 
-            <!-- Menú Flotante con los 5 Temas -->
+            <!-- Menú Desplegable de Temas -->
             <div id="theme-menu" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-slate-900/95 border border-white/15 backdrop-blur-xl shadow-2xl shadow-black/80 p-2 z-50 flex-col gap-1 transition-all">
               <div class="px-2 py-1 text-[10px] uppercase font-black text-slate-400 tracking-wider border-b border-white/10 mb-1 flex justify-between items-center">
                 <span>Temas Visuales (5)</span>
@@ -292,8 +301,8 @@
             <svg id="icon-sound-off" class="w-4 h-4 hidden text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z m12 0l-6-6m0 6l6-6"/></svg>
           </button>
 
-          <!-- Imprimir Pasatiempo -->
-          <button id="btn-print-action" title="Imprimir o exportar PDF" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors border border-white/10">
+          <!-- Imprimir -->
+          <button id="btn-print-action" title="Imprimir pasatiempo" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors border border-white/10">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
           </button>
 
@@ -308,24 +317,28 @@
     </div>
   </header>
 
-  <!-- Main Interactive Area -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 items-start justify-center">
+  <main class="flex-1 max-w-5xl w-full mx-auto p-3 sm:p-5 lg:p-6 flex flex-col items-center gap-5">
 
-    <!-- Tablero de Juego (Columna Principal) -->
-    <section class="w-full lg:flex-1 flex flex-col items-center">
+    <!-- Tablero de Juego Principal (Centrado y Grande tanto en Vertical como en Horizontal) -->
+    <section class="w-full max-w-3xl lg:max-w-4xl flex flex-col items-center">
       
-      <!-- Indicador Flotante Dinámico de la Palabra Seleccionada en Tiempo Real -->
-      <div id="live-selection-pill" class="h-10 mb-3 px-5 py-1 rounded-2xl bg-slate-900/90 border border-fuchsia-500/40 backdrop-blur-md flex items-center justify-center gap-2 shadow-lg shadow-fuchsia-500/20 transition-all duration-150 opacity-0 scale-90 pointer-events-none">
-        <span class="text-xs uppercase font-extrabold tracking-widest text-pink-400">Trazando:</span>
+      <!-- Indicador Flotante Dinámico de la Palabra en Tiempo Real -->
+      <div id="live-selection-pill" class="h-10 mb-2.5 px-5 py-1 rounded-2xl bg-slate-900/90 border border-fuchsia-500/40 backdrop-blur-md flex items-center justify-center gap-2 shadow-lg shadow-fuchsia-500/20 transition-all duration-150 opacity-0 scale-90 pointer-events-none">
+        <span class="text-xs uppercase font-extrabold tracking-widest text-pink-400 flex items-center gap-1">
+          <span id="live-fx-mini-icon">✨</span> Trazando:
+        </span>
         <span id="live-selection-text" class="font-grid-jetbrains font-black text-sm sm:text-base text-white tracking-widest bg-gradient-to-r from-pink-400 via-fuchsia-300 to-cyan-300 bg-clip-text text-transparent">---</span>
       </div>
 
       <!-- Barra de herramientas superior del tablero -->
-      <div class="w-full max-w-2xl mb-4 flex items-center justify-between bg-white/[0.04] backdrop-blur-md p-3 rounded-2xl border border-white/10 shadow-lg shadow-black/30">
+      <div class="w-full mb-3 flex items-center justify-between bg-white/[0.04] backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/10 shadow-lg shadow-black/30">
         <div class="flex items-center gap-2">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Modo:</span>
           <span id="difficulty-badge" class="text-xs px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">Normal (4 Dir.)</span>
           <span id="theme-badge-name" class="hidden sm:inline-block text-[11px] px-2.5 py-0.5 rounded-lg bg-yellow-500/15 text-yellow-300 font-semibold border border-yellow-500/30">⚡ Cyberpunk 2099</span>
+          <span id="auto-theme-indicator" class="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-lg bg-fuchsia-500/15 text-fuchsia-300 font-semibold border border-fuchsia-500/30">
+            <span class="animate-spin text-[10px]">🔄</span> Auto-Tema
+          </span>
         </div>
         
         <div class="flex items-center gap-2">
@@ -342,90 +355,207 @@
         </div>
       </div>
 
-      <!-- Contenedor del Tablero, Líneas SVG y Partículas Canvas -->
-      <div class="relative w-full max-w-2xl bg-slate-900/90 backdrop-blur-2xl rounded-3xl p-3 sm:p-5 border border-white/15 shadow-2xl shadow-black/80 flex items-center justify-center">
+      <!-- Contenedor Maestro Ampliado de la Sopa de Letras -->
+      <div class="relative w-full bg-slate-900/90 backdrop-blur-2xl rounded-3xl p-3 sm:p-5 border border-white/15 shadow-2xl shadow-black/80 flex items-center justify-center">
         
-        <!-- Tablero de Celdas (Grid interactivo) -->
-        <div id="puzzle-grid" class="puzzle-board-container font-grid-jetbrains relative grid w-full select-none cursor-pointer rounded-2xl overflow-hidden bg-slate-950/90 p-1.5 sm:p-2 border border-white/10 shadow-inner">
-          <!-- Las celdas se inyectan dinámicamente -->
+        <div class="relative w-full flex items-center justify-center">
+          <!-- Tablero de Celdas (Grid interactivo maximizado) -->
+          <div id="puzzle-grid" class="puzzle-board-container font-grid-jetbrains relative grid w-full select-none cursor-pointer rounded-2xl overflow-hidden bg-slate-950/90 p-2 sm:p-3 border border-white/10 shadow-inner">
+            <!-- Celdas inyectadas por JS -->
+          </div>
+
+          <!-- Capa SVG para trazar líneas de selección activa y palabras resueltas -->
+          <svg id="selection-svg" class="absolute inset-0 pointer-events-none w-full h-full z-10" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="ultra-glow-filter" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur1"/>
+                <feGaussianBlur in="SourceGraphic" stdDeviation="14" result="blur2"/>
+                <feMerge>
+                  <feMergeNode in="blur2"/>
+                  <feMergeNode in="blur1"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <!-- Gradiente Exclusivo Galaxia -->
+              <linearGradient id="gradient-galaxy" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#7928ca"/>
+                <stop offset="35%" stop-color="#ff0080"/>
+                <stop offset="70%" stop-color="#0070f3"/>
+                <stop offset="100%" stop-color="#00dfd8"/>
+              </linearGradient>
+
+              <!-- Gradiente Exclusivo Arcoíris Holográfico -->
+              <linearGradient id="gradient-rainbow" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ff0055"/>
+                <stop offset="16%" stop-color="#ff9900"/>
+                <stop offset="33%" stop-color="#ffff00"/>
+                <stop offset="50%" stop-color="#00ff66"/>
+                <stop offset="66%" stop-color="#00f0ff"/>
+                <stop offset="83%" stop-color="#7928ca"/>
+                <stop offset="100%" stop-color="#ff0055"/>
+              </linearGradient>
+
+              <!-- Gradiente Exclusivo Oro 24K -->
+              <linearGradient id="gradient-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#bf953f"/>
+                <stop offset="25%" stop-color="#fcf6ba"/>
+                <stop offset="50%" stop-color="#b38728"/>
+                <stop offset="75%" stop-color="#fbf5b7"/>
+                <stop offset="100%" stop-color="#aa771c"/>
+              </linearGradient>
+
+              <!-- Gradiente Exclusivo Agua Viva -->
+              <linearGradient id="gradient-water" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8"/>
+                <stop offset="50%" stop-color="#06b6d4"/>
+                <stop offset="100%" stop-color="#0284c7"/>
+              </linearGradient>
+            </defs>
+            <g id="svg-completed-lines"></g>
+            <line id="svg-active-line" x1="0" y1="0" x2="0" y2="0" stroke="#f43f5e" stroke-width="26" stroke-linecap="round" opacity="0" class="transition-opacity duration-75"></line>
+          </svg>
+
+          <!-- Capa Canvas para Partículas Reactivas al Trazar y al Encontrar -->
+          <canvas id="fx-canvas" class="absolute inset-0 pointer-events-none w-full h-full z-20"></canvas>
         </div>
-
-        <!-- Capa SVG para trazar líneas continuas de palabras encontradas y selección activa -->
-        <svg id="selection-svg" class="absolute inset-0 pointer-events-none w-full h-full p-3 sm:p-5 z-10" xmlns="http://www.w3.org/2000/svg">
-          <!-- Trazos de selección y palabras resueltas -->
-          <g id="svg-completed-lines"></g>
-          <line id="svg-active-line" x1="0" y1="0" x2="0" y2="0" stroke="#f43f5e" stroke-width="26" stroke-linecap="round" opacity="0" class="transition-opacity duration-75"></line>
-        </svg>
-
-        <!-- Capa Canvas para Partículas y Chispas Reactivas -->
-        <canvas id="fx-canvas" class="absolute inset-0 pointer-events-none w-full h-full z-20"></canvas>
 
       </div>
 
-      <!-- Barra de progreso visual con degradado arcoíris -->
-      <div class="w-full max-w-2xl mt-4 px-2">
-        <div class="flex justify-between text-xs text-slate-300 mb-1.5 font-bold">
+      <!-- Barra de progreso visual con degradado -->
+      <div class="w-full mt-3 px-1">
+        <div class="flex justify-between text-xs text-slate-300 mb-1 font-bold">
           <span class="flex items-center gap-1.5">
             <span>Progreso del reto</span>
             <span id="combo-multiplier-label" class="text-[10px] text-pink-400 font-extrabold uppercase"></span>
           </span>
           <span id="progress-percent" class="font-mono text-cyan-400">0%</span>
         </div>
-        <div class="w-full h-2.5 rounded-full bg-slate-950/80 p-0.5 border border-white/10 overflow-hidden shadow-inner">
+        <div class="w-full h-2 rounded-full bg-slate-950/80 p-0.5 border border-white/10 overflow-hidden shadow-inner">
           <div id="progress-bar-fill" class="h-full rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 transition-all duration-300 w-0 shadow-sm shadow-cyan-400/50"></div>
         </div>
       </div>
 
     </section>
 
-    <!-- Banco de Palabras y Opciones (Columna Lateral) -->
-    <aside class="w-full lg:w-80 flex flex-col gap-4">
+    <!-- Controles, Banco de Palabras y Estudio FX Ubicados Debajo del Tablero (Compactos y Proporcionados) -->
+    <section class="w-full max-w-3xl lg:max-w-4xl grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
       
-      <!-- Tarjeta del Banco de Palabras -->
-      <div class="bg-slate-900/80 backdrop-blur-xl rounded-3xl p-5 border border-white/10 shadow-xl shadow-black/50">
-        <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
-          <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-pink-500 animate-ping"></span>
-            Palabras a Encontrar
+      <!-- Columna 1: Banco de Palabras a Encontrar + Estadísticas (Lado Izquierdo abajo) -->
+      <div class="md:col-span-7 flex flex-col gap-3">
+        
+        <!-- Tarjeta del Banco de Palabras -->
+        <div class="bg-slate-900/80 backdrop-blur-xl rounded-2xl p-4 border border-white/10 shadow-lg shadow-black/40">
+          <div class="flex items-center justify-between mb-3 pb-2 border-b border-white/10">
+            <h2 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-pink-500 animate-ping"></span>
+              Palabras a Encontrar
+            </h2>
+            <span id="words-left-pill" class="text-[11px] px-2.5 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono font-bold">0 restantes</span>
+          </div>
+
+          <!-- Lista dinámica de palabras (Organizada en columnas compactas) -->
+          <div id="word-list-container" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
+            <!-- Renderizado dinámico -->
+          </div>
+        </div>
+
+        <!-- Barra Compacta de Opciones Tipográficas y Métricas -->
+        <div class="bg-slate-900/50 backdrop-blur-md rounded-2xl px-3.5 py-2.5 border border-white/10 text-xs text-slate-400 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-semibold text-slate-300">Fuente:</span>
+            <select id="select-font" class="bg-slate-950 text-slate-200 border border-white/10 rounded-lg px-2 py-0.5 text-xs focus:ring-1 focus:ring-pink-500 outline-none">
+              <option value="font-grid-jetbrains">JetBrains Mono</option>
+              <option value="font-grid-roboto">Roboto Mono</option>
+              <option value="font-grid-space">Space Mono</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-3 text-[11px]">
+            <span>Matriz: <strong id="meta-grid-size" class="font-mono text-slate-200">12 x 12</strong></span>
+            <span>Densidad: <strong id="meta-grid-density" class="font-mono text-emerald-400">41.2%</strong></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Columna 2: Estudio de Resaltado & FX (Lado Derecho abajo, altura equilibrada) -->
+      <div class="md:col-span-5 bg-slate-900/85 backdrop-blur-xl rounded-2xl p-4 border border-white/15 shadow-lg shadow-black/40 flex flex-col gap-3">
+        
+        <div class="flex items-center justify-between pb-2 border-b border-white/10">
+          <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+            <span>✨</span>
+            <span>Estudio FX & Resaltado</span>
           </h2>
-          <span id="words-left-pill" class="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono font-bold">0 restantes</span>
+          <button id="btn-test-fx" title="Probar efecto ahora en el centro del tablero" class="text-[10px] px-2 py-0.5 rounded-lg bg-pink-500/20 hover:bg-pink-500/35 text-pink-300 border border-pink-500/40 font-bold transition-all active:scale-95">
+            Probar FX 💥
+          </button>
         </div>
 
-        <!-- Lista dinámica de palabras -->
-        <div id="word-list-container" class="grid grid-cols-2 lg:grid-cols-1 gap-2.5 max-h-[380px] overflow-y-auto pr-1">
-          <!-- Renderizado dinámico -->
+        <!-- Selector de Efecto Visual al Resaltar -->
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+            Efecto al Resaltar & Trazar:
+          </label>
+          <div class="grid grid-cols-2 gap-1.5" id="vfx-style-buttons">
+            <button data-fx="stars" class="vfx-btn active px-2 py-1.5 rounded-xl text-[11px] font-bold border transition-all flex items-center gap-1.5 bg-yellow-500/20 text-yellow-300 border-yellow-500/50 shadow-sm">
+              <span>✨</span>
+              <span>Brillo Estelar</span>
+            </button>
+            <button data-fx="fire" class="vfx-btn px-2 py-1.5 rounded-xl text-[11px] font-bold border transition-all flex items-center gap-1.5 bg-white/5 text-slate-300 border-white/10 hover:border-orange-500/40 hover:text-orange-300">
+              <span>🔥</span>
+              <span>Llamas</span>
+            </button>
+            <button data-fx="orbs" class="vfx-btn px-2 py-1.5 rounded-xl text-[11px] font-bold border transition-all flex items-center gap-1.5 bg-white/5 text-slate-300 border-white/10 hover:border-cyan-500/40 hover:text-cyan-300">
+              <span>🫧</span>
+              <span>Orbes</span>
+            </button>
+            <button data-fx="electric" class="vfx-btn px-2 py-1.5 rounded-xl text-[11px] font-bold border transition-all flex items-center gap-1.5 bg-white/5 text-slate-300 border-white/10 hover:border-emerald-500/40 hover:text-emerald-300">
+              <span>⚡</span>
+              <span>Eléctrico</span>
+            </button>
+            <button data-fx="diamonds" class="vfx-btn col-span-2 px-2 py-1.5 rounded-xl text-[11px] font-bold border transition-all flex items-center justify-center gap-1.5 bg-white/5 text-slate-300 border-white/10 hover:border-fuchsia-500/40 hover:text-fuchsia-300">
+              <span>🌟</span>
+              <span>Polvo de Diamantes</span>
+            </button>
+          </div>
         </div>
+
+        <!-- Selector de Color del Trazado -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Color del Trazo:</label>
+            <button id="btn-toggle-glow" class="text-[10px] px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-cyan-300 font-mono font-bold transition-all">
+              Glow: <span id="label-glow-mode">Ultra Neón</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-7 sm:grid-cols-9 gap-1.5 p-1 rounded-xl bg-slate-950/70 border border-white/10" id="color-swatch-picker">
+            <button data-color="rainbow" title="Multicolor por palabra" class="color-swatch active w-full aspect-square rounded-lg flex items-center justify-center text-xs font-extrabold ring-2 ring-white border border-white/30 bg-gradient-to-tr from-pink-500 via-purple-500 to-cyan-400 shadow-md">
+              🌈
+            </button>
+            <button data-color="#ec4899" title="Fucsia Neón" class="color-swatch w-full aspect-square rounded-lg bg-pink-500 border border-white/20 hover:scale-110 transition-transform"></button>
+            <button data-color="#06b6d4" title="Cian Láser" class="color-swatch w-full aspect-square rounded-lg bg-cyan-400 border border-white/20 hover:scale-110 transition-transform"></button>
+            <button data-color="#fcee0a" title="Amarillo Neón" class="color-swatch w-full aspect-square rounded-lg bg-yellow-300 border border-white/20 hover:scale-110 transition-transform"></button>
+            <button data-color="#10b981" title="Verde Lima" class="color-swatch w-full aspect-square rounded-lg bg-emerald-400 border border-white/20 hover:scale-110 transition-transform"></button>
+            <button data-color="#a855f7" title="Púrpura Astral" class="color-swatch w-full aspect-square rounded-lg bg-purple-500 border border-white/20 hover:scale-110 transition-transform"></button>
+            <button data-color="#ff3366" title="Fuego Carmesí" class="color-swatch w-full aspect-square rounded-lg bg-rose-500 border border-white/20 hover:scale-110 transition-transform"></button>
+
+            <!-- Ranuras para Colores Exclusivos de la Tienda -->
+            <button id="swatch-exclusive-galaxy" data-color="exclusive-galaxy" title="🌌 Color Galaxia (Exclusivo)" class="color-swatch hidden w-full aspect-square rounded-lg bg-gradient-galaxy border border-fuchsia-400 shadow-sm shadow-fuchsia-500/50 hover:scale-110 transition-transform text-[10px] items-center justify-center">
+              🌌
+            </button>
+            <button id="swatch-exclusive-rainbow" data-color="exclusive-rainbow" title="🌈 Color Arcoíris Holográfico (Exclusivo)" class="color-swatch hidden w-full aspect-square rounded-lg bg-gradient-rainbow-holo border border-cyan-300 shadow-sm shadow-cyan-400/50 hover:scale-110 transition-transform text-[10px] items-center justify-center">
+              ✨
+            </button>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Resumen Tipográfico y Estadístico -->
-      <div class="bg-slate-900/50 backdrop-blur-md rounded-3xl p-4 border border-white/10 text-xs text-slate-400 space-y-2.5">
-        <div class="flex justify-between items-center">
-          <span>Tipografía en grilla:</span>
-          <select id="select-font" class="bg-slate-950 text-slate-200 border border-white/10 rounded-xl px-2.5 py-1 text-xs focus:ring-1 focus:ring-pink-500 outline-none">
-            <option value="font-grid-jetbrains">JetBrains Mono</option>
-            <option value="font-grid-roboto">Roboto Mono</option>
-            <option value="font-grid-space">Space Mono</option>
-          </select>
-        </div>
-        <div class="flex justify-between">
-          <span>Dimensiones matriz:</span>
-          <span id="meta-grid-size" class="font-mono text-slate-200 font-bold">12 x 12</span>
-        </div>
-        <div class="flex justify-between">
-          <span>Densidad léxica:</span>
-          <span id="meta-grid-density" class="font-mono text-emerald-400 font-bold">41.2%</span>
-        </div>
-        <div class="flex justify-between">
-          <span>Alfabeto fonético:</span>
-          <span class="font-mono text-cyan-300 font-semibold">Español (A-Z + Ñ)</span>
-        </div>
-      </div>
-
-    </aside>
+    </section>
 
   </main>
 
-  <!-- Plantilla de Impresión Editorial (Oculta en pantalla, visible al imprimir con Ctrl+P) -->
+  <!-- Plantilla de Impresión Editorial -->
   <div class="print-only max-w-2xl mx-auto p-8 font-serif text-black">
     <div class="text-center mb-6 border-b-2 border-black pb-4">
       <h1 id="print-title" class="text-2xl font-black uppercase tracking-widest">SOPA DE LETRAS: TECNOLOGÍA</h1>
@@ -433,16 +563,12 @@
     </div>
 
     <!-- Grilla de Impresión de Alta Definición -->
-    <div id="print-grid-target" class="w-full aspect-square border-2 border-black grid mb-6">
-      <!-- Se clona para imprimir con caracteres en tinta negra limpia -->
-    </div>
+    <div id="print-grid-target" class="w-full aspect-square border-2 border-black grid mb-6"></div>
 
     <!-- Lista de Palabras para Tachar -->
     <div class="mt-4">
       <h3 class="text-xs font-bold uppercase tracking-wider mb-2 border-b border-gray-400 pb-1">Palabras a Buscar:</h3>
-      <div id="print-word-list" class="grid grid-cols-4 gap-2 text-xs font-mono font-semibold">
-        <!-- Palabras imprimibles -->
-      </div>
+      <div id="print-word-list" class="grid grid-cols-4 gap-2 text-xs font-mono font-semibold"></div>
     </div>
   </div>
 
@@ -464,25 +590,35 @@
         
         <!-- Temática -->
         <div>
-          <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Temática o Categoría</label>
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="block text-xs font-semibold uppercase text-slate-400">Temática de Juego</label>
+            <span class="text-[10px] text-cyan-400 font-mono font-bold">11 Temas Dinámicos</span>
+          </div>
           <select id="config-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:border-sky-500 focus:outline-none">
-            <option value="tecnologia">Tecnología & Programación</option>
-            <option value="ciudades">Capitales y Países Hispanos</option>
-            <option value="fauna">Fauna y Animales Silvestres</option>
-            <option value="ciencias">Ciencia, Física y Cosmos</option>
-            <option value="gastronomia">Gastronomía Iberoamericana</option>
-            <option value="custom">-- Lista Personalizada --</option>
+            <option value="auto" selected>🎲 Rotación Automática (Cambia tema y palabras en cada partida)</option>
+            <option value="tecnologia">💻 Tecnología & Programación</option>
+            <option value="mitologia">🏛️ Mitología & Leyendas Antiguas</option>
+            <option value="astronomia">🌌 Cosmos, Espacio & Astronomía</option>
+            <option value="fauna">🦁 Fauna Silvestre del Mundo</option>
+            <option value="cine">🎬 Cine & Séptimo Arte</option>
+            <option value="historia">🏺 Grandes Civilizaciones & Historia</option>
+            <option value="musica">🎵 Música, Instrumentos & Sonido</option>
+            <option value="gastronomia">🍲 Gastronomía Iberoamericana</option>
+            <option value="oceanos">🌊 Mundo Submarino & Océanos</option>
+            <option value="deportes">⚽ Deportes & Aventura Extrema</option>
+            <option value="ciudades">🌍 Capitales y Países Hispanos</option>
+            <option value="custom">✍️ -- Lista Personalizada --</option>
           </select>
         </div>
 
-        <!-- Campo para lista personalizada (oculto por defecto) -->
+        <!-- Campo para lista personalizada -->
         <div id="custom-words-wrapper" class="hidden">
           <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Introduce tus palabras (separadas por comas)</label>
           <textarea id="config-custom-words" rows="3" placeholder="COMPUTADORA, CODIGO, LOGICA, MATRIZ, RED" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:border-sky-500 focus:outline-none text-xs font-mono"></textarea>
-          <span class="text-[11px] text-slate-500">Se aceptan mayúsculas/minúsculas y acentos (se normalizan automáticamente). La Ñ se conserva.</span>
+          <span class="text-[11px] text-slate-500">Se normalizan acentos y se preserva la letra Ñ.</span>
         </div>
 
-        <!-- Tamaño de la Grilla -->
+        <!-- Tamaño y Dificultad -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Tamaño de Grilla</label>
@@ -494,7 +630,6 @@
             </select>
           </div>
 
-          <!-- Nivel de Dificultad -->
           <div>
             <label class="block text-xs font-semibold uppercase text-slate-400 mb-1.5">Dificultad</label>
             <select id="config-difficulty" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:border-sky-500 focus:outline-none">
@@ -517,9 +652,9 @@
     </div>
   </div>
 
-  <!-- Modal: Pantalla de Victoria -->
+  <!-- Modal: Victoria -->
   <div id="modal-victory" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
-    <div class="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl shadow-emerald-500/20 animate-in fade-in zoom-in duration-300">
+    <div class="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl shadow-emerald-500/20">
       
       <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
@@ -530,18 +665,18 @@
 
       <div class="grid grid-cols-2 gap-3 mb-6 bg-slate-950 p-4 rounded-2xl border border-slate-800">
         <div>
-          <span class="block text-slate-500 text-xs uppercase">Tiempo Empleado</span>
+          <span class="block text-slate-500 text-xs uppercase">Tiempo</span>
           <span id="victory-time" class="font-grid-jetbrains text-lg font-bold text-sky-400">01:45</span>
         </div>
         <div>
-          <span class="block text-slate-500 text-xs uppercase">Palabras Halladas</span>
+          <span class="block text-slate-500 text-xs uppercase">Palabras</span>
           <span id="victory-words" class="font-grid-jetbrains text-lg font-bold text-emerald-400">10 / 10</span>
         </div>
       </div>
 
       <div class="mb-5 p-3 rounded-2xl bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-amber-500/20 border border-pink-500/30 flex items-center justify-around">
         <div class="text-center">
-          <span class="text-[10px] text-pink-300 uppercase font-bold block">Puntuación Total</span>
+          <span class="text-[10px] text-pink-300 uppercase font-bold block">Puntuación</span>
           <span id="victory-score" class="font-grid-jetbrains text-xl font-black text-amber-300">12,500</span>
         </div>
         <div class="text-center">
@@ -551,11 +686,212 @@
       </div>
 
       <div class="flex gap-3">
-        <button id="btn-victory-replay" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all">
-          Jugar de Nuevo
+        <button id="btn-victory-replay" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:opacity-95 text-white font-bold transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-1.5">
+          <span>Siguiente Tema y Reto 🎲</span>
         </button>
         <button id="btn-victory-close" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all font-medium">
           Ver Tablero
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal: Tienda de Efectos y Colores Exclusivos -->
+  <div id="modal-shop" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-3 sm:p-5">
+    <div class="bg-slate-900 border border-fuchsia-500/30 rounded-3xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl shadow-purple-950/60 max-h-[90vh] flex flex-col">
+      
+      <!-- Encabezado de la Tienda -->
+      <div class="flex justify-between items-center pb-4 border-b border-white/10">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-fuchsia-500 via-pink-500 to-amber-400 p-0.5 flex items-center justify-center shadow-lg shadow-pink-500/30">
+            <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-lg">
+              🛒
+            </div>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-white flex items-center gap-2">
+              <span>Tienda de Efectos & Colores</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-lg bg-pink-500/20 text-pink-300 border border-pink-500/40 font-mono font-bold">PRO VIP</span>
+            </h3>
+            <p class="text-[11px] text-slate-400">Desbloquea estilos legendarios con tus monedas ganadas jugando</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Balance actual en la tienda -->
+          <div class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl bg-yellow-500/15 border border-yellow-500/30 shadow-inner">
+            <span class="text-sm coin-icon-anim">🪙</span>
+            <span id="shop-coins-counter" class="font-grid-jetbrains font-black text-yellow-300 text-sm sm:text-base">1,200</span>
+          </div>
+
+          <button id="modal-shop-close-btn" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenido scrolleable de la Tienda -->
+      <div class="flex-1 overflow-y-auto py-4 space-y-6 pr-1">
+        
+        <!-- Sección 1: Efectos de Partículas y Trazado Exclusivos -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-black uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              <span class="text-cyan-400">✨</span>
+              <span>Efectos de Trazado Exclusivos</span>
+            </h4>
+            <span class="text-[10px] text-cyan-400 font-mono">Reactivos en Vivo</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="shop-effects-container">
+            <!-- Item: Efecto Agua -->
+            <div class="p-3.5 rounded-2xl bg-slate-950/80 border border-cyan-500/30 flex items-center justify-between gap-3 shadow-md hover:border-cyan-400/60 transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-xl shadow-lg shadow-cyan-500/30 flex-shrink-0">
+                  💧
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h5 class="text-xs font-black text-white">Efecto Agua</h5>
+                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold">Destacado</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400">Salpicaduras líquidas, burbujas transparentes y ondas acuáticas fluidas.</p>
+                </div>
+              </div>
+              <div class="flex-shrink-0">
+                <button data-item-id="fx_water" data-item-type="effect" data-item-price="400" class="btn-shop-action px-3 py-1.5 rounded-xl text-xs font-black transition-all active:scale-95 flex items-center gap-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:opacity-90 text-white shadow-md shadow-cyan-500/30">
+                  <span>🪙 400</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Item: Vórtice Cósmico -->
+            <div class="p-3.5 rounded-2xl bg-slate-950/80 border border-purple-500/30 flex items-center justify-between gap-3 shadow-md hover:border-purple-400/60 transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center text-xl shadow-lg shadow-purple-500/30 flex-shrink-0">
+                  🌌
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h5 class="text-xs font-black text-white">Vórtice Cósmico</h5>
+                  </div>
+                  <p class="text-[10px] text-slate-400">Espirales galácticas y anillos estelares con polvo de estrellas nebular.</p>
+                </div>
+              </div>
+              <div class="flex-shrink-0">
+                <button data-item-id="fx_galaxy_vortex" data-item-type="effect" data-item-price="600" class="btn-shop-action px-3 py-1.5 rounded-xl text-xs font-black transition-all active:scale-95 flex items-center gap-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white shadow-md shadow-purple-500/30">
+                  <span>🪙 600</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Item: Pétalos Sakura -->
+            <div class="p-3.5 rounded-2xl bg-slate-950/80 border border-pink-500/30 flex items-center justify-between gap-3 shadow-md hover:border-pink-400/60 transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 flex items-center justify-center text-xl shadow-lg shadow-pink-500/30 flex-shrink-0">
+                  🌸
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h5 class="text-xs font-black text-white">Pétalos Sakura</h5>
+                  </div>
+                  <p class="text-[10px] text-slate-400">Brisa suave de pétalos de cerezo flotantes y destellos mágicos rosados.</p>
+                </div>
+              </div>
+              <div class="flex-shrink-0">
+                <button data-item-id="fx_sakura" data-item-type="effect" data-item-price="500" class="btn-shop-action px-3 py-1.5 rounded-xl text-xs font-black transition-all active:scale-95 flex items-center gap-1 bg-gradient-to-r from-rose-500 to-pink-600 hover:opacity-90 text-white shadow-md shadow-pink-500/30">
+                  <span>🪙 500</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección 2: Colores de Resaltador Exclusivos -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-black uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              <span class="text-pink-400">🎨</span>
+              <span>Colores de Resaltado Exclusivos</span>
+            </h4>
+            <span class="text-[10px] text-pink-400 font-mono">Degradados HD</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="shop-colors-container">
+            <!-- Item: Color Galaxia -->
+            <div class="p-3.5 rounded-2xl bg-slate-950/80 border border-fuchsia-500/30 flex items-center justify-between gap-3 shadow-md hover:border-fuchsia-400/60 transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-galaxy flex items-center justify-center text-xl shadow-lg shadow-fuchsia-500/40 flex-shrink-0 border border-white/30">
+                  🌌
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h5 class="text-xs font-black text-white">Color Galaxia</h5>
+                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-fuchsia-500/20 text-fuchsia-300 font-bold">Top Ventas</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400">Nebulosa cósmica violeta, magenta y cian con resplandor interestelar.</p>
+                </div>
+              </div>
+              <div class="flex-shrink-0">
+                <button data-item-id="color_galaxy" data-item-type="color" data-item-price="500" class="btn-shop-action px-3 py-1.5 rounded-xl text-xs font-black transition-all active:scale-95 flex items-center gap-1 bg-gradient-to-r from-fuchsia-500 to-indigo-600 hover:opacity-90 text-white shadow-md shadow-fuchsia-500/30">
+                  <span>🪙 500</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Item: Color Arcoíris Holográfico -->
+            <div class="p-3.5 rounded-2xl bg-slate-950/80 border border-cyan-500/30 flex items-center justify-between gap-3 shadow-md hover:border-cyan-400/60 transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-rainbow-holo flex items-center justify-center text-xl shadow-lg shadow-cyan-500/40 flex-shrink-0 border border-white/30">
+                  🌈
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h5 class="text-xs font-black text-white">Arcoíris Holográfico</h5>
+                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold">Prismático</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400">Espectro de 7 colores ultra saturados con halo prismático hiperbrillante.</p>
+                </div>
+              </div>
+              <div class="flex-shrink-0">
+                <button data-item-id="color_rainbow_holo" data-item-type="color" data-item-price="600" class="btn-shop-action px-3 py-1.5 rounded-xl text-xs font-black transition-all active:scale-95 flex items-center gap-1 bg-gradient-to-r from-cyan-400 via-pink-500 to-yellow-400 hover:opacity-90 text-white shadow-md shadow-pink-500/30">
+                  <span>🪙 600</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Item: Oro Imperial 24K -->
+            <div class="p-3.5 rounded-2xl bg-slate-950/80 border border-amber-500/30 flex items-center justify-between gap-3 shadow-md hover:border-amber-400/60 transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-gold flex items-center justify-center text-xl shadow-lg shadow-amber-500/40 flex-shrink-0 border border-white/30 text-amber-950 font-black">
+                  👑
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h5 class="text-xs font-black text-white">Oro Imperial 24K</h5>
+                  </div>
+                  <p class="text-[10px] text-slate-400">Destello dorado metálico real con brillo solar deslumbrante.</p>
+                </div>
+              </div>
+              <div class="flex-shrink-0">
+                <button data-item-id="color_gold" data-item-type="color" data-item-price="700" class="btn-shop-action px-3 py-1.5 rounded-xl text-xs font-black transition-all active:scale-95 flex items-center gap-1 bg-gradient-to-r from-amber-400 to-yellow-600 hover:opacity-90 text-white shadow-md shadow-amber-500/30">
+                  <span>🪙 700</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Pie de página de la Tienda -->
+      <div class="pt-4 border-t border-white/10 flex justify-between items-center text-xs text-slate-400">
+        <span class="flex items-center gap-1">
+          <span>💡</span> Gana <strong class="text-yellow-300 font-mono">+100 a +400 🪙</strong> encontrando palabras y combos.
+        </span>
+        <button id="modal-shop-done-btn" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition-all">
+          Listo
         </button>
       </div>
 
@@ -570,7 +906,7 @@
      * 1. MOTOR LÉXICO Y NORMALIZACIÓN LINGÜÍSTICA EN ESPAÑOL
      * ========================================================================= */
     const LexicalEngine = {
-      // Distribución probabilística según frecuencias de letras en castellano (CREA / RAE)
+      // Frecuencias relativas de letras en castellano (CREA / RAE)
       spanishFrequencies: [
         { letter: 'E', weight: 13.68 },
         { letter: 'A', weight: 12.53 },
@@ -601,7 +937,6 @@
         { letter: 'W', weight: 0.02 }
       ],
 
-      // Ruleta de probabilidades acumulada para muestreo veloz O(log N)
       cumulativeTable: [],
 
       init() {
@@ -623,12 +958,9 @@
         return 'E';
       },
 
-      // Pipeline de normalización de cadenas: Desacentuación preservando Ñ
       normalize(word) {
         if (!word) return '';
         let clean = word.trim().toUpperCase();
-        
-        // Mapeo seguro de tildes y diéresis
         const accentsMap = {
           'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
           'À': 'A', 'È': 'E', 'Ì': 'I', 'Ò': 'O', 'Ù': 'U',
@@ -650,61 +982,193 @@
     LexicalEngine.init();
 
     /* =========================================================================
-     * 2. CATÁLOGO MAESTRO DE PALABRAS POR TEMÁTICA
+     * 2. CATÁLOGO MAESTRO MULTITEMÁTICO EXPANDIDO Y MOTOR DE ROTACIÓN
+     * 11 Temas dinámicos con más de 250 palabras normalizadas sin repetición.
      * ========================================================================= */
     const WORD_CATALOG = {
       tecnologia: {
         name: "Tecnología & Programación",
+        icon: "💻",
         words: [
           "ALGORITMO", "PYTHON", "SERVIDOR", "MEMORIA", "COMPILADOR",
           "INTERNET", "CODIGO", "BITCOIN", "DATABASE", "FRONTEND",
-          "REPOSITORIO", "SISTEMA", "VIRTUAL", "FUNCION", "LOGICA", "MATRIZ"
+          "REPOSITORIO", "SISTEMA", "VIRTUAL", "FUNCION", "LOGICA",
+          "MATRIZ", "SOFTWARE", "HARDWARE", "ROBOTICA", "FIREWALL",
+          "TERMINAL", "VARIABLE", "MODEM", "NUBE", "CIBERNETICA"
         ]
       },
-      ciudades: {
-        name: "Capitales y Países Hispanos",
+      mitologia: {
+        name: "Mitología & Leyendas",
+        icon: "🏛️",
         words: [
-          "MADRID", "BOGOTA", "SANTIAGO", "LIMA", "HABANA",
-          "CARACAS", "MONTEVIDEO", "QUITO", "ASUNCION", "BUENOSAIRES",
-          "PANAMA", "BOLIVIA", "MEXICO", "COLOMBIA", "ESPAÑA"
+          "ZEUS", "ODIN", "THOR", "ANUBIS", "ARES",
+          "APOLO", "POSEIDON", "HADES", "HERCULES", "FENIX",
+          "MEDUSA", "PEGASO", "VALKIRIA", "OSIRIS", "CENTAURO",
+          "MINOTAURO", "ATENEA", "KRAKEN", "CERBERO", "PROMETEO",
+          "VALHALLA", "OLIMPO", "TITAN", "NINFAS", "DRAGON"
         ]
       },
-      fauna: {
-        name: "Fauna y Animales Silvestres",
-        words: [
-          "JAGUAR", "CONDOR", "FLAMENCO", "DELFIN", "BALLENA",
-          "TUCAN", "GUACAMAYO", "LEOPARDO", "PINGÜINO", "CAMALEON",
-          "TORTUGA", "CIGÜEÑA", "GACELA", "NUTRIA", "COATÍ"
-        ]
-      },
-      ciencias: {
-        name: "Ciencia, Física y Cosmos",
+      astronomia: {
+        name: "Cosmos & Astronomía",
+        icon: "🌌",
         words: [
           "GRAVEDAD", "ATOMO", "PLANETA", "GALAXIA", "ELECTRON",
           "QUIMICA", "ORBITA", "MOLECULA", "QUASAR", "TELESCOPIO",
-          "PROTON", "ENERGIA", "ECLIPSE", "MATERIA", "FUSION"
+          "PROTON", "ENERGIA", "ECLIPSE", "MATERIA", "FUSION",
+          "NEBULOSA", "ASTEROIDE", "COMETA", "SUPERNOVA", "ANDROMEDA",
+          "SATURNO", "JUPITER", "PULSAR", "METEORO", "HUBBLE"
+        ]
+      },
+      fauna: {
+        name: "Fauna Silvestre del Mundo",
+        icon: "🦁",
+        words: [
+          "JAGUAR", "CONDOR", "FLAMENCO", "DELFIN", "BALLENA",
+          "TUCAN", "GUACAMAYO", "LEOPARDO", "PINGÜINO", "CAMALEON",
+          "TORTUGA", "CIGÜEÑA", "GACELA", "NUTRIA", "COATÍ",
+          "GUEPARDO", "PUMA", "RINOCERONTE", "ORCA", "KOALA",
+          "COLIBRI", "TIBURON", "CANGURO", "LEMUR", "PANDA"
+        ]
+      },
+      cine: {
+        name: "Cine & Séptimo Arte",
+        icon: "🎬",
+        words: [
+          "DIRECTOR", "GUION", "CAMARA", "ACTOR", "SONIDO",
+          "MONTAJE", "PREMIO", "ESTRENO", "FESTIVAL", "RODAJE",
+          "CLAQUETA", "OSCAR", "DRAMA", "COMEDIA", "ESCENA",
+          "REPARTO", "EFECTOS", "TRAILER", "PRODUCTOR", "PANTALLA",
+          "FICCION", "ANIMACION", "TALENTO", "ESTUDIO", "BANDA"
+        ]
+      },
+      historia: {
+        name: "Grandes Civilizaciones",
+        icon: "🏺",
+        words: [
+          "FARAON", "PIRAMIDE", "GLADIADOR", "IMPERIO", "DINASTIA",
+          "CABALLERO", "CASTILLO", "SENADO", "SAMURAI", "VIKINGO",
+          "TEMPLO", "ARQUEOLOGIA", "MONARQUIA", "REVOLUCION", "PERGAMINO",
+          "MOSAICO", "LEGION", "CRONICA", "CORONA", "ESCUDO",
+          "ESPADA", "MURALLA", "COLISEO", "ESCRITA", "CENTURIA"
+        ]
+      },
+      musica: {
+        name: "Música & Instrumentos",
+        icon: "🎵",
+        words: [
+          "GUITARRA", "PIANO", "VIOLIN", "BATERIA", "SAXOFON",
+          "MELODIA", "SINFONIA", "RITMO", "ARMONIA", "CONCIERTO",
+          "ACORDE", "TROMPETA", "FLAUTA", "ORQUESTA", "PARTITURA",
+          "COMPAS", "OPERA", "SOLISTA", "TEMPO", "CORO",
+          "CANTO", "CLARINETE", "TROMBON", "ARPA", "SONATA"
         ]
       },
       gastronomia: {
         name: "Gastronomía Iberoamericana",
+        icon: "🍲",
         words: [
           "EMPANADA", "CEVICHE", "PAELLA", "TORTILLA", "AREPA",
           "GUACAMOLE", "CHURROS", "ASADO", "TACOS", "SANCOCHO",
-          "ALFAJOR", "GAZPACHO", "JAMON", "MAIZ", "TAMAL"
+          "ALFAJOR", "GAZPACHO", "JAMON", "MAIZ", "TAMAL",
+          "RISOTTO", "CHOCOLATE", "VAINILLA", "CANELA", "PARMESANO",
+          "PIMIENTO", "MANJAR", "PULPO", "ESPECIAS", "CAZUELA"
+        ]
+      },
+      oceanos: {
+        name: "Mundo Submarino & Océanos",
+        icon: "🌊",
+        words: [
+          "CORAL", "ARRECIFE", "MEDUSA", "CALAMAR", "CRUSTACEO",
+          "ABISAL", "MAREA", "NAUTILUS", "LANGOSTA", "ANEMONA",
+          "PLANCTON", "CORRIENTE", "FOSA", "KRILL", "ESPONJA",
+          "BALLENATO", "ALGAS", "BENTOS", "MANATI", "PERLA",
+          "FOCA", "MORSA", "PELICANO", "OCEANO", "PROFUNDO"
+        ]
+      },
+      deportes: {
+        name: "Deportes & Aventura",
+        icon: "⚽",
+        words: [
+          "FUTBOL", "NATACION", "CICLISMO", "ATLETISMO", "VOLEIBOL",
+          "MARATON", "TENIS", "BOXEO", "ESCALADA", "KARATE",
+          "GIMNASIA", "TRIATLON", "RUGBY", "ESQUI", "PATINAJE",
+          "SURF", "REMO", "JUDO", "CAMPEON", "CANASTA",
+          "MEDALLA", "ESTADIO", "CIRCUITO", "VELOCIDAD", "TROFEO"
+        ]
+      },
+      ciudades: {
+        name: "Capitales y Geografía",
+        icon: "🌍",
+        words: [
+          "MADRID", "BOGOTA", "SANTIAGO", "LIMA", "HABANA",
+          "CARACAS", "MONTEVIDEO", "QUITO", "ASUNCION", "BUENOSAIRES",
+          "PANAMA", "BOLIVIA", "MEXICO", "COLOMBIA", "ESPAÑA",
+          "BARCELONA", "SEVILLA", "CORDOBA", "CUSCO", "CARTAGENA",
+          "VALENCIA", "BILBAO", "ROSARIO", "MEDELLIN", "GUADALAJARA"
         ]
       }
     };
 
-    // Paleta de colores pastel vibrantes para destacar palabras resueltas
+    /* Motor inteligente para rotar temas y evitar repetir palabras en partidas consecutivas */
+    const RotationEngine = {
+      themeHistory: [],
+      usedWordsPerCategory: {},
+
+      getNextCategory(currentKey = null, isAuto = true) {
+        if (!isAuto && currentKey && currentKey !== 'auto' && currentKey !== 'custom') {
+          return currentKey;
+        }
+        const allKeys = Object.keys(WORD_CATALOG);
+        // Filtrar categorías jugadas recientemente para garantizar rotación constante
+        const candidateKeys = allKeys.filter(k => !this.themeHistory.includes(k) && k !== currentKey);
+        const pool = candidateKeys.length > 0 ? candidateKeys : allKeys.filter(k => k !== currentKey);
+        const selectedKey = pool[Math.floor(Math.random() * pool.length)] || allKeys[0];
+
+        this.themeHistory.push(selectedKey);
+        if (this.themeHistory.length > Math.floor(allKeys.length / 2)) {
+          this.themeHistory.shift();
+        }
+        return selectedKey;
+      },
+
+      getFreshWords(categoryKey, targetCount = 12) {
+        if (!this.usedWordsPerCategory[categoryKey]) {
+          this.usedWordsPerCategory[categoryKey] = new Set();
+        }
+        const cat = WORD_CATALOG[categoryKey] || WORD_CATALOG.tecnologia;
+        const allNorm = cat.words.map(w => LexicalEngine.normalize(w));
+        
+        // Seleccionar preferentemente palabras que aún no se hayan resuelto en esta categoría
+        const unusedWords = allNorm.filter(w => !this.usedWordsPerCategory[categoryKey].has(w));
+        let chosen = [];
+        
+        if (unusedWords.length >= targetCount) {
+          chosen = [...unusedWords].sort(() => Math.random() - 0.5).slice(0, targetCount);
+        } else {
+          // Si se agotó el ciclo de palabras, resetear memoria de esta temática y mezclar de nuevo
+          this.usedWordsPerCategory[categoryKey].clear();
+          chosen = [...allNorm].sort(() => Math.random() - 0.5).slice(0, targetCount);
+        }
+        
+        chosen.forEach(w => this.usedWordsPerCategory[categoryKey].add(w));
+        return {
+          categoryKey,
+          name: cat.name,
+          icon: cat.icon || "✨",
+          words: chosen
+        };
+      }
+    };
+
+    // Paleta de colores multicolor
     const PALETTE = [
-      { bg: 'rgba(236, 72, 153, 0.35)', stroke: '#ec4899', border: '#f43f5e', glow: 'rgba(236, 72, 153, 0.7)' }, // Hot Pink
-      { bg: 'rgba(139, 92, 246, 0.35)', stroke: '#8b5cf6', border: '#7c3aed', glow: 'rgba(139, 92, 246, 0.7)' }, // Purple Glow
-      { bg: 'rgba(6, 182, 212, 0.35)', stroke: '#06b6d4', border: '#0891b2', glow: 'rgba(6, 182, 212, 0.7)' },   // Neon Cyan
-      { bg: 'rgba(245, 158, 11, 0.35)', stroke: '#f59e0b', border: '#d97706', glow: 'rgba(245, 158, 11, 0.7)' }, // Golden Amber
-      { bg: 'rgba(16, 185, 129, 0.35)', stroke: '#10b981', border: '#059669', glow: 'rgba(16, 185, 129, 0.7)' }, // Emerald
-      { bg: 'rgba(239, 68, 68, 0.35)', stroke: '#ef4444', border: '#dc2626', glow: 'rgba(239, 68, 68, 0.7)' },   // Crimson
-      { bg: 'rgba(168, 85, 247, 0.35)', stroke: '#a855f7', border: '#9333ea', glow: 'rgba(168, 85, 247, 0.7)' }, // Neon Violet
-      { bg: 'rgba(59, 130, 246, 0.35)', stroke: '#3b82f6', border: '#2563eb', glow: 'rgba(59, 130, 246, 0.7)' }  // Electric Blue
+      { bg: 'rgba(236, 72, 153, 0.35)', stroke: '#ec4899', border: '#f43f5e', glow: 'rgba(236, 72, 153, 0.8)' },
+      { bg: 'rgba(6, 182, 212, 0.35)', stroke: '#06b6d4', border: '#0891b2', glow: 'rgba(6, 182, 212, 0.8)' },
+      { bg: 'rgba(250, 204, 21, 0.35)', stroke: '#facc15', border: '#eab308', glow: 'rgba(250, 204, 21, 0.8)' },
+      { bg: 'rgba(16, 185, 129, 0.35)', stroke: '#10b981', border: '#059669', glow: 'rgba(16, 185, 129, 0.8)' },
+      { bg: 'rgba(168, 85, 247, 0.35)', stroke: '#a855f7', border: '#9333ea', glow: 'rgba(168, 85, 247, 0.8)' },
+      { bg: 'rgba(244, 63, 94, 0.35)', stroke: '#f43f5e', border: '#e11d48', glow: 'rgba(244, 63, 94, 0.8)' },
+      { bg: 'rgba(59, 130, 246, 0.35)', stroke: '#3b82f6', border: '#2563eb', glow: 'rgba(59, 130, 246, 0.8)' }
     ];
 
     // Catálogo Maestro de los 5 Temas Visuales
@@ -757,7 +1221,7 @@
     ];
 
     /* =========================================================================
-     * 3. CONTROLADOR DE AUDIO (TONE.JS) CON NOTAS DE RACHA DINÁMICA
+     * 3. CONTROLADOR DE AUDIO (TONE.JS)
      * ========================================================================= */
     const SoundController = {
       enabled: true,
@@ -778,9 +1242,7 @@
             envelope: { attack: 0.001, decay: 0.1, sustain: 0.01, release: 0.1 }
           }).toDestination();
           this.membrane.volume.value = -10;
-        } catch (e) {
-          console.warn("Audio Context inicializado bajo demanda.");
-        }
+        } catch (e) {}
       },
 
       ensureContext() {
@@ -793,7 +1255,7 @@
         if (!this.enabled || !this.polySynth) return;
         this.ensureContext();
         try {
-          const notes = ["C5", "D5", "E5", "G5", "A5", "C6", "D6", "E6"];
+          const notes = ["C5", "D5", "E5", "G5", "A5", "C6", "D6", "E6", "G6"];
           const note = notes[Math.min(letterIndex, notes.length - 1)];
           this.polySynth.triggerAttackRelease(note, "32n", undefined, 0.15);
         } catch (e) {}
@@ -804,7 +1266,6 @@
         this.ensureContext();
         try {
           const now = Tone.now();
-          // Escala armónica en función del multiplicador de racha
           const baseOctave = Math.min(5 + Math.floor(combo / 2), 6);
           const chords = [
             [`C${baseOctave}`, `E${baseOctave}`, `G${baseOctave}`],
@@ -835,17 +1296,30 @@
             this.polySynth.triggerAttackRelease(note, "8n", now + (idx * 0.08), 0.35);
           });
         } catch (e) {}
+      },
+
+      playPurchase() {
+        if (!this.enabled || !this.polySynth) return;
+        this.ensureContext();
+        try {
+          const now = Tone.now();
+          ["E5", "G5", "B5", "E6"].forEach((note, idx) => {
+            this.polySynth.triggerAttackRelease(note, "16n", now + (idx * 0.06), 0.3);
+          });
+        } catch (e) {}
       }
     };
 
     /* =========================================================================
      * 3.1 MOTOR DE PARTÍCULAS Y DESTELLOS LUMINOSOS (CANVAS FX)
+     * Soporta: Stars ✨, Fire 🔥, Orbs 🫧, Electric ⚡, Diamonds 🌟,
+     * Y EXCLUSIVOS: Water 💧 (Efecto Agua), Galaxy Vortex 🌌, Sakura 🌸
      * ========================================================================= */
     const ParticleEngine = {
       canvas: null,
       ctx: null,
       particles: [],
-      animationId: null,
+      rings: [],
 
       init(canvasEl) {
         this.canvas = canvasEl;
@@ -859,36 +1333,174 @@
         const rect = this.canvas.getBoundingClientRect();
         this.canvas.width = rect.width * window.devicePixelRatio;
         this.canvas.height = rect.height * window.devicePixelRatio;
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
       },
 
-      spawnSparkles(x, y, color = '#ec4899', count = 24) {
-        const rect = this.canvas.getBoundingClientRect();
-        const baseWidth = rect.width;
-        const baseHeight = rect.height;
-
+      // Emisión continua durante el arrastre y resaltado
+      spawnTrailPoint(x, y, color = '#ec4899', style = 'stars', count = 3) {
         for (let i = 0; i < count; i++) {
           const angle = Math.random() * Math.PI * 2;
-          const speed = 1.5 + Math.random() * 4.5;
-          this.particles.push({
-            x: x,
-            y: y,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            radius: 2 + Math.random() * 3.5,
-            color: color,
-            alpha: 1,
-            decay: 0.02 + Math.random() * 0.025,
-            shape: Math.random() > 0.5 ? 'circle' : 'star'
-          });
+          const speed = 0.5 + Math.random() * 2.2;
+          
+          if (style === 'water') {
+            // Efecto Agua Exclusivo: Gotas fluidas con gravedad + burbujas transparentes
+            const isBubble = Math.random() > 0.4;
+            this.particles.push({
+              x: x + (Math.random() - 0.5) * 12,
+              y: y + (Math.random() - 0.5) * 12,
+              vx: Math.cos(angle) * (speed * 0.9),
+              vy: isBubble ? - (0.8 + Math.random() * 1.5) : (speed * 0.6), // Las burbujas suben, gotas caen
+              radius: isBubble ? (3.5 + Math.random() * 5.5) : (2 + Math.random() * 3),
+              color: isBubble ? 'rgba(56, 189, 248, 0.75)' : '#0284c7',
+              alpha: 0.9,
+              decay: 0.025 + Math.random() * 0.02,
+              style: isBubble ? 'water_bubble' : 'water_drop',
+              wobble: Math.random() * Math.PI
+            });
+            // Ondas concéntricas líquidas
+            if (Math.random() > 0.75) {
+              this.rings.push({
+                x, y,
+                radius: 2,
+                maxRadius: 36,
+                color: '#38bdf8',
+                alpha: 0.8,
+                decay: 0.035
+              });
+            }
+          } else if (style === 'galaxy_vortex') {
+            // Vórtice Cósmico Exclusivo: Órbitas curvadas y polvo interestelar
+            const orbitalSpeed = (speed * 1.4);
+            this.particles.push({
+              x: x,
+              y: y,
+              vx: Math.cos(angle) * orbitalSpeed,
+              vy: Math.sin(angle) * orbitalSpeed,
+              radius: 1.5 + Math.random() * 3,
+              color: Math.random() > 0.5 ? '#ff0080' : (Math.random() > 0.5 ? '#7928ca' : '#00f0ff'),
+              alpha: 1,
+              decay: 0.03,
+              style: 'vortex',
+              angle: angle,
+              spin: (Math.random() - 0.5) * 0.2
+            });
+          } else if (style === 'sakura') {
+            // Pétalos Sakura Exclusivos: Caída sinuosa y bamboleo zen
+            this.particles.push({
+              x: x + (Math.random() - 0.5) * 15,
+              y: y + (Math.random() - 0.5) * 10,
+              vx: (Math.random() - 0.5) * 1.8,
+              vy: 0.8 + Math.random() * 1.8,
+              radius: 3 + Math.random() * 3.5,
+              color: Math.random() > 0.3 ? '#f472b6' : '#fb7185',
+              alpha: 0.9,
+              decay: 0.02,
+              style: 'sakura',
+              rotation: Math.random() * Math.PI,
+              spin: (Math.random() - 0.5) * 0.08
+            });
+          } else if (style === 'fire') {
+            this.particles.push({
+              x: x + (Math.random() - 0.5) * 10,
+              y: y + (Math.random() - 0.5) * 10,
+              vx: (Math.random() - 0.5) * 1.5,
+              vy: - (1.2 + Math.random() * 2.8),
+              radius: 3 + Math.random() * 4,
+              color: color === 'rainbow' ? '#ff4500' : color,
+              alpha: 0.9,
+              decay: 0.035 + Math.random() * 0.03,
+              style: 'fire'
+            });
+          } else if (style === 'orbs') {
+            this.particles.push({
+              x: x + (Math.random() - 0.5) * 8,
+              y: y + (Math.random() - 0.5) * 8,
+              vx: Math.cos(angle) * speed * 0.7,
+              vy: Math.sin(angle) * speed * 0.7,
+              radius: 4 + Math.random() * 6,
+              color: color === 'rainbow' ? '#06b6d4' : color,
+              alpha: 0.75,
+              decay: 0.02 + Math.random() * 0.02,
+              style: 'orbs'
+            });
+          } else if (style === 'electric') {
+            this.particles.push({
+              x: x,
+              y: y,
+              vx: Math.cos(angle) * (speed * 2),
+              vy: Math.sin(angle) * (speed * 2),
+              radius: 1.5 + Math.random() * 2.5,
+              color: color === 'rainbow' ? '#00ff66' : color,
+              alpha: 1,
+              decay: 0.05 + Math.random() * 0.04,
+              style: 'electric'
+            });
+            if (Math.random() > 0.8) {
+              this.rings.push({
+                x, y,
+                radius: 4,
+                maxRadius: 28,
+                color: color === 'rainbow' ? '#00ffcc' : color,
+                alpha: 0.8,
+                decay: 0.04
+              });
+            }
+          } else if (style === 'diamonds') {
+            this.particles.push({
+              x: x,
+              y: y,
+              vx: Math.cos(angle) * speed * 1.3,
+              vy: Math.sin(angle) * speed * 1.3,
+              radius: 2.5 + Math.random() * 3.5,
+              color: color === 'rainbow' ? '#a855f7' : color,
+              alpha: 1,
+              decay: 0.03,
+              style: 'diamonds',
+              rotation: Math.random() * Math.PI,
+              spin: (Math.random() - 0.5) * 0.15
+            });
+          } else {
+            // Estrellas y brillo estándar
+            this.particles.push({
+              x: x,
+              y: y,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              radius: 2 + Math.random() * 3,
+              color: color === 'rainbow' ? '#facc15' : color,
+              alpha: 1,
+              decay: 0.025 + Math.random() * 0.025,
+              style: 'stars',
+              rotation: Math.random() * Math.PI,
+              spin: (Math.random() - 0.5) * 0.2
+            });
+          }
         }
       },
 
-      spawnWordTrail(cellsCoords, color = '#8b5cf6') {
+      // Ráfaga masiva al descubrir una palabra o al pulsar "Probar FX"
+      spawnWordBurst(cellsCoords, color = '#ec4899', style = 'stars') {
         cellsCoords.forEach(pos => {
           const center = getCellCenter(pos.r, pos.c);
-          this.spawnSparkles(center.x, center.y, color, 8);
+          this.spawnTrailPoint(center.x, center.y, color, style, 14);
         });
+        
+        // Agregar onda expansiva en el centro de la palabra encontrada
+        if (cellsCoords.length > 0) {
+          const midPos = cellsCoords[Math.floor(cellsCoords.length / 2)];
+          const midCenter = getCellCenter(midPos.r, midPos.c);
+          const ringColor = style === 'water' ? '#38bdf8' : (color === 'rainbow' ? '#ff007f' : color);
+          this.rings.push({
+            x: midCenter.x,
+            y: midCenter.y,
+            radius: 10,
+            maxRadius: 80,
+            color: ringColor,
+            alpha: 0.9,
+            decay: 0.025
+          });
+        }
       },
 
       loop() {
@@ -896,26 +1508,112 @@
         const rect = this.canvas.getBoundingClientRect();
         this.ctx.clearRect(0, 0, rect.width, rect.height);
 
+        // Renderizar anillos expansivos
+        for (let i = this.rings.length - 1; i >= 0; i--) {
+          const r = this.rings[i];
+          r.radius += 2.2;
+          r.alpha -= r.decay;
+          if (r.alpha <= 0 || r.radius >= r.maxRadius) {
+            this.rings.splice(i, 1);
+            continue;
+          }
+          this.ctx.save();
+          this.ctx.globalAlpha = r.alpha;
+          this.ctx.strokeStyle = r.color;
+          this.ctx.shadowColor = r.color;
+          this.ctx.shadowBlur = 10;
+          this.ctx.lineWidth = 2.5;
+          this.ctx.beginPath();
+          this.ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+          this.ctx.stroke();
+          this.ctx.restore();
+        }
+
+        // Renderizar partículas
         for (let i = this.particles.length - 1; i >= 0; i--) {
           const p = this.particles[i];
           p.x += p.vx;
           p.y += p.vy;
-          p.vy += 0.08; // ligera gravedad
           p.alpha -= p.decay;
 
-          if (p.alpha <= 0) {
+          if (p.style === 'fire') {
+            p.radius *= 0.96;
+            p.vx += (Math.random() - 0.5) * 0.3;
+          } else if (p.style === 'water_bubble') {
+            p.wobble += 0.1;
+            p.vx = Math.sin(p.wobble) * 0.8;
+          } else if (p.style === 'water_drop') {
+            p.vy += 0.12; // Aceleración por gravedad
+          } else if (p.style === 'vortex') {
+            p.vx += Math.cos(p.angle) * 0.4;
+            p.vy += Math.sin(p.angle) * 0.4;
+          } else if (p.style === 'sakura' || p.style === 'stars' || p.style === 'diamonds') {
+            p.rotation += p.spin || 0.1;
+          }
+
+          if (p.alpha <= 0 || p.radius <= 0.5) {
             this.particles.splice(i, 1);
             continue;
           }
 
           this.ctx.save();
-          this.ctx.globalAlpha = p.alpha;
+          this.ctx.globalAlpha = Math.max(0, p.alpha);
           this.ctx.fillStyle = p.color;
           this.ctx.shadowColor = p.color;
-          this.ctx.shadowBlur = 8;
-          this.ctx.beginPath();
-          this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-          this.ctx.fill();
+          this.ctx.shadowBlur = 10;
+
+          if (p.style === 'water_bubble') {
+            // Renderizado de burbuja de agua translúcida con brillo especular
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            this.ctx.lineWidth = 1.2;
+            this.ctx.stroke();
+            this.ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+            this.ctx.fill();
+
+            // Reflejo blanco en la esquina superior de la burbuja
+            this.ctx.beginPath();
+            this.ctx.arc(p.x - p.radius * 0.35, p.y - p.radius * 0.35, p.radius * 0.25, 0, Math.PI * 2);
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.fill();
+          } else if (p.style === 'sakura') {
+            // Pétalo estilizado oval con giro
+            this.ctx.translate(p.x, p.y);
+            this.ctx.rotate(p.rotation);
+            this.ctx.beginPath();
+            this.ctx.ellipse(0, 0, p.radius * 1.5, p.radius * 0.75, 0, 0, Math.PI * 2);
+            this.ctx.fill();
+          } else if (p.style === 'stars') {
+            // Dibujar estrella centelleante de 4 puntas
+            this.ctx.translate(p.x, p.y);
+            this.ctx.rotate(p.rotation);
+            this.ctx.beginPath();
+            const r = p.radius * 1.8;
+            this.ctx.moveTo(0, -r);
+            this.ctx.quadraticCurveTo(0, 0, r, 0);
+            this.ctx.quadraticCurveTo(0, 0, 0, r);
+            this.ctx.quadraticCurveTo(0, 0, -r, 0);
+            this.ctx.quadraticCurveTo(0, 0, 0, -r);
+            this.ctx.fill();
+          } else if (p.style === 'diamonds') {
+            // Dibujar rombo / diamante
+            this.ctx.translate(p.x, p.y);
+            this.ctx.rotate(p.rotation);
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, -p.radius * 1.5);
+            this.ctx.lineTo(p.radius, 0);
+            this.ctx.lineTo(0, p.radius * 1.5);
+            this.ctx.lineTo(-p.radius, 0);
+            this.ctx.closePath();
+            this.ctx.fill();
+          } else {
+            // Círculo suave / gota / llama
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            this.ctx.fill();
+          }
+
           this.ctx.restore();
         }
 
@@ -924,7 +1622,7 @@
     };
 
     /* =========================================================================
-     * 4. GENERADOR MATRICIAL DE SOPA DE LETRAS (ALGORITMO ESTOCÁSTICO CON SOLAPAMIENTO)
+     * 4. GENERADOR MATRICIAL DE SOPA DE LETRAS (ALGORITMO ESTOCÁSTICO)
      * ========================================================================= */
     class WordSearchGenerator {
       constructor(size = 12, difficulty = 'medium') {
@@ -936,48 +1634,40 @@
       }
 
       getDirectionsForDifficulty(diff) {
-        // Direcciones cardinales e intercardinales en formato [dRow, dCol]
         const E = [0, 1];   // Horizontal derecha
         const S = [1, 0];   // Vertical abajo
         const SE = [1, 1];  // Diagonal abajo-derecha
         const NE = [-1, 1]; // Diagonal arriba-derecha
-        const W = [0, -1];  // Horizontal izquierda (reversa)
-        const N = [-1, 0];  // Vertical arriba (reversa)
-        const NW = [-1, -1];// Diagonal arriba-izquierda (reversa)
-        const SW = [1, -1]; // Diagonal abajo-izquierda (reversa)
+        const W = [0, -1];  // Horizontal reversa
+        const N = [-1, 0];  // Vertical reversa
+        const NW = [-1, -1];// Diagonal reversa
+        const SW = [1, -1]; // Diagonal reversa
 
         if (diff === 'easy') {
-          return [E, S]; // 2 direcciones estándar
+          return [E, S];
         } else if (diff === 'medium') {
-          return [E, S, SE, NE]; // 4 direcciones (sin reversas)
+          return [E, S, SE, NE];
         } else {
-          return [E, S, SE, NE, W, N, NW, SW]; // 8 direcciones completas
+          return [E, S, SE, NE, W, N, NW, SW];
         }
       }
 
       generate(rawWords, maxWordsCount = 12) {
-        // 1. Filtrar y normalizar palabras candidatas
         const validWords = rawWords
           .map(w => LexicalEngine.normalize(w))
           .filter(w => w.length >= 3 && w.length <= this.size);
 
-        // Barajar aleatoriamente y ordenar por longitud decreciente (heurística First-Fit Decreasing)
         const shuffled = [...new Set(validWords)].sort(() => Math.random() - 0.5);
         shuffled.sort((a, b) => b.length - a.length);
 
         const targetWords = shuffled.slice(0, maxWordsCount);
-
-        // 2. Inicializar matriz vacía
         this.grid = Array.from({ length: this.size }, () => Array(this.size).fill(''));
         this.placedWords = [];
 
-        // 3. Intento de colocación de palabras con heurística de cruce
         for (const word of targetWords) {
           this.placeWordWithOverlapPriority(word);
         }
 
-        // 4. Calcular métrica de densidad espacial antes de rellenar
-        const totalPlacedLetters = this.placedWords.reduce((acc, item) => acc + item.word.length, 0);
         let nonNullCells = 0;
         for (let r = 0; r < this.size; r++) {
           for (let c = 0; c < this.size; c++) {
@@ -986,7 +1676,7 @@
         }
         const density = ((nonNullCells / (this.size * this.size)) * 100).toFixed(1);
 
-        // 5. Relleno probabilístico de celdas nulas con distribución real del español
+        // Relleno probabilístico con frecuencia del español
         for (let r = 0; r < this.size; r++) {
           for (let c = 0; c < this.size; c++) {
             if (this.grid[r][c] === '') {
@@ -1005,16 +1695,12 @@
       placeWordWithOverlapPriority(word) {
         const potentialPositions = [];
 
-        // Evaluar todas las celdas y direcciones posibles
         for (let r = 0; r < this.size; r++) {
           for (let c = 0; c < this.size; c++) {
             for (const [dr, dc] of this.directions) {
               const fit = this.canPlaceWord(word, r, c, dr, dc);
               if (fit.possible) {
-                potentialPositions.push({
-                  r, c, dr, dc,
-                  overlaps: fit.overlaps
-                });
+                potentialPositions.push({ r, c, dr, dc, overlaps: fit.overlaps });
               }
             }
           }
@@ -1022,14 +1708,10 @@
 
         if (potentialPositions.length === 0) return false;
 
-        // Ordenar con preferencia a posiciones con solapamiento (cruces)
         potentialPositions.sort((a, b) => b.overlaps - a.overlaps);
-
-        // Selección estocástica entre los mejores candidatos
         const topCandidates = potentialPositions.slice(0, Math.min(5, potentialPositions.length));
         const chosen = topCandidates[Math.floor(Math.random() * topCandidates.length)];
 
-        // Escribir en la grilla
         const wordCoordinates = [];
         for (let i = 0; i < word.length; i++) {
           const currR = chosen.r + i * chosen.dr;
@@ -1057,7 +1739,6 @@
         const endR = r + (word.length - 1) * dr;
         const endC = c + (word.length - 1) * dc;
 
-        // Fuera de límites
         if (endR < 0 || endR >= this.size || endC < 0 || endC >= this.size) {
           return { possible: false, overlaps: 0 };
         }
@@ -1071,9 +1752,7 @@
           if (cellChar !== '' && cellChar !== word[i]) {
             return { possible: false, overlaps: 0 };
           }
-          if (cellChar === word[i]) {
-            overlaps++;
-          }
+          if (cellChar === word[i]) overlaps++;
         }
 
         return { possible: true, overlaps: overlaps };
@@ -1081,12 +1760,13 @@
     }
 
     /* =========================================================================
-     * 5. CONTROLADOR PRINCIPAL DE LA INTERFAZ Y EVENTOS DE JUEGO
+     * 5. ESTADO GLOBAL Y REFERENCIAS AL DOM
      * ========================================================================= */
     const AppState = {
       size: 12,
       difficulty: 'medium',
-      categoryKey: 'tecnologia',
+      categoryKey: 'auto',
+      activeCategory: 'tecnologia',
       customWords: [],
       generator: null,
       gameData: null,
@@ -1104,10 +1784,18 @@
       combo: 1,
       maxCombo: 1,
       lastFoundTimestamp: 0,
-      currentThemeIndex: 0
+      currentThemeIndex: 0,
+
+      // Economía persistente y Tienda Exclusiva
+      coins: parseInt(localStorage.getItem('wordsearch_pro_coins') || '1200', 10),
+      unlockedItems: JSON.parse(localStorage.getItem('wordsearch_pro_unlocked') || '["fx_stars", "color_default"]'),
+
+      // Configuración del Estudio de Efectos y Resaltado
+      activeVFX: localStorage.getItem('wordsearch_pro_active_vfx') || 'stars',
+      activeHighlightColor: localStorage.getItem('wordsearch_pro_active_color') || 'rainbow',
+      ultraGlowEnabled: true
     };
 
-    // Referencias al DOM
     const DOM = {
       grid: document.getElementById('puzzle-grid'),
       svgOverlay: document.getElementById('selection-svg'),
@@ -1116,7 +1804,9 @@
       fxCanvas: document.getElementById('fx-canvas'),
       liveSelectionPill: document.getElementById('live-selection-pill'),
       liveSelectionText: document.getElementById('live-selection-text'),
+      liveFxMiniIcon: document.getElementById('live-fx-mini-icon'),
       scoreDisplay: document.getElementById('score-display'),
+      coinsDisplay: document.getElementById('coins-display'),
       comboBadge: document.getElementById('combo-badge'),
       comboDisplay: document.getElementById('combo-display'),
       comboMultiplierLabel: document.getElementById('combo-multiplier-label'),
@@ -1133,6 +1823,7 @@
       progressPercent: document.getElementById('progress-percent'),
       badgeCategory: document.getElementById('badge-category'),
       difficultyBadge: document.getElementById('difficulty-badge'),
+      autoThemeIndicator: document.getElementById('auto-theme-indicator'),
       metaSize: document.getElementById('meta-grid-size'),
       metaDensity: document.getElementById('meta-grid-density'),
       hintsLeft: document.getElementById('hints-left'),
@@ -1142,6 +1833,7 @@
       iconSoundOn: document.getElementById('icon-sound-on'),
       iconSoundOff: document.getElementById('icon-sound-off'),
       btnPrintAction: document.getElementById('btn-print-action'),
+      btnNextChallenge: document.getElementById('btn-next-challenge'),
       btnOpenConfig: document.getElementById('btn-open-config'),
       selectFont: document.getElementById('select-font'),
       modalConfig: document.getElementById('modal-config'),
@@ -1162,50 +1854,83 @@
       toastBox: document.getElementById('toast-box'),
       printGridTarget: document.getElementById('print-grid-target'),
       printWordList: document.getElementById('print-word-list'),
-      printTitle: document.getElementById('print-title')
+      printTitle: document.getElementById('print-title'),
+
+      // Estudio FX y Tienda Exclusiva
+      btnTestFx: document.getElementById('btn-test-fx'),
+      btnToggleGlow: document.getElementById('btn-toggle-glow'),
+      labelGlowMode: document.getElementById('label-glow-mode'),
+      vfxStyleButtons: document.getElementById('vfx-style-buttons'),
+      colorSwatchPicker: document.getElementById('color-swatch-picker'),
+      swatchExclusiveGalaxy: document.getElementById('swatch-exclusive-galaxy'),
+      swatchExclusiveRainbow: document.getElementById('swatch-exclusive-rainbow'),
+
+      // Modal de la Tienda
+      btnOpenShop: document.getElementById('btn-open-shop'),
+      modalShop: document.getElementById('modal-shop'),
+      modalShopCloseBtn: document.getElementById('modal-shop-close-btn'),
+      modalShopDoneBtn: document.getElementById('modal-shop-done-btn'),
+      shopCoinsCounter: document.getElementById('shop-coins-counter')
     };
 
+    function updateCoinsDisplay(delta = 0) {
+      if (delta !== 0) {
+        AppState.coins += delta;
+        localStorage.setItem('wordsearch_pro_coins', AppState.coins.toString());
+      }
+      if (DOM.coinsDisplay) DOM.coinsDisplay.textContent = AppState.coins.toLocaleString();
+      if (DOM.shopCoinsCounter) DOM.shopCoinsCounter.textContent = AppState.coins.toLocaleString();
+    }
+
     function startNewGame() {
-      // Detener cronómetro
       if (AppState.timerInterval) clearInterval(AppState.timerInterval);
       AppState.timerSeconds = 0;
-      AppState.isFinished = false;
       AppState.foundCount = 0;
-      AppState.hintsRemaining = 3;
-      AppState.selectedCells = [];
-      AppState.isSelecting = false;
       AppState.score = 0;
       AppState.combo = 1;
-      AppState.maxCombo = 1;
+      AppState.hintsRemaining = 3;
+      AppState.isFinished = false;
       AppState.lastFoundTimestamp = 0;
 
-      DOM.hintsLeft.textContent = AppState.hintsRemaining;
-      DOM.timerDisplay.textContent = "00:00";
-      DOM.scoreDisplay.textContent = "0";
+      DOM.timerDisplay.textContent = '00:00';
+      DOM.hintsLeft.textContent = '3';
+      DOM.scoreDisplay.textContent = '0';
       updateComboDisplay();
 
-      // Obtener lista de palabras según la categoría
       let wordsSource = [];
-      let categoryTitle = "";
+      let categoryTitle = '';
+      let categoryIcon = '✨';
+
       if (AppState.categoryKey === 'custom' && AppState.customWords.length > 0) {
         wordsSource = AppState.customWords;
-        categoryTitle = "Lista Personalizada";
+        categoryTitle = 'Personalizada';
+        categoryIcon = '✍️';
+        DOM.autoThemeIndicator.classList.add('hidden');
       } else {
-        const cat = WORD_CATALOG[AppState.categoryKey] || WORD_CATALOG.tecnologia;
-        wordsSource = cat.words;
-        categoryTitle = cat.name;
+        const isAuto = AppState.categoryKey === 'auto';
+        if (isAuto) {
+          DOM.autoThemeIndicator.classList.remove('hidden');
+          AppState.activeCategory = RotationEngine.getNextCategory(AppState.activeCategory, true);
+        } else {
+          DOM.autoThemeIndicator.classList.add('hidden');
+          AppState.activeCategory = AppState.categoryKey;
+        }
+
+        const maxCount = AppState.size >= 15 ? 16 : (AppState.size <= 10 ? 8 : 12);
+        const freshData = RotationEngine.getFreshWords(AppState.activeCategory, maxCount);
+        wordsSource = freshData.words;
+        categoryTitle = freshData.name;
+        categoryIcon = freshData.icon;
       }
 
-      DOM.badgeCategory.textContent = categoryTitle;
+      DOM.badgeCategory.innerHTML = `<span class="mr-1">${categoryIcon}</span><span>${categoryTitle}</span>`;
       DOM.printTitle.textContent = `SOPA DE LETRAS: ${categoryTitle.toUpperCase()}`;
 
-      // Configurar y ejecutar el generador
       AppState.generator = new WordSearchGenerator(AppState.size, AppState.difficulty);
       const maxCount = AppState.size >= 15 ? 16 : (AppState.size <= 10 ? 8 : 12);
       AppState.gameData = AppState.generator.generate(wordsSource, maxCount);
       AppState.totalCount = AppState.gameData.placedWords.length;
 
-      // Actualizar Metadatos UI
       DOM.metaSize.textContent = `${AppState.size} x ${AppState.size}`;
       DOM.metaDensity.textContent = `${AppState.gameData.density}%`;
 
@@ -1216,21 +1941,18 @@
       };
       DOM.difficultyBadge.textContent = diffLabels[AppState.difficulty];
 
-      // Renderizar tablero y palabras
       renderGrid();
       renderWordList();
       updateProgress();
       setupPrintView();
       ParticleEngine.resize();
 
-      // Iniciar cronómetro
       AppState.timerInterval = setInterval(() => {
         AppState.timerSeconds++;
         const mins = String(Math.floor(AppState.timerSeconds / 60)).padStart(2, '0');
         const secs = String(AppState.timerSeconds % 60).padStart(2, '0');
         DOM.timerDisplay.textContent = `${mins}:${secs}`;
 
-        // Reinicio gradual de combo tras 12 segundos sin encontrar
         if (AppState.combo > 1 && Date.now() - AppState.lastFoundTimestamp > 12000) {
           AppState.combo = 1;
           updateComboDisplay();
@@ -1246,12 +1968,12 @@
       DOM.grid.style.gridTemplateColumns = `repeat(${AppState.size}, minmax(0, 1fr))`;
 
       const currentFont = DOM.selectFont.value;
-      DOM.grid.className = `puzzle-board-container relative grid w-full select-none cursor-pointer rounded-2xl overflow-hidden bg-slate-950/80 p-1.5 sm:p-2 border border-white/10 ${currentFont}`;
+      DOM.grid.className = `puzzle-board-container relative grid w-full select-none cursor-pointer rounded-2xl overflow-hidden bg-slate-950/80 p-2 sm:p-3 border border-white/10 ${currentFont}`;
 
       for (let r = 0; r < AppState.size; r++) {
         for (let c = 0; c < AppState.size; c++) {
           const cell = document.createElement('div');
-          cell.className = 'grid-cell flex items-center justify-center font-bold text-slate-200 text-sm sm:text-base md:text-lg rounded-xl select-none transition-all duration-100 border border-white/5 bg-white/[0.02] hover:bg-white/[0.08]';
+          cell.className = 'grid-cell flex items-center justify-center font-bold text-slate-200 text-base sm:text-lg md:text-xl rounded-xl select-none transition-all duration-100 border border-white/5 bg-white/[0.02] hover:bg-white/[0.08]';
           cell.dataset.r = r;
           cell.dataset.c = c;
           cell.textContent = AppState.gameData.grid[r][c];
@@ -1263,19 +1985,67 @@
     function renderWordList() {
       DOM.wordListContainer.innerHTML = '';
       AppState.gameData.placedWords.forEach((item, idx) => {
-        const color = PALETTE[item.colorIdx];
+        const color = getWordColor(item, idx);
         const badge = document.createElement('div');
         badge.id = `word-badge-${item.word}`;
-        badge.className = 'flex items-center justify-between p-2.5 rounded-2xl bg-white/[0.03] border border-white/10 text-slate-300 font-mono text-xs font-semibold tracking-wider transition-all duration-300 hover:border-white/20';
+        badge.className = 'flex items-center justify-between p-2 rounded-xl bg-white/[0.03] border border-white/10 text-slate-300 font-mono text-[11px] font-semibold tracking-wider transition-all duration-300 hover:border-white/20';
         badge.innerHTML = `
-          <div class="flex items-center gap-2 truncate">
-            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${color.stroke}; box-shadow: 0 0 8px ${color.glow};"></span>
+          <div class="flex items-center gap-1.5 truncate">
+            <span class="w-2 h-2 rounded-full flex-shrink-0" style="background: ${color.preview || color.stroke}; box-shadow: 0 0 6px ${color.glow};"></span>
             <span class="word-text truncate font-bold">${item.word}</span>
           </div>
-          <span class="status-icon text-slate-500 font-sans text-xs">○</span>
+          <span class="status-icon text-slate-500 font-sans text-[11px]">○</span>
         `;
         DOM.wordListContainer.appendChild(badge);
       });
+    }
+
+    function getWordColor(item, idx) {
+      // Color Galaxia Exclusivo
+      if (AppState.activeHighlightColor === 'exclusive-galaxy') {
+        return {
+          bg: 'linear-gradient(135deg, rgba(121, 40, 202, 0.45) 0%, rgba(255, 0, 128, 0.45) 50%, rgba(0, 112, 243, 0.45) 100%)',
+          stroke: 'url(#gradient-galaxy)',
+          border: '#ec4899',
+          glow: 'rgba(236, 72, 153, 0.9)',
+          preview: 'linear-gradient(135deg, #7928ca, #ff0080, #0070f3)',
+          isGradient: true
+        };
+      }
+      // Color Arcoíris Holográfico Exclusivo
+      if (AppState.activeHighlightColor === 'exclusive-rainbow') {
+        return {
+          bg: 'linear-gradient(90deg, rgba(255,0,85,0.4), rgba(255,153,0,0.4), rgba(0,255,102,0.4), rgba(0,240,255,0.4), rgba(121,40,202,0.4))',
+          stroke: 'url(#gradient-rainbow)',
+          border: '#06b6d4',
+          glow: 'rgba(6, 182, 212, 0.95)',
+          preview: 'linear-gradient(90deg, #ff0055, #ffff00, #00ff66, #00f0ff, #7928ca)',
+          isGradient: true
+        };
+      }
+      // Color Oro Imperial 24K Exclusivo
+      if (AppState.activeHighlightColor === 'exclusive-gold') {
+        return {
+          bg: 'linear-gradient(135deg, rgba(191,149,63,0.4), rgba(252,246,186,0.4), rgba(179,135,40,0.4))',
+          stroke: 'url(#gradient-gold)',
+          border: '#fbbf24',
+          glow: 'rgba(251, 191, 36, 0.95)',
+          preview: 'linear-gradient(135deg, #bf953f, #fcf6ba, #b38728)',
+          isGradient: true
+        };
+      }
+
+      if (AppState.activeHighlightColor !== 'rainbow') {
+        const hex = AppState.activeHighlightColor;
+        return {
+          bg: hex + '44',
+          stroke: hex,
+          border: hex,
+          glow: hex + 'cc',
+          preview: hex
+        };
+      }
+      return PALETTE[item.colorIdx % PALETTE.length];
     }
 
     function updateProgress() {
@@ -1299,7 +2069,7 @@
     }
 
     /* =========================================================================
-     * 6. FÍSICA Y VECTORIZACIÓN DEL ARRASTRE (MOUSE Y TOUCH)
+     * 6. FÍSICA Y VECTORIZACIÓN DEL ARRASTRE CON PARTÍCULAS EN VIVO
      * ========================================================================= */
     function getCellCenter(r, c) {
       const cell = DOM.grid.querySelector(`[data-r="${r}"][data-c="${c}"]`);
@@ -1316,29 +2086,23 @@
       const dr = current.r - start.r;
       const dc = current.c - start.c;
 
-      if (dr === 0 && dc === 0) {
-        return [start];
-      }
+      if (dr === 0 && dc === 0) return [start];
 
-      // Proyección angular: determinar si el vector se orienta a 0°, 45°, 90°, etc.
-      const angle = Math.atan2(dr, dc); // [-PI, PI]
+      const angle = Math.atan2(dr, dc);
       const octant = Math.round((8 * angle) / (2 * Math.PI) + 8) % 8;
 
-      // Direcciones discretas normalizadas correspondientes a cada octante
       const dirMap = [
-        [0, 1],   // 0: Este (Derecha)
-        [1, 1],   // 1: Sureste (Diag Abajo-Der)
-        [1, 0],   // 2: Sur (Abajo)
-        [1, -1],  // 3: Suroeste (Diag Abajo-Izq)
-        [0, -1],  // 4: Oeste (Izquierda)
-        [-1, -1], // 5: Noroeste (Diag Arriba-Izq)
-        [-1, 0],  // 6: Norte (Arriba)
-        [-1, 1]   // 7: Noreste (Diag Arriba-Der)
+        [0, 1],   // Este
+        [1, 1],   // Sureste
+        [1, 0],   // Sur
+        [1, -1],  // Suroeste
+        [0, -1],  // Oeste
+        [-1, -1], // Noroeste
+        [-1, 0],  // Norte
+        [-1, 1]   // Noreste
       ];
 
       const [stepR, stepC] = dirMap[octant];
-      
-      // Proyectar longitud basada en la distancia máxima Chebyshev
       const length = Math.max(Math.abs(dr), Math.abs(dc));
       const cells = [];
 
@@ -1355,7 +2119,6 @@
       return cells;
     }
 
-    // Identificar celda a partir de coordenadas absolutas del viewport
     function getCellFromCoordinates(clientX, clientY) {
       const el = document.elementFromPoint(clientX, clientY);
       if (el && el.classList.contains('grid-cell')) {
@@ -1380,10 +2143,23 @@
 
       updateSelectionVisuals();
       SoundController.playHover(0);
+
+      // Emisión instantánea de partícula inicial bajo el puntero
+      const center = getCellCenter(cellPos.r, cellPos.c);
+      const currentColor = AppState.activeHighlightColor === 'rainbow' ? '#facc15' : AppState.activeHighlightColor;
+      ParticleEngine.spawnTrailPoint(center.x, center.y, currentColor, AppState.activeVFX, 6);
     }
 
     function onPointerMove(e) {
       if (!AppState.isSelecting || AppState.isFinished) return;
+
+      // Efecto continuo en tiempo real al arrastrar (bajo el puntero)
+      const gridRect = DOM.grid.getBoundingClientRect();
+      const pointerX = e.clientX - gridRect.left;
+      const pointerY = e.clientY - gridRect.top;
+      const currentColor = AppState.activeHighlightColor === 'rainbow' ? '#facc15' : AppState.activeHighlightColor;
+      ParticleEngine.spawnTrailPoint(pointerX, pointerY, currentColor, AppState.activeVFX, 3);
+
       const cellPos = getCellFromCoordinates(e.clientX, e.clientY);
       if (!cellPos) return;
 
@@ -1394,6 +2170,9 @@
         
         if (AppState.selectedCells.length !== previousLen) {
           SoundController.playHover(AppState.selectedCells.length);
+          // Ráfaga en la nueva celda alcanzada
+          const center = getCellCenter(cellPos.r, cellPos.c);
+          ParticleEngine.spawnTrailPoint(center.x, center.y, currentColor, AppState.activeVFX, 7);
         }
         updateSelectionVisuals();
       }
@@ -1404,23 +2183,22 @@
       AppState.isSelecting = false;
       DOM.svgActiveLine.setAttribute('opacity', '0');
 
-      // Ocultar burbuja dinámica
       DOM.liveSelectionPill.classList.add('opacity-0', 'scale-90');
-
-      // Validar si la selección forma una palabra buscada
       checkSelectedWord();
 
-      // Limpiar resaltado temporal
       document.querySelectorAll('.grid-cell.selected-cursor').forEach(el => {
         el.classList.remove('selected-cursor');
+        el.style.removeProperty('background');
+        el.style.removeProperty('box-shadow');
       });
       AppState.selectedCells = [];
     }
 
     function updateSelectionVisuals() {
-      // Limpiar cursor anterior
       document.querySelectorAll('.grid-cell.selected-cursor').forEach(el => {
         el.classList.remove('selected-cursor');
+        el.style.removeProperty('background');
+        el.style.removeProperty('box-shadow');
       });
 
       if (AppState.selectedCells.length === 0) {
@@ -1429,19 +2207,52 @@
         return;
       }
 
-      // Marcar celdas activas y formar texto en vivo
+      let activeColor = '#ec4899';
+      let activeGlow = 'rgba(236, 72, 153, 0.8)';
+      let svgStroke = activeColor;
+      let cellBg = activeColor;
+
+      if (AppState.activeHighlightColor === 'exclusive-galaxy') {
+        svgStroke = 'url(#gradient-galaxy)';
+        cellBg = 'linear-gradient(135deg, #7928ca 0%, #ff0080 50%, #0070f3 100%)';
+        activeGlow = 'rgba(236, 72, 153, 0.9)';
+      } else if (AppState.activeHighlightColor === 'exclusive-rainbow') {
+        svgStroke = 'url(#gradient-rainbow)';
+        cellBg = 'linear-gradient(90deg, #ff0055, #ff9900, #ffff00, #00ff66, #00f0ff, #7928ca)';
+        activeGlow = 'rgba(6, 182, 212, 0.95)';
+      } else if (AppState.activeHighlightColor === 'exclusive-gold') {
+        svgStroke = 'url(#gradient-gold)';
+        cellBg = 'linear-gradient(135deg, #bf953f, #fcf6ba, #b38728)';
+        activeGlow = 'rgba(251, 191, 36, 0.95)';
+      } else if (AppState.activeHighlightColor !== 'rainbow') {
+        activeColor = AppState.activeHighlightColor;
+        svgStroke = activeColor;
+        cellBg = activeColor;
+        activeGlow = activeColor + 'cc';
+      }
+
       let liveWord = '';
       AppState.selectedCells.forEach(pos => {
         const cell = DOM.grid.querySelector(`[data-r="${pos.r}"][data-c="${pos.c}"]`);
-        if (cell) cell.classList.add('selected-cursor');
+        if (cell) {
+          cell.classList.add('selected-cursor');
+          cell.style.background = cellBg;
+          cell.style.color = '#ffffff';
+          cell.style.boxShadow = `0 0 16px ${activeGlow}`;
+        }
         liveWord += AppState.gameData.grid[pos.r][pos.c];
       });
 
-      // Mostrar burbuja flotante reactiva
+      // Burbuja flotante en vivo
       DOM.liveSelectionText.textContent = liveWord;
+      const fxIcons = {
+        stars: '✨', fire: '🔥', orbs: '🫧', electric: '⚡', diamonds: '🌟',
+        water: '💧', galaxy_vortex: '🌌', sakura: '🌸'
+      };
+      DOM.liveFxMiniIcon.textContent = fxIcons[AppState.activeVFX] || '✨';
       DOM.liveSelectionPill.classList.remove('opacity-0', 'scale-90');
 
-      // Actualizar trazo SVG activo
+      // Trazo SVG activo con Ultra Glow opcional
       const startCenter = getCellCenter(AppState.selectedCells[0].r, AppState.selectedCells[0].c);
       const endCenter = getCellCenter(
         AppState.selectedCells[AppState.selectedCells.length - 1].r,
@@ -1452,13 +2263,21 @@
       DOM.svgActiveLine.setAttribute('y1', startCenter.y);
       DOM.svgActiveLine.setAttribute('x2', endCenter.x);
       DOM.svgActiveLine.setAttribute('y2', endCenter.y);
-      DOM.svgActiveLine.setAttribute('opacity', '0.75');
+      DOM.svgActiveLine.setAttribute('stroke', svgStroke);
+      DOM.svgActiveLine.setAttribute('stroke-width', AppState.ultraGlowEnabled ? '28' : '20');
+
+      if (AppState.ultraGlowEnabled) {
+        DOM.svgActiveLine.setAttribute('filter', 'url(#ultra-glow-filter)');
+      } else {
+        DOM.svgActiveLine.removeAttribute('filter');
+      }
+
+      DOM.svgActiveLine.setAttribute('opacity', '0.85');
     }
 
     function checkSelectedWord() {
       if (AppState.selectedCells.length < 2) return;
 
-      // Obtener cadena en ambos sentidos (hacia adelante y reversa)
       let forwardWord = '';
       let reverseWord = '';
       for (let i = 0; i < AppState.selectedCells.length; i++) {
@@ -1467,17 +2286,14 @@
       }
       reverseWord = forwardWord.split('').reverse().join('');
 
-      // Buscar coincidencia en las palabras del tablero no encontradas
       const matched = AppState.gameData.placedWords.find(
         item => !item.found && (item.word === forwardWord || item.word === reverseWord)
       );
 
       if (matched) {
-        // ¡Palabra encontrada!
         matched.found = true;
         AppState.foundCount++;
 
-        // Calcular Combo y Racha
         const now = Date.now();
         if (AppState.lastFoundTimestamp > 0 && now - AppState.lastFoundTimestamp <= 12000) {
           AppState.combo++;
@@ -1489,40 +2305,45 @@
           AppState.maxCombo = AppState.combo;
         }
 
-        // Puntuación = (Largo de palabra * 100) * Combo
         const earnedPoints = (matched.word.length * 100) * AppState.combo;
         AppState.score += earnedPoints;
         DOM.scoreDisplay.textContent = AppState.score.toLocaleString();
         updateComboDisplay();
 
+        const earnedCoins = (matched.word.length * 15) * AppState.combo;
+        updateCoinsDisplay(earnedCoins);
+
         SoundController.playFound(AppState.combo);
 
-        // Desencadenar fuegos artificiales y chispas en el canvas
-        const color = PALETTE[matched.colorIdx];
-        ParticleEngine.spawnWordTrail(matched.coords, color.stroke);
+        // Disparo masivo con el efecto visual configurado
+        const color = getWordColor(matched, matched.colorIdx);
+        ParticleEngine.spawnWordBurst(matched.coords, color.stroke, AppState.activeVFX);
 
-        // Fijar línea SVG permanente con color asignado
+        // Fijar línea SVG permanente con resplandor
         drawCompletedWordHighlight(matched);
 
-        // Actualizar tarjeta lateral con animación de éxito
+        // Actualizar tarjeta del banco de palabras
         const badge = document.getElementById(`word-badge-${matched.word}`);
         if (badge) {
-          badge.style.backgroundColor = color.bg;
+          if (color.isGradient) {
+            badge.style.background = color.bg;
+          } else {
+            badge.style.backgroundColor = color.bg;
+          }
           badge.style.borderColor = color.border;
           badge.classList.remove('text-slate-300');
           badge.classList.add('text-white', 'line-through', 'animate-pop-found');
           badge.style.boxShadow = `0 0 16px ${color.glow}`;
           const icon = badge.querySelector('.status-icon');
           icon.textContent = '✓';
-          icon.style.color = color.stroke;
+          icon.style.color = color.isGradient ? '#ffffff' : color.stroke;
           icon.classList.add('font-bold', 'text-sm');
         }
 
         updateProgress();
-        const comboMsg = AppState.combo > 1 ? ` (¡Racha x${AppState.combo}! +${earnedPoints} pts)` : ` (+${earnedPoints} pts)`;
+        const comboMsg = AppState.combo > 1 ? ` (¡Racha x${AppState.combo}! +${earnedCoins} 🪙)` : ` (+${earnedCoins} 🪙)`;
         showToast(`¡Encontraste: ${matched.word}!${comboMsg}`, 'success');
 
-        // Comprobar condición de victoria total
         if (AppState.foundCount === AppState.totalCount) {
           handleVictory();
         }
@@ -1534,7 +2355,7 @@
     function drawCompletedWordHighlight(placedItem) {
       const startCenter = getCellCenter(placedItem.start.r, placedItem.start.c);
       const endCenter = getCellCenter(placedItem.end.r, placedItem.end.c);
-      const color = PALETTE[placedItem.colorIdx];
+      const color = getWordColor(placedItem, placedItem.colorIdx);
 
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       line.setAttribute('x1', startCenter.x);
@@ -1542,10 +2363,12 @@
       line.setAttribute('x2', endCenter.x);
       line.setAttribute('y2', endCenter.y);
       line.setAttribute('stroke', color.stroke);
-      line.setAttribute('stroke-width', '24');
+      line.setAttribute('stroke-width', AppState.ultraGlowEnabled ? '26' : '20');
       line.setAttribute('stroke-linecap', 'round');
-      line.setAttribute('opacity', '0.65');
-      line.setAttribute('style', `filter: drop-shadow(0 0 8px ${color.glow})`);
+      line.setAttribute('opacity', '0.7');
+      if (AppState.ultraGlowEnabled) {
+        line.setAttribute('style', `filter: drop-shadow(0 0 10px ${color.glow})`);
+      }
       line.setAttribute('class', 'transition-all duration-300');
 
       DOM.svgCompletedLines.appendChild(line);
@@ -1556,17 +2379,18 @@
       if (AppState.timerInterval) clearInterval(AppState.timerInterval);
       SoundController.playVictory();
 
-      // Efecto Confetti Multicolor
+      updateCoinsDisplay(350);
+      showToast("¡Bono por completar la sopa! +350 🪙", "success");
+
       try {
         confetti({
-          particleCount: 150,
+          particleCount: 160,
           spread: 90,
           origin: { y: 0.55 },
-          colors: ['#ec4899', '#8b5cf6', '#06b6d4', '#f59e0b', '#10b981']
+          colors: ['#ec4899', '#8b5cf6', '#06b6d4', '#f59e0b', '#10b981', '#ff3366', '#ffd700']
         });
       } catch (e) {}
 
-      // Llenar modal de victoria
       const mins = String(Math.floor(AppState.timerSeconds / 60)).padStart(2, '0');
       const secs = String(AppState.timerSeconds % 60).padStart(2, '0');
       DOM.victoryTime.textContent = `${mins}:${secs}`;
@@ -1580,29 +2404,135 @@
       }, 500);
     }
 
-    // Sistema de Pistas
+    /* =========================================================================
+     * 7. ESTUDIO DE EFECTOS, RESALTADO Y CONTROLADORES DE EVENTOS
+     * ========================================================================= */
+    // Botones de Estilo de Efecto al Resaltar
+    document.querySelectorAll('.vfx-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setVFXEffect(btn.getAttribute('data-fx'));
+      });
+    });
+
+    function setVFXEffect(fxName) {
+      AppState.activeVFX = fxName;
+      localStorage.setItem('wordsearch_pro_active_vfx', fxName);
+
+      document.querySelectorAll('.vfx-btn').forEach(b => {
+        if (b.getAttribute('data-fx') === fxName) {
+          b.classList.add('active', 'border-yellow-500/50', 'bg-yellow-500/20', 'text-yellow-300');
+          b.classList.remove('bg-white/5', 'text-slate-300', 'border-white/10');
+        } else {
+          b.classList.remove('active', 'border-yellow-500/50', 'bg-yellow-500/20', 'text-yellow-300');
+          b.classList.add('bg-white/5', 'text-slate-300', 'border-white/10');
+        }
+      });
+
+      const names = {
+        stars: '✨ Brillo Estelar',
+        fire: '🔥 Llamas & Fuego',
+        orbs: '🫧 Orbes Mágicos',
+        electric: '⚡ Onda Eléctrica',
+        diamonds: '🌟 Polvo de Diamantes',
+        water: '💧 Efecto Agua Viva',
+        galaxy_vortex: '🌌 Vórtice Cósmico',
+        sakura: '🌸 Pétalos Sakura'
+      };
+      showToast(`Efecto de resaltado: ${names[AppState.activeVFX] || fxName}`, 'info');
+
+      // Previsualización instantánea
+      const rect = DOM.grid.getBoundingClientRect();
+      const color = AppState.activeHighlightColor === 'rainbow' ? '#facc15' : AppState.activeHighlightColor;
+      ParticleEngine.spawnTrailPoint(rect.width / 2, rect.height / 2, color, AppState.activeVFX, 16);
+      updateShopUI();
+    }
+
+    // Paleta de Colores para el Resaltador
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        setHighlightColor(swatch.getAttribute('data-color'));
+      });
+    });
+
+    function setHighlightColor(colorName) {
+      AppState.activeHighlightColor = colorName;
+      localStorage.setItem('wordsearch_pro_active_color', colorName);
+
+      document.querySelectorAll('.color-swatch').forEach(s => {
+        if (s.getAttribute('data-color') === colorName) {
+          s.classList.add('ring-2', 'ring-white', 'scale-110');
+        } else {
+          s.classList.remove('ring-2', 'ring-white', 'scale-110');
+        }
+      });
+
+      const names = {
+        rainbow: '🌈 Multicolor por palabra',
+        'exclusive-galaxy': '🌌 Color Galaxia Exclusivo',
+        'exclusive-rainbow': '🌈 Arcoíris Holográfico Exclusivo',
+        'exclusive-gold': '👑 Oro Imperial 24K'
+      };
+      showToast(names[colorName] || `Color fijado`, 'info');
+
+      redrawCompletedHighlights();
+      updateShopUI();
+    }
+
+    // Alternar Ultra Neón Glow
+    DOM.btnToggleGlow.addEventListener('click', () => {
+      AppState.ultraGlowEnabled = !AppState.ultraGlowEnabled;
+      DOM.labelGlowMode.textContent = AppState.ultraGlowEnabled ? 'Ultra Neón' : 'Normal';
+      showToast(AppState.ultraGlowEnabled ? 'Resplandor: Ultra Neón activado' : 'Resplandor: Normal', 'info');
+      redrawCompletedHighlights();
+    });
+
+    // Botón "Probar FX"
+    DOM.btnTestFx.addEventListener('click', () => {
+      const rect = DOM.grid.getBoundingClientRect();
+      const color = AppState.activeHighlightColor === 'rainbow' ? '#ec4899' : AppState.activeHighlightColor;
+      ParticleEngine.spawnTrailPoint(rect.width / 2, rect.height / 2, color, AppState.activeVFX, 28);
+      ParticleEngine.rings.push({
+        x: rect.width / 2,
+        y: rect.height / 2,
+        radius: 10,
+        maxRadius: 85,
+        color: color,
+        alpha: 0.9,
+        decay: 0.025
+      });
+      SoundController.playHover(4);
+    });
+
+    function redrawCompletedHighlights() {
+      DOM.svgCompletedLines.innerHTML = '';
+      if (!AppState.gameData) return;
+      AppState.gameData.placedWords.forEach(item => {
+        if (item.found) drawCompletedWordHighlight(item);
+      });
+      renderWordList();
+    }
+
+    // Pistas
     DOM.btnHint.addEventListener('click', () => {
       if (AppState.isFinished || AppState.hintsRemaining <= 0) {
-        showToast("No te quedan más pistas disponibles en esta partida.", "info");
+        showToast("No te quedan más pistas en esta partida.", "info");
         return;
       }
 
-      // Buscar primera palabra no encontrada
       const unfound = AppState.gameData.placedWords.find(item => !item.found);
       if (!unfound) return;
 
       AppState.hintsRemaining--;
       DOM.hintsLeft.textContent = AppState.hintsRemaining;
 
-      // Resaltar con animación parpadeante la primera letra de la palabra
       const startCell = DOM.grid.querySelector(`[data-r="${unfound.start.r}"][data-c="${unfound.start.c}"]`);
       if (startCell) {
-        startCell.classList.add('bg-amber-400', 'text-slate-950', 'scale-125', 'ring-4', 'ring-amber-300', 'shadow-lg', 'shadow-amber-400');
+        startCell.classList.add('bg-amber-400', 'text-slate-950', 'scale-125', 'ring-4', 'ring-amber-300', 'shadow-lg');
         const center = getCellCenter(unfound.start.r, unfound.start.c);
-        ParticleEngine.spawnSparkles(center.x, center.y, '#f59e0b', 18);
+        ParticleEngine.spawnTrailPoint(center.x, center.y, '#f59e0b', AppState.activeVFX, 20);
         showToast(`Pista: '${unfound.word}' comienza con '${unfound.word[0]}'`, 'warning');
         setTimeout(() => {
-          startCell.classList.remove('bg-amber-400', 'text-slate-950', 'scale-125', 'ring-4', 'ring-amber-300', 'shadow-lg', 'shadow-amber-400');
+          startCell.classList.remove('bg-amber-400', 'text-slate-950', 'scale-125', 'ring-4', 'ring-amber-300', 'shadow-lg');
         }, 2500);
       }
     });
@@ -1617,7 +2547,7 @@
           drawCompletedWordHighlight(item);
           const badge = document.getElementById(`word-badge-${item.word}`);
           if (badge) {
-            const color = PALETTE[item.colorIdx];
+            const color = getWordColor(item, item.colorIdx);
             badge.style.backgroundColor = color.bg;
             badge.style.borderColor = color.border;
             badge.classList.remove('text-slate-300');
@@ -1634,48 +2564,35 @@
       handleVictory();
     });
 
-    // Función centralizada para aplicar cualquiera de los 5 temas
+    // Temas Visuales
     function applyTheme(themeIndex) {
       AppState.currentThemeIndex = themeIndex;
       const theme = THEMES[AppState.currentThemeIndex];
 
-      // Reemplazar clases en el elemento body
       THEMES.forEach(t => document.body.classList.remove(t.id));
       document.body.classList.add(theme.id);
 
-      // Actualizar botón de navegación y etiqueta
       DOM.themeBtnIcon.textContent = theme.icon;
       DOM.themeBtnLabel.textContent = theme.name.split(' ')[0];
       DOM.btnThemeToggle.className = `px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 ${theme.btnTextClass} transition-all border border-white/10 flex items-center gap-1.5 text-xs font-bold active:scale-95 shadow-sm`;
 
-      // Actualizar insignia informativa en la barra del tablero
       DOM.themeBadgeName.textContent = `${theme.icon} ${theme.name}`;
       DOM.themeBadgeName.className = `hidden sm:inline-block text-[11px] px-2.5 py-0.5 rounded-lg font-semibold border ${theme.badgeClass}`;
 
-      // Ajustar línea activa del trazado SVG
       DOM.svgActiveLine.setAttribute('stroke', theme.lineColor);
 
-      // Destello de partículas con el color del tema
       const rect = DOM.grid.getBoundingClientRect();
-      ParticleEngine.spawnSparkles(rect.width / 2, rect.height / 2, theme.accentColor, 20);
+      ParticleEngine.spawnTrailPoint(rect.width / 2, rect.height / 2, theme.accentColor, AppState.activeVFX, 20);
 
       showToast(`Tema activado: ${theme.icon} ${theme.name}`, 'info');
     }
 
-    // Alternar menú desplegable al hacer clic en el botón de tema
     DOM.btnThemeToggle.addEventListener('click', (e) => {
       e.stopPropagation();
-      const isHidden = DOM.themeMenu.classList.contains('hidden');
-      if (isHidden) {
-        DOM.themeMenu.classList.remove('hidden');
-        DOM.themeMenu.classList.add('flex');
-      } else {
-        DOM.themeMenu.classList.add('hidden');
-        DOM.themeMenu.classList.remove('flex');
-      }
+      DOM.themeMenu.classList.toggle('hidden');
+      DOM.themeMenu.classList.toggle('flex');
     });
 
-    // Cerrar menú si se hace clic fuera de él
     document.addEventListener('click', (e) => {
       if (!DOM.themeMenu.contains(e.target) && e.target !== DOM.btnThemeToggle) {
         DOM.themeMenu.classList.add('hidden');
@@ -1683,20 +2600,16 @@
       }
     });
 
-    // Delegación de eventos para la selección de cada tema del menú
     document.querySelectorAll('.theme-option').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         const themeId = btn.getAttribute('data-theme');
         const targetIdx = THEMES.findIndex(t => t.id === themeId);
-        if (targetIdx !== -1) {
-          applyTheme(targetIdx);
-        }
+        if (targetIdx !== -1) applyTheme(targetIdx);
         DOM.themeMenu.classList.add('hidden');
         DOM.themeMenu.classList.remove('flex');
       });
     });
 
-    // Toast de notificación integrado
     function showToast(message, type = 'info') {
       const toast = document.createElement('div');
       const colors = {
@@ -1718,11 +2631,9 @@
       }, 3000);
     }
 
-    // Generación de Grilla para Impresión Editorial
     function setupPrintView() {
       DOM.printGridTarget.innerHTML = '';
       DOM.printWordList.innerHTML = '';
-
       DOM.printGridTarget.style.gridTemplateColumns = `repeat(${AppState.size}, minmax(0, 1fr))`;
 
       for (let r = 0; r < AppState.size; r++) {
@@ -1742,7 +2653,6 @@
       });
     }
 
-    // Modal de Nueva Partida / Configuración
     DOM.btnOpenConfig.addEventListener('click', () => {
       DOM.modalConfig.classList.remove('hidden');
       DOM.modalConfig.classList.add('flex');
@@ -1754,11 +2664,7 @@
     });
 
     DOM.configCategory.addEventListener('change', (e) => {
-      if (e.target.value === 'custom') {
-        DOM.customWordsWrapper.classList.remove('hidden');
-      } else {
-        DOM.customWordsWrapper.classList.add('hidden');
-      }
+      DOM.customWordsWrapper.classList.toggle('hidden', e.target.value !== 'custom');
     });
 
     DOM.formNewGame.addEventListener('submit', (e) => {
@@ -1771,7 +2677,7 @@
         const raw = DOM.configCustomWords.value;
         const parsed = raw.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
         if (parsed.length < 3) {
-          showToast("Introduce al menos 3 palabras válidas para la lista personalizada.", "warning");
+          showToast("Introduce al menos 3 palabras válidas.", "warning");
           return;
         }
         AppState.customWords = parsed;
@@ -1780,40 +2686,39 @@
       DOM.modalConfig.classList.add('hidden');
       DOM.modalConfig.classList.remove('flex');
       startNewGame();
-      showToast("¡Nueva sopa de letras generada!", "success");
+      const currentCat = WORD_CATALOG[AppState.activeCategory] || { name: 'Sopa', icon: '🎯' };
+      showToast(`¡Tablero listo! ${currentCat.icon} ${currentCat.name}`, "success");
     });
 
-    // Control de Fuentes Tipográficas
     DOM.selectFont.addEventListener('change', (e) => {
-      const selected = e.target.value;
       DOM.grid.classList.remove('font-grid-jetbrains', 'font-grid-roboto', 'font-grid-space');
-      DOM.grid.classList.add(selected);
+      DOM.grid.classList.add(e.target.value);
     });
 
-    // Control de Audio (Mute)
     DOM.btnSoundToggle.addEventListener('click', () => {
       SoundController.enabled = !SoundController.enabled;
-      if (SoundController.enabled) {
-        DOM.iconSoundOn.classList.remove('hidden');
-        DOM.iconSoundOff.classList.add('hidden');
-        showToast("Sonido activado", "info");
-      } else {
-        DOM.iconSoundOn.classList.add('hidden');
-        DOM.iconSoundOff.classList.remove('hidden');
-        showToast("Sonido silenciado", "info");
-      }
+      DOM.iconSoundOn.classList.toggle('hidden', !SoundController.enabled);
+      DOM.iconSoundOff.classList.toggle('hidden', SoundController.enabled);
+      showToast(SoundController.enabled ? "Sonido activado" : "Sonido silenciado", "info");
     });
 
-    // Botón Imprimir
-    DOM.btnPrintAction.addEventListener('click', () => {
-      window.print();
-    });
+    DOM.btnPrintAction.addEventListener('click', () => window.print());
 
-    // Modal Victoria
+    // Botón Siguiente Reto (rotar automáticamente temática y palabras)
+    if (DOM.btnNextChallenge) {
+      DOM.btnNextChallenge.addEventListener('click', () => {
+        startNewGame();
+        const currentCat = WORD_CATALOG[AppState.activeCategory] || { name: 'Nuevo Reto', icon: '🎲' };
+        showToast(`¡Nuevo reto! ${currentCat.icon} ${currentCat.name}`, 'info');
+      });
+    }
+
     DOM.btnVictoryReplay.addEventListener('click', () => {
       DOM.modalVictory.classList.add('hidden');
       DOM.modalVictory.classList.remove('flex');
       startNewGame();
+      const currentCat = WORD_CATALOG[AppState.activeCategory] || { name: 'Siguiente Reto', icon: '🎲' };
+      showToast(`¡Siguiente reto! ${currentCat.icon} ${currentCat.name}`, 'success');
     });
 
     DOM.btnVictoryClose.addEventListener('click', () => {
@@ -1821,29 +2726,180 @@
       DOM.modalVictory.classList.remove('flex');
     });
 
+    // Gestión y Controlador de la Tienda Exclusiva
+    DOM.btnOpenShop.addEventListener('click', () => {
+      updateShopUI();
+      DOM.modalShop.classList.remove('hidden');
+      DOM.modalShop.classList.add('flex');
+    });
+
+    DOM.modalShopCloseBtn.addEventListener('click', () => {
+      DOM.modalShop.classList.add('hidden');
+      DOM.modalShop.classList.remove('flex');
+    });
+
+    DOM.modalShopDoneBtn.addEventListener('click', () => {
+      DOM.modalShop.classList.add('hidden');
+      DOM.modalShop.classList.remove('flex');
+    });
+
+    function updateShopUI() {
+      updateCoinsDisplay(0);
+
+      // Renderizar o desbloquear botones de efectos exclusivos en el panel principal si han sido comprados
+      if (AppState.unlockedItems.includes('fx_water')) {
+        let btn = document.querySelector('.vfx-btn[data-fx="water"]');
+        if (!btn && DOM.vfxStyleButtons) {
+          btn = document.createElement('button');
+          btn.setAttribute('data-fx', 'water');
+          btn.className = 'vfx-btn px-2 py-1.5 rounded-xl text-[11px] font-bold border transition-all flex items-center gap-1.5 bg-cyan-500/20 text-cyan-300 border-cyan-500/40 hover:scale-105';
+          btn.innerHTML = `<span>💧</span><span>Efecto Agua</span>`;
+          btn.addEventListener('click', () => setVFXEffect('water'));
+          DOM.vfxStyleButtons.appendChild(btn);
+        }
+      }
+
+      if (AppState.unlockedItems.includes('fx_galaxy_vortex')) {
+        let btn = document.querySelector('.vfx-btn[data-fx="galaxy_vortex"]');
+        if (!btn && DOM.vfxStyleButtons) {
+          btn = document.createElement('button');
+          btn.setAttribute('data-fx', 'galaxy_vortex');
+          btn.className = 'vfx-btn px-2 py-1.5 rounded-xl text-[11px] font-bold border transition-all flex items-center gap-1.5 bg-purple-500/20 text-purple-300 border-purple-500/40 hover:scale-105';
+          btn.innerHTML = `<span>🌌</span><span>Vórtice Cósmico</span>`;
+          btn.addEventListener('click', () => setVFXEffect('galaxy_vortex'));
+          DOM.vfxStyleButtons.appendChild(btn);
+        }
+      }
+
+      if (AppState.unlockedItems.includes('fx_sakura')) {
+        let btn = document.querySelector('.vfx-btn[data-fx="sakura"]');
+        if (!btn && DOM.vfxStyleButtons) {
+          btn = document.createElement('button');
+          btn.setAttribute('data-fx', 'sakura');
+          btn.className = 'vfx-btn px-2 py-1.5 rounded-xl text-[11px] font-bold border transition-all flex items-center gap-1.5 bg-pink-500/20 text-pink-300 border-pink-500/40 hover:scale-105';
+          btn.innerHTML = `<span>🌸</span><span>Pétalos Sakura</span>`;
+          btn.addEventListener('click', () => setVFXEffect('sakura'));
+          DOM.vfxStyleButtons.appendChild(btn);
+        }
+      }
+
+      // Mostrar swatches exclusivos en la paleta inferior si fueron comprados
+      if (AppState.unlockedItems.includes('color_galaxy')) {
+        DOM.swatchExclusiveGalaxy.classList.remove('hidden');
+        DOM.swatchExclusiveGalaxy.classList.add('flex');
+      }
+      if (AppState.unlockedItems.includes('color_rainbow_holo')) {
+        DOM.swatchExclusiveRainbow.classList.remove('hidden');
+        DOM.swatchExclusiveRainbow.classList.add('flex');
+      }
+
+      // Actualizar estado de los botones dentro de la Tienda
+      document.querySelectorAll('.btn-shop-action').forEach(btn => {
+        const itemId = btn.getAttribute('data-item-id');
+        const itemType = btn.getAttribute('data-item-type');
+        const price = parseInt(btn.getAttribute('data-item-price'), 10);
+        const isUnlocked = AppState.unlockedItems.includes(itemId);
+
+        const isCurrentlyEquipped = (
+          (itemId === 'fx_water' && AppState.activeVFX === 'water') ||
+          (itemId === 'fx_galaxy_vortex' && AppState.activeVFX === 'galaxy_vortex') ||
+          (itemId === 'fx_sakura' && AppState.activeVFX === 'sakura') ||
+          (itemId === 'color_galaxy' && AppState.activeHighlightColor === 'exclusive-galaxy') ||
+          (itemId === 'color_rainbow_holo' && AppState.activeHighlightColor === 'exclusive-rainbow') ||
+          (itemId === 'color_gold' && AppState.activeHighlightColor === 'exclusive-gold')
+        );
+
+        if (isCurrentlyEquipped) {
+          btn.innerHTML = `<span>✓ Equipado</span>`;
+          btn.className = 'btn-shop-action px-3 py-1.5 rounded-xl text-xs font-black transition-all bg-emerald-500/30 text-emerald-300 border border-emerald-500/50 cursor-default';
+          btn.disabled = true;
+        } else if (isUnlocked) {
+          btn.innerHTML = `<span>Equipar</span>`;
+          btn.className = 'btn-shop-action px-3 py-1.5 rounded-xl text-xs font-black transition-all bg-sky-500 hover:bg-sky-400 text-white shadow-md shadow-sky-500/30 cursor-pointer active:scale-95';
+          btn.disabled = false;
+        } else {
+          btn.innerHTML = `<span>🪙 ${price}</span>`;
+          if (AppState.coins >= price) {
+            btn.className = 'btn-shop-action px-3 py-1.5 rounded-xl text-xs font-black transition-all bg-gradient-to-r from-amber-500 to-yellow-500 hover:opacity-95 text-slate-950 font-black shadow-md shadow-yellow-500/30 cursor-pointer active:scale-95';
+            btn.disabled = false;
+          } else {
+            btn.className = 'btn-shop-action px-3 py-1.5 rounded-xl text-xs font-black transition-all bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed';
+            btn.disabled = true;
+          }
+        }
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-shop-action');
+      if (!btn || btn.disabled) return;
+
+      const itemId = btn.getAttribute('data-item-id');
+      const itemType = btn.getAttribute('data-item-type');
+      const price = parseInt(btn.getAttribute('data-item-price'), 10);
+      const isUnlocked = AppState.unlockedItems.includes(itemId);
+
+      if (isUnlocked) {
+        // Equipar directamente
+        equipItem(itemId);
+      } else {
+        // Comprar
+        if (AppState.coins >= price) {
+          updateCoinsDisplay(-price);
+          AppState.unlockedItems.push(itemId);
+          localStorage.setItem('wordsearch_pro_unlocked', JSON.stringify(AppState.unlockedItems));
+          
+          SoundController.playPurchase();
+          showToast(`¡Compraste con éxito! 🎉 Desbloqueado`, 'success');
+
+          // Ráfaga festiva de partículas en el centro
+          const rect = DOM.grid.getBoundingClientRect();
+          ParticleEngine.spawnTrailPoint(rect.width / 2, rect.height / 2, '#ffd700', 'diamonds', 25);
+
+          // Equipar automáticamente tras la compra
+          equipItem(itemId);
+        } else {
+          SoundController.playError();
+          showToast("No tienes suficientes monedas para este artículo.", "warning");
+        }
+      }
+    });
+
+    function equipItem(itemId) {
+      if (itemId === 'fx_water') {
+        setVFXEffect('water');
+      } else if (itemId === 'fx_galaxy_vortex') {
+        setVFXEffect('galaxy_vortex');
+      } else if (itemId === 'fx_sakura') {
+        setVFXEffect('sakura');
+      } else if (itemId === 'color_galaxy') {
+        setHighlightColor('exclusive-galaxy');
+      } else if (itemId === 'color_rainbow_holo') {
+        setHighlightColor('exclusive-rainbow');
+      } else if (itemId === 'color_gold') {
+        setHighlightColor('exclusive-gold');
+      }
+
+      updateShopUI();
+    }
+
     // Enlace de Eventos de Puntero (Mouse y Touch unificados)
     DOM.grid.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     window.addEventListener('pointercancel', onPointerUp);
 
-    // Reajuste de líneas SVG y Canvas al cambiar el tamaño de ventana
     window.addEventListener('resize', () => {
       ParticleEngine.resize();
-      if (!AppState.gameData) return;
-      DOM.svgCompletedLines.innerHTML = '';
-      AppState.gameData.placedWords.forEach(item => {
-        if (item.found) drawCompletedWordHighlight(item);
-      });
-      if (AppState.isSelecting) {
-        updateSelectionVisuals();
-      }
+      redrawCompletedHighlights();
+      if (AppState.isSelecting) updateSelectionVisuals();
     });
 
-    // Inicialización al cargar el documento
+    // Inicialización al cargar la ventana
     window.onload = function() {
       SoundController.init();
       ParticleEngine.init(DOM.fxCanvas);
+      updateShopUI();
       startNewGame();
     };
   </script>
