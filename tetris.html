@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TETRIS - Edición Clásica Brillante</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-space: #04091a;
+            --frame-outer: #1e40af;
+            --frame-mid: #3b82f6;
+            --frame-inner: #091332;
+            --glow-blue: rgba(59, 130, 246, 0.55);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at 50% 20%, #102357 0%, #060d24 55%, #020510 100%);
+            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .font-arcade {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Estilo de marco clásico inspirado en el logo de Tetris */
+        .tetris-panel {
+            background: linear-gradient(180deg, #0b183d 0%, #050c21 100%);
+            border: 3px solid #2563eb;
+            box-shadow: 
+                inset 0 0 0 2px #172554,
+                inset 0 0 18px rgba(37, 99, 235, 0.35),
+                0 0 15px rgba(37, 99, 235, 0.4),
+                0 8px 24px rgba(0, 0, 0, 0.75);
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .tetris-panel::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border: 1px solid rgba(96, 165, 250, 0.35);
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        .tetris-board-frame {
+            background: #040a1c;
+            border: 4px solid #2563eb;
+            box-shadow: 
+                0 0 0 2px #1e3a8a,
+                0 0 25px rgba(37, 99, 235, 0.65),
+                inset 0 0 25px rgba(15, 23, 42, 0.9);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Botones estilo Arcade 3D */
+        .btn-arcade {
+            background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 55%, #1e3a8a 100%);
+            border: 2px solid #93c5fd;
+            box-shadow: 
+                0 4px 0 #0f172a,
+                0 0 12px rgba(59, 130, 246, 0.5),
+                inset 0 2px 2px rgba(255, 255, 255, 0.4);
+            transition: all 0.08s ease;
+            touch-action: manipulation;
+        }
+
+        .btn-arcade:active, .btn-arcade.active-press {
+            transform: translateY(3px);
+            box-shadow: 
+                0 1px 0 #0f172a,
+                0 0 8px rgba(59, 130, 246, 0.7),
+                inset 0 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-arcade-gold {
+            background: linear-gradient(180deg, #fde047 0%, #eab308 50%, #ca8a04 100%);
+            border: 2px solid #fef08a;
+            color: #091332;
+            box-shadow: 
+                0 4px 0 #422006,
+                0 0 15px rgba(234, 179, 8, 0.6),
+                inset 0 2px 2px rgba(255, 255, 255, 0.65);
+        }
+
+        .btn-arcade-gold:active, .btn-arcade-gold.active-press {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #422006;
+        }
+
+        .btn-arcade-red {
+            background: linear-gradient(180deg, #fb7185 0%, #e11d48 55%, #9f1239 100%);
+            border: 2px solid #fda4af;
+            box-shadow: 
+                0 4px 0 #4c0519,
+                0 0 12px rgba(225, 29, 72, 0.5),
+                inset 0 2px 2px rgba(255, 255, 255, 0.4);
+        }
+
+        /* Animación de textos flotantes de puntos / líneas */
+        @keyframes floatUpFade {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, 0) scale(0.8);
+            }
+            30% {
+                opacity: 1;
+                transform: translate(-50%, -18px) scale(1.1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -55px) scale(0.95);
+            }
+        }
+
+        .floating-banner {
+            position: absolute;
+            left: 50%;
+            pointer-events: none;
+            z-index: 30;
+            animation: floatUpFade 1.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            text-shadow: 0 3px 10px rgba(0,0,0,0.9), 0 0 12px currentColor;
+            white-space: nowrap;
+        }
+
+        /* Sacudida suave en Caída Rápida o Tetris */
+        @keyframes boardShake {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-3px, 3px); }
+            50% { transform: translate(3px, -2px); }
+            75% { transform: translate(-2px, 2px); }
+        }
+
+        .shake-effect {
+            animation: boardShake 0.18s ease-in-out;
+        }
+
+        /* Destello de borde al hacer TETRIS */
+        @keyframes tetrisPulse {
+            0%, 100% { border-color: #2563eb; box-shadow: 0 0 25px rgba(37, 99, 235, 0.65); }
+            50% { border-color: #fde047; box-shadow: 0 0 40px rgba(250, 204, 21, 0.95), inset 0 0 25px rgba(250, 204, 21, 0.4); }
+        }
+
+        .tetris-flash {
+            animation: tetrisPulse 0.35s ease-in-out 2;
+        }
+
+        /* Estrellas sutiles de fondo */
+        .bg-grid-pattern {
+            background-image: 
+                linear-gradient(to right, rgba(59, 130, 246, 0.06) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(59, 130, 246, 0.06) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+    </style>
+</head>
+<body class="bg-grid-pattern select-none py-2 px-2 sm:py-4 sm:px-4">
+
+    <!-- Contenedor Principal -->
+    <div class="w-full max-w-4xl mx-auto flex flex-col items-center">
+
+        <!-- Cabecera: Logo Clásico TETRIS en SVG + Controles Rápidos -->
+        <header class="w-full flex items-center justify-between mb-2 sm:mb-3 px-1">
+            <!-- Recreación SVG fiel al logo clásico de Tetris con forma de T -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <svg class="w-36 sm:w-48 h-auto drop-shadow-[0_4px_12px_rgba(37,99,235,0.65)]" viewBox="0 0 340 135" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Logo de Tetris">
+                    <defs>
+                        <!-- Marco exterior e interior azul -->
+                        <linearGradient id="frameOuter" x1="0" y1="0" x2="0" y2="135" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#60a5fa"/>
+                            <stop offset="50%" stop-color="#1d4ed8"/>
+                            <stop offset="100%" stop-color="#172554"/>
+                        </linearGradient>
+                        <linearGradient id="frameInner" x1="0" y1="8" x2="0" y2="127" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#050b24"/>
+                            <stop offset="60%" stop-color="#0a194e"/>
+                            <stop offset="100%" stop-color="#1e3a8a"/>
+                        </linearGradient>
+                        <!-- Gradientes tipo gema de cada letra -->
+                        <linearGradient id="gradT1" x1="0" y1="18" x2="0" y2="75" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#ff6b8b"/>
+                            <stop offset="45%" stop-color="#ff1744"/>
+                            <stop offset="55%" stop-color="#b91c1c"/>
+                            <stop offset="100%" stop-color="#ff5252"/>
+                        </linearGradient>
+                        <linearGradient id="gradE" x1="0" y1="18" x2="0" y2="75" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#ffb74d"/>
+                            <stop offset="45%" stop-color="#ff9100"/>
+                            <stop offset="55%" stop-color="#d84315"/>
+                            <stop offset="100%" stop-color="#ff6d00"/>
+                        </linearGradient>
+                        <linearGradient id="gradT2" x1="0" y1="18" x2="0" y2="120" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#fff59d"/>
+                            <stop offset="45%" stop-color="#ffd600"/>
+                            <stop offset="55%" stop-color="#f57f17"/>
+                            <stop offset="100%" stop-color="#ffab00"/>
+                        </linearGradient>
+                        <linearGradient id="gradR" x1="0" y1="18" x2="0" y2="75" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#b9f6ca"/>
+                            <stop offset="45%" stop-color="#00e676"/>
+                            <stop offset="55%" stop-color="#1b5e20"/>
+                            <stop offset="100%" stop-color="#43a047"/>
+                        </linearGradient>
+                        <linearGradient id="gradI" x1="0" y1="18" x2="0" y2="75" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#84ffff"/>
+                            <stop offset="45%" stop-color="#00e5ff"/>
+                            <stop offset="55%" stop-color="#006064"/>
+                            <stop offset="100%" stop-color="#00b8d4"/>
+                        </linearGradient>
+                        <linearGradient id="gradS" x1="0" y1="18" x2="0" y2="75" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#ea80fc"/>
+                            <stop offset="45%" stop-color="#d500f9"/>
+                            <stop offset="55%" stop-color="#4a148c"/>
+                            <stop offset="100%" stop-color="#aa00ff"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Silueta en T del logo clásico -->
+                    <path d="M4 4 H336 V84 H222 V131 H118 V84 H4 Z" fill="url(#frameOuter)" stroke="#93c5fd" stroke-width="2"/>
+                    <path d="M11 11 H329 V77 H215 V124 H125 V77 H11 Z" fill="url(#frameInner)" stroke="#3b82f6" stroke-width="2"/>
+
+                    <!-- T (Roja) -->
+                    <path d="M24 20 H76 V34 H58 V68 H42 V34 H24 Z" fill="url(#gradT1)" stroke="#ff8a80" stroke-width="1.5"/>
+                    <!-- E (Naranja) -->
+                    <path d="M82 20 H128 V32 H97 V38 H122 V49 H97 V56 H129 V68 H82 Z" fill="url(#gradE)" stroke="#ffd180" stroke-width="1.5"/>
+                    <!-- T central (Amarilla, extendida hacia el tallo de la T) -->
+                    <path d="M135 20 H205 V35 H180 V115 H160 V35 H135 Z" fill="url(#gradT2)" stroke="#ffff8d" stroke-width="1.5"/>
+                    <!-- R (Verde) -->
+                    <path d="M212 20 H248 C258 20 264 26 264 35 C264 42 259 47 252 49 L265 68 H248 L237 51 H227 V68 H212 Z M227 32 V41 H244 C247 41 249 39 249 36.5 C249 34 247 32 244 32 Z" fill="url(#gradR)" stroke="#b9f6ca" stroke-width="1.5"/>
+                    <!-- I (Cian) -->
+                    <path d="M270 20 H286 V68 H270 Z" fill="url(#gradI)" stroke="#84ffff" stroke-width="1.5"/>
+                    <!-- S (Morada) -->
+                    <path d="M323 20 L318 32 C313 30 307 30 305 33 C303 36 308 38 314 41 C322 45 326 50 324 58 C322 65 314 69 302 68 L292 67 L296 55 C302 57 308 57 310 54 C312 51 307 49 301 46 C294 42 291 37 293 29 C295 22 303 19 314 20 Z" fill="url(#gradS)" stroke="#ea80fc" stroke-width="1.5"/>
+                </svg>
+            </div>
+
+            <!-- Botones de Utilidad (Música, Sonido, Pausa, Ayuda) -->
+            <div class="flex items-center gap-1.5 sm:gap-2.5">
+                <button id="btnMusic" class="btn-arcade w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-white text-sm sm:text-base" title="Activar/Desactivar Música Arcade">
+                    <i id="iconMusic" class="fa-solid fa-music"></i>
+                </button>
+                <button id="btnSound" class="btn-arcade w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-white text-sm sm:text-base" title="Activar/Desactivar Efectos de Sonido">
+                    <i id="iconSound" class="fa-solid fa-volume-high"></i>
+                </button>
+                <button id="btnPause" class="btn-arcade w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-white text-sm sm:text-base" title="Pausar Juego (P)">
+                    <i id="iconPause" class="fa-solid fa-pause"></i>
+                </button>
+                <button id="btnHelp" class="btn-arcade w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-white text-sm sm:text-base" title="Controles e Instrucciones">
+                    <i class="fa-solid fa-circle-question"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Barra de Estadísticas Compacta para Móvil (Visible solo en pantallas pequeñas) -->
+        <div class="w-full grid grid-cols-4 gap-1.5 mb-2 lg:hidden">
+            <div class="tetris-panel py-1 px-2 text-center">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-blue-300">Puntos</div>
+                <div id="mobileScore" class="font-arcade text-xs sm:text-sm font-extrabold text-yellow-300 truncate">0</div>
+            </div>
+            <div class="tetris-panel py-1 px-2 text-center">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-blue-300">Récord</div>
+                <div id="mobileHighScore" class="font-arcade text-xs sm:text-sm font-extrabold text-cyan-300 truncate">0</div>
+            </div>
+            <div class="tetris-panel py-1 px-2 text-center">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-blue-300">Líneas</div>
+                <div id="mobileLines" class="font-arcade text-xs sm:text-sm font-extrabold text-emerald-300">0</div>
+            </div>
+            <div class="tetris-panel py-1 px-2 text-center">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-blue-300">Nivel</div>
+                <div id="mobileLevel" class="font-arcade text-xs sm:text-sm font-extrabold text-pink-400">1</div>
+            </div>
+        </div>
+
+        <!-- Área Principal del Juego -->
+        <div class="w-full flex flex-row items-start justify-center gap-2 sm:gap-4 lg:gap-6">
+
+            <!-- Columna Izquierda: Reserva (Hold) + Estadísticas (En Desktop) -->
+            <div class="flex flex-col gap-2.5 sm:gap-3 w-20 sm:w-32 lg:w-44 shrink-0">
+                <!-- Panel Reserva (Hold) -->
+                <div id="holdPanelCard" class="tetris-panel p-2 sm:p-3 flex flex-col items-center cursor-pointer transition-transform active:scale-95" title="Haz clic o presiona C / Shift para guardar pieza">
+                    <div class="w-full flex items-center justify-between mb-1">
+                        <span class="font-arcade text-[10px] sm:text-xs font-extrabold tracking-wider text-blue-300 uppercase">Reserva</span>
+                        <span class="text-[9px] bg-blue-900/80 border border-blue-400/40 px-1.5 py-0.5 rounded text-blue-200 font-bold hidden sm:inline">C</span>
+                    </div>
+                    <div class="w-full aspect-square max-w-[76px] sm:max-w-[96px] bg-[#04091b] rounded-lg border border-blue-500/30 flex items-center justify-center p-1">
+                        <canvas id="holdCanvas" width="100" height="100" class="w-full h-full"></canvas>
+                    </div>
+                    <span id="holdStatusText" class="text-[9px] sm:text-[10px] text-blue-300/75 mt-1 font-medium">Disponible</span>
+                </div>
+
+                <!-- Paneles de Estadísticas para Desktop -->
+                <div class="hidden lg:flex flex-col gap-3">
+                    <div class="tetris-panel p-3">
+                        <div class="text-xs font-bold uppercase tracking-widest text-blue-300 mb-0.5">Puntuación</div>
+                        <div id="desktopScore" class="font-arcade text-xl font-black text-yellow-300 tracking-tight">0</div>
+                    </div>
+
+                    <div class="tetris-panel p-3">
+                        <div class="text-xs font-bold uppercase tracking-widest text-blue-300 mb-0.5">Mejor Récord</div>
+                        <div id="desktopHighScore" class="font-arcade text-lg font-extrabold text-cyan-300 tracking-tight">0</div>
+                    </div>
+
+                    <div class="tetris-panel p-3 flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-widest text-blue-300">Líneas</div>
+                            <div id="desktopLines" class="font-arcade text-xl font-black text-emerald-400">0</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs font-bold uppercase tracking-widest text-blue-300">Nivel</div>
+                            <div id="desktopLevel" class="font-arcade text-xl font-black text-pink-400">1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Central: Tablero 10x20 -->
+            <div id="boardContainer" class="tetris-board-frame relative flex items-center justify-center shrink-0">
+                <!-- Canvas Principal 10x20 (300x600 lógico, escalado responsivo por CSS) -->
+                <canvas id="boardCanvas" width="300" height="600" class="block w-[210px] h-[420px] sm:w-[260px] sm:h-[520px] md:w-[290px] md:h-[580px]"></canvas>
+
+                <!-- Contenedor para textos flotantes de combos y Tetris -->
+                <div id="floatingTextContainer" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+
+                <!-- OVERLAY: Pantalla de Inicio / Pausa / Fin del Juego -->
+                <div id="gameOverlay" class="absolute inset-0 bg-[#040a1ee6] backdrop-blur-md z-40 flex flex-col items-center justify-center p-4 text-center transition-opacity duration-200">
+                    
+                    <!-- Estado: Inicio -->
+                    <div id="overlayStart" class="flex flex-col items-center max-w-[240px]">
+                        <div class="w-14 h-14 rounded-2xl bg-blue-600/20 border-2 border-blue-400 flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(59,130,246,0.5)]">
+                            <i class="fa-solid fa-gamepad text-2xl text-yellow-300"></i>
+                        </div>
+                        <h2 class="font-arcade text-lg sm:text-xl font-black text-white tracking-wide mb-1">EDICIÓN CLÁSICA</h2>
+                        <p class="text-xs text-blue-200/90 mb-4 leading-relaxed">
+                            Alinea los bloques brillantes, completa líneas horizontales y consigue un <span class="text-yellow-300 font-bold">¡TETRIS!</span>
+                        </p>
+
+                        <!-- Selector de Nivel Inicial -->
+                        <div class="w-full bg-blue-950/70 border border-blue-500/40 rounded-xl p-2.5 mb-4">
+                            <div class="text-[11px] font-bold text-blue-300 uppercase tracking-wider mb-1.5">Nivel Inicial</div>
+                            <div class="flex items-center justify-center gap-3">
+                                <button id="btnLevelDown" class="btn-arcade w-8 h-8 rounded-lg font-arcade font-bold text-sm">-</button>
+                                <span id="startLevelDisplay" class="font-arcade text-xl font-black text-yellow-300 w-8">1</span>
+                                <button id="btnLevelUp" class="btn-arcade w-8 h-8 rounded-lg font-arcade font-bold text-sm">+</button>
+                            </div>
+                        </div>
+
+                        <button id="btnStartGame" class="btn-arcade btn-arcade-gold w-full py-3 px-5 rounded-xl font-arcade font-black text-sm sm:text-base tracking-wider uppercase flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-play"></i> ¡JUGAR AHORA!
+                        </button>
+                    </div>
+
+                    <!-- Estado: Pausa -->
+                    <div id="overlayPause" class="hidden flex-col items-center max-w-[240px] w-full">
+                        <div class="w-14 h-14 rounded-2xl bg-blue-600/20 border-2 border-blue-400 flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-pause text-2xl text-cyan-300"></i>
+                        </div>
+                        <h2 class="font-arcade text-xl font-black text-white tracking-wider mb-1">JUEGO EN PAUSA</h2>
+                        <p class="text-xs text-blue-200/80 mb-5">Tómate un respiro antes de continuar.</p>
+                        
+                        <div class="flex flex-col gap-2.5 w-full">
+                            <button id="btnResumeGame" class="btn-arcade btn-arcade-gold w-full py-2.5 px-4 rounded-xl font-arcade font-black text-xs sm:text-sm uppercase flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play"></i> Continuar
+                            </button>
+                            <button id="btnRestartFromPause" class="btn-arcade w-full py-2.5 px-4 rounded-xl font-arcade font-bold text-xs sm:text-sm uppercase flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-rotate-right"></i> Reiniciar Partida
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Estado: Fin de Juego (Game Over) -->
+                    <div id="overlayGameOver" class="hidden flex-col items-center max-w-[250px] w-full">
+                        <div class="w-12 h-12 rounded-2xl bg-rose-600/20 border-2 border-rose-400 flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(244,63,94,0.5)]">
+                            <i class="fa-solid fa-trophy text-xl text-yellow-300"></i>
+                        </div>
+                        <h2 class="font-arcade text-lg sm:text-xl font-black text-rose-400 tracking-wide mb-0.5">¡FIN DEL JUEGO!</h2>
+                        <div id="newRecordBadge" class="hidden bg-yellow-400/20 border border-yellow-300 text-yellow-300 text-[10px] font-arcade font-bold px-2.5 py-0.5 rounded-full mb-2">
+                            ★ ¡NUEVO RÉCORD! ★
+                        </div>
+
+                        <div class="w-full bg-blue-950/80 border border-blue-500/40 rounded-xl p-2.5 my-2 space-y-1.5 text-left">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-blue-300">Puntuación:</span>
+                                <span id="finalScore" class="font-arcade font-bold text-yellow-300">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-blue-300">Líneas completadas:</span>
+                                <span id="finalLines" class="font-arcade font-bold text-emerald-300">0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-blue-300">Nivel alcanzado:</span>
+                                <span id="finalLevel" class="font-arcade font-bold text-pink-400">1</span>
+                            </div>
+                        </div>
+
+                        <button id="btnPlayAgain" class="btn-arcade btn-arcade-gold w-full py-2.5 px-4 mt-2 rounded-xl font-arcade font-black text-xs sm:text-sm uppercase flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-right"></i> Jugar de Nuevo
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Siguiente Pieza (Next Queue) + Guía Rápida -->
+            <div class="flex flex-col gap-2.5 sm:gap-3 w-20 sm:w-32 lg:w-44 shrink-0">
+                <!-- Panel Siguiente (3 piezas) -->
+                <div class="tetris-panel p-2 sm:p-3 flex flex-col items-center">
+                    <div class="w-full text-center sm:text-left mb-1">
+                        <span class="font-arcade text-[10px] sm:text-xs font-extrabold tracking-wider text-blue-300 uppercase">Siguiente</span>
+                    </div>
+                    <div class="w-full bg-[#04091b] rounded-lg border border-blue-500/30 flex items-center justify-center p-1">
+                        <canvas id="nextCanvas" width="100" height="220" class="w-full h-auto max-h-[165px] sm:max-h-[210px]"></canvas>
+                    </div>
+                </div>
+
+                <!-- Guía de Teclado en Desktop -->
+                <div class="hidden lg:flex tetris-panel p-3 flex-col gap-1.5 text-[11px] text-blue-200">
+                    <div class="font-arcade text-xs font-bold text-blue-300 uppercase mb-1 border-b border-blue-800 pb-1">
+                        Controles
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Mover:</span>
+                        <kbd class="bg-blue-950 border border-blue-600 px-1.5 rounded text-white font-bold">← →</kbd>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Rotar:</span>
+                        <kbd class="bg-blue-950 border border-blue-600 px-1.5 rounded text-white font-bold">↑ / Z</kbd>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Bajar suave:</span>
+                        <kbd class="bg-blue-950 border border-blue-600 px-1.5 rounded text-white font-bold">↓</kbd>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Caída rápida:</span>
+                        <kbd class="bg-blue-950 border border-blue-600 px-1.5 rounded text-yellow-300 font-bold">Espacio</kbd>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Reserva:</span>
+                        <kbd class="bg-blue-950 border border-blue-600 px-1.5 rounded text-cyan-300 font-bold">C / Shift</kbd>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Pausa:</span>
+                        <kbd class="bg-blue-950 border border-blue-600 px-1.5 rounded text-white font-bold">P</kbd>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Controles Táctiles / Botonera Arcade en Pantalla (Ideal para Móvil, Tablet y Click) -->
+        <div class="w-full max-w-md mt-2.5 sm:mt-3 px-1">
+            <div class="grid grid-cols-6 gap-1.5 sm:gap-2">
+                <!-- Mover Izquierda -->
+                <button id="touchLeft" class="btn-arcade py-3 sm:py-3.5 rounded-xl flex flex-col items-center justify-center text-white" aria-label="Mover a la izquierda">
+                    <i class="fa-solid fa-arrow-left text-base sm:text-lg"></i>
+                    <span class="text-[9px] font-bold uppercase mt-0.5 text-blue-200">Izq</span>
+                </button>
+
+                <!-- Mover Derecha -->
+                <button id="touchRight" class="btn-arcade py-3 sm:py-3.5 rounded-xl flex flex-col items-center justify-center text-white" aria-label="Mover a la derecha">
+                    <i class="fa-solid fa-arrow-right text-base sm:text-lg"></i>
+                    <span class="text-[9px] font-bold uppercase mt-0.5 text-blue-200">Der</span>
+                </button>
+
+                <!-- Bajar Suave -->
+                <button id="touchDown" class="btn-arcade py-3 sm:py-3.5 rounded-xl flex flex-col items-center justify-center text-white" aria-label="Caída suave">
+                    <i class="fa-solid fa-arrow-down text-base sm:text-lg"></i>
+                    <span class="text-[9px] font-bold uppercase mt-0.5 text-blue-200">Bajar</span>
+                </button>
+
+                <!-- Rotar -->
+                <button id="touchRotate" class="btn-arcade py-3 sm:py-3.5 rounded-xl flex flex-col items-center justify-center text-white" aria-label="Rotar pieza">
+                    <i class="fa-solid fa-rotate-right text-base sm:text-lg text-cyan-300"></i>
+                    <span class="text-[9px] font-bold uppercase mt-0.5 text-cyan-200">Rotar</span>
+                </button>
+
+                <!-- Caída Rápida (Hard Drop) -->
+                <button id="touchHardDrop" class="btn-arcade btn-arcade-gold py-3 sm:py-3.5 rounded-xl flex flex-col items-center justify-center" aria-label="Caída instantánea">
+                    <i class="fa-solid fa-angles-down text-base sm:text-lg"></i>
+                    <span class="text-[9px] font-extrabold uppercase mt-0.5">Caer</span>
+                </button>
+
+                <!-- Guardar Pieza (Hold) -->
+                <button id="touchHold" class="btn-arcade py-3 sm:py-3.5 rounded-xl flex flex-col items-center justify-center text-white" aria-label="Guardar pieza en reserva">
+                    <i class="fa-solid fa-retweet text-base sm:text-lg text-pink-300"></i>
+                    <span class="text-[9px] font-bold uppercase mt-0.5 text-pink-200">Reserva</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal de Instrucciones y Reglas -->
+    <div id="helpModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="tetris-panel max-w-md w-full p-5 text-left">
+            <div class="flex items-center justify-between border-b border-blue-800 pb-2.5 mb-3">
+                <h3 class="font-arcade text-base sm:text-lg font-black text-yellow-300 flex items-center gap-2">
+                    <i class="fa-solid fa-gamepad"></i> CÓMO JUGAR TETRIS
+                </h3>
+                <button id="btnCloseHelp" class="text-blue-300 hover:text-white text-lg px-2">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs sm:text-sm text-blue-100 leading-relaxed">
+                <p>
+                    Los <strong>Tetriminos</strong> caen desde la parte superior del tablero de <strong>10×20</strong>. Rótalos y muévelos para formar líneas horizontales completas sin huecos.
+                </p>
+                <div class="bg-blue-950/70 border border-blue-500/30 rounded-lg p-3 space-y-1.5">
+                    <div class="font-arcade text-xs font-bold text-cyan-300 uppercase mb-1">Funciones Especiales</div>
+                    <p>• <strong>Pieza Fantasma:</strong> El contorno translúcido muestra exactamente dónde aterrizará tu bloque actual.</p>
+                    <p>• <strong>Reserva (Hold):</strong> Guarda una pieza difícil para usarla más tarde presionando <kbd class="bg-blue-900 px-1.5 py-0.5 rounded font-bold">C</kbd>, <kbd class="bg-blue-900 px-1.5 py-0.5 rounded font-bold">Shift</kbd> o tocando el recuadro de Reserva.</p>
+                </div>
+                <div class="bg-blue-950/70 border border-blue-500/30 rounded-lg p-3 space-y-1">
+                    <div class="font-arcade text-xs font-bold text-yellow-300 uppercase mb-1">Tabla de Puntuación</div>
+                    <div class="flex justify-between"><span>1 Línea (Sencilla):</span> <span class="font-bold text-white">100 × Nivel</span></div>
+                    <div class="flex justify-between"><span>2 Líneas (Doble):</span> <span class="font-bold text-white">300 × Nivel</span></div>
+                    <div class="flex justify-between"><span>3 Líneas (Triple):</span> <span class="font-bold text-white">500 × Nivel</span></div>
+                    <div class="flex justify-between text-yellow-300 font-bold"><span>4 Líneas (¡TETRIS!):</span> <span>800 × Nivel</span></div>
+                </div>
+            </div>
+
+            <button id="btnAcceptHelp" class="btn-arcade btn-arcade-gold w-full py-2.5 rounded-xl font-arcade font-bold text-xs sm:text-sm uppercase mt-4">
+                ¡Entendido!
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ============================================================================
+         * MOTOR DE AUDIO SINTETIZADO (WEB AUDIO API) - EFECTOS Y MÚSICA ARCADE
+         * ============================================================================
+         */
+        class TetrisAudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.sfxEnabled = true;
+                this.musicEnabled = false;
+                this.musicTimer = null;
+                this.noteIndex = 0;
+
+                // Melodía clásica inspirada en Korobeiniki (frecuencias en Hz y duración en ms)
+                this.melody = [
+                    { f: 659.25, d: 320 }, // E5
+                    { f: 493.88, d: 160 }, // B4
+                    { f: 523.25, d: 160 }, // C5
+                    { f: 587.33, d: 320 }, // D5
+                    { f: 523.25, d: 160 }, // C5
+                    { f: 493.88, d: 160 }, // B4
+                    { f: 440.00, d: 320 }, // A4
+                    { f: 440.00, d: 160 }, // A4
+                    { f: 523.25, d: 160 }, // C5
+                    { f: 659.25, d: 320 }, // E5
+                    { f: 587.33, d: 160 }, // D5
+                    { f: 523.25, d: 160 }, // C5
+                    { f: 493.88, d: 480 }, // B4
+                    { f: 523.25, d: 160 }, // C5
+                    { f: 587.33, d: 320 }, // D5
+                    { f: 659.25, d: 320 }, // E5
+                    { f: 523.25, d: 320 }, // C5
+                    { f: 440.00, d: 320 }, // A4
+                    { f: 440.00, d: 480 }, // A4
+                    { f: 0,      d: 160 }, // Silencio
+                    { f: 587.33, d: 320 }, // D5
+                    { f: 698.46, d: 160 }, // F5
+                    { f: 880.00, d: 320 }, // A5
+                    { f: 783.99, d: 160 }, // G5
+                    { f: 698.46, d: 160 }, // F5
+                    { f: 659.25, d: 480 }, // E5
+                    { f: 523.25, d: 160 }, // C5
+                    { f: 659.25, d: 320 }, // E5
+                    { f: 587.33, d: 160 }, // D5
+                    { f: 523.25, d: 160 }, // C5
+                    { f: 493.88, d: 320 }, // B4
+                    { f: 493.88, d: 160 }, // B4
+                    { f: 523.25, d: 160 }, // C5
+                    { f: 587.33, d: 320 }, // D5
+                    { f: 659.25, d: 320 }, // E5
+                    { f: 523.25, d: 320 }, // C5
+                    { f: 440.00, d: 320 }, // A4
+                    { f: 440.00, d: 480 }  // A4
+                ];
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) {
+                        this.ctx = new AudioCtx();
+                    }
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playTone(freq, type = 'square', duration = 0.08, volume = 0.12, slideTo = null) {
+                if (!this.sfxEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                try {
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, now);
+                    if (slideTo) {
+                        osc.frequency.exponentialRampToValueAtTime(slideTo, now + duration);
+                    }
+
+                    gain.gain.setValueAtTime(volume, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + duration);
+                } catch (e) {
+                    // Ignorar si el navegador bloquea el audio antes de interacción
+                }
+            }
+
+            move() {
+                this.playTone(290, 'triangle', 0.045, 0.09, 330);
+            }
+
+            rotate() {
+                this.playTone(440, 'sine', 0.07, 0.12, 660);
+            }
+
+            softDrop() {
+                this.playTone(210, 'triangle', 0.03, 0.06);
+            }
+
+            lock() {
+                this.playTone(160, 'sine', 0.08, 0.14, 110);
+            }
+
+            hardDrop() {
+                this.playTone(260, 'square', 0.11, 0.14, 95);
+            }
+
+            hold() {
+                this.playTone(520, 'sine', 0.09, 0.11, 390);
+            }
+
+            lineClear(lines) {
+                if (!this.sfxEnabled) return;
+                if (lines === 4) {
+                    // Fanfarria especial para ¡TETRIS!
+                    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+                    notes.forEach((n, i) => {
+                        setTimeout(() => this.playTone(n, 'square', 0.14, 0.14), i * 65);
+                    });
+                } else {
+                    const notes = [440, 554.37, 659.25];
+                    notes.slice(0, lines + 1).forEach((n, i) => {
+                        setTimeout(() => this.playTone(n, 'triangle', 0.12, 0.13), i * 60);
+                    });
+                }
+            }
+
+            levelUp() {
+                if (!this.sfxEnabled) return;
+                const notes = [440, 554.37, 659.25, 880];
+                notes.forEach((n, i) => {
+                    setTimeout(() => this.playTone(n, 'sine', 0.12, 0.14), i * 55);
+                });
+            }
+
+            gameOver() {
+                if (!this.sfxEnabled) return;
+                const notes = [440, 415.30, 392.00, 349.23, 329.63, 261.63];
+                notes.forEach((n, i) => {
+                    setTimeout(() => this.playTone(n, 'sawtooth', 0.22, 0.11), i * 130);
+                });
+            }
+
+            startMusic(speedMultiplier = 1) {
+                this.stopMusic();
+                if (!this.musicEnabled) return;
+                this.init();
+
+                const playNextNote = () => {
+                    if (!this.musicEnabled) return;
+                    const note = this.melody[this.noteIndex];
+                    this.noteIndex = (this.noteIndex + 1) % this.melody.length;
+
+                    const durationMs = Math.max(90, note.d / speedMultiplier);
+                    if (note.f > 0 && this.ctx) {
+                        try {
+                            const now = this.ctx.currentTime;
+                            const osc = this.ctx.createOscillator();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'square';
+                            osc.frequency.setValueAtTime(note.f, now);
+
+                            gain.gain.setValueAtTime(0.045, now);
+                            gain.gain.exponentialRampToValueAtTime(0.002, now + (durationMs * 0.85) / 1000);
+
+                            osc.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start(now);
+                            osc.stop(now + (durationMs * 0.9) / 1000);
+                        } catch (e) {}
+                    }
+                    this.musicTimer = setTimeout(playNextNote, durationMs);
+                };
+
+                playNextNote();
+            }
+
+            stopMusic() {
+                if (this.musicTimer) {
+                    clearTimeout(this.musicTimer);
+                    this.musicTimer = null;
+                }
+            }
+        }
+
+        /**
+         * ============================================================================
+         * DEFINICIÓN DE TETRIMINOS Y PALETA DE COLORES TIPO GEMA BRILLANTE
+         * ============================================================================
+         */
+        const COLS = 10;
+        const ROWS = 20;
+        const BLOCK_SIZE = 30; // 300x600 resolución interna nítida
+
+        const PIECES = {
+            I: {
+                id: 'I',
+                matrix: [
+                    [0, 0, 0, 0],
+                    [1, 1, 1, 1],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                colors: {
+                    base: '#00e5ff',
+                    light: '#84ffff',
+                    dark: '#00838f',
+                    glow: 'rgba(0, 229, 255, 0.7)'
+                }
+            },
+            O: {
+                id: 'O',
+                matrix: [
+                    [1, 1],
+                    [1, 1]
+                ],
+                colors: {
+                    base: '#ffd600',
+                    light: '#ffff8d',
+                    dark: '#f57f17',
+                    glow: 'rgba(255, 214, 0, 0.7)'
+                }
+            },
+            T: {
+                id: 'T',
+                matrix: [
+                    [0, 1, 0],
+                    [1, 1, 1],
+                    [0, 0, 0]
+                ],
+                colors: {
+                    base: '#d500f9',
+                    light: '#ea80fc',
+                    dark: '#6a1b9a',
+                    glow: 'rgba(213, 0, 249, 0.7)'
+                }
+            },
+            S: {
+                id: 'S',
+                matrix: [
+                    [0, 1, 1],
+                    [1, 1, 0],
+                    [0, 0, 0]
+                ],
+                colors: {
+                    base: '#00e676',
+                    light: '#b9f6ca',
+                    dark: '#1b5e20',
+                    glow: 'rgba(0, 230, 118, 0.7)'
+                }
+            },
+            Z: {
+                id: 'Z',
+                matrix: [
+                    [1, 1, 0],
+                    [0, 1, 1],
+                    [0, 0, 0]
+                ],
+                colors: {
+                    base: '#ff1744',
+                    light: '#ff8a80',
+                    dark: '#b71c1c',
+                    glow: 'rgba(255, 23, 68, 0.7)'
+                }
+            },
+            J: {
+                id: 'J',
+                matrix: [
+                    [1, 0, 0],
+                    [1, 1, 1],
+                    [0, 0, 0]
+                ],
+                colors: {
+                    base: '#2979ff',
+                    light: '#82b1ff',
+                    dark: '#0d47a1',
+                    glow: 'rgba(41, 121, 255, 0.7)'
+                }
+            },
+            L: {
+                id: 'L',
+                matrix: [
+                    [0, 0, 1],
+                    [1, 1, 1],
+                    [0, 0, 0]
+                ],
+                colors: {
+                    base: '#ff9100',
+                    light: '#ffd180',
+                    dark: '#e65100',
+                    glow: 'rgba(255, 145, 0, 0.7)'
+                }
+            }
+        };
+
+        const PIECE_KEYS = Object.keys(PIECES);
+
+        /**
+         * ============================================================================
+         * CLASE PRINCIPAL DEL JUEGO TETRIS
+         * ============================================================================
+         */
+        class TetrisGame {
+            constructor() {
+                // Referencias a los Canvas
+                this.boardCanvas = document.getElementById('boardCanvas');
+                this.ctx = this.boardCanvas.getContext('2d');
+                this.holdCanvas = document.getElementById('holdCanvas');
+                this.holdCtx = this.holdCanvas.getContext('2d');
+                this.nextCanvas = document.getElementById('nextCanvas');
+                this.nextCtx = this.nextCanvas.getContext('2d');
+
+                this.audio = new TetrisAudioEngine();
+
+                // Estado del juego
+                this.grid = this.createEmptyGrid();
+                this.bag = [];
+                this.nextQueue = [];
+                this.currentPiece = null;
+                this.holdPieceId = null;
+                this.canHold = true;
+
+                this.score = 0;
+                this.highScore = this.loadHighScore();
+                this.lines = 0;
+                this.startLevel = 1;
+                this.level = 1;
+                this.combo = -1;
+
+                this.state = 'START'; // START | PLAYING | PAUSED | GAMEOVER
+                this.dropCounter = 0;
+                this.lastTime = 0;
+
+                // Efectos visuales (partículas y destellos de línea)
+                this.particles = [];
+                this.lineFlashRows = [];
+                this.lineFlashTimer = 0;
+
+                this.initUI();
+                this.updateScoreUI();
+                this.drawAll();
+
+                // Iniciar bucle de renderizado
+                requestAnimationFrame((t) => this.gameLoop(t));
+            }
+
+            createEmptyGrid() {
+                return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+            }
+
+            loadHighScore() {
+                try {
+                    return parseInt(localStorage.getItem('tetris_clasico_highscore') || '0', 10);
+                } catch (e) {
+                    return 0;
+                }
+            }
+
+            saveHighScore() {
+                try {
+                    localStorage.setItem('tetris_clasico_highscore', String(this.highScore));
+                } catch (e) {}
+            }
+
+            /**
+             * Generador aleatorio 7-Bag estándar de Tetris
+             */
+            fillBag() {
+                const newBag = [...PIECE_KEYS];
+                for (let i = newBag.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [newBag[i], newBag[j]] = [newBag[j], newBag[i]];
+                }
+                this.bag.push(...newBag);
+            }
+
+            getNextPieceId() {
+                if (this.bag.length < 7) {
+                    this.fillBag();
+                }
+                return this.bag.shift();
+            }
+
+            initQueue() {
+                this.bag = [];
+                this.nextQueue = [];
+                this.fillBag();
+                for (let i = 0; i < 3; i++) {
+                    this.nextQueue.push(this.getNextPieceId());
+                }
+            }
+
+            spawnPiece(pieceId = null) {
+                const id = pieceId || this.nextQueue.shift();
+                if (!pieceId) {
+                    this.nextQueue.push(this.getNextPieceId());
+                }
+
+                const template = PIECES[id];
+                const matrix = template.matrix.map(row => [...row]);
+
+                this.currentPiece = {
+                    id: template.id,
+                    matrix: matrix,
+                    colors: template.colors,
+                    x: Math.floor((COLS - matrix[0].length) / 2),
+                    y: 0
+                };
+
+                // Verificar colisión inmediata al aparecer (Game Over)
+                if (this.checkCollision(this.currentPiece.x, this.currentPiece.y, this.currentPiece.matrix)) {
+                    this.triggerGameOver();
+                }
+            }
+
+            /**
+             * Verifica si una matriz en (offsetX, offsetY) colisiona con bordes o bloques fijos
+             */
+            checkCollision(offsetX, offsetY, matrix) {
+                for (let r = 0; r < matrix.length; r++) {
+                    for (let c = 0; c < matrix[r].length; c++) {
+                        if (matrix[r][c] !== 0) {
+                            const newX = offsetX + c;
+                            const newY = offsetY + r;
+
+                            if (newX < 0 || newX >= COLS || newY >= ROWS) {
+                                return true;
+                            }
+                            if (newY >= 0 && this.grid[newY][newX] !== null) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+
+            /**
+             * Calcula la coordenada Y donde aterrizará la pieza actual (Ghost Piece)
+             */
+            getGhostY() {
+                if (!this.currentPiece) return 0;
+                let ghostY = this.currentPiece.y;
+                while (!this.checkCollision(this.currentPiece.x, ghostY + 1, this.currentPiece.matrix)) {
+                    ghostY++;
+                }
+                return ghostY;
+            }
+
+            /**
+             * Movimiento horizontal
+             */
+            moveHorizontal(dir) {
+                if (this.state !== 'PLAYING' || !this.currentPiece) return false;
+                if (!this.checkCollision(this.currentPiece.x + dir, this.currentPiece.y, this.currentPiece.matrix)) {
+                    this.currentPiece.x += dir;
+                    this.audio.move();
+                    return true;
+                }
+                return false;
+            }
+
+            /**
+             * Rotación de matriz con Wall Kicks (ajuste automático junto a paredes)
+             */
+            rotatePiece(dir = 1) {
+                if (this.state !== 'PLAYING' || !this.currentPiece) return;
+                if (this.currentPiece.id === 'O') return; // El cuadrado no necesita rotar
+
+                const mat = this.currentPiece.matrix;
+                const N = mat.length;
+                const rotated = Array.from({ length: N }, () => Array(N).fill(0));
+
+                for (let r = 0; r < N; r++) {
+                    for (let c = 0; c < N; c++) {
+                        if (dir === 1) {
+                            rotated[c][N - 1 - r] = mat[r][c];
+                        } else {
+                            rotated[N - 1 - c][r] = mat[r][c];
+                        }
+                    }
+                }
+
+                // Desplazamientos (Wall kicks) para permitir rotar pegado a bordes o piezas
+                const kicks = [
+                    [0, 0],
+                    [-1, 0],
+                    [1, 0],
+                    [0, -1],
+                    [-2, 0],
+                    [2, 0],
+                    [-1, -1],
+                    [1, -1]
+                ];
+
+                for (const [kx, ky] of kicks) {
+                    if (!this.checkCollision(this.currentPiece.x + kx, this.currentPiece.y + ky, rotated)) {
+                        this.currentPiece.x += kx;
+                        this.currentPiece.y += ky;
+                        this.currentPiece.matrix = rotated;
+                        this.audio.rotate();
+                        return;
+                    }
+                }
+            }
+
+            /**
+             * Caída suave (Soft Drop)
+             */
+            softDrop() {
+                if (this.state !== 'PLAYING' || !this.currentPiece) return;
+                if (!this.checkCollision(this.currentPiece.x, this.currentPiece.y + 1, this.currentPiece.matrix)) {
+                    this.currentPiece.y++;
+                    this.score += 1;
+                    this.dropCounter = 0;
+                    this.audio.softDrop();
+                    this.updateScoreUI();
+                } else {
+                    this.lockPiece();
+                }
+            }
+
+            /**
+             * Caída instantánea (Hard Drop)
+             */
+            hardDrop() {
+                if (this.state !== 'PLAYING' || !this.currentPiece) return;
+                let cellsDropped = 0;
+                while (!this.checkCollision(this.currentPiece.x, this.currentPiece.y + 1, this.currentPiece.matrix)) {
+                    this.currentPiece.y++;
+                    cellsDropped++;
+                }
+                this.score += cellsDropped * 2;
+                this.audio.hardDrop();
+                this.triggerBoardShake();
+                this.lockPiece();
+                this.updateScoreUI();
+            }
+
+            /**
+             * Guardar pieza en Reserva (Hold)
+             */
+            holdPiece() {
+                if (this.state !== 'PLAYING' || !this.currentPiece || !this.canHold) return;
+
+                this.audio.hold();
+                const currentId = this.currentPiece.id;
+
+                if (this.holdPieceId === null) {
+                    this.holdPieceId = currentId;
+                    this.spawnPiece();
+                } else {
+                    const swapId = this.holdPieceId;
+                    this.holdPieceId = currentId;
+                    this.spawnPiece(swapId);
+                }
+
+                this.canHold = false;
+                this.updateHoldStatusUI();
+            }
+
+            /**
+             * Fija la pieza al tablero y revisa líneas completas
+             */
+            lockPiece() {
+                const { matrix, x, y, colors } = this.currentPiece;
+
+                for (let r = 0; r < matrix.length; r++) {
+                    for (let c = 0; c < matrix[r].length; c++) {
+                        if (matrix[r][c] !== 0) {
+                            const boardY = y + r;
+                            const boardX = x + c;
+                            if (boardY >= 0 && boardY < ROWS && boardX >= 0 && boardX < COLS) {
+                                this.grid[boardY][boardX] = colors;
+                                // Pequeño destello de partículas al fijar
+                                this.spawnParticles(
+                                    (boardX + 0.5) * BLOCK_SIZE,
+                                    (boardY + 0.5) * BLOCK_SIZE,
+                                    colors.light,
+                                    3
+                                );
+                            }
+                        }
+                    }
+                }
+
+                this.audio.lock();
+                this.canHold = true;
+                this.updateHoldStatusUI();
+
+                this.checkAndClearLines();
+                if (this.state === 'PLAYING') {
+                    this.spawnPiece();
+                }
+            }
+
+            /**
+             * Verifica filas completas, calcula puntos, combos y efectos visuales
+             */
+            checkAndClearLines() {
+                const clearedRows = [];
+
+                for (let r = ROWS - 1; r >= 0; r--) {
+                    if (this.grid[r].every(cell => cell !== null)) {
+                        clearedRows.push(r);
+                    }
+                }
+
+                if (clearedRows.length === 0) {
+                    this.combo = -1;
+                    return;
+                }
+
+                const count = clearedRows.length;
+                this.combo++;
+
+                // Generar partículas brillantes en cada celda eliminada
+                clearedRows.forEach(rowIdx => {
+                    for (let c = 0; c < COLS; c++) {
+                        const cellColor = this.grid[rowIdx][c];
+                        this.spawnParticles(
+                            (c + 0.5) * BLOCK_SIZE,
+                            (rowIdx + 0.5) * BLOCK_SIZE,
+                            cellColor ? cellColor.base : '#fde047',
+                            7
+                        );
+                    }
+                });
+
+                // Eliminar las filas completadas y añadir filas vacías arriba
+                const newGrid = this.grid.filter((_, idx) => !clearedRows.includes(idx));
+                while (newGrid.length < ROWS) {
+                    newGrid.unshift(Array(COLS).fill(null));
+                }
+                this.grid = newGrid;
+
+                // Destello visual en las filas
+                this.lineFlashRows = clearedRows;
+                this.lineFlashTimer = 180;
+
+                // Cálculo de puntuación clásica
+                const basePoints = [0, 100, 300, 500, 800];
+                let earned = basePoints[count] * this.level;
+                if (this.combo > 0) {
+                    earned += 50 * this.combo * this.level;
+                }
+
+                this.score += earned;
+                this.lines += count;
+
+                // Nivel sube cada 10 líneas (respetando el nivel inicial elegido)
+                const calculatedLevel = Math.max(this.startLevel, Math.floor(this.lines / 10) + this.startLevel);
+                const leveledUp = calculatedLevel > this.level;
+                this.level = calculatedLevel;
+
+                // Textos flotantes en español
+                const labels = {
+                    1: { text: '¡LÍNEA!', color: '#38bdf8' },
+                    2: { text: '¡DOBLE!', color: '#4ade80' },
+                    3: { text: '¡TRIPLE!', color: '#f472b6' },
+                    4: { text: '★ ¡TETRIS! ★', color: '#fde047' }
+                };
+
+                const bannerInfo = labels[count] || labels[4];
+                const avgRow = clearedRows.reduce((a, b) => a + b, 0) / count;
+                this.showFloatingBanner(
+                    `${bannerInfo.text} +${earned}`,
+                    bannerInfo.color,
+                    Math.max(80, avgRow * 24)
+                );
+
+                if (this.combo >= 2) {
+                    setTimeout(() => {
+                        this.showFloatingBanner(`¡COMBO ×${this.combo}!`, '#fb923c', Math.max(50, avgRow * 24 - 28));
+                    }, 160);
+                }
+
+                if (count === 4) {
+                    const boardEl = document.getElementById('boardContainer');
+                    boardEl.classList.remove('tetris-flash');
+                    void boardEl.offsetWidth;
+                    boardEl.classList.add('tetris-flash');
+                }
+
+                this.audio.lineClear(count);
+
+                if (leveledUp) {
+                    setTimeout(() => {
+                        this.audio.levelUp();
+                        this.showFloatingBanner(`¡NIVEL ${this.level}!`, '#c084fc', 180);
+                        if (this.audio.musicEnabled) {
+                            this.audio.startMusic(1 + (this.level - 1) * 0.06);
+                        }
+                    }, 300);
+                }
+
+                this.updateScoreUI();
+            }
+
+            /**
+             * Velocidad de caída en milisegundos según el nivel actual
+             */
+            getDropInterval() {
+                // De 850ms en Nivel 1 bajando progresivamente hasta 95ms en niveles altos
+                return Math.max(90, 850 - (this.level - 1) * 62);
+            }
+
+            /**
+             * Iniciar nueva partida
+             */
+            startNewGame() {
+                this.audio.init();
+                this.grid = this.createEmptyGrid();
+                this.score = 0;
+                this.lines = 0;
+                this.level = this.startLevel;
+                this.combo = -1;
+                this.holdPieceId = null;
+                this.canHold = true;
+                this.particles = [];
+                this.dropCounter = 0;
+
+                this.initQueue();
+                this.spawnPiece();
+
+                this.state = 'PLAYING';
+                this.updateOverlayUI();
+                this.updateScoreUI();
+                this.updateHoldStatusUI();
+
+                if (this.audio.musicEnabled) {
+                    this.audio.startMusic(1 + (this.level - 1) * 0.06);
+                }
+            }
+
+            /**
+             * Pausar / Reanudar
+             */
+            togglePause() {
+                if (this.state === 'PLAYING') {
+                    this.state = 'PAUSED';
+                    this.audio.stopMusic();
+                    this.updateOverlayUI();
+                } else if (this.state === 'PAUSED') {
+                    this.state = 'PLAYING';
+                    this.lastTime = performance.now();
+                    if (this.audio.musicEnabled) {
+                        this.audio.startMusic(1 + (this.level - 1) * 0.06);
+                    }
+                    this.updateOverlayUI();
+                }
+            }
+
+            /**
+             * Fin del Juego
+             */
+            triggerGameOver() {
+                this.state = 'GAMEOVER';
+                this.audio.stopMusic();
+                this.audio.gameOver();
+
+                const isNewRecord = this.score > 0 && this.score >= this.highScore;
+                if (this.score > this.highScore) {
+                    this.highScore = this.score;
+                    this.saveHighScore();
+                }
+
+                document.getElementById('finalScore').textContent = this.score.toLocaleString('es-ES');
+                document.getElementById('finalLines').textContent = this.lines;
+                document.getElementById('finalLevel').textContent = this.level;
+
+                const badge = document.getElementById('newRecordBadge');
+                if (isNewRecord) {
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+
+                this.updateScoreUI();
+                this.updateOverlayUI();
+            }
+
+            /**
+             * ============================================================================
+             * RENDERIZADO GRÁFICO ESTILO GEMA BRILLANTE (CANVAS 2D)
+             * ============================================================================
+             */
+            drawGemBlock(ctx, x, y, size, colors, alpha = 1) {
+                ctx.save();
+                ctx.globalAlpha = alpha;
+
+                const px = x * size;
+                const py = y * size;
+                const bevel = Math.max(3, size * 0.14);
+
+                // Base del bloque
+                ctx.fillStyle = colors.base;
+                ctx.fillRect(px + 1, py + 1, size - 2, size - 2);
+
+                // Bisel superior (Brillo claro)
+                ctx.fillStyle = colors.light;
+                ctx.beginPath();
+                ctx.moveTo(px + 1, py + 1);
+                ctx.lineTo(px + size - 1, py + 1);
+                ctx.lineTo(px + size - 1 - bevel, py + 1 + bevel);
+                ctx.lineTo(px + 1 + bevel, py + 1 + bevel);
+                ctx.closePath();
+                ctx.fill();
+
+                // Bisel izquierdo (Brillo medio)
+                ctx.fillStyle = colors.light;
+                ctx.globalAlpha = alpha * 0.75;
+                ctx.beginPath();
+                ctx.moveTo(px + 1, py + 1);
+                ctx.lineTo(px + 1 + bevel, py + 1 + bevel);
+                ctx.lineTo(px + 1 + bevel, py + size - 1 - bevel);
+                ctx.lineTo(px + 1, py + size - 1);
+                ctx.closePath();
+                ctx.fill();
+
+                // Bisel inferior (Sombra profunda)
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = colors.dark;
+                ctx.beginPath();
+                ctx.moveTo(px + 1, py + size - 1);
+                ctx.lineTo(px + size - 1, py + size - 1);
+                ctx.lineTo(px + size - 1 - bevel, py + size - 1 - bevel);
+                ctx.lineTo(px + 1 + bevel, py + size - 1 - bevel);
+                ctx.closePath();
+                ctx.fill();
+
+                // Bisel derecho (Sombra lateral)
+                ctx.beginPath();
+                ctx.moveTo(px + size - 1, py + 1);
+                ctx.lineTo(px + size - 1, py + size - 1);
+                ctx.lineTo(px + size - 1 - bevel, py + size - 1 - bevel);
+                ctx.lineTo(px + 1 + size - 2 - bevel, py + 1 + bevel);
+                ctx.closePath();
+                ctx.fill();
+
+                // Cara interna tipo joya con reflejo diagonal
+                const innerGrad = ctx.createLinearGradient(
+                    px + bevel,
+                    py + bevel,
+                    px + size - bevel,
+                    py + size - bevel
+                );
+                innerGrad.addColorStop(0, colors.light);
+                innerGrad.addColorStop(0.35, colors.base);
+                innerGrad.addColorStop(1, colors.dark);
+
+                ctx.fillStyle = innerGrad;
+                ctx.fillRect(
+                    px + 1 + bevel,
+                    py + 1 + bevel,
+                    size - 2 - bevel * 2,
+                    size - 2 - bevel * 2
+                );
+
+                // Punto de brillo especular en la esquina superior izquierda
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+                ctx.fillRect(px + bevel + 2, py + bevel + 2, size * 0.22, size * 0.12);
+
+                ctx.restore();
+            }
+
+            /**
+             * Dibuja la Pieza Fantasma (Ghost Piece) con borde luminoso
+             */
+            drawGhostBlock(ctx, x, y, size, colors) {
+                ctx.save();
+                const px = x * size;
+                const py = y * size;
+
+                ctx.fillStyle = colors.base;
+                ctx.globalAlpha = 0.16;
+                ctx.fillRect(px + 2, py + 2, size - 4, size - 4);
+
+                ctx.globalAlpha = 0.75;
+                ctx.strokeStyle = colors.light;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(px + 2.5, py + 2.5, size - 5, size - 5);
+
+                ctx.restore();
+            }
+
+            /**
+             * Dibuja el tablero principal, cuadrícula, piezas y efectos
+             */
+            drawBoard() {
+                const ctx = this.ctx;
+                const width = this.boardCanvas.width;
+                const height = this.boardCanvas.height;
+
+                // Fondo azul espacial oscuro
+                ctx.fillStyle = '#04091b';
+                ctx.fillRect(0, 0, width, height);
+
+                // Cuadrícula sutil 10x20
+                ctx.strokeStyle = 'rgba(59, 130, 246, 0.13)';
+                ctx.lineWidth = 1;
+
+                for (let c = 1; c < COLS; c++) {
+                    ctx.beginPath();
+                    ctx.moveTo(c * BLOCK_SIZE + 0.5, 0);
+                    ctx.lineTo(c * BLOCK_SIZE + 0.5, height);
+                    ctx.stroke();
+                }
+                for (let r = 1; r < ROWS; r++) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, r * BLOCK_SIZE + 0.5);
+                    ctx.lineTo(width, r * BLOCK_SIZE + 0.5);
+                    ctx.stroke();
+                }
+
+                // Bloques ya fijados en el tablero
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        if (this.grid[r][c] !== null) {
+                            this.drawGemBlock(ctx, c, r, BLOCK_SIZE, this.grid[r][c]);
+                        }
+                    }
+                }
+
+                // Pieza Fantasma (Ghost Piece) y Pieza Actual
+                if (this.currentPiece && (this.state === 'PLAYING' || this.state === 'PAUSED')) {
+                    const ghostY = this.getGhostY();
+                    const { matrix, x, y, colors } = this.currentPiece;
+
+                    // Dibujar Fantasma si está más abajo que la pieza actual
+                    if (ghostY !== y) {
+                        for (let r = 0; r < matrix.length; r++) {
+                            for (let c = 0; c < matrix[r].length; c++) {
+                                if (matrix[r][c] !== 0) {
+                                    this.drawGhostBlock(ctx, x + c, ghostY + r, BLOCK_SIZE, colors);
+                                }
+                            }
+                        }
+                    }
+
+                    // Dibujar Pieza Activa
+                    for (let r = 0; r < matrix.length; r++) {
+                        for (let c = 0; c < matrix[r].length; c++) {
+                            if (matrix[r][c] !== 0 && y + r >= 0) {
+                                this.drawGemBlock(ctx, x + c, y + r, BLOCK_SIZE, colors);
+                            }
+                        }
+                    }
+                }
+
+                // Efecto de destello al completar línea
+                if (this.lineFlashTimer > 0) {
+                    ctx.save();
+                    ctx.fillStyle = `rgba(255, 255, 255, ${(this.lineFlashTimer / 180) * 0.65})`;
+                    this.lineFlashRows.forEach(rowIdx => {
+                        ctx.fillRect(0, rowIdx * BLOCK_SIZE, width, BLOCK_SIZE);
+                    });
+                    ctx.restore();
+                }
+
+                // Dibujar partículas
+                this.drawParticles(ctx);
+            }
+
+            /**
+             * Dibuja una pieza centrada en un mini-canvas (para Reserva y Siguiente)
+             */
+            drawMiniPiece(ctx, pieceId, centerX, centerY, cellSize = 20, alpha = 1) {
+                if (!pieceId) return;
+                const piece = PIECES[pieceId];
+                const matrix = piece.matrix;
+
+                // Calcular límites reales ocupados por bloques de la pieza para centrado exacto
+                let minR = matrix.length, maxR = 0, minC = matrix[0].length, maxC = 0;
+                for (let r = 0; r < matrix.length; r++) {
+                    for (let c = 0; c < matrix[r].length; c++) {
+                        if (matrix[r][c]) {
+                            if (r < minR) minR = r;
+                            if (r > maxR) maxR = r;
+                            if (c < minC) minC = c;
+                            if (c > maxC) maxC = c;
+                        }
+                    }
+                }
+
+                const pieceWidth = (maxC - minC + 1) * cellSize;
+                const pieceHeight = (maxR - minR + 1) * cellSize;
+                const startX = (centerX - pieceWidth / 2) / cellSize - minC;
+                const startY = (centerY - pieceHeight / 2) / cellSize - minR;
+
+                for (let r = minR; r <= maxR; r++) {
+                    for (let c = minC; c <= maxC; c++) {
+                        if (matrix[r][c]) {
+                            this.drawGemBlock(ctx, startX + c, startY + r, cellSize, piece.colors, alpha);
+                        }
+                    }
+                }
+            }
+
+            drawHoldAndNext() {
+                // Limpiar y dibujar Reserva (Hold)
+                this.holdCtx.clearRect(0, 0, this.holdCanvas.width, this.holdCanvas.height);
+                if (this.holdPieceId) {
+                    this.drawMiniPiece(
+                        this.holdCtx,
+                        this.holdPieceId,
+                        this.holdCanvas.width / 2,
+                        this.holdCanvas.height / 2,
+                        21,
+                        this.canHold ? 1 : 0.42
+                    );
+                }
+
+                // Limpiar y dibujar Cola de Siguientes (3 piezas)
+                this.nextCtx.clearRect(0, 0, this.nextCanvas.width, this.nextCanvas.height);
+                const slotHeight = this.nextCanvas.height / 3;
+                this.nextQueue.slice(0, 3).forEach((id, idx) => {
+                    const size = idx === 0 ? 21 : 17;
+                    this.drawMiniPiece(
+                        this.nextCtx,
+                        id,
+                        this.nextCanvas.width / 2,
+                        slotHeight * idx + slotHeight / 2,
+                        size,
+                        idx === 0 ? 1 : 0.85
+                    );
+                });
+            }
+
+            drawAll() {
+                this.drawBoard();
+                this.drawHoldAndNext();
+            }
+
+            /**
+             * ============================================================================
+             * PARTÍCULAS Y EFECTOS VISUALES
+             * ============================================================================
+             */
+            spawnParticles(x, y, color, count = 6) {
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 1 + Math.random() * 4.5;
+                    this.particles.push({
+                        x,
+                        y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed - 1.2,
+                        size: 3 + Math.random() * 4,
+                        color,
+                        life: 1.0,
+                        decay: 0.025 + Math.random() * 0.025
+                    });
+                }
+            }
+
+            updateParticles() {
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.14; // Gravedad ligera
+                    p.life -= p.decay;
+                    if (p.life <= 0) {
+                        this.particles.splice(i, 1);
+                    }
+                }
+            }
+
+            drawParticles(ctx) {
+                for (const p of this.particles) {
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, p.life);
+                    ctx.fillStyle = p.color;
+                    ctx.shadowColor = p.color;
+                    ctx.shadowBlur = 8;
+                    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+                    ctx.restore();
+                }
+            }
+
+            showFloatingBanner(text, color = '#fde047', topPx = 160) {
+                const container = document.getElementById('floatingTextContainer');
+                const el = document.createElement('div');
+                el.className = 'floating-banner font-arcade font-black text-sm sm:text-base px-2.5 py-1 rounded-lg';
+                el.style.color = color;
+                el.style.top = `${topPx}px`;
+                el.textContent = text;
+                container.appendChild(el);
+
+                setTimeout(() => {
+                    if (el.parentNode) el.parentNode.removeChild(el);
+                }, 1150);
+            }
+
+            triggerBoardShake() {
+                const boardEl = document.getElementById('boardContainer');
+                boardEl.classList.remove('shake-effect');
+                void boardEl.offsetWidth;
+                boardEl.classList.add('shake-effect');
+            }
+
+            /**
+             * ============================================================================
+             * ACTUALIZACIÓN DE INTERFAZ Y BUCLE PRINCIPAL
+             * ============================================================================
+             */
+            updateScoreUI() {
+                if (this.score > this.highScore) {
+                    this.highScore = this.score;
+                    this.saveHighScore();
+                }
+
+                const formattedScore = this.score.toLocaleString('es-ES');
+                const formattedHigh = this.highScore.toLocaleString('es-ES');
+
+                document.getElementById('desktopScore').textContent = formattedScore;
+                document.getElementById('desktopHighScore').textContent = formattedHigh;
+                document.getElementById('desktopLines').textContent = this.lines;
+                document.getElementById('desktopLevel').textContent = this.level;
+
+                document.getElementById('mobileScore').textContent = formattedScore;
+                document.getElementById('mobileHighScore').textContent = formattedHigh;
+                document.getElementById('mobileLines').textContent = this.lines;
+                document.getElementById('mobileLevel').textContent = this.level;
+            }
+
+            updateHoldStatusUI() {
+                const statusEl = document.getElementById('holdStatusText');
+                if (!this.holdPieceId) {
+                    statusEl.textContent = 'Disponible';
+                    statusEl.className = 'text-[9px] sm:text-[10px] text-blue-300/75 mt-1 font-medium';
+                } else if (this.canHold) {
+                    statusEl.textContent = 'Listo (C)';
+                    statusEl.className = 'text-[9px] sm:text-[10px] text-cyan-300 mt-1 font-bold';
+                } else {
+                    statusEl.textContent = 'En espera';
+                    statusEl.className = 'text-[9px] sm:text-[10px] text-slate-400 mt-1 font-medium';
+                }
+            }
+
+            updateOverlayUI() {
+                const overlay = document.getElementById('gameOverlay');
+                const startView = document.getElementById('overlayStart');
+                const pauseView = document.getElementById('overlayPause');
+                const overView = document.getElementById('overlayGameOver');
+                const pauseIcon = document.getElementById('iconPause');
+
+                startView.classList.add('hidden');
+                startView.classList.remove('flex');
+                pauseView.classList.add('hidden');
+                pauseView.classList.remove('flex');
+                overView.classList.add('hidden');
+                overView.classList.remove('flex');
+
+                if (this.state === 'PLAYING') {
+                    overlay.classList.add('opacity-0', 'pointer-events-none');
+                    pauseIcon.className = 'fa-solid fa-pause';
+                } else {
+                    overlay.classList.remove('opacity-0', 'pointer-events-none');
+                    if (this.state === 'START') {
+                        startView.classList.remove('hidden');
+                        startView.classList.add('flex');
+                    } else if (this.state === 'PAUSED') {
+                        pauseView.classList.remove('hidden');
+                        pauseView.classList.add('flex');
+                        pauseIcon.className = 'fa-solid fa-play';
+                    } else if (this.state === 'GAMEOVER') {
+                        overView.classList.remove('hidden');
+                        overView.classList.add('flex');
+                    }
+                }
+            }
+
+            gameLoop(timestamp) {
+                const deltaTime = timestamp - this.lastTime;
+                this.lastTime = timestamp;
+
+                if (this.state === 'PLAYING') {
+                    this.dropCounter += deltaTime;
+                    const interval = this.getDropInterval();
+
+                    if (this.dropCounter >= interval) {
+                        if (!this.checkCollision(this.currentPiece.x, this.currentPiece.y + 1, this.currentPiece.matrix)) {
+                            this.currentPiece.y++;
+                        } else {
+                            this.lockPiece();
+                        }
+                        this.dropCounter = 0;
+                    }
+                }
+
+                if (this.lineFlashTimer > 0) {
+                    this.lineFlashTimer = Math.max(0, this.lineFlashTimer - deltaTime);
+                }
+
+                this.updateParticles();
+                this.drawAll();
+
+                requestAnimationFrame((t) => this.gameLoop(t));
+            }
+
+            /**
+             * ============================================================================
+             * CONFIGURACIÓN DE EVENTOS (TECLADO, TÁCTIL Y BOTONES)
+             * ============================================================================
+             */
+            initUI() {
+                // Selector de nivel inicial
+                const startLevelDisplay = document.getElementById('startLevelDisplay');
+                document.getElementById('btnLevelDown').addEventListener('click', () => {
+                    this.startLevel = Math.max(1, this.startLevel - 1);
+                    startLevelDisplay.textContent = this.startLevel;
+                    this.audio.move();
+                });
+                document.getElementById('btnLevelUp').addEventListener('click', () => {
+                    this.startLevel = Math.min(15, this.startLevel + 1);
+                    startLevelDisplay.textContent = this.startLevel;
+                    this.audio.move();
+                });
+
+                // Botones de pantallas
+                document.getElementById('btnStartGame').addEventListener('click', () => this.startNewGame());
+                document.getElementById('btnResumeGame').addEventListener('click', () => this.togglePause());
+                document.getElementById('btnRestartFromPause').addEventListener('click', () => this.startNewGame());
+                document.getElementById('btnPlayAgain').addEventListener('click', () => this.startNewGame());
+
+                // Botón Pausa superior
+                document.getElementById('btnPause').addEventListener('click', () => {
+                    if (this.state === 'PLAYING' || this.state === 'PAUSED') {
+                        this.togglePause();
+                    }
+                });
+
+                // Botón Sonido (SFX)
+                const btnSound = document.getElementById('btnSound');
+                const iconSound = document.getElementById('iconSound');
+                btnSound.addEventListener('click', () => {
+                    this.audio.sfxEnabled = !this.audio.sfxEnabled;
+                    iconSound.className = this.audio.sfxEnabled
+                        ? 'fa-solid fa-volume-high text-white'
+                        : 'fa-solid fa-volume-xmark text-rose-300';
+                    if (this.audio.sfxEnabled) this.audio.rotate();
+                });
+
+                // Botón Música Arcade
+                const btnMusic = document.getElementById('btnMusic');
+                const iconMusic = document.getElementById('iconMusic');
+                btnMusic.addEventListener('click', () => {
+                    this.audio.musicEnabled = !this.audio.musicEnabled;
+                    if (this.audio.musicEnabled) {
+                        iconMusic.className = 'fa-solid fa-music text-yellow-300';
+                        if (this.state === 'PLAYING') {
+                            this.audio.startMusic(1 + (this.level - 1) * 0.06);
+                        }
+                    } else {
+                        iconMusic.className = 'fa-solid fa-music text-slate-400';
+                        this.audio.stopMusic();
+                    }
+                });
+
+                // Modal de Ayuda
+                const helpModal = document.getElementById('helpModal');
+                const openHelp = () => {
+                    if (this.state === 'PLAYING') this.togglePause();
+                    helpModal.classList.remove('hidden');
+                    helpModal.classList.add('flex');
+                };
+                const closeHelp = () => {
+                    helpModal.classList.add('hidden');
+                    helpModal.classList.remove('flex');
+                };
+                document.getElementById('btnHelp').addEventListener('click', openHelp);
+                document.getElementById('btnCloseHelp').addEventListener('click', closeHelp);
+                document.getElementById('btnAcceptHelp').addEventListener('click', closeHelp);
+
+                // Clic en el panel de Reserva también guarda pieza
+                document.getElementById('holdPanelCard').addEventListener('click', () => this.holdPiece());
+
+                // Controles por Teclado
+                window.addEventListener('keydown', (e) => {
+                    // Si el modal de ayuda está abierto, cerrarlo con Escape
+                    if (!helpModal.classList.contains('hidden')) {
+                        if (e.key === 'Escape' || e.key === 'Enter') closeHelp();
+                        return;
+                    }
+
+                    // Iniciar o reiniciar con Enter si estamos en pantalla inicial o fin
+                    if ((this.state === 'START' || this.state === 'GAMEOVER') && e.key === 'Enter') {
+                        e.preventDefault();
+                        this.startNewGame();
+                        return;
+                    }
+
+                    if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+                        if (this.state === 'PLAYING' || this.state === 'PAUSED') {
+                            e.preventDefault();
+                            this.togglePause();
+                        }
+                        return;
+                    }
+
+                    if (this.state !== 'PLAYING') return;
+
+                    switch (e.key) {
+                        case 'ArrowLeft':
+                        case 'a':
+                        case 'A':
+                            e.preventDefault();
+                            this.moveHorizontal(-1);
+                            break;
+                        case 'ArrowRight':
+                        case 'd':
+                        case 'D':
+                            e.preventDefault();
+                            this.moveHorizontal(1);
+                            break;
+                        case 'ArrowDown':
+                        case 's':
+                        case 'S':
+                            e.preventDefault();
+                            this.softDrop();
+                            break;
+                        case 'ArrowUp':
+                        case 'x':
+                        case 'X':
+                        case 'w':
+                        case 'W':
+                            e.preventDefault();
+                            this.rotatePiece(1);
+                            break;
+                        case 'z':
+                        case 'Z':
+                        case 'Control':
+                            e.preventDefault();
+                            this.rotatePiece(-1);
+                            break;
+                        case ' ':
+                            e.preventDefault();
+                            this.hardDrop();
+                            break;
+                        case 'c':
+                        case 'C':
+                        case 'Shift':
+                            e.preventDefault();
+                            this.holdPiece();
+                            break;
+                    }
+                });
+
+                // Configurar botones táctiles en pantalla con soporte de repetición suave al mantener presionado
+                this.bindRepeatableButton('touchLeft', () => this.moveHorizontal(-1));
+                this.bindRepeatableButton('touchRight', () => this.moveHorizontal(1));
+                this.bindRepeatableButton('touchDown', () => this.softDrop(), 110, 55);
+                this.bindSingleActionButton('touchRotate', () => this.rotatePiece(1));
+                this.bindSingleActionButton('touchHardDrop', () => this.hardDrop());
+                this.bindSingleActionButton('touchHold', () => this.holdPiece());
+            }
+
+            bindSingleActionButton(elementId, actionFn) {
+                const btn = document.getElementById(elementId);
+                if (!btn) return;
+
+                const handler = (e) => {
+                    e.preventDefault();
+                    btn.classList.add('active-press');
+                    actionFn();
+                    setTimeout(() => btn.classList.remove('active-press'), 100);
+                };
+
+                btn.addEventListener('pointerdown', handler);
+            }
+
+            bindRepeatableButton(elementId, actionFn, initialDelay = 170, repeatRate = 65) {
+                const btn = document.getElementById(elementId);
+                if (!btn) return;
+
+                let timeoutId = null;
+                let intervalId = null;
+
+                const stopRepeat = () => {
+                    btn.classList.remove('active-press');
+                    if (timeoutId) clearTimeout(timeoutId);
+                    if (intervalId) clearInterval(intervalId);
+                    timeoutId = null;
+                    intervalId = null;
+                };
+
+                btn.addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
+                    stopRepeat();
+                    btn.classList.add('active-press');
+                    actionFn();
+                    timeoutId = setTimeout(() => {
+                        intervalId = setInterval(() => {
+                            actionFn();
+                        }, repeatRate);
+                    }, initialDelay);
+                });
+
+                btn.addEventListener('pointerup', stopRepeat);
+                btn.addEventListener('pointerleave', stopRepeat);
+                btn.addEventListener('pointercancel', stopRepeat);
+            }
+        }
+
+        // Inicializar la aplicación al cargar la ventana
+        window.onload = function () {
+            window.tetrisApp = new TetrisGame();
+        };
+    </script>
+</body>
+</html>
