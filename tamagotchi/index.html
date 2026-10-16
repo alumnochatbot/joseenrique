@@ -2,260 +2,621 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tamagotchi 1996 (Generación 1) - Emulador de Mascota Virtual</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tamagotchi 1996 - Edición Pop & Colorida</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;900&family=Press+Start+2P&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --egg-grad-1: #2fe0d8;
+      --egg-grad-2: #08a3b8;
+      --egg-grad-3: #00768b;
+      --egg-border: rgba(255, 255, 255, 0.45);
+      --btn-grad-1: #ffeb3b;
+      --btn-grad-2: #f59e0b;
+      --btn-shadow: #b45309;
+      --pattern-color-1: #ffd15c;
+      --pattern-color-2: #1e293b;
+    }
+
     body {
-      font-family: 'Press Start 2P', monospace;
+      font-family: 'Space Grotesk', sans-serif;
       user-select: none;
       -webkit-user-select: none;
       touch-action: manipulation;
-    }
-    
-    /* Chasis retro con factor de forma de huevo Bandai 1996 */
-    .tamagotchi-egg {
-      width: 330px;
-      height: 430px;
-      border-radius: 50% 50% 48% 48% / 60% 60% 42% 42%;
-      background: radial-gradient(circle at 35% 25%, #4de5d3 0%, #009999 55%, #006666 100%);
-      box-shadow: 
-        inset 0 10px 25px rgba(255, 255, 255, 0.6),
-        inset 0 -12px 30px rgba(0, 0, 0, 0.45),
-        0 20px 40px rgba(0, 0, 0, 0.4),
-        0 4px 10px rgba(0, 0, 0, 0.2);
-      position: relative;
+      overflow-x: hidden;
+      background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #0f172a 60%, #020617 100%);
     }
 
-    /* Aro superior de llavero metálico */
-    .keychain-loop {
+    .pixel-font {
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    .pop-font {
+      font-family: 'Fredoka', cursive, sans-serif;
+    }
+
+    /* Tema 1: Reloj Pop Turquesa (Foto 1 centro inferior) */
+    body.theme-pop-cyan {
+      --egg-grad-1: #38efdd;
+      --egg-grad-2: #0cb7ca;
+      --egg-grad-3: #008797;
+      --egg-border: rgba(255, 255, 255, 0.5);
+      --btn-grad-1: #ffe600;
+      --btn-grad-2: #f59e0b;
+      --btn-shadow: #92400e;
+      --pattern-color-1: #ffde59;
+      --pattern-color-2: #0f172a;
+    }
+
+    /* Tema 2: Rosa Neón Reloj (Foto 1 derecha inferior) */
+    body.theme-neon-pink {
+      --egg-grad-1: #ff4099;
+      --egg-grad-2: #e60067;
+      --egg-grad-3: #990042;
+      --egg-border: rgba(255, 255, 255, 0.55);
+      --btn-grad-1: #00f0ff;
+      --btn-grad-2: #0284c7;
+      --btn-shadow: #0369a1;
+      --pattern-color-1: #00f5ff;
+      --pattern-color-2: #4a044e;
+    }
+
+    /* Tema 3: Uva Translúcida Jelly (Foto 2 centro) */
+    body.theme-jelly-purple {
+      --egg-grad-1: #c084fc;
+      --egg-grad-2: #8b5cf6;
+      --egg-grad-3: #581c87;
+      --egg-border: rgba(255, 255, 255, 0.7);
+      --btn-grad-1: #ff66c4;
+      --btn-grad-2: #db2777;
+      --btn-shadow: #831843;
+      --pattern-color-1: #ffffff;
+      --pattern-color-2: #3b0764;
+    }
+
+    /* Tema 4: Lima Cyber Neón (Foto 2 derecha superior) */
+    body.theme-cyber-lime {
+      --egg-grad-1: #bef264;
+      --egg-grad-2: #84cc16;
+      --egg-grad-3: #4d7c0f;
+      --egg-border: rgba(255, 255, 255, 0.6);
+      --btn-grad-1: #facc15;
+      --btn-grad-2: #ea580c;
+      --btn-shadow: #9a3412;
+      --pattern-color-1: #ffffff;
+      --pattern-color-2: #14532d;
+    }
+
+    /* Tema 5: Pastel Blue Reloj (Foto 1 izquierda inferior) */
+    body.theme-pastel-blue {
+      --egg-grad-1: #7dd3fc;
+      --egg-grad-2: #38bdf8;
+      --egg-grad-3: #0284c7;
+      --egg-border: rgba(255, 255, 255, 0.65);
+      --btn-grad-1: #f472b6;
+      --btn-grad-2: #db2777;
+      --btn-shadow: #9d174d;
+      --pattern-color-1: #c084fc;
+      --pattern-color-2: #0369a1;
+    }
+
+    /* Tema 6: Melocotón Vintage 1996 (Foto 1 izquierda superior) */
+    body.theme-peach-retro {
+      --egg-grad-1: #fdb777;
+      --egg-grad-2: #f97316;
+      --egg-grad-3: #c2410c;
+      --egg-border: rgba(255, 255, 255, 0.5);
+      --btn-grad-1: #fde047;
+      --btn-grad-2: #eab308;
+      --btn-shadow: #854d0e;
+      --pattern-color-1: #fef08a;
+      --pattern-color-2: #7c2d12;
+    }
+
+    .egg-scene {
+      perspective: 1000px;
+    }
+
+    .tamagotchi-egg {
+      width: 340px;
+      height: 450px;
+      border-radius: 50% 50% 48% 48% / 58% 58% 44% 44%;
+      background: radial-gradient(circle at 35% 25%, var(--egg-grad-1) 0%, var(--egg-grad-2) 52%, var(--egg-grad-3) 100%);
+      box-shadow: 
+        inset 0 16px 28px rgba(255, 255, 255, 0.65),
+        inset 0 -18px 36px rgba(0, 0, 0, 0.5),
+        0 25px 50px -12px rgba(0, 0, 0, 0.6),
+        0 8px 20px rgba(0, 0, 0, 0.35);
+      position: relative;
+      transition: transform 0.15s ease-out, box-shadow 0.3s ease;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    /* Aro superior y eslabones de cadena metálica */
+    .keychain-chain {
       position: absolute;
-      top: -18px;
+      top: -30px;
       left: 50%;
       transform: translateX(-50%);
-      width: 44px;
-      height: 28px;
-      border: 6px solid #b3c2c8;
-      border-radius: 50%;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       z-index: 0;
     }
-
-    /* Bisel interior de la pantalla LCD */
-    .screen-bezel {
-      background: #eae2cf;
-      border: 4px solid #3a3a3a;
-      border-radius: 24px;
-      box-shadow: 
-        inset 0 4px 10px rgba(0,0,0,0.5),
-        0 3px 6px rgba(255,255,255,0.4);
-    }
-
-    /* Matriz de pantalla LCD con fondo verde monocromático reflectivo */
-    .lcd-screen {
-      background-color: #9fac88;
-      background-image: 
-        linear-gradient(rgba(142, 156, 122, 0.3) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(142, 156, 122, 0.3) 1px, transparent 1px);
-      background-size: 4px 4px;
-      box-shadow: inset 0 2px 8px rgba(35, 45, 25, 0.45);
-      position: relative;
-    }
-
-    /* Efecto de luz apagada (sueño) */
-    .lcd-screen.lights-off {
-      background-color: #3b4233;
-      filter: brightness(0.65) contrast(1.1);
-    }
-
-    /* Botones físicos estilo gomita retro con relieve */
-    .tamagotchi-btn {
-      width: 48px;
-      height: 48px;
+    .chain-ring {
+      width: 32px;
+      height: 32px;
+      border: 5px solid #cbd5e1;
       border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #ffd15c, #d98200);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 2px 2px #ffffff;
+      background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+    }
+    .chain-link {
+      width: 14px;
+      height: 18px;
+      border: 4px solid #cbd5e1;
+      border-radius: 6px;
+      margin-top: -6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      background: #94a3b8;
+    }
+
+    /* Brillo plástico especular abombado */
+    .egg-specular {
+      position: absolute;
+      top: 14px;
+      left: 45px;
+      width: 120px;
+      height: 65px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0) 75%);
+      transform: rotate(-25deg);
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    .clock-patterns {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 2;
+      overflow: hidden;
+    }
+
+    .clock-num {
+      position: absolute;
+      font-family: 'Fredoka', cursive, sans-serif;
+      font-weight: 900;
+      line-height: 1;
+      text-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+      color: var(--pattern-color-1);
+    }
+    .num-12 { top: 38px; left: 50%; transform: translateX(-50%); font-size: 34px; }
+    .num-3  { top: 220px; right: 18px; font-size: 36px; }
+    .num-6  { bottom: 35px; left: 50%; transform: translateX(-50%); font-size: 38px; }
+    .num-9  { top: 220px; left: 18px; font-size: 36px; }
+
+    /* Bisel exterior de la pantalla */
+    .screen-bezel {
+      width: 254px;
+      background: #e2dbce;
+      border: 4px solid #1e293b;
+      border-radius: 20px;
       box-shadow: 
-        0 6px 0 #8c5200,
-        0 8px 10px rgba(0,0,0,0.4),
-        inset 0 2px 2px rgba(255,255,255,0.6);
-      transition: all 0.08s ease;
+        inset 0 6px 14px rgba(0, 0, 0, 0.6),
+        0 4px 8px rgba(255, 255, 255, 0.4);
+      position: relative;
+      z-index: 10;
+    }
+
+    .star-badge {
+      transition: all 0.12s ease;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+    }
+    .star-badge:hover {
+      transform: scale(1.15);
+    }
+    .star-badge.active {
+      filter: drop-shadow(0 0 6px rgba(255, 235, 59, 0.9));
+      animation: bounce-star 0.7s infinite alternate ease-in-out;
+    }
+    .star-badge.attention-pulse {
+      animation: alert-flash 0.5s infinite alternate ease-in-out;
     }
 
-    .tamagotchi-btn:active, .tamagotchi-btn.pressed {
-      transform: translateY(4px);
+    @keyframes bounce-star {
+      0% { transform: scale(1.05) translateY(0); }
+      100% { transform: scale(1.22) translateY(-2px); }
+    }
+    @keyframes alert-flash {
+      0% { transform: scale(1.0); filter: drop-shadow(0 0 2px #ef4444); }
+      100% { transform: scale(1.25); filter: drop-shadow(0 0 10px #f43f5e); }
+    }
+
+    /* Fondo de ondas psicodélicas original (1996 P1) */
+    .psychedelic-lcd-frame {
+      background-color: #cbd87a;
+      background-image: 
+        radial-gradient(#1e293b 12%, transparent 13%),
+        repeating-radial-gradient(circle at 50% 50%, #cbd87a, #cbd87a 10px, #52aba4 10px, #52aba4 22px);
       box-shadow: 
-        0 2px 0 #8c5200,
-        0 3px 5px rgba(0,0,0,0.4),
-        inset 0 1px 2px rgba(0,0,0,0.4);
+        inset 0 3px 8px rgba(0, 0, 0, 0.5),
+        0 1px 2px rgba(255, 255, 255, 0.6);
+      position: relative;
+      overflow: hidden;
     }
 
-    /* Iconos perimetrales originales */
-    .icon-badge {
-      transition: all 0.15s ease;
-      image-rendering: pixelated;
-      color: #39442a;
-    }
-    .icon-badge.active {
-      color: #0b1406;
-      background-color: #1b2612;
-      color: #9fac88;
-      border-radius: 4px;
-      box-shadow: 0 0 0 2px #1b2612;
-      animation: pulse-icon 0.8s infinite alternate;
-    }
-    .icon-badge.attention-active {
-      animation: alert-blink 0.5s infinite alternate;
-      background-color: #1b2612;
-      color: #9fac88;
-      border-radius: 4px;
+    /* Efecto de luz apagada (modo descanso) */
+    .psychedelic-lcd-frame.lights-off {
+      filter: brightness(0.25) contrast(1.3);
     }
 
-    @keyframes pulse-icon {
-      0% { opacity: 0.85; transform: scale(1.0); }
-      100% { opacity: 1; transform: scale(1.12); }
-    }
-
-    @keyframes alert-blink {
-      0% { opacity: 0.2; }
-      100% { opacity: 1; }
-    }
-
+    /* Matriz LCD */
     canvas {
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
+
+    .tamagotchi-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, var(--btn-grad-1), var(--btn-grad-2));
+      box-shadow: 
+        0 6px 0 var(--btn-shadow),
+        0 9px 12px rgba(0, 0, 0, 0.45),
+        inset 0 3px 3px rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.08s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.08s ease;
+    }
+
+    .tamagotchi-btn:active, .tamagotchi-btn.pressed {
+      transform: translateY(5px);
+      box-shadow: 
+        0 1px 0 var(--btn-shadow),
+        0 3px 6px rgba(0, 0, 0, 0.5),
+        inset 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Ranuras de altavoz decorativas */
+    .speaker-holes {
+      display: flex;
+      gap: 6px;
+    }
+    .speaker-hole {
+      width: 6px;
+      height: 6px;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 50%;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.7), 0 1px 1px rgba(255,255,255,0.3);
+    }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-3 select-none">
+<body class="theme-pop-cyan min-h-screen flex flex-col items-center justify-center p-3 select-none text-slate-100">
 
-  <!-- Contenedor Superior: Título y Ayuda Rápida -->
-  <header class="mb-4 text-center">
-    <h1 class="text-xs sm:text-sm tracking-widest text-teal-300 drop-shadow mb-1">BANDAI 1996 EMULATION</h1>
-    <p class="text-[9px] text-slate-400 font-sans tracking-normal">Motor FSM con Progresión Offline Delta-Time & Audio 1-Bit Piezo</p>
+  <!-- Selector Rápido de Carcasas Coloridas (Inspiradas en las fotos del usuario) -->
+  <header class="w-full max-w-md flex flex-col items-center mb-3">
+    <div class="flex items-center justify-between w-full px-2 mb-2">
+      <div class="flex items-center gap-1.5">
+        <span class="text-xl">✨</span>
+        <h1 class="text-xs sm:text-sm font-black tracking-wider uppercase text-amber-300 drop-shadow">Tamagotchi 1996 Color</h1>
+      </div>
+      <!-- Botón de Audio Rápido -->
+      <button id="toggleAudioBtn" class="flex items-center gap-1 bg-slate-800/80 hover:bg-slate-700 px-2.5 py-1 rounded-full text-[10px] text-teal-300 border border-slate-600 transition shadow">
+        <span id="audioIcon">🔊</span> <span id="audioStatus">AUDIO ON</span>
+      </button>
+    </div>
+
+    <!-- Carrusel de Temas Coloridos -->
+    <div class="flex items-center gap-2 overflow-x-auto py-1 px-2 w-full justify-center bg-slate-900/60 rounded-xl border border-slate-800 backdrop-blur">
+      <button onclick="setShellTheme('theme-pop-cyan')" class="theme-pill px-2.5 py-1 rounded-lg text-[9px] font-bold bg-teal-500 text-slate-950 shadow hover:scale-105 transition" title="Reloj Turquesa">
+        Turquesa Pop
+      </button>
+      <button onclick="setShellTheme('theme-neon-pink')" class="theme-pill px-2.5 py-1 rounded-lg text-[9px] font-bold bg-pink-500 text-white shadow hover:scale-105 transition" title="Rosa Neón">
+        Rosa Neón
+      </button>
+      <button onclick="setShellTheme('theme-jelly-purple')" class="theme-pill px-2.5 py-1 rounded-lg text-[9px] font-bold bg-purple-600 text-white shadow hover:scale-105 transition" title="Uva Jelly">
+        Uva Jelly
+      </button>
+      <button onclick="setShellTheme('theme-cyber-lime')" class="theme-pill px-2.5 py-1 rounded-lg text-[9px] font-bold bg-lime-500 text-slate-950 shadow hover:scale-105 transition" title="Lima Neón">
+        Lima Cyber
+      </button>
+      <button onclick="setShellTheme('theme-pastel-blue')" class="theme-pill px-2.5 py-1 rounded-lg text-[9px] font-bold bg-sky-400 text-slate-950 shadow hover:scale-105 transition" title="Azul Pastel">
+        Azul Pastel
+      </button>
+      <button onclick="setShellTheme('theme-peach-retro')" class="theme-pill px-2.5 py-1 rounded-lg text-[9px] font-bold bg-orange-400 text-slate-950 shadow hover:scale-105 transition" title="Melocotón '96">
+        Retro Peach
+      </button>
+    </div>
   </header>
 
-  <!-- Chasis Tamagotchi -->
-  <main class="relative z-10 flex flex-col items-center">
-    <div class="keychain-loop"></div>
+  <main class="egg-scene relative z-10 flex flex-col items-center">
+    
+    <!-- Llavero Superior -->
+    <div class="keychain-chain">
+      <div class="chain-ring"></div>
+      <div class="chain-link"></div>
+    </div>
 
-    <div class="tamagotchi-egg flex flex-col items-center pt-8 px-6 pb-6 border-2 border-teal-200/30">
+    <!-- Huevo Tamagotchi -->
+    <div id="tamagotchiEgg" class="tamagotchi-egg flex flex-col items-center pt-8 px-5 pb-5">
       
-      <!-- Detalle superior: Logotipo estilo retro -->
-      <div class="text-[10px] tracking-widest font-black text-amber-200/90 mb-3 drop-shadow flex items-center gap-1">
-        <span>●</span> TAMAGOTCHI <span>●</span>
+      <!-- Reflejo Especular Plástico -->
+      <div class="egg-specular"></div>
+
+      <!-- Números y Flechas Estilo Reloj (Reproduciendo la edición clásica en la foto) -->
+      <div class="clock-patterns">
+        <span class="clock-num num-12">12</span>
+        <span class="clock-num num-3">3</span>
+        <span class="clock-num num-6">6</span>
+        <span class="clock-num num-9">9</span>
+        <!-- Flechas de serigrafía retro -->
+        <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-40" viewBox="0 0 340 450" fill="none" stroke="currentColor">
+          <path d="M 120 45 Q 170 30 220 45" stroke="var(--pattern-color-2)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M 315 160 Q 330 225 315 290" stroke="var(--pattern-color-2)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M 220 410 Q 170 425 120 410" stroke="var(--pattern-color-2)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M 25 290 Q 10 225 25 160" stroke="var(--pattern-color-2)" stroke-width="4" stroke-linecap="round"/>
+        </svg>
       </div>
 
-      <!-- Pantalla Enmarcada -->
-      <div class="screen-bezel p-3 w-[260px] flex flex-col items-center">
+      <!-- Logotipo Bandai 1996 -->
+      <div class="relative z-10 text-[9px] tracking-widest font-black text-slate-900 bg-white/70 px-3 py-0.5 rounded-full mb-3 shadow flex items-center gap-1.5 border border-black/10">
+        <span class="text-red-500">★</span> TAMAGOTCHI <span class="text-red-500">★</span>
+      </div>
+
+      <div class="screen-bezel p-2.5 flex flex-col items-center">
         
-        <!-- Fila Superior de Iconos (1-4) -->
-        <div class="w-full flex justify-between items-center px-2 py-1 mb-1 text-[13px] font-bold border-b border-[#7a8a68]/40">
-          <div id="icon-0" class="icon-badge p-1" title="Alimentar (Meal / Snack)">🍚</div>
-          <div id="icon-1" class="icon-badge p-1" title="Luz (Encender / Apagar)">💡</div>
-          <div id="icon-2" class="icon-badge p-1" title="Juego (Left / Right)">🎮</div>
-          <div id="icon-3" class="icon-badge p-1" title="Medicina">💉</div>
+        <!-- Banda Superior: 4 Estrellas (Alimentar, Luz, Juego, Medicina) -->
+        <div class="w-full flex justify-between items-center px-1 mb-1.5 border-b-2 border-stone-400/40 pb-1">
+          <!-- Estrella 1: Tenedor y Cuchillo -->
+          <div id="star-0" class="star-badge w-10 h-10" title="Alimentar (Meal/Snack)">
+            <svg class="w-9 h-9" viewBox="0 0 64 64">
+              <polygon points="32,2 40,22 62,22 44,36 51,58 32,44 13,58 20,36 2,22 24,22" fill="#ffd54f" stroke="#e0a800" stroke-width="2"/>
+              <path d="M25 18 L25 30 M28 18 L28 30 M22 18 L22 25 Q22 30 25 30 L25 46 M39 18 Q43 25 43 32 L39 32 L39 46" stroke="#1b2612" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <!-- Estrella 2: Bombilla con Corazón -->
+          <div id="star-1" class="star-badge w-10 h-10" title="Luz (On/Off)">
+            <svg class="w-9 h-9" viewBox="0 0 64 64">
+              <polygon points="32,2 40,22 62,22 44,36 51,58 32,44 13,58 20,36 2,22 24,22" fill="#ffd54f" stroke="#e0a800" stroke-width="2"/>
+              <circle cx="32" cy="30" r="11" fill="none" stroke="#1b2612" stroke-width="2.5"/>
+              <path d="M28 28 Q30 24 32 28 Q34 24 36 28 Q36 32 32 35 Q28 32 28 28 Z" fill="#1b2612"/>
+              <path d="M29 41 L35 41 M30 44 L34 44" stroke="#1b2612" stroke-width="2"/>
+            </svg>
+          </div>
+
+          <!-- Estrella 3: Bate y Pelota de Béisbol (Turquesa según foto) -->
+          <div id="star-2" class="star-badge w-10 h-10" title="Juego (Left/Right)">
+            <svg class="w-9 h-9" viewBox="0 0 64 64">
+              <polygon points="32,2 40,22 62,22 44,36 51,58 32,44 13,58 20,36 2,22 24,22" fill="#4dd0e1" stroke="#00acc1" stroke-width="2"/>
+              <circle cx="24" cy="24" r="5" fill="none" stroke="#1b2612" stroke-width="2"/>
+              <line x1="28" y1="42" x2="44" y2="22" stroke="#1b2612" stroke-width="4.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <!-- Estrella 4: Jeringa Médica -->
+          <div id="star-3" class="star-badge w-10 h-10" title="Medicina">
+            <svg class="w-9 h-9" viewBox="0 0 64 64">
+              <polygon points="32,2 40,22 62,22 44,36 51,58 32,44 13,58 20,36 2,22 24,22" fill="#ffd54f" stroke="#e0a800" stroke-width="2"/>
+              <rect x="26" y="24" width="12" height="18" fill="none" stroke="#1b2612" stroke-width="2.5" rx="2" transform="rotate(-30 32 33)"/>
+              <line x1="39" y1="18" x2="44" y2="15" stroke="#1b2612" stroke-width="3" stroke-linecap="round"/>
+              <line x1="20" y1="48" x2="25" y2="40" stroke="#1b2612" stroke-width="2.5"/>
+            </svg>
+          </div>
         </div>
 
-        <!-- Canvas LCD Principal (Resolución nativa lógica 32x16 píxeles escalada a 240x120) -->
-        <div id="lcd-container" class="lcd-screen rounded p-1 border border-[#6b7b59]">
-          <canvas id="lcdCanvas" width="240" height="128" class="block"></canvas>
+        <div id="lcdWrapper" class="psychedelic-lcd-frame w-[230px] h-[140px] rounded-lg border-2 border-slate-700/80 flex items-center justify-center p-1">
+          <canvas id="lcdCanvas" width="280" height="160" class="w-full h-full block"></canvas>
         </div>
 
-        <!-- Fila Inferior de Iconos (5-8) -->
-        <div class="w-full flex justify-between items-center px-2 py-1 mt-1 text-[13px] font-bold border-t border-[#7a8a68]/40">
-          <div id="icon-4" class="icon-badge p-1" title="Limpieza / Inodoro">🚽</div>
-          <div id="icon-5" class="icon-badge p-1" title="Báscula y Estado">⚖️</div>
-          <div id="icon-6" class="icon-badge p-1" title="Disciplina">📢</div>
-          <div id="icon-7" class="icon-badge p-1" title="Atención (Alarma)">🚨</div>
+        <!-- Banda Inferior: 4 Estrellas (Patito, Báscula, Disciplina, Atención) -->
+        <div class="w-full flex justify-between items-center px-1 mt-1.5 border-t-2 border-stone-400/40 pt-1">
+          <!-- Estrella 5: Patito de Baño (Turquesa) -->
+          <div id="star-4" class="star-badge w-10 h-10" title="Baño / Limpieza">
+            <svg class="w-9 h-9" viewBox="0 0 64 64">
+              <polygon points="32,2 40,22 62,22 44,36 51,58 32,44 13,58 20,36 2,22 24,22" fill="#4dd0e1" stroke="#00acc1" stroke-width="2"/>
+              <path d="M22 36 Q19 32 23 28 Q27 25 32 28 Q34 32 40 32 Q44 32 46 36 Q48 42 40 43 L26 43 Q20 42 22 36 Z" fill="none" stroke="#1b2612" stroke-width="2.5"/>
+              <circle cx="26" cy="28" r="1.5" fill="#1b2612"/>
+            </svg>
+          </div>
+
+          <!-- Estrella 6: Báscula / Balanza -->
+          <div id="star-5" class="star-badge w-10 h-10" title="Báscula y Estadísticas">
+            <svg class="w-9 h-9" viewBox="0 0 64 64">
+              <polygon points="32,2 40,22 62,22 44,36 51,58 32,44 13,58 20,36 2,22 24,22" fill="#ffd54f" stroke="#e0a800" stroke-width="2"/>
+              <path d="M20 43 L24 25 Q32 20 40 25 L44 43 Z" fill="none" stroke="#1b2612" stroke-width="2.5"/>
+              <line x1="32" y1="40" x2="32" y2="28" stroke="#1b2612" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <!-- Estrella 7: Megáfono / Disciplina -->
+          <div id="star-6" class="star-badge w-10 h-10" title="Disciplina">
+            <svg class="w-9 h-9" viewBox="0 0 64 64">
+              <polygon points="32,2 40,22 62,22 44,36 51,58 32,44 13,58 20,36 2,22 24,22" fill="#ffd54f" stroke="#e0a800" stroke-width="2"/>
+              <path d="M22 33 A 7 7 0 1 1 29 27 L 22 33 Z" fill="#1b2612"/>
+              <path d="M33 26 L38 30 L34 34 L39 38" fill="none" stroke="#1b2612" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <!-- Estrella 8: Rostros Cacahuete (Atención) -->
+          <div id="star-7" class="star-badge w-10 h-10" title="Alerta de Atención">
+            <svg class="w-9 h-9" viewBox="0 0 64 64">
+              <polygon points="32,2 40,22 62,22 44,36 51,58 32,44 13,58 20,36 2,22 24,22" fill="#ffd54f" stroke="#e0a800" stroke-width="2"/>
+              <path d="M24 33 Q20 25 28 25 Q32 29 36 25 Q44 25 40 33 Q44 41 36 41 Q32 37 28 41 Q20 41 24 33 Z" fill="none" stroke="#1b2612" stroke-width="2.5"/>
+              <circle cx="26" cy="32" r="1.5" fill="#1b2612"/>
+              <circle cx="38" cy="32" r="1.5" fill="#1b2612"/>
+            </svg>
+          </div>
         </div>
 
       </div>
 
-      <!-- Distribución de Botones Físicos [A], [B], [C] -->
-      <div class="mt-7 flex items-center justify-between w-full px-4">
-        <!-- Botón A: Select / Cursor -->
+      <div class="mt-6 flex items-center justify-between w-full px-5 relative z-10">
+        <!-- Botón A: SELECT -->
         <div class="flex flex-col items-center">
-          <button id="btnA" class="tamagotchi-btn flex items-center justify-center font-bold text-amber-950 text-xs active:outline-none" aria-label="Botón A: Seleccionar">A</button>
-          <span class="text-[8px] text-teal-100 font-bold mt-1 tracking-tighter">SELECT</span>
+          <button id="btnA" class="tamagotchi-btn flex items-center justify-center font-black text-amber-950 text-xs active:outline-none" aria-label="Botón A: Seleccionar">A</button>
+          <span class="text-[9px] font-black tracking-tight text-slate-900 mt-1 drop-shadow-sm">SELECT</span>
         </div>
 
-        <!-- Botón B: Execute / Confirm / Stats directo -->
+        <!-- Botón B: EXECUTE (Arco ergonómico descendido) -->
         <div class="flex flex-col items-center mt-3">
-          <button id="btnB" class="tamagotchi-btn flex items-center justify-center font-bold text-amber-950 text-xs active:outline-none" aria-label="Botón B: Confirmar">B</button>
-          <span class="text-[8px] text-teal-100 font-bold mt-1 tracking-tighter">EXECUTE</span>
+          <button id="btnB" class="tamagotchi-btn flex items-center justify-center font-black text-amber-950 text-xs active:outline-none" aria-label="Botón B: Confirmar">B</button>
+          <span class="text-[9px] font-black tracking-tight text-slate-900 mt-1 drop-shadow-sm">EXECUTE</span>
         </div>
 
-        <!-- Botón C: Cancel / Status screen -->
+        <!-- Botón C: CANCEL -->
         <div class="flex flex-col items-center">
-          <button id="btnC" class="tamagotchi-btn flex items-center justify-center font-bold text-amber-950 text-xs active:outline-none" aria-label="Botón C: Cancelar">C</button>
-          <span class="text-[8px] text-teal-100 font-bold mt-1 tracking-tighter">CANCEL</span>
+          <button id="btnC" class="tamagotchi-btn flex items-center justify-center font-black text-amber-950 text-xs active:outline-none" aria-label="Botón C: Cancelar">C</button>
+          <span class="text-[9px] font-black tracking-tight text-slate-900 mt-1 drop-shadow-sm">CANCEL</span>
         </div>
       </div>
 
-      <!-- Combo reset hint -->
-      <div class="text-[7px] text-teal-200/80 mt-4 tracking-tighter text-center">
-        [A] + [C] Resetear / Nueva Generación
+      <!-- Orificios de Altavoz Decorativos -->
+      <div class="speaker-holes mt-4">
+        <div class="speaker-hole"></div>
+        <div class="speaker-hole"></div>
+        <div class="speaker-hole"></div>
+      </div>
+
+      <div class="text-[8px] font-bold text-slate-900/80 mt-1 tracking-wider text-center">
+        [A] + [C] Reiniciar Huevo
       </div>
     </div>
   </main>
-  <!-- Panel de Diagnóstico, Viaje en el Tiempo (Time-Warp) y Pruebas Fieles -->
-  <footer class="mt-4 max-w-md w-full bg-slate-800/80 backdrop-blur rounded-lg p-3 border border-slate-700 text-[10px] text-slate-300">
-    <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-2">
-      <span class="font-bold text-teal-400">HERRAMIENTAS DE PRUEBA 1996</span>
-      <span id="debugStageBadge" class="px-2 py-0.5 rounded bg-teal-900 text-teal-200 text-[8px]">EGG</span>
+
+  <section class="mt-4 max-w-md w-full bg-slate-900/90 backdrop-blur rounded-2xl p-4 border border-slate-800 shadow-2xl">
+    
+    <!-- Encabezado de Estadísticas con Letra Grande y Legible -->
+    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-base">📊</span>
+        <span class="text-xs font-black tracking-wider text-amber-300">ESTADÍSTICAS EN TIEMPO REAL</span>
+      </div>
+      <span id="badgeStage" class="px-2.5 py-0.5 rounded-full bg-teal-950 text-teal-300 border border-teal-700/60 font-bold text-xs uppercase">
+        TEEN (TAMATCHI)
+      </span>
     </div>
 
-    <!-- Controles de simulación temporal offline -->
-    <div class="grid grid-cols-3 gap-2 mb-2">
-      <button id="sim15m" class="bg-slate-700 hover:bg-slate-600 active:scale-95 text-slate-200 py-1 px-1 rounded text-center text-[8px] transition">
-        +15m (Offline)
-      </button>
-      <button id="sim1h" class="bg-slate-700 hover:bg-slate-600 active:scale-95 text-slate-200 py-1 px-1 rounded text-center text-[8px] transition">
-        +1 Hora
-      </button>
-      <button id="sim4h" class="bg-slate-700 hover:bg-slate-600 active:scale-95 text-slate-200 py-1 px-1 rounded text-center text-[8px] transition">
-        +4 Horas
-      </button>
+    <!-- Tablero de Métricas con Números Grandes y Colores Vibrantes -->
+    <div class="grid grid-cols-2 gap-2.5 mb-3">
+      
+      <!-- Hambre con Corazones Grandes -->
+      <div class="bg-slate-800/80 rounded-xl p-2.5 border border-slate-700/60 flex flex-col justify-between">
+        <div class="flex justify-between items-center text-xs font-bold text-rose-300 mb-1">
+          <span>HAMBRE</span>
+          <span id="txtHungerNum" class="text-sm font-black text-white">4/4</span>
+        </div>
+        <div id="meterHungerHearts" class="flex gap-1.5 text-lg">
+          ❤️❤️❤️❤️
+        </div>
+      </div>
+
+      <!-- Felicidad con Corazones Grandes -->
+      <div class="bg-slate-800/80 rounded-xl p-2.5 border border-slate-700/60 flex flex-col justify-between">
+        <div class="flex justify-between items-center text-xs font-bold text-amber-300 mb-1">
+          <span>FELICIDAD</span>
+          <span id="txtHappyNum" class="text-sm font-black text-white">4/4</span>
+        </div>
+        <div id="meterHappyHearts" class="flex gap-1.5 text-lg">
+          💛💛💛💛
+        </div>
+      </div>
+
+      <!-- Disciplina con Barra Grande -->
+      <div class="bg-slate-800/80 rounded-xl p-2.5 border border-slate-700/60 flex flex-col justify-between">
+        <div class="flex justify-between items-center text-xs font-bold text-indigo-300 mb-1">
+          <span>DISCIPLINA</span>
+          <span id="txtDisciplineNum" class="text-sm font-black text-white">75%</span>
+        </div>
+        <div class="w-full bg-slate-700 h-3 rounded-full overflow-hidden p-0.5">
+          <div id="barDiscipline" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-300" style="width: 75%;"></div>
+        </div>
+      </div>
+
+      <!-- Peso y Edad -->
+      <div class="bg-slate-800/80 rounded-xl p-2.5 border border-slate-700/60 flex justify-around items-center">
+        <div class="text-center">
+          <div class="text-[10px] text-slate-400 font-bold uppercase">PESO</div>
+          <div class="text-base font-black text-teal-300"><span id="txtWeight">15</span> <span class="text-xs">kg</span></div>
+        </div>
+        <div class="w-px h-8 bg-slate-700"></div>
+        <div class="text-center">
+          <div class="text-[10px] text-slate-400 font-bold uppercase">EDAD</div>
+          <div class="text-base font-black text-amber-300"><span id="txtAge">2</span> <span class="text-xs">días</span></div>
+        </div>
+      </div>
+
     </div>
 
-    <div class="grid grid-cols-2 gap-2 mb-2">
-      <button id="simSnacks" class="bg-amber-900/40 hover:bg-amber-800/60 active:scale-95 text-amber-200 py-1 px-2 rounded text-left text-[8px] transition">
-        🍬 Forzar 4 Snacks (Enfermar)
-      </button>
-      <button id="simAttention" class="bg-rose-900/40 hover:bg-rose-800/60 active:scale-95 text-rose-200 py-1 px-2 rounded text-left text-[8px] transition">
-        📢 Llamada Falsa (Disciplina)
-      </button>
+    <!-- Indicadores Auxiliares: Heces, Enfermedad, Faltas de Cuidado -->
+    <div class="flex items-center justify-between bg-slate-950/70 rounded-xl p-2.5 text-xs border border-slate-800 mb-3">
+      <div class="flex items-center gap-1.5">
+        <span>💩</span>
+        <span class="text-slate-400 font-semibold">Heces:</span>
+        <span id="txtPoop" class="font-black text-amber-400">0</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span>⚠️</span>
+        <span class="text-slate-400 font-semibold">Care Misses:</span>
+        <span id="txtMisses" class="font-black text-rose-400">0</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span id="txtSickBadge" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-950 text-emerald-400 border border-emerald-800">
+          SANO
+        </span>
+      </div>
     </div>
 
-    <!-- Monitor en tiempo real de métricas internas -->
-    <div class="bg-slate-900/90 rounded p-2 text-[9px] font-mono grid grid-cols-2 gap-x-2 gap-y-1 text-slate-400 border border-slate-800">
-      <div>Hambre: <span id="dbgHunger" class="text-white">0</span>/4</div>
-      <div>Felicidad: <span id="dbgHappy" class="text-white">0</span>/4</div>
-      <div>Peso: <span id="dbgWeight" class="text-white">5</span> kg</div>
-      <div>Disciplina: <span id="dbgDiscipline" class="text-white">0</span>%</div>
-      <div>Heces: <span id="dbgPoop" class="text-white">0</span>/4</div>
-      <div>Care Misses: <span id="dbgMisses" class="text-rose-400">0</span></div>
-      <div>Enfermo: <span id="dbgSick" class="text-white">No</span></div>
-      <div>Luz: <span id="dbgLight" class="text-white">Encendida</span></div>
+    <!-- Controles Rápidos de Avance Temporal (Time-Warp) -->
+    <div class="border-t border-slate-800 pt-2.5">
+      <div class="text-[10px] text-slate-400 font-bold mb-1.5 flex justify-between items-center">
+        <span>HERRAMIENTAS DE VIAJE EN EL TIEMPO</span>
+        <span class="text-[9px] text-slate-500">Pruebas mecánicas</span>
+      </div>
+      <div class="grid grid-cols-4 gap-1.5 mb-2">
+        <button id="sim15m" class="bg-slate-800 hover:bg-slate-700 text-teal-300 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 shadow">
+          +15m
+        </button>
+        <button id="sim1h" class="bg-slate-800 hover:bg-slate-700 text-teal-300 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 shadow">
+          +1 Hora
+        </button>
+        <button id="sim4h" class="bg-slate-800 hover:bg-slate-700 text-teal-300 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 shadow">
+          +4 Horas
+        </button>
+        <button id="sim1d" class="bg-slate-800 hover:bg-slate-700 text-teal-300 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 shadow">
+          +1 Día
+        </button>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="simSnackOverdose" class="bg-amber-950/60 hover:bg-amber-900/80 border border-amber-800/50 text-amber-300 py-1.5 px-2 rounded-lg text-xs font-bold transition active:scale-95 text-center">
+          🍬 4 Snacks (Enfermar)
+        </button>
+        <button id="simFakeCall" class="bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800/50 text-purple-300 py-1.5 px-2 rounded-lg text-xs font-bold transition active:scale-95 text-center">
+          📢 Llamada Falsa (Disciplina)
+        </button>
+      </div>
     </div>
-    <div class="text-[8px] text-slate-500 mt-2 text-center">
-      Teclado: [A]=Izquierda/A | [B]=Espacio/S/Enter | [C]=Escape/D
-    </div>
-  </footer>
+  </section>
 
   <script>
     /**
-     * Motor de Audio Piezocerámico de 1-bit mediante Web Audio API pura
-     * Emula los pitidos rígidos de onda cuadrada a 3.2 kHz del zumbador original
+     * Motor de Audio Piezocerámico 1-bit Web Audio API
      */
-    class PiezoAudio {
+    class PiezoBuzzer {
       constructor() {
         this.ctx = null;
-        this.muted = false;
+        this.isMuted = false;
       }
 
       init() {
@@ -271,7 +632,7 @@
       }
 
       playTone(freq, durationMs) {
-        if (this.muted) return;
+        if (this.isMuted) return;
         this.init();
         if (!this.ctx) return;
 
@@ -279,10 +640,10 @@
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
 
-          osc.type = 'square'; // 1-bit puro
+          osc.type = 'square';
           osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
 
-          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.09, this.ctx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + (durationMs / 1000));
 
           osc.connect(gain);
@@ -295,55 +656,74 @@
         }
       }
 
-      playSelect() {
-        this.playTone(3200, 35);
-      }
-
+      playSelect() { this.playTone(3200, 35); }
       playExecute() {
-        this.playTone(2800, 40);
-        setTimeout(() => this.playTone(3600, 60), 50);
+        this.playTone(2800, 45);
+        setTimeout(() => this.playTone(3600, 70), 55);
       }
-
-      playCancel() {
-        this.playTone(1800, 45);
-      }
-
+      playCancel() { this.playTone(1800, 45); }
       playRefusal() {
-        this.playTone(650, 140);
-        setTimeout(() => this.playTone(550, 200), 160);
+        this.playTone(650, 130);
+        setTimeout(() => this.playTone(550, 190), 150);
       }
-
       playHappy() {
-        const tones = [2093, 2637, 3136, 4186];
-        tones.forEach((freq, idx) => {
-          setTimeout(() => this.playTone(freq, 70), idx * 80);
+        [2093, 2637, 3136, 4186].forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 65), i * 75);
         });
       }
-
-      playAlertSiren() {
+      playAttention() {
         for (let i = 0; i < 4; i++) {
-          setTimeout(() => this.playTone(3200, 100), i * 220);
-          setTimeout(() => this.playTone(2400, 100), i * 220 + 110);
+          setTimeout(() => this.playTone(3200, 90), i * 200);
+          setTimeout(() => this.playTone(2400, 90), i * 200 + 100);
         }
-      }
-
-      playDeathMelody() {
-        const tones = [1200, 1050, 900, 750, 600];
-        tones.forEach((freq, idx) => {
-          setTimeout(() => this.playTone(freq, 220), idx * 260);
-        });
       }
     }
 
-    const audio = new PiezoAudio();
+    const buzzer = new PiezoBuzzer();
 
     /**
-     * Banco de Sprites en matrices binarias (16 filas de 16 píxeles)
-     * 1 = Píxel negro LCD (#1b2612)
-     * 0 = Fondo transparente
+     * Sprites 16x16 oficiales Bandai 1996
      */
     const SPRITES = {
-      egg: [
+      // Tamatchi (Adolescente exacto de la foto del usuario)
+      tamatchi_walk_1: [
+        [0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0],
+        [0,0,1,1,1,1,1,0,0,1,1,1,1,1,0,0],
+        [0,0,1,1,1,1,1,0,0,1,1,1,1,1,0,0],
+        [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+        [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+        [0,1,1,0,0,1,1,1,1,1,1,0,0,1,1,0],
+        [0,1,1,0,0,1,1,1,1,1,1,0,0,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1],
+        [1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1],
+        [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+        [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+        [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+        [0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0],
+        [0,1,1,1,0,0,0,0,0,0,0,0,1,1,0,0],
+        [0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0]
+      ],
+      tamatchi_walk_2: [
+        [0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0],
+        [0,0,1,1,1,1,1,0,0,1,1,1,1,1,0,0],
+        [0,0,1,1,1,1,1,0,0,1,1,1,1,1,0,0],
+        [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+        [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+        [0,1,1,0,0,1,1,1,1,1,1,0,0,1,1,0],
+        [0,1,1,0,0,1,1,1,1,1,1,0,0,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1],
+        [1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1],
+        [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+        [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+        [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+        [0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0],
+        [0,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0]
+      ],
+      // Huevo clásico
+      egg_1: [
         [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
         [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
         [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
@@ -359,28 +739,10 @@
         [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
         [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
         [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0],
-        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0]
       ],
-      egg_wobble: [
-        [0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0],
-        [0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0],
-        [0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0],
-        [0,0,1,0,0,1,1,0,0,1,1,0,0,0,1,0],
-        [0,1,0,0,1,1,1,1,1,1,1,1,0,0,1,0],
-        [0,1,0,0,1,1,1,1,1,1,1,1,0,0,1,0],
-        [1,0,0,0,0,1,1,1,1,1,1,0,0,0,0,1],
-        [1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1],
-        [1,0,0,1,1,0,0,0,0,1,1,0,0,0,0,1],
-        [1,0,1,1,1,1,0,0,1,1,1,1,0,0,0,1],
-        [1,0,1,1,1,1,0,0,1,1,1,1,0,0,0,1],
-        [0,1,0,1,1,0,0,0,0,1,1,0,0,0,1,0],
-        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
-        [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
-        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
-        [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
-      ],
+      // Bebé (Babytchi)
       baby_1: [
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
         [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
         [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
@@ -395,116 +757,10 @@
         [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
         [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-      ],
-      baby_2: [
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
-        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
-        [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
-        [0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0],
-        [0,0,1,0,0,1,1,0,0,1,1,0,0,1,0,0],
-        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
-        [0,1,0,0,0,0,1,1,1,1,0,0,0,0,1,0],
-        [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
-        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
-        [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
-        [0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0],
-        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
       ],
-      child_1: [
-        [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
-        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
-        [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
-        [0,1,0,0,1,1,0,0,0,0,1,1,0,0,1,0],
-        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
-        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
-        [1,0,0,0,1,1,0,0,0,0,1,1,0,0,0,1],
-        [1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1],
-        [1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1],
-        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
-        [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0],
-        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
-        [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-      ],
-      child_2: [
-        [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
-        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
-        [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
-        [0,1,0,0,1,1,0,0,0,0,1,1,0,0,1,0],
-        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
-        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
-        [1,0,0,0,1,1,0,0,0,0,1,1,0,0,0,1],
-        [1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1],
-        [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
-        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
-        [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0],
-        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
-        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-      ],
-      mametchi_1: [
-        [0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0],
-        [0,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0],
-        [0,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0],
-        [0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0],
-        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-        [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
-        [0,0,1,0,0,1,1,0,0,1,1,0,0,1,0,0],
-        [0,0,1,0,1,1,1,0,0,1,1,1,0,1,0,0],
-        [0,0,1,0,0,1,1,0,0,1,1,0,0,1,0,0],
-        [0,0,1,0,0,0,0,1,1,0,0,0,0,1,0,0],
-        [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
-        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-        [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
-        [0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0],
-        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
-        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0]
-      ],
-      mametchi_2: [
-        [0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0],
-        [0,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0],
-        [0,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0],
-        [0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0],
-        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-        [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
-        [0,0,1,0,0,1,1,0,0,1,1,0,0,1,0,0],
-        [0,0,1,0,1,1,1,0,0,1,1,1,0,1,0,0],
-        [0,0,1,0,0,0,0,1,1,0,0,0,0,1,0,0],
-        [0,0,1,0,0,0,1,0,0,1,0,0,0,1,0,0],
-        [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
-        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-        [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
-        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
-        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0]
-      ],
-      kuchipatchi_1: [
-        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
-        [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0],
-        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
-        [1,0,0,0,1,1,0,0,0,0,1,1,0,0,0,1],
-        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
-        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
-        [1,0,0,0,1,1,0,0,0,0,1,1,0,0,0,1],
-        [1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1],
-        [1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1],
-        [1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1],
-        [1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1],
-        [0,1,0,1,1,1,1,1,1,1,1,1,1,0,1,0],
-        [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
-        [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
-        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
-        [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0]
-      ],
+      // Caca (Poop)
       poop: [
         [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
@@ -523,6 +779,7 @@
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
       ],
+      // Calavera de enfermedad
       skull: [
         [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
         [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
@@ -541,6 +798,7 @@
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
       ],
+      // Tumba de muerte (Obaketchi)
       tombstone: [
         [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
         [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
@@ -559,7 +817,8 @@
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
       ],
-      heart_full: [
+      // Corazón Lleno Grande (Para pantalla de estadísticas)
+      heart_big_full: [
         [0,1,1,0,0,1,1,0],
         [1,1,1,1,1,1,1,1],
         [1,1,1,1,1,1,1,1],
@@ -569,7 +828,8 @@
         [0,0,0,1,1,0,0,0],
         [0,0,0,0,0,0,0,0]
       ],
-      heart_empty: [
+      // Corazón Vacío Grande
+      heart_big_empty: [
         [0,1,1,0,0,1,1,0],
         [1,0,0,1,1,0,0,1],
         [1,0,0,0,0,0,0,1],
@@ -580,569 +840,345 @@
         [0,0,0,0,0,0,0,0]
       ]
     };
-    /**
-     * Modelo de Estado Contextual Completo
-     */
-    const STORAGE_KEY = 'tamagotchi_1996_engine_state_v1';
 
-    const DEFAULT_STATE = {
-      stage: 'egg',            // 'egg' | 'baby' | 'child' | 'teen' | 'adult' | 'dead'
-      character: 'egg',        // 'egg' | 'baby' | 'child' | 'mametchi' | 'kuchipatchi'
-      hunger: 0,               // 0 a 4 corazones
-      happiness: 0,            // 0 a 4 corazones
-      discipline: 0,           // 0 a 100 (%)
-      weight: 5,               // kg
-      poopCount: 0,            // 0 a 4
-      isSick: false,           // boolean
-      isSleeping: false,       // boolean
-      lightOn: true,           // boolean
-      careMisses: 0,           // contador
-      consecutiveSnacks: 0,    // gatillo de enfermedad (>3)
-      birthTimestamp: Date.now(),
+    const STORAGE_KEY = 'tamagotchi_pop_1996_state_v2';
+
+    const INITIAL_STATE = {
+      stage: 'teen',            // 'egg' | 'baby' | 'teen' | 'adult' | 'dead'
+      character: 'tamatchi',
+      hunger: 4,
+      happiness: 4,
+      discipline: 75,
+      weight: 15,
+      poopCount: 0,
+      isSick: false,
+      isSleeping: false,
+      lightOn: true,
+      careMisses: 0,
+      consecutiveSnacks: 0,
+      birthTimestamp: Date.now() - (2 * 86400000), // 2 días de edad
       lastUpdated: Date.now(),
-      stageStartedTimestamp: Date.now(),
-      attentionActive: false,  // alarma de atención
-      attentionTimerMs: 0,     // ventana de 15 minutos (900000ms)
-      attentionReason: null,   // 'hunger' | 'happiness' | 'discipline' | 'sleep'
-      ageDays: 0,
-      starvationTimerMs: 0     // contador de inanición continua
+      stageStartedTimestamp: Date.now() - 86400000,
+      attentionActive: false,
+      attentionTimerMs: 0,
+      ageDays: 2
     };
 
-    let state = { ...DEFAULT_STATE };
+    let state = { ...INITIAL_STATE };
 
-    // Estados de navegación e interfaz (UI Menu FSM)
     let ui = {
-      selectedIconIndex: -1,   // -1 = ninguno, 0 a 7
+      selectedIconIndex: -1,   // 0 a 7
       menuMode: 'IDLE',        // 'IDLE' | 'FOOD_SELECT' | 'LIGHT_SELECT' | 'GAME' | 'METER' | 'ANIM'
-      meterPage: 0,            // 0=Age/Weight, 1=Discipline, 2=Hunger, 3=Happy
+      meterPage: 0,            // 0=Status, 1=Train, 2=Hungry, 3=Happy
       foodOption: 0,           // 0=Meal, 1=Snack
-      animType: null,          // 'eating' | 'refusal' | 'flush' | 'clean' | 'shot'
-      animFrame: 0,
+      animType: null,
       animTimer: 0,
-      gameRound: 0,            // 1 a 5
-      gameScore: 0,            // aciertos
-      gamePetChoice: null,     // 'left' | 'right'
+      gameRound: 0,
+      gameScore: 0,
+      gamePetChoice: null,
       gameUserChoice: null,
-      gamePhase: 'WAIT_INPUT', // 'WAIT_INPUT' | 'SHOW_RESULT' | 'ROUND_OVER'
-      gameTimer: 0,
-      frameTick: 0
+      gamePhase: 'WAIT_INPUT',
+      gameTimer: 0
     };
 
-    /**
-     * Motor Delta-Time de Progresión Desconectada (Offline Catch-Up)
-     * Resuelve los bloques de 15 minutos acumulados mientras la pestaña estuvo cerrada
-     */
-    function calculateOfflineProgression(savedState, currentTimestamp) {
-      if (savedState.stage === 'dead') return savedState;
+    function calculateOffline(saved, now) {
+      if (saved.stage === 'dead') return saved;
+      const BLOCK = 15 * 60 * 1000;
+      let diff = now - saved.lastUpdated;
+      if (diff < 1000) return saved;
 
-      const BLOCK_MS = 15 * 60 * 1000; // 15 minutos en ms
-      let elapsedMs = currentTimestamp - savedState.lastUpdated;
-      if (elapsedMs < 1000) return savedState;
-
-      const next = { ...savedState };
-      const maxIterations = 96; // Hasta 24 horas simuladas
-      let iterations = 0;
-
-      while (elapsedMs >= BLOCK_MS && iterations < maxIterations && next.stage !== 'dead') {
-        iterations++;
-        elapsedMs -= BLOCK_MS;
-
-        // Horario de sueño clásico: 20:00 a 09:00
-        const simDate = new Date(next.lastUpdated + (iterations * BLOCK_MS));
-        const hour = simDate.getHours();
-        const shouldBeSleeping = (hour >= 20 || hour < 9) && next.stage !== 'egg' && next.stage !== 'baby';
-
-        if (shouldBeSleeping) {
-          next.isSleeping = true;
-          // Si la luz quedó encendida al dormir, genera Care Miss
-          if (next.lightOn) {
-            next.careMisses += 1;
-          }
-        } else {
-          next.isSleeping = false;
-        }
-
-        // Tasa de decaimiento metabólico (durante el sueño cae a mitad de ritmo)
-        const decayDivisor = next.isSleeping ? 2 : 1;
-
-        // Decaimiento de Hambre
-        if (iterations % (2 * decayDivisor) === 0) {
-          if (next.hunger > 0) {
-            next.hunger -= 1;
-          } else {
-            next.starvationTimerMs += BLOCK_MS;
-            // Inanición mayor a 12 horas produce muerte directa
-            if (next.starvationTimerMs >= 12 * 60 * 60 * 1000) {
-              next.stage = 'dead';
-              break;
-            }
-          }
-        }
-
-        // Decaimiento de Felicidad
-        if (iterations % (3 * decayDivisor) === 0) {
-          if (next.happiness > 0) {
-            next.happiness -= 1;
-          }
-        }
-
-        // Faltas de Cuidado (Care Misses) si permanece en 0 corazones sin atención
-        if (next.hunger === 0 || next.happiness === 0) {
-          next.careMisses += 1;
-        }
-
-        // Deposiciones de heces (solo despierto)
-        if (!next.isSleeping && iterations % 6 === 0) {
-          if (next.poopCount < 4) {
-            next.poopCount += 1;
-          }
-        }
-
-        // Riesgo de enfermedad por heces acumuladas (>2 heces por más de 3h)
-        if (next.poopCount >= 2 && Math.random() < 0.4) {
-          next.isSick = true;
-        }
-
-        // Verificación de Umbral de Muerte por descuido
+      const next = { ...saved };
+      let loops = 0;
+      while (diff >= BLOCK && loops < 96 && next.stage !== 'dead') {
+        loops++;
+        diff -= BLOCK;
+        if (loops % 2 === 0 && next.hunger > 0) next.hunger--;
+        if (loops % 3 === 0 && next.happiness > 0) next.happiness--;
+        if (loops % 6 === 0 && next.poopCount < 4) next.poopCount++;
+        if (next.hunger === 0 || next.happiness === 0) next.careMisses++;
         if (next.careMisses >= 5) {
           next.stage = 'dead';
           break;
         }
-
-        // Progresión de Edad (cada 24 horas reales = +1 día)
-        const totalAliveMs = (currentTimestamp - next.birthTimestamp);
-        next.ageDays = Math.floor(totalAliveMs / (24 * 60 * 60 * 1000));
-
-        // Progresión ontogénica evolutiva
-        evaluateEvolution(next, currentTimestamp);
       }
-
-      next.lastUpdated = currentTimestamp;
+      next.ageDays = Math.floor((now - next.birthTimestamp) / 86400000);
+      next.lastUpdated = now;
       return next;
     }
 
-    /**
-     * Evalúa las condiciones ontogénicas y ramificaciones de evolución
-     */
-    function evaluateEvolution(tgtState, now) {
-      if (tgtState.stage === 'dead') return;
-
-      const stageAgeMs = now - tgtState.stageStartedTimestamp;
-
-      // 1. Huevo -> Bebé (5 minutos de incubación o 30s en demo acelerada)
-      if (tgtState.stage === 'egg' && stageAgeMs >= 60 * 1000) {
-        tgtState.stage = 'baby';
-        tgtState.character = 'baby';
-        tgtState.hunger = 2;
-        tgtState.happiness = 2;
-        tgtState.weight = 5;
-        tgtState.stageStartedTimestamp = now;
-        audio.playHappy();
-      }
-      // 2. Bebé -> Niño (65 minutos)
-      else if (tgtState.stage === 'baby' && stageAgeMs >= 65 * 60 * 1000) {
-        tgtState.stage = 'child';
-        tgtState.character = 'child';
-        tgtState.weight = Math.max(10, tgtState.weight);
-        tgtState.stageStartedTimestamp = now;
-        audio.playHappy();
-      }
-      // 3. Niño -> Adulto (3 días de vida)
-      else if (tgtState.stage === 'child' && stageAgeMs >= 3 * 24 * 60 * 60 * 1000) {
-        tgtState.stage = 'adult';
-        // Ramificación según Care Misses y Disciplina
-        if (tgtState.careMisses <= 2 && tgtState.discipline >= 75) {
-          tgtState.character = 'mametchi'; // Adulto perfecto
-        } else {
-          tgtState.character = 'kuchipatchi'; // Adulto descuidado
-        }
-        tgtState.weight = Math.max(30, tgtState.weight);
-        tgtState.stageStartedTimestamp = now;
-        audio.playHappy();
-      }
+    function saveState() {
+      state.lastUpdated = Date.now();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderDashboard();
     }
 
-    function loadSavedState() {
+    function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
-          const parsed = JSON.parse(raw);
-          const progressed = calculateOfflineProgression(parsed, Date.now());
-          state = progressed;
-          saveState();
-        } else {
-          resetToNewEgg();
+          state = calculateOffline(JSON.parse(raw), Date.now());
         }
       } catch (e) {
-        console.error('Error al cargar estado:', e);
-        resetToNewEgg();
+        console.warn('Error loading state:', e);
       }
+      renderDashboard();
     }
-
-    function saveState() {
-      try {
-        state.lastUpdated = Date.now();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        updateDebugDisplay();
-      } catch (e) {
-        console.warn('Error al guardar:', e);
-      }
-    }
-
-    function resetToNewEgg() {
-      state = {
-        ...DEFAULT_STATE,
-        birthTimestamp: Date.now(),
-        lastUpdated: Date.now(),
-        stageStartedTimestamp: Date.now()
-      };
-      ui.selectedIconIndex = -1;
-      ui.menuMode = 'IDLE';
-      saveState();
-      audio.playTone(1800, 100);
-      setTimeout(() => audio.playTone(2400, 150), 120);
-    }
-    /**
-     * Paradigma de 3 Botones Bandai:
-     * [A] (Select): Recorre iconos o commuta opciones
-     * [B] (Confirm / Execute): Ejecuta la opción o muestra báscula si no hay selección
-     * [C] (Cancel): Vuelve a idle, deselecciona iconos
-     * [A] + [C] combo: Reinicio en caso de muerte
-     */
 
     let isPressingA = false;
     let isPressingC = false;
 
-    function handleButtonA() {
-      audio.init();
+    function handleBtnA() {
+      buzzer.init();
       isPressingA = true;
       checkComboReset();
+      triggerHaptic();
 
       if (state.stage === 'dead') {
-        audio.playCancel();
+        buzzer.playCancel();
         return;
       }
 
-      // 1. Minijuego: A es "IZQUIERDA"
+      // Minijuego: A es izquierda
       if (ui.menuMode === 'GAME' && ui.gamePhase === 'WAIT_INPUT') {
-        audio.playSelect();
+        buzzer.playSelect();
         submitGameChoice('left');
         return;
       }
 
-      // 2. Submenú de Comida: Alterna Meal y Snack
+      // Submenú Comida: alterna Meal y Snack
       if (ui.menuMode === 'FOOD_SELECT') {
-        audio.playSelect();
+        buzzer.playSelect();
         ui.foodOption = ui.foodOption === 0 ? 1 : 0;
         return;
       }
 
-      // 3. Submenú de Luz: Alterna On/Off
+      // Submenú Luz
       if (ui.menuMode === 'LIGHT_SELECT') {
-        audio.playSelect();
+        buzzer.playSelect();
         state.lightOn = !state.lightOn;
         saveState();
         return;
       }
 
-      // 4. Modo Báscula: Pasa de página (0 a 3)
+      // Báscula: Pasa de página (0 a 3)
       if (ui.menuMode === 'METER') {
-        audio.playSelect();
+        buzzer.playSelect();
         ui.meterPage = (ui.meterPage + 1) % 4;
         return;
       }
 
-      // 5. Animación en curso: botón inactivo
       if (ui.menuMode === 'ANIM') return;
 
-      // 6. Recorrido cíclico de los 7 iconos accionables (0 a 6; el 7 es indicador de alarma)
-      audio.playSelect();
+      // Recorrido de los 7 iconos ejecutables
+      buzzer.playSelect();
       if (ui.selectedIconIndex === -1) {
         ui.selectedIconIndex = 0;
       } else {
         ui.selectedIconIndex = (ui.selectedIconIndex + 1) % 7;
       }
       ui.menuMode = 'IDLE';
-      updateIconHighlights();
+      updateStarBadges();
     }
 
-    function handleButtonB() {
-      audio.init();
+    function handleBtnB() {
+      buzzer.init();
+      triggerHaptic();
+
       if (state.stage === 'dead') {
-        audio.playCancel();
+        buzzer.playCancel();
         return;
       }
 
-      // 1. Minijuego: B es "DERECHA"
+      // Minijuego: B es derecha
       if (ui.menuMode === 'GAME' && ui.gamePhase === 'WAIT_INPUT') {
-        audio.playSelect();
+        buzzer.playSelect();
         submitGameChoice('right');
         return;
       }
 
-      // 2. Confirmación en submenú de Alimento
+      // Confirmar Comida
       if (ui.menuMode === 'FOOD_SELECT') {
         executeFeed(ui.foodOption === 0 ? 'meal' : 'snack');
         return;
       }
 
-      // 3. Confirmación de Luz
+      // Confirmar Luz
       if (ui.menuMode === 'LIGHT_SELECT') {
-        audio.playExecute();
+        buzzer.playExecute();
         ui.menuMode = 'IDLE';
         ui.selectedIconIndex = -1;
-        updateIconHighlights();
+        updateStarBadges();
         return;
       }
 
-      // 4. Si está en báscula, B avanza página también
+      // Avanzar página en Báscula
       if (ui.menuMode === 'METER') {
-        audio.playSelect();
+        buzzer.playSelect();
         ui.meterPage = (ui.meterPage + 1) % 4;
         return;
       }
 
-      // 5. Si no hay icono seleccionado: Acceso directo a Báscula de Salud (Fiel a 1996)
+      // Si no hay icono: Entrada directa a Báscula de Estadísticas (Fiel a 1996)
       if (ui.selectedIconIndex === -1) {
-        audio.playExecute();
+        buzzer.playExecute();
         ui.menuMode = 'METER';
         ui.meterPage = 0;
         return;
       }
 
-      // 6. Ejecución del icono seleccionado
-      executeSelectedIcon(ui.selectedIconIndex);
+      // Ejecutar icono seleccionado
+      executeStarAction(ui.selectedIconIndex);
     }
 
-    function handleButtonC() {
-      audio.init();
+    function handleBtnC() {
+      buzzer.init();
       isPressingC = true;
+      triggerHaptic();
       checkComboReset();
 
       if (state.stage === 'dead') {
-        audio.playCancel();
+        buzzer.playCancel();
         return;
       }
 
-      audio.playCancel();
-
-      // Cancelar cualquier menú y volver a pantalla principal
+      buzzer.playCancel();
       ui.selectedIconIndex = -1;
       ui.menuMode = 'IDLE';
       ui.meterPage = 0;
-      updateIconHighlights();
+      updateStarBadges();
     }
 
     function checkComboReset() {
       if (isPressingA && isPressingC) {
-        if (state.stage === 'dead' || confirmResetNeeded()) {
-          resetToNewEgg();
-        }
+        state = { ...INITIAL_STATE, birthTimestamp: Date.now(), lastUpdated: Date.now() };
+        ui.selectedIconIndex = -1;
+        ui.menuMode = 'IDLE';
+        saveState();
+        buzzer.playTone(2000, 100);
+        setTimeout(() => buzzer.playTone(2800, 150), 120);
       }
     }
 
-    function confirmResetNeeded() {
-      return state.stage === 'dead';
+    function triggerHaptic() {
+      if (navigator.vibrate) navigator.vibrate(25);
     }
 
-    /**
-     * Ejecuta el comando correspondiente al icono seleccionado
-     */
-    function executeSelectedIcon(index) {
-      switch (index) {
-        case 0: // COMIDA (Feed)
-          if (state.isSleeping) {
-            triggerRefusal();
-            return;
-          }
-          audio.playExecute();
+    function executeStarAction(idx) {
+      switch (idx) {
+        case 0: // Comida
+          if (state.isSleeping) { triggerRefusal(); return; }
+          buzzer.playExecute();
           ui.menuMode = 'FOOD_SELECT';
           ui.foodOption = 0;
           break;
-
-        case 1: // LUZ (Light)
-          audio.playExecute();
+        case 1: // Luz
+          buzzer.playExecute();
           ui.menuMode = 'LIGHT_SELECT';
           break;
-
-        case 2: // JUEGO (Left or Right)
-          if (state.isSleeping || state.isSick || state.stage === 'egg') {
-            triggerRefusal();
-            return;
-          }
+        case 2: // Juego
+          if (state.isSleeping || state.isSick || state.stage === 'egg') { triggerRefusal(); return; }
           startLeftRightGame();
           break;
-
-        case 3: // MEDICINA (Medicine)
+        case 3: // Medicina
           if (state.isSick) {
-            audio.playExecute();
+            buzzer.playExecute();
             state.isSick = false;
-            triggerAnimation('shot', 1800);
+            triggerAnimation('medicine', 1600);
           } else {
             triggerRefusal();
           }
           break;
-
-        case 4: // BAÑO / LIMPIEZA (Flush)
+        case 4: // Baño / Flush
           if (state.poopCount > 0) {
-            audio.playExecute();
+            buzzer.playExecute();
             state.poopCount = 0;
             triggerAnimation('flush', 1600);
           } else {
             triggerRefusal();
           }
           break;
-
-        case 5: // BÁSCULA / ESTADO (Health Meter)
-          audio.playExecute();
+        case 5: // Báscula
+          buzzer.playExecute();
           ui.menuMode = 'METER';
           ui.meterPage = 0;
           ui.selectedIconIndex = -1;
-          updateIconHighlights();
+          updateStarBadges();
           break;
-
-        case 6: // DISCIPLINA (Discipline)
-          handleDisciplineAttempt();
+        case 6: // Disciplina
+          if (state.attentionActive && state.hunger > 0 && state.happiness > 0 && !state.isSick) {
+            buzzer.playHappy();
+            state.discipline = Math.min(100, state.discipline + 25);
+            state.attentionActive = false;
+            triggerAnimation('praise', 1600);
+          } else {
+            triggerRefusal();
+            if (state.happiness > 0) state.happiness--;
+          }
+          ui.selectedIconIndex = -1;
+          updateStarBadges();
+          saveState();
           break;
       }
-    }
-
-    function handleDisciplineAttempt() {
-      // Regla Bandai: Solo es válida si hay Attention Call pero los corazones NO están vacíos y NO está enfermo
-      if (state.attentionActive && state.hunger > 0 && state.happiness > 0 && !state.isSick) {
-        audio.playHappy();
-        state.discipline = Math.min(100, state.discipline + 25);
-        state.attentionActive = false;
-        state.attentionReason = null;
-        triggerAnimation('praise', 1600);
-      } else {
-        // Castigo injustificado: se entristece
-        triggerRefusal();
-        if (state.happiness > 0) state.happiness -= 1;
-      }
-      ui.selectedIconIndex = -1;
-      updateIconHighlights();
-      saveState();
-    }
-
-    function triggerRefusal() {
-      audio.playRefusal();
-      triggerAnimation('refusal', 1400);
-      ui.selectedIconIndex = -1;
-      updateIconHighlights();
-    }
-
-    function triggerAnimation(type, durationMs) {
-      ui.menuMode = 'ANIM';
-      ui.animType = type;
-      ui.animTimer = durationMs;
-      ui.animFrame = 0;
     }
 
     function executeFeed(type) {
       if (type === 'meal') {
-        if (state.hunger >= 4) {
-          triggerRefusal();
-          return;
-        }
-        audio.playExecute();
+        if (state.hunger >= 4) { triggerRefusal(); return; }
+        buzzer.playExecute();
         state.hunger = Math.min(4, state.hunger + 1);
         state.weight += 1;
         state.consecutiveSnacks = 0;
-        checkAttentionResolved();
         triggerAnimation('eating_meal', 1600);
       } else {
-        // Snack / Golosina
-        audio.playExecute();
+        buzzer.playExecute();
         state.happiness = Math.min(4, state.happiness + 1);
         state.weight += 2;
-        state.consecutiveSnacks += 1;
-
-        // Sobredosis de snacks (>3 seguidos con corazones llenos -> enfermedad)
-        if (state.consecutiveSnacks >= 4) {
-          state.isSick = true;
-        }
-        checkAttentionResolved();
+        state.consecutiveSnacks++;
+        if (state.consecutiveSnacks >= 4) state.isSick = true;
         triggerAnimation('eating_snack', 1600);
       }
+      if (state.attentionActive && state.hunger > 0 && state.happiness > 0) {
+        state.attentionActive = false;
+      }
       ui.selectedIconIndex = -1;
-      updateIconHighlights();
+      updateStarBadges();
       saveState();
     }
 
-    function checkAttentionResolved() {
-      if (state.attentionActive) {
-        if (state.hunger > 0 && state.happiness > 0) {
-          state.attentionActive = false;
-          state.attentionReason = null;
-        }
-      }
+    function triggerRefusal() {
+      buzzer.playRefusal();
+      triggerAnimation('refusal', 1400);
+      ui.selectedIconIndex = -1;
+      updateStarBadges();
     }
-    /**
-     * Minijuego Bandai: Left or Right (5 Rondas)
-     * Acierta hacia dónde mirará el Tamagotchi.
-     * Si ganas 3 o más rondas de 5: +1 Corazón de felicidad, -1 kg peso
-     */
+
+    function triggerAnimation(type, ms) {
+      ui.menuMode = 'ANIM';
+      ui.animType = type;
+      ui.animTimer = ms;
+    }
+
     function startLeftRightGame() {
-      audio.playExecute();
+      buzzer.playExecute();
       ui.menuMode = 'GAME';
       ui.gameRound = 1;
       ui.gameScore = 0;
       ui.gamePhase = 'WAIT_INPUT';
       ui.selectedIconIndex = -1;
-      updateIconHighlights();
+      updateStarBadges();
     }
 
     function submitGameChoice(choice) {
       ui.gameUserChoice = choice;
-      // Dirección del Tamagotchi calculada pseudoaleatoriamente
       ui.gamePetChoice = Math.random() < 0.5 ? 'left' : 'right';
       ui.gamePhase = 'SHOW_RESULT';
-      ui.gameTimer = 900; // ms de pose
+      ui.gameTimer = 850;
 
       if (ui.gameUserChoice === ui.gamePetChoice) {
-        ui.gameScore += 1;
-        audio.playTone(3200, 80);
+        ui.gameScore++;
+        buzzer.playTone(3200, 80);
       } else {
-        audio.playTone(1200, 90);
-      }
-    }
-
-    function updateGameLoop(dt) {
-      if (ui.menuMode !== 'GAME') return;
-
-      if (ui.gamePhase === 'SHOW_RESULT') {
-        ui.gameTimer -= dt;
-        if (ui.gameTimer <= 0) {
-          if (ui.gameRound < 5) {
-            ui.gameRound += 1;
-            ui.gamePhase = 'WAIT_INPUT';
-          } else {
-            // Fin del juego (5 rondas concluidas)
-            if (ui.gameScore >= 3) {
-              // Victoria
-              audio.playHappy();
-              state.happiness = Math.min(4, state.happiness + 1);
-              state.weight = Math.max(getMinWeight(state.stage), state.weight - 1);
-              triggerAnimation('game_win', 1800);
-            } else {
-              // Derrota
-              audio.playRefusal();
-              triggerAnimation('game_lose', 1600);
-            }
-            saveState();
-          }
-        }
-      }
-    }
-
-    function getMinWeight(stage) {
-      switch (stage) {
-        case 'baby': return 5;
-        case 'child': return 10;
-        case 'teen': return 20;
-        case 'adult': return 30;
-        default: return 5;
+        buzzer.playTone(1200, 90);
       }
     }
 
@@ -1150,343 +1186,254 @@
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
 
-    const LCD_DARK = '#1b2612';
-    const LCD_BG = '#9fac88';
+    const LCD_INK = '#111827';
 
-    function drawPixelMatrix(matrix, startX, startY, pixelSize = 4, mirrorX = false) {
-      ctx.fillStyle = LCD_DARK;
+    function drawBinaryMatrix(matrix, startX, startY, scale = 4, mirror = false) {
+      ctx.fillStyle = LCD_INK;
       for (let r = 0; r < matrix.length; r++) {
         for (let c = 0; c < matrix[r].length; c++) {
           if (matrix[r][c] === 1) {
-            const drawCol = mirrorX ? (matrix[r].length - 1 - c) : c;
-            ctx.fillRect(startX + (drawCol * pixelSize), startY + (r * pixelSize), pixelSize, pixelSize);
+            const col = mirror ? (matrix[r].length - 1 - c) : c;
+            ctx.fillRect(startX + (col * scale), startY + (r * scale), scale, scale);
           }
         }
       }
     }
 
     function renderLCD() {
-      // Limpiar con fondo LCD
-      ctx.fillStyle = state.lightOn ? LCD_BG : '#3b4233';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Si la luz está apagada en sueño
       if (!state.lightOn && state.isSleeping) {
-        ctx.fillStyle = LCD_DARK;
-        ctx.font = '10px "Press Start 2P"';
-        ctx.fillText('Z z z . . .', 70, 70);
+        ctx.fillStyle = LCD_INK;
+        ctx.font = '14px "Press Start 2P"';
+        ctx.fillText('Z z z . . .', 75, 90);
         return;
       }
 
-      // 1. Pantalla de Muerte
       if (state.stage === 'dead') {
-        drawPixelMatrix(SPRITES.tombstone, 100, 30, 4);
-        ctx.fillStyle = LCD_DARK;
-        ctx.font = '8px "Press Start 2P"';
-        ctx.fillText('R.I.P.', 102, 105);
-        ctx.font = '7px "Press Start 2P"';
-        ctx.fillText('[A]+[C] RESTART', 62, 120);
-        return;
-      }
-
-      // 2. Pantalla de Báscula / Medidor de Estado (Health Meter)
-      if (ui.menuMode === 'METER') {
-        renderHealthMeter();
-        return;
-      }
-
-      // 3. Submenú de Comida
-      if (ui.menuMode === 'FOOD_SELECT') {
-        renderFoodSelectMenu();
-        return;
-      }
-
-      // 4. Submenú de Luz
-      if (ui.menuMode === 'LIGHT_SELECT') {
-        renderLightSelectMenu();
-        return;
-      }
-
-      // 5. Minijuego Left or Right
-      if (ui.menuMode === 'GAME') {
-        renderGameScreen();
-        return;
-      }
-
-      // 6. Animaciones temporales (comer, limpieza, inyección, negación)
-      if (ui.menuMode === 'ANIM') {
-        renderAnimationScreen();
-        return;
-      }
-
-      // 7. Renderizado Normal de Mascota en Pantalla Idle
-      renderPetIdle();
-    }
-
-    function renderPetIdle() {
-      // Determinar sprite según etapa y tick de animación
-      let spriteA = SPRITES.egg;
-      let spriteB = SPRITES.egg_wobble;
-      let scale = 4;
-      let posY = 35;
-      let posX = 100;
-
-      if (state.stage === 'baby') {
-        spriteA = SPRITES.baby_1;
-        spriteB = SPRITES.baby_2;
-        scale = 4;
-      } else if (state.stage === 'child') {
-        spriteA = SPRITES.child_1;
-        spriteB = SPRITES.child_2;
-        scale = 5;
-        posX = 85;
-        posY = 25;
-      } else if (state.stage === 'adult') {
-        spriteA = state.character === 'mametchi' ? SPRITES.mametchi_1 : SPRITES.kuchipatchi_1;
-        spriteB = state.character === 'mametchi' ? SPRITES.mametchi_2 : SPRITES.kuchipatchi_1;
-        scale = 5;
-        posX = 85;
-        posY = 25;
-      }
-
-      // Alternancia de 2 frames cada 500ms
-      const isSecondFrame = Math.floor(Date.now() / 500) % 2 === 0;
-      const activeSprite = isSecondFrame ? spriteB : spriteA;
-
-      // Dibujar Mascota
-      drawPixelMatrix(activeSprite, posX, posY, scale);
-
-      // Si está durmiendo, mostrar "Z"
-      if (state.isSleeping) {
-        ctx.fillStyle = LCD_DARK;
-        ctx.font = '8px "Press Start 2P"';
-        ctx.fillText('Z', posX + 60, posY + 10);
-        ctx.fillText('z', posX + 70, posY);
-      }
-
-      // Si está enfermo, mostrar Calavera al lado
-      if (state.isSick) {
-        drawPixelMatrix(SPRITES.skull, 180, 40, 3);
-      }
-
-      // Dibujar heces acumuladas
-      for (let i = 0; i < state.poopCount; i++) {
-        drawPixelMatrix(SPRITES.poop, 20 + (i * 26), 75, 2);
-      }
-    }
-
-    function renderFoodSelectMenu() {
-      ctx.fillStyle = LCD_DARK;
-      ctx.font = '9px "Press Start 2P"';
-      ctx.fillText(ui.foodOption === 0 ? '> MEAL' : '  MEAL', 40, 50);
-      ctx.fillText(ui.foodOption === 1 ? '> SNACK' : '  SNACK', 40, 75);
-
-      // Iconos gráficos al lado
-      ctx.font = '14px monospace';
-      ctx.fillText('🍚', 150, 50);
-      ctx.fillText('🍰', 150, 75);
-    }
-
-    function renderLightSelectMenu() {
-      ctx.fillStyle = LCD_DARK;
-      ctx.font = '9px "Press Start 2P"';
-      ctx.fillText(state.lightOn ? '> ON' : '  ON', 60, 50);
-      ctx.fillText(!state.lightOn ? '> OFF' : '  OFF', 60, 75);
-    }
-
-    function renderGameScreen() {
-      ctx.fillStyle = LCD_DARK;
-      ctx.font = '8px "Press Start 2P"';
-      ctx.fillText(`ROUND ${ui.gameRound}/5`, 20, 25);
-      ctx.fillText(`SCORE: ${ui.gameScore}`, 140, 25);
-
-      if (ui.gamePhase === 'WAIT_INPUT') {
-        // Personaje mirando al frente esperando decisión [A] o [B]
-        drawPixelMatrix(SPRITES.child_1, 95, 45, 4);
-        ctx.fillText('< [A]   [B] >', 60, 115);
-      } else {
-        // Mostrar giro hacia el resultado
-        const isMirror = ui.gamePetChoice === 'right';
-        drawPixelMatrix(SPRITES.child_2, 95, 45, 4, isMirror);
-
+        drawBinaryMatrix(SPRITES.tombstone, 115, 30, 5);
+        ctx.fillStyle = LCD_INK;
+        ctx.font = '12px "Press Start 2P"';
+        ctx.fillText('R.I.P.', 115, 125);
         ctx.font = '9px "Press Start 2P"';
-        if (ui.gameUserChoice === ui.gamePetChoice) {
-          ctx.fillText('GREAT!', 90, 115);
-        } else {
-          ctx.fillText('MISS!', 95, 115);
-        }
+        ctx.fillText('[A]+[C] RESTART', 75, 145);
+        return;
       }
+
+      // Pantalla de Estadísticas con Letra Grande y Legible (Petición explícita del usuario)
+      if (ui.menuMode === 'METER') {
+        renderLargeHealthMeter();
+        return;
+      }
+
+      if (ui.menuMode === 'FOOD_SELECT') {
+        renderFoodMenu();
+        return;
+      }
+
+      if (ui.menuMode === 'LIGHT_SELECT') {
+        renderLightMenu();
+        return;
+      }
+
+      if (ui.menuMode === 'GAME') {
+        renderGame();
+        return;
+      }
+
+      if (ui.menuMode === 'ANIM') {
+        renderAnimation();
+        return;
+      }
+
+      renderIdlePet();
     }
 
-    function renderHealthMeter() {
-      ctx.fillStyle = LCD_DARK;
-      ctx.font = '8px "Press Start 2P"';
+    function renderLargeHealthMeter() {
+      ctx.fillStyle = LCD_INK;
+
+      // Encabezado Grande
+      ctx.font = '13px "Press Start 2P"';
 
       if (ui.meterPage === 0) {
-        // Página 1: Edad y Peso
-        ctx.fillText('--- STATUS ---', 50, 30);
-        ctx.fillText(`AGE:   ${state.ageDays} yr`, 40, 60);
-        ctx.fillText(`WEIGHT:${state.weight} kg`, 40, 85);
-      } else if (ui.meterPage === 1) {
-        // Página 2: Disciplina
-        ctx.fillText('--- TRAIN ---', 55, 30);
-        ctx.fillText(`DISCIPLINE:`, 30, 60);
-        // Barra de progreso de disciplina en bloques
+        // Página 1: Edad y Peso en grande
+        ctx.fillText('--- STATUS ---', 45, 35);
+        
+        ctx.font = '11px "Press Start 2P"';
+        ctx.fillText(`AGE:   ${state.ageDays} YRS`, 40, 75);
+        ctx.fillText(`WEIGHT:${state.weight} KG`, 40, 110);
+      } 
+      else if (ui.meterPage === 1) {
+        // Página 2: Disciplina con barra gruesa
+        ctx.fillText('--- TRAIN ---', 50, 35);
+
+        ctx.font = '11px "Press Start 2P"';
+        ctx.fillText(`DISCIPLINE:`, 35, 75);
+
+        // Barra de bloques ancha
         const blocks = Math.floor(state.discipline / 25);
-        let bar = '[';
+        let barStr = '[';
         for (let i = 0; i < 4; i++) {
-          bar += i < blocks ? '■' : ' ';
+          barStr += i < blocks ? '■' : ' ';
         }
-        bar += '] ' + state.discipline + '%';
-        ctx.fillText(bar, 30, 85);
-      } else if (ui.meterPage === 2) {
-        // Página 3: Corazones de Hambre
-        ctx.fillText('--- HUNGRY ---', 50, 30);
+        barStr += `] ${state.discipline}%`;
+        ctx.fillText(barStr, 35, 110);
+      } 
+      else if (ui.meterPage === 2) {
+        // Página 3: Hambre con corazones grandes (escala 4x)
+        ctx.fillText('--- HUNGRY ---', 45, 35);
         for (let i = 0; i < 4; i++) {
-          const heart = i < state.hunger ? SPRITES.heart_full : SPRITES.heart_empty;
-          drawPixelMatrix(heart, 45 + (i * 40), 60, 3);
+          const heart = i < state.hunger ? SPRITES.heart_big_full : SPRITES.heart_big_empty;
+          drawBinaryMatrix(heart, 35 + (i * 55), 70, 5);
         }
-      } else if (ui.meterPage === 3) {
-        // Página 4: Corazones de Felicidad
-        ctx.fillText('--- HAPPY ---', 55, 30);
+      } 
+      else if (ui.meterPage === 3) {
+        // Página 4: Felicidad con corazones grandes (escala 4x)
+        ctx.fillText('--- HAPPY ---', 52, 35);
         for (let i = 0; i < 4; i++) {
-          const heart = i < state.happiness ? SPRITES.heart_full : SPRITES.heart_empty;
-          drawPixelMatrix(heart, 45 + (i * 40), 60, 3);
+          const heart = i < state.happiness ? SPRITES.heart_big_full : SPRITES.heart_big_empty;
+          drawBinaryMatrix(heart, 35 + (i * 55), 70, 5);
         }
       }
-      ctx.font = '7px "Press Start 2P"';
-      ctx.fillText('PAGE ' + (ui.meterPage + 1) + '/4', 90, 118);
+
+      // Indicador de página inferior
+      ctx.font = '9px "Press Start 2P"';
+      ctx.fillText(`PAGE ${ui.meterPage + 1}/4  [A]NEXT`, 55, 150);
     }
 
-    function renderAnimationScreen() {
-      ctx.fillStyle = LCD_DARK;
-      const progress = 1 - (ui.animTimer / 1800);
+    function renderIdlePet() {
+      // Animación de balanceo y caminar en bucle (Tamatchi)
+      const isFrame2 = Math.floor(Date.now() / 450) % 2 === 0;
+      const sprite = isFrame2 ? SPRITES.tamatchi_walk_2 : SPRITES.tamatchi_walk_1;
+      
+      // Dibujar Tamatchi centrado con buen tamaño
+      drawBinaryMatrix(sprite, 105, 38, 5);
+
+      if (state.isSick) {
+        drawBinaryMatrix(SPRITES.skull, 205, 45, 4);
+      }
+
+      for (let i = 0; i < state.poopCount; i++) {
+        drawBinaryMatrix(SPRITES.poop, 25 + (i * 32), 105, 2.5);
+      }
+    }
+
+    function renderFoodMenu() {
+      ctx.fillStyle = LCD_INK;
+      ctx.font = '12px "Press Start 2P"';
+      ctx.fillText(ui.foodOption === 0 ? '> MEAL' : '  MEAL', 50, 65);
+      ctx.fillText(ui.foodOption === 1 ? '> SNACK' : '  SNACK', 50, 105);
+      ctx.font = '22px monospace';
+      ctx.fillText('🍚', 180, 65);
+      ctx.fillText('🍰', 180, 105);
+    }
+
+    function renderLightMenu() {
+      ctx.fillStyle = LCD_INK;
+      ctx.font = '12px "Press Start 2P"';
+      ctx.fillText(state.lightOn ? '> ON' : '  ON', 80, 65);
+      ctx.fillText(!state.lightOn ? '> OFF' : '  OFF', 80, 105);
+    }
+
+    function renderGame() {
+      ctx.fillStyle = LCD_INK;
+      ctx.font = '11px "Press Start 2P"';
+      ctx.fillText(`ROUND ${ui.gameRound}/5`, 25, 30);
+      ctx.fillText(`WINS:${ui.gameScore}`, 180, 30);
+
+      if (ui.gamePhase === 'WAIT_INPUT') {
+        drawBinaryMatrix(SPRITES.tamatchi_walk_1, 110, 48, 5);
+        ctx.font = '10px "Press Start 2P"';
+        ctx.fillText('< [A]    [B] >', 65, 145);
+      } else {
+        const mirror = ui.gamePetChoice === 'right';
+        drawBinaryMatrix(SPRITES.tamatchi_walk_2, 110, 48, 5, mirror);
+        ctx.font = '12px "Press Start 2P"';
+        if (ui.gameUserChoice === ui.gamePetChoice) {
+          ctx.fillText('EXCELLENT!', 80, 145);
+        } else {
+          ctx.fillText('MISS!', 115, 145);
+        }
+      }
+    }
+
+    function renderAnimation() {
+      ctx.fillStyle = LCD_INK;
+      const progress = 1 - (ui.animTimer / 1600);
 
       if (ui.animType === 'eating_meal' || ui.animType === 'eating_snack') {
-        const chewFrame = Math.floor(Date.now() / 200) % 2 === 0;
-        drawPixelMatrix(chewFrame ? SPRITES.child_1 : SPRITES.child_2, 85, 35, 4);
-        ctx.font = '16px monospace';
-        ctx.fillText(ui.animType === 'eating_meal' ? '🍚' : '🍰', 150 - (progress * 30), 65);
+        const chew = Math.floor(Date.now() / 200) % 2 === 0;
+        drawBinaryMatrix(chew ? SPRITES.tamatchi_walk_1 : SPRITES.tamatchi_walk_2, 95, 45, 5);
+        ctx.font = '20px monospace';
+        ctx.fillText(ui.animType === 'eating_meal' ? '🍚' : '🍰', 180 - (progress * 40), 85);
       } else if (ui.animType === 'refusal') {
-        // Niega con la cabeza rápidamente
-        const shake = Math.floor(Date.now() / 150) % 2 === 0;
-        drawPixelMatrix(SPRITES.child_2, shake ? 90 : 100, 35, 4, shake);
-        ctx.font = '8px "Press Start 2P"';
-        ctx.fillText('NO !', 105, 95);
+        const shake = Math.floor(Date.now() / 140) % 2 === 0;
+        drawBinaryMatrix(SPRITES.tamatchi_walk_2, shake ? 100 : 115, 45, 5, shake);
+        ctx.font = '12px "Press Start 2P"';
+        ctx.fillText('NO !', 120, 135);
       } else if (ui.animType === 'flush') {
-        // Ola de agua que barre la pantalla
-        renderPetIdle();
+        renderIdlePet();
         ctx.fillRect(0, 0, canvas.width * progress, canvas.height);
-      } else if (ui.animType === 'shot') {
-        // Inyección de jeringa
-        drawPixelMatrix(SPRITES.child_2, 90, 35, 4);
-        ctx.font = '18px monospace';
-        ctx.fillText('💉', 150 - (progress * 25), 65);
-      } else if (ui.animType === 'game_win') {
-        drawPixelMatrix(SPRITES.child_1, 95, 35, 4);
-        ctx.font = '8px "Press Start 2P"';
-        ctx.fillText('WINNER! +1♥', 60, 105);
-      } else if (ui.animType === 'game_lose') {
-        drawPixelMatrix(SPRITES.child_2, 95, 35, 4);
-        ctx.font = '8px "Press Start 2P"';
-        ctx.fillText('TRY AGAIN', 75, 105);
+      } else if (ui.animType === 'medicine') {
+        drawBinaryMatrix(SPRITES.tamatchi_walk_2, 95, 45, 5);
+        ctx.font = '22px monospace';
+        ctx.fillText('💉', 190 - (progress * 40), 80);
       } else if (ui.animType === 'praise') {
-        drawPixelMatrix(SPRITES.child_1, 95, 35, 4);
-        ctx.font = '8px "Press Start 2P"';
-        ctx.fillText('+25% TRAIN', 65, 105);
+        drawBinaryMatrix(SPRITES.tamatchi_walk_1, 105, 45, 5);
+        ctx.font = '11px "Press Start 2P"';
+        ctx.fillText('+25% TRAIN', 75, 140);
       }
     }
-    /**
-     * Bucle Principal de Simulación en Tiempo Real (Delta-Time Loop)
-     */
-    let lastFrameTime = performance.now();
+
+    let lastTime = performance.now();
 
     function gameLoop(now) {
-      const dt = now - lastFrameTime;
-      lastFrameTime = now;
+      const dt = now - lastTime;
+      lastTime = now;
 
-      // 1. Actualizar temporizador de animaciones
       if (ui.menuMode === 'ANIM') {
         ui.animTimer -= dt;
-        if (ui.animTimer <= 0) {
-          ui.menuMode = 'IDLE';
+        if (ui.animTimer <= 0) ui.menuMode = 'IDLE';
+      }
+
+      if (ui.menuMode === 'GAME' && ui.gamePhase === 'SHOW_RESULT') {
+        ui.gameTimer -= dt;
+        if (ui.gameTimer <= 0) {
+          if (ui.gameRound < 5) {
+            ui.gameRound++;
+            ui.gamePhase = 'WAIT_INPUT';
+          } else {
+            if (ui.gameScore >= 3) {
+              buzzer.playHappy();
+              state.happiness = Math.min(4, state.happiness + 1);
+              state.weight = Math.max(10, state.weight - 1);
+              triggerAnimation('praise', 1600);
+            } else {
+              buzzer.playRefusal();
+              triggerAnimation('refusal', 1600);
+            }
+            saveState();
+          }
         }
       }
 
-      // 2. Actualizar lógica de minijuego
-      updateGameLoop(dt);
-
-      // 3. Evaluar decaimiento en tiempo real cada 30 segundos
-      ui.frameTick += dt;
-      if (ui.frameTick >= 30000) {
-        ui.frameTick = 0;
-        evaluateRealtimeTick();
-      }
-
-      // 4. Evaluar temporizador de Alerta de Atención (15 minutos = 900000ms)
-      if (state.attentionActive) {
-        state.attentionTimerMs -= dt;
-        if (state.attentionTimerMs <= 0) {
-          // Ventana de 15 minutos expirada sin ser atendida: Care Miss oficial
-          state.attentionActive = false;
-          state.attentionReason = null;
-          state.careMisses += 1;
-          saveState();
-        }
-      }
-
-      // 5. Renderizar vista LCD
       renderLCD();
 
-      // 6. Sincronizar estado visual del contenedor y los iconos
-      const lcdContainer = document.getElementById('lcd-container');
-      if (lcdContainer) {
+      const lcdWrapper = document.getElementById('lcdWrapper');
+      if (lcdWrapper) {
         if (!state.lightOn && state.isSleeping) {
-          lcdContainer.classList.add('lights-off');
+          lcdWrapper.classList.add('lights-off');
         } else {
-          lcdContainer.classList.remove('lights-off');
+          lcdWrapper.classList.remove('lights-off');
         }
       }
 
       requestAnimationFrame(gameLoop);
     }
 
-    /**
-     * Ciclo biológico periódico en tiempo real
-     */
-    function evaluateRealtimeTick() {
-      if (state.stage === 'dead') return;
-
-      const now = Date.now();
-      evaluateEvolution(state, now);
-
-      // Horario de descanso biológico
-      const hour = new Date().getHours();
-      state.isSleeping = (hour >= 20 || hour < 9) && state.stage !== 'egg' && state.stage !== 'baby';
-
-      // Disparador de Alerta de Atención si los corazones tocan 0
-      if ((state.hunger === 0 || state.happiness === 0) && !state.attentionActive && !state.isSleeping) {
-        triggerAttentionCall('hunger');
-      }
-
-      // Disparador de llamada al acostarse para apagar la luz
-      if (state.isSleeping && state.lightOn && !state.attentionActive) {
-        triggerAttentionCall('sleep');
-      }
-
-      saveState();
-    }
-
-    function triggerAttentionCall(reason) {
-      state.attentionActive = true;
-      state.attentionReason = reason;
-      state.attentionTimerMs = 15 * 60 * 1000; // Ventana de 15 min
-      audio.playAlertSiren();
-    }
-
-    function updateIconHighlights() {
-      for (let i = 0; i < 7; i++) {
-        const el = document.getElementById(`icon-${i}`);
+    function updateStarBadges() {
+      for (let i = 0; i < 8; i++) {
+        const el = document.getElementById(`star-${i}`);
         if (el) {
           if (ui.selectedIconIndex === i) {
             el.classList.add('active');
@@ -1496,127 +1443,160 @@
         }
       }
 
-      // Icono 7: Indicador de Alerta / Atención
-      const alertEl = document.getElementById('icon-7');
-      if (alertEl) {
+      const alertStar = document.getElementById('star-7');
+      if (alertStar) {
         if (state.attentionActive) {
-          alertEl.classList.add('attention-active');
+          alertStar.classList.add('attention-pulse');
         } else {
-          alertEl.classList.remove('attention-active');
+          alertStar.classList.remove('attention-pulse');
         }
       }
     }
 
-    function updateDebugDisplay() {
-      document.getElementById('debugStageBadge').innerText = state.stage.toUpperCase() + ' (' + state.character + ')';
-      document.getElementById('dbgHunger').innerText = state.hunger;
-      document.getElementById('dbgHappy').innerText = state.happiness;
-      document.getElementById('dbgWeight').innerText = state.weight;
-      document.getElementById('dbgDiscipline').innerText = state.discipline;
-      document.getElementById('dbgPoop').innerText = state.poopCount;
-      document.getElementById('dbgMisses').innerText = state.careMisses;
-      document.getElementById('dbgSick').innerText = state.isSick ? 'SÍ (Infectado)' : 'No';
-      document.getElementById('dbgLight').innerText = state.lightOn ? 'Encendida' : 'Apagada';
-      updateIconHighlights();
+    function renderDashboard() {
+      document.getElementById('txtHungerNum').innerText = `${state.hunger}/4`;
+      document.getElementById('meterHungerHearts').innerText = '❤️'.repeat(state.hunger) + '🖤'.repeat(4 - state.hunger);
+
+      document.getElementById('txtHappyNum').innerText = `${state.happiness}/4`;
+      document.getElementById('meterHappyHearts').innerText = '💛'.repeat(state.happiness) + '🖤'.repeat(4 - state.happiness);
+
+      document.getElementById('txtDisciplineNum').innerText = `${state.discipline}%`;
+      document.getElementById('barDiscipline').style.width = `${state.discipline}%`;
+
+      document.getElementById('txtWeight').innerText = state.weight;
+      document.getElementById('txtAge').innerText = state.ageDays;
+
+      document.getElementById('txtPoop').innerText = state.poopCount;
+      document.getElementById('txtMisses').innerText = state.careMisses;
+
+      const sickEl = document.getElementById('txtSickBadge');
+      if (state.isSick) {
+        sickEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-950 text-rose-300 border border-rose-800 animate-pulse';
+        sickEl.innerText = 'ENFERMO';
+      } else {
+        sickEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-950 text-emerald-400 border border-emerald-800';
+        sickEl.innerText = 'SANO';
+      }
+
+      updateStarBadges();
     }
 
-    // Mapeo táctil y de ratón para los tres botones
+    const egg = document.getElementById('tamagotchiEgg');
+    let targetRotateX = 0;
+    let targetRotateY = 0;
+    let currentRotateX = 0;
+    let currentRotateY = 0;
+
+    window.addEventListener('mousemove', (e) => {
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      const dx = (e.clientX - cx) / cx;
+      const dy = (e.clientY - cy) / cy;
+      targetRotateY = dx * 16;  // Inclinación horizontal
+      targetRotateX = -dy * 16; // Inclinación vertical
+    });
+
+    function update3DTilt() {
+      currentRotateX += (targetRotateX - currentRotateX) * 0.1;
+      currentRotateY += (targetRotateY - currentRotateY) * 0.1;
+      if (egg) {
+        egg.style.transform = `perspective(900px) rotateX(${currentRotateX.toFixed(2)}deg) rotateY(${currentRotateY.toFixed(2)}deg)`;
+      }
+      requestAnimationFrame(update3DTilt);
+    }
+    update3DTilt();
+
+    // Selector de Carcasas
+    window.setShellTheme = function(themeClass) {
+      document.body.className = `${themeClass} min-h-screen flex flex-col items-center justify-center p-3 select-none text-slate-100`;
+      buzzer.playTone(2400, 40);
+    };
+
     const btnA = document.getElementById('btnA');
     const btnB = document.getElementById('btnB');
     const btnC = document.getElementById('btnC');
 
-    btnA.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      btnA.classList.add('pressed');
-      handleButtonA();
-    });
-    btnA.addEventListener('pointerup', () => {
-      btnA.classList.remove('pressed');
-      isPressingA = false;
+    btnA.addEventListener('pointerdown', (e) => { e.preventDefault(); btnA.classList.add('pressed'); handleBtnA(); });
+    btnA.addEventListener('pointerup', () => { btnA.classList.remove('pressed'); isPressingA = false; });
+
+    btnB.addEventListener('pointerdown', (e) => { e.preventDefault(); btnB.classList.add('pressed'); handleBtnB(); });
+    btnB.addEventListener('pointerup', () => { btnB.classList.remove('pressed'); });
+
+    btnC.addEventListener('pointerdown', (e) => { e.preventDefault(); btnC.classList.add('pressed'); handleBtnC(); });
+    btnC.addEventListener('pointerup', () => { btnC.classList.remove('pressed'); isPressingC = false; });
+
+    // Clic directo en las estrellas
+    for (let i = 0; i < 7; i++) {
+      const star = document.getElementById(`star-${i}`);
+      if (star) {
+        star.addEventListener('click', () => {
+          buzzer.init();
+          ui.selectedIconIndex = i;
+          updateStarBadges();
+          executeStarAction(i);
+        });
+      }
+    }
+
+    // Toggle de Audio
+    const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+    toggleAudioBtn.addEventListener('click', () => {
+      buzzer.isMuted = !buzzer.isMuted;
+      document.getElementById('audioIcon').innerText = buzzer.isMuted ? '🔇' : '🔊';
+      document.getElementById('audioStatus').innerText = buzzer.isMuted ? 'MUTE' : 'AUDIO ON';
+      if (!buzzer.isMuted) buzzer.playTone(3200, 60);
     });
 
-    btnB.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      btnB.classList.add('pressed');
-      handleButtonB();
-    });
-    btnB.addEventListener('pointerup', () => {
-      btnB.classList.remove('pressed');
-    });
-
-    btnC.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      btnC.classList.add('pressed');
-      handleButtonC();
-    });
-    btnC.addEventListener('pointerup', () => {
-      btnC.classList.remove('pressed');
-      isPressingC = false;
-    });
-
-    // Mapeo accesible de teclado de PC
+    // Atajos de Teclado
     window.addEventListener('keydown', (e) => {
       if (e.repeat) return;
-      if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') {
-        btnA.classList.add('pressed');
-        handleButtonA();
-      } else if (e.key === 's' || e.key === 'S' || e.key === ' ' || e.key === 'Enter') {
-        btnB.classList.add('pressed');
-        handleButtonB();
-      } else if (e.key === 'd' || e.key === 'D' || e.key === 'Escape' || e.key === 'ArrowRight') {
-        btnC.classList.add('pressed');
-        handleButtonC();
-      }
+      if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') { btnA.classList.add('pressed'); handleBtnA(); }
+      if (e.key === 's' || e.key === 'S' || e.key === ' ' || e.key === 'Enter') { btnB.classList.add('pressed'); handleBtnB(); }
+      if (e.key === 'd' || e.key === 'D' || e.key === 'Escape' || e.key === 'ArrowRight') { btnC.classList.add('pressed'); handleBtnC(); }
     });
-
     window.addEventListener('keyup', (e) => {
-      if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') {
-        btnA.classList.remove('pressed');
-        isPressingA = false;
-      } else if (e.key === 's' || e.key === 'S' || e.key === ' ' || e.key === 'Enter') {
-        btnB.classList.remove('pressed');
-      } else if (e.key === 'd' || e.key === 'D' || e.key === 'Escape' || e.key === 'ArrowRight') {
-        btnC.classList.remove('pressed');
-        isPressingC = false;
-      }
+      if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') { btnA.classList.remove('pressed'); isPressingA = false; }
+      if (e.key === 's' || e.key === 'S' || e.key === ' ' || e.key === 'Enter') { btnB.classList.remove('pressed'); }
+      if (e.key === 'd' || e.key === 'D' || e.key === 'Escape' || e.key === 'ArrowRight') { btnC.classList.remove('pressed'); isPressingC = false; }
     });
 
-    // Botones de simulación acelerada para verificar comportamiento
+    // Time-Warp & Pruebas
     document.getElementById('sim15m').addEventListener('click', () => {
-      state = calculateOfflineProgression(state, state.lastUpdated + (15 * 60 * 1000));
+      state = calculateOffline(state, state.lastUpdated + (15 * 60 * 1000));
       saveState();
-      audio.playTone(2200, 50);
+      buzzer.playTone(2200, 50);
     });
-
     document.getElementById('sim1h').addEventListener('click', () => {
-      state = calculateOfflineProgression(state, state.lastUpdated + (60 * 60 * 1000));
+      state = calculateOffline(state, state.lastUpdated + (60 * 60 * 1000));
       saveState();
-      audio.playTone(2400, 60);
+      buzzer.playTone(2400, 60);
     });
-
     document.getElementById('sim4h').addEventListener('click', () => {
-      state = calculateOfflineProgression(state, state.lastUpdated + (4 * 60 * 60 * 1000));
+      state = calculateOffline(state, state.lastUpdated + (4 * 60 * 60 * 1000));
       saveState();
-      audio.playTone(2800, 80);
+      buzzer.playTone(2800, 80);
     });
-
-    document.getElementById('simSnacks').addEventListener('click', () => {
+    document.getElementById('sim1d').addEventListener('click', () => {
+      state = calculateOffline(state, state.lastUpdated + (24 * 60 * 60 * 1000));
+      saveState();
+      buzzer.playTone(3200, 100);
+    });
+    document.getElementById('simSnackOverdose').addEventListener('click', () => {
       state.consecutiveSnacks = 4;
       state.isSick = true;
-      state.happiness = 4;
-      state.weight += 8;
+      state.weight += 6;
       saveState();
-      audio.playRefusal();
+      buzzer.playRefusal();
+    });
+    document.getElementById('simFakeCall').addEventListener('click', () => {
+      state.attentionActive = true;
+      saveState();
+      buzzer.playAttention();
     });
 
-    document.getElementById('simAttention').addEventListener('click', () => {
-      triggerAttentionCall('discipline');
-      saveState();
-    });
-
+    // Iniciar
     window.addEventListener('load', () => {
-      loadSavedState();
-      updateDebugDisplay();
+      loadState();
       requestAnimationFrame(gameLoop);
     });
   </script>
