@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tamagotchi 1996 (Generación 1) - Emulador de Mascota Virtual</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Press Start 2P', monospace;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    
+    /* Chasis retro con factor de forma de huevo Bandai 1996 */
+    .tamagotchi-egg {
+      width: 330px;
+      height: 430px;
+      border-radius: 50% 50% 48% 48% / 60% 60% 42% 42%;
+      background: radial-gradient(circle at 35% 25%, #4de5d3 0%, #009999 55%, #006666 100%);
+      box-shadow: 
+        inset 0 10px 25px rgba(255, 255, 255, 0.6),
+        inset 0 -12px 30px rgba(0, 0, 0, 0.45),
+        0 20px 40px rgba(0, 0, 0, 0.4),
+        0 4px 10px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+
+    /* Aro superior de llavero metálico */
+    .keychain-loop {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 44px;
+      height: 28px;
+      border: 6px solid #b3c2c8;
+      border-radius: 50%;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      z-index: 0;
+    }
+
+    /* Bisel interior de la pantalla LCD */
+    .screen-bezel {
+      background: #eae2cf;
+      border: 4px solid #3a3a3a;
+      border-radius: 24px;
+      box-shadow: 
+        inset 0 4px 10px rgba(0,0,0,0.5),
+        0 3px 6px rgba(255,255,255,0.4);
+    }
+
+    /* Matriz de pantalla LCD con fondo verde monocromático reflectivo */
+    .lcd-screen {
+      background-color: #9fac88;
+      background-image: 
+        linear-gradient(rgba(142, 156, 122, 0.3) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(142, 156, 122, 0.3) 1px, transparent 1px);
+      background-size: 4px 4px;
+      box-shadow: inset 0 2px 8px rgba(35, 45, 25, 0.45);
+      position: relative;
+    }
+
+    /* Efecto de luz apagada (sueño) */
+    .lcd-screen.lights-off {
+      background-color: #3b4233;
+      filter: brightness(0.65) contrast(1.1);
+    }
+
+    /* Botones físicos estilo gomita retro con relieve */
+    .tamagotchi-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ffd15c, #d98200);
+      box-shadow: 
+        0 6px 0 #8c5200,
+        0 8px 10px rgba(0,0,0,0.4),
+        inset 0 2px 2px rgba(255,255,255,0.6);
+      transition: all 0.08s ease;
+      cursor: pointer;
+    }
+
+    .tamagotchi-btn:active, .tamagotchi-btn.pressed {
+      transform: translateY(4px);
+      box-shadow: 
+        0 2px 0 #8c5200,
+        0 3px 5px rgba(0,0,0,0.4),
+        inset 0 1px 2px rgba(0,0,0,0.4);
+    }
+
+    /* Iconos perimetrales originales */
+    .icon-badge {
+      transition: all 0.15s ease;
+      image-rendering: pixelated;
+      color: #39442a;
+    }
+    .icon-badge.active {
+      color: #0b1406;
+      background-color: #1b2612;
+      color: #9fac88;
+      border-radius: 4px;
+      box-shadow: 0 0 0 2px #1b2612;
+      animation: pulse-icon 0.8s infinite alternate;
+    }
+    .icon-badge.attention-active {
+      animation: alert-blink 0.5s infinite alternate;
+      background-color: #1b2612;
+      color: #9fac88;
+      border-radius: 4px;
+    }
+
+    @keyframes pulse-icon {
+      0% { opacity: 0.85; transform: scale(1.0); }
+      100% { opacity: 1; transform: scale(1.12); }
+    }
+
+    @keyframes alert-blink {
+      0% { opacity: 0.2; }
+      100% { opacity: 1; }
+    }
+
+    canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-3 select-none">
+
+  <!-- Contenedor Superior: Título y Ayuda Rápida -->
+  <header class="mb-4 text-center">
+    <h1 class="text-xs sm:text-sm tracking-widest text-teal-300 drop-shadow mb-1">BANDAI 1996 EMULATION</h1>
+    <p class="text-[9px] text-slate-400 font-sans tracking-normal">Motor FSM con Progresión Offline Delta-Time & Audio 1-Bit Piezo</p>
+  </header>
+
+  <!-- Chasis Tamagotchi -->
+  <main class="relative z-10 flex flex-col items-center">
+    <div class="keychain-loop"></div>
+
+    <div class="tamagotchi-egg flex flex-col items-center pt-8 px-6 pb-6 border-2 border-teal-200/30">
+      
+      <!-- Detalle superior: Logotipo estilo retro -->
+      <div class="text-[10px] tracking-widest font-black text-amber-200/90 mb-3 drop-shadow flex items-center gap-1">
+        <span>●</span> TAMAGOTCHI <span>●</span>
+      </div>
+
+      <!-- Pantalla Enmarcada -->
+      <div class="screen-bezel p-3 w-[260px] flex flex-col items-center">
+        
+        <!-- Fila Superior de Iconos (1-4) -->
+        <div class="w-full flex justify-between items-center px-2 py-1 mb-1 text-[13px] font-bold border-b border-[#7a8a68]/40">
+          <div id="icon-0" class="icon-badge p-1" title="Alimentar (Meal / Snack)">🍚</div>
+          <div id="icon-1" class="icon-badge p-1" title="Luz (Encender / Apagar)">💡</div>
+          <div id="icon-2" class="icon-badge p-1" title="Juego (Left / Right)">🎮</div>
+          <div id="icon-3" class="icon-badge p-1" title="Medicina">💉</div>
+        </div>
+
+        <!-- Canvas LCD Principal (Resolución nativa lógica 32x16 píxeles escalada a 240x120) -->
+        <div id="lcd-container" class="lcd-screen rounded p-1 border border-[#6b7b59]">
+          <canvas id="lcdCanvas" width="240" height="128" class="block"></canvas>
+        </div>
+
+        <!-- Fila Inferior de Iconos (5-8) -->
+        <div class="w-full flex justify-between items-center px-2 py-1 mt-1 text-[13px] font-bold border-t border-[#7a8a68]/40">
+          <div id="icon-4" class="icon-badge p-1" title="Limpieza / Inodoro">🚽</div>
+          <div id="icon-5" class="icon-badge p-1" title="Báscula y Estado">⚖️</div>
+          <div id="icon-6" class="icon-badge p-1" title="Disciplina">📢</div>
+          <div id="icon-7" class="icon-badge p-1" title="Atención (Alarma)">🚨</div>
+        </div>
+
+      </div>
+
+      <!-- Distribución de Botones Físicos [A], [B], [C] -->
+      <div class="mt-7 flex items-center justify-between w-full px-4">
+        <!-- Botón A: Select / Cursor -->
+        <div class="flex flex-col items-center">
+          <button id="btnA" class="tamagotchi-btn flex items-center justify-center font-bold text-amber-950 text-xs active:outline-none" aria-label="Botón A: Seleccionar">A</button>
+          <span class="text-[8px] text-teal-100 font-bold mt-1 tracking-tighter">SELECT</span>
+        </div>
+
+        <!-- Botón B: Execute / Confirm / Stats directo -->
+        <div class="flex flex-col items-center mt-3">
+          <button id="btnB" class="tamagotchi-btn flex items-center justify-center font-bold text-amber-950 text-xs active:outline-none" aria-label="Botón B: Confirmar">B</button>
+          <span class="text-[8px] text-teal-100 font-bold mt-1 tracking-tighter">EXECUTE</span>
+        </div>
+
+        <!-- Botón C: Cancel / Status screen -->
+        <div class="flex flex-col items-center">
+          <button id="btnC" class="tamagotchi-btn flex items-center justify-center font-bold text-amber-950 text-xs active:outline-none" aria-label="Botón C: Cancelar">C</button>
+          <span class="text-[8px] text-teal-100 font-bold mt-1 tracking-tighter">CANCEL</span>
+        </div>
+      </div>
+
+      <!-- Combo reset hint -->
+      <div class="text-[7px] text-teal-200/80 mt-4 tracking-tighter text-center">
+        [A] + [C] Resetear / Nueva Generación
+      </div>
+    </div>
+  </main>
+  <!-- Panel de Diagnóstico, Viaje en el Tiempo (Time-Warp) y Pruebas Fieles -->
+  <footer class="mt-4 max-w-md w-full bg-slate-800/80 backdrop-blur rounded-lg p-3 border border-slate-700 text-[10px] text-slate-300">
+    <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-2">
+      <span class="font-bold text-teal-400">HERRAMIENTAS DE PRUEBA 1996</span>
+      <span id="debugStageBadge" class="px-2 py-0.5 rounded bg-teal-900 text-teal-200 text-[8px]">EGG</span>
+    </div>
+
+    <!-- Controles de simulación temporal offline -->
+    <div class="grid grid-cols-3 gap-2 mb-2">
+      <button id="sim15m" class="bg-slate-700 hover:bg-slate-600 active:scale-95 text-slate-200 py-1 px-1 rounded text-center text-[8px] transition">
+        +15m (Offline)
+      </button>
+      <button id="sim1h" class="bg-slate-700 hover:bg-slate-600 active:scale-95 text-slate-200 py-1 px-1 rounded text-center text-[8px] transition">
+        +1 Hora
+      </button>
+      <button id="sim4h" class="bg-slate-700 hover:bg-slate-600 active:scale-95 text-slate-200 py-1 px-1 rounded text-center text-[8px] transition">
+        +4 Horas
+      </button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2 mb-2">
+      <button id="simSnacks" class="bg-amber-900/40 hover:bg-amber-800/60 active:scale-95 text-amber-200 py-1 px-2 rounded text-left text-[8px] transition">
+        🍬 Forzar 4 Snacks (Enfermar)
+      </button>
+      <button id="simAttention" class="bg-rose-900/40 hover:bg-rose-800/60 active:scale-95 text-rose-200 py-1 px-2 rounded text-left text-[8px] transition">
+        📢 Llamada Falsa (Disciplina)
+      </button>
+    </div>
+
+    <!-- Monitor en tiempo real de métricas internas -->
+    <div class="bg-slate-900/90 rounded p-2 text-[9px] font-mono grid grid-cols-2 gap-x-2 gap-y-1 text-slate-400 border border-slate-800">
+      <div>Hambre: <span id="dbgHunger" class="text-white">0</span>/4</div>
+      <div>Felicidad: <span id="dbgHappy" class="text-white">0</span>/4</div>
+      <div>Peso: <span id="dbgWeight" class="text-white">5</span> kg</div>
+      <div>Disciplina: <span id="dbgDiscipline" class="text-white">0</span>%</div>
+      <div>Heces: <span id="dbgPoop" class="text-white">0</span>/4</div>
+      <div>Care Misses: <span id="dbgMisses" class="text-rose-400">0</span></div>
+      <div>Enfermo: <span id="dbgSick" class="text-white">No</span></div>
+      <div>Luz: <span id="dbgLight" class="text-white">Encendida</span></div>
+    </div>
+    <div class="text-[8px] text-slate-500 mt-2 text-center">
+      Teclado: [A]=Izquierda/A | [B]=Espacio/S/Enter | [C]=Escape/D
+    </div>
+  </footer>
+
+  <script>
+    /**
+     * Motor de Audio Piezocerámico de 1-bit mediante Web Audio API pura
+     * Emula los pitidos rígidos de onda cuadrada a 3.2 kHz del zumbador original
+     */
+    class PiezoAudio {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            this.ctx = new AudioContextClass();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playTone(freq, durationMs) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = 'square'; // 1-bit puro
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + (durationMs / 1000));
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + (durationMs / 1000));
+        } catch (e) {
+          console.warn('Audio error:', e);
+        }
+      }
+
+      playSelect() {
+        this.playTone(3200, 35);
+      }
+
+      playExecute() {
+        this.playTone(2800, 40);
+        setTimeout(() => this.playTone(3600, 60), 50);
+      }
+
+      playCancel() {
+        this.playTone(1800, 45);
+      }
+
+      playRefusal() {
+        this.playTone(650, 140);
+        setTimeout(() => this.playTone(550, 200), 160);
+      }
+
+      playHappy() {
+        const tones = [2093, 2637, 3136, 4186];
+        tones.forEach((freq, idx) => {
+          setTimeout(() => this.playTone(freq, 70), idx * 80);
+        });
+      }
+
+      playAlertSiren() {
+        for (let i = 0; i < 4; i++) {
+          setTimeout(() => this.playTone(3200, 100), i * 220);
+          setTimeout(() => this.playTone(2400, 100), i * 220 + 110);
+        }
+      }
+
+      playDeathMelody() {
+        const tones = [1200, 1050, 900, 750, 600];
+        tones.forEach((freq, idx) => {
+          setTimeout(() => this.playTone(freq, 220), idx * 260);
+        });
+      }
+    }
+
+    const audio = new PiezoAudio();
+
+    /**
+     * Banco de Sprites en matrices binarias (16 filas de 16 píxeles)
+     * 1 = Píxel negro LCD (#1b2612)
+     * 0 = Fondo transparente
+     */
+    const SPRITES = {
+      egg: [
+        [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
+        [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
+        [0,1,0,0,0,1,1,0,0,1,1,0,0,0,1,0],
+        [0,1,0,0,1,1,1,1,1,1,1,1,0,0,1,0],
+        [1,0,0,0,1,1,1,1,1,1,1,1,0,0,0,1],
+        [1,0,0,0,0,1,1,1,1,1,1,0,0,0,0,1],
+        [1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1],
+        [1,0,0,0,1,1,0,0,0,0,1,1,0,0,0,1],
+        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
+        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
+        [1,0,0,0,1,1,0,0,0,0,1,1,0,0,0,1],
+        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+        [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0],
+        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+      ],
+      egg_wobble: [
+        [0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0],
+        [0,0,0,0,1,1,0,0,0,0,0,1,1,0,0,0],
+        [0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0],
+        [0,0,1,0,0,1,1,0,0,1,1,0,0,0,1,0],
+        [0,1,0,0,1,1,1,1,1,1,1,1,0,0,1,0],
+        [0,1,0,0,1,1,1,1,1,1,1,1,0,0,1,0],
+        [1,0,0,0,0,1,1,1,1,1,1,0,0,0,0,1],
+        [1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1],
+        [1,0,0,1,1,0,0,0,0,1,1,0,0,0,0,1],
+        [1,0,1,1,1,1,0,0,1,1,1,1,0,0,0,1],
+        [1,0,1,1,1,1,0,0,1,1,1,1,0,0,0,1],
+        [0,1,0,1,1,0,0,0,0,1,1,0,0,0,1,0],
+        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+        [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
+        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
+        [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+      ],
+      baby_1: [
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
+        [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
+        [0,0,1,0,0,1,1,0,0,1,1,0,0,1,0,0],
+        [0,0,1,0,0,1,1,0,0,1,1,0,0,1,0,0],
+        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+        [0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,0],
+        [0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,0],
+        [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
+        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
+        [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
+        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+      ],
+      baby_2: [
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
+        [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
+        [0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0],
+        [0,0,1,0,0,1,1,0,0,1,1,0,0,1,0,0],
+        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+        [0,1,0,0,0,0,1,1,1,1,0,0,0,0,1,0],
+        [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
+        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
+        [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+        [0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0],
+        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+      ],
+      child_1: [
+        [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
+        [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
+        [0,1,0,0,1,1,0,0,0,0,1,1,0,0,1,0],
+        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
+        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
+        [1,0,0,0,1,1,0,0,0,0,1,1,0,0,0,1],
+        [1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1],
+        [1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1],
+        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+        [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0],
+        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
+        [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+      ],
+      child_2: [
+        [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
+        [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
+        [0,1,0,0,1,1,0,0,0,0,1,1,0,0,1,0],
+        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
+        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
+        [1,0,0,0,1,1,0,0,0,0,1,1,0,0,0,1],
+        [1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1],
+        [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+        [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0],
+        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
+        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+      ],
+      mametchi_1: [
+        [0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0],
+        [0,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0],
+        [0,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0],
+        [0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0],
+        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+        [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
+        [0,0,1,0,0,1,1,0,0,1,1,0,0,1,0,0],
+        [0,0,1,0,1,1,1,0,0,1,1,1,0,1,0,0],
+        [0,0,1,0,0,1,1,0,0,1,1,0,0,1,0,0],
+        [0,0,1,0,0,0,0,1,1,0,0,0,0,1,0,0],
+        [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
+        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+        [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+        [0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,0],
+        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
+        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0]
+      ],
+      mametchi_2: [
+        [0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0],
+        [0,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0],
+        [0,1,1,1,1,1,0,0,0,0,1,1,1,1,1,0],
+        [0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0],
+        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+        [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
+        [0,0,1,0,0,1,1,0,0,1,1,0,0,1,0,0],
+        [0,0,1,0,1,1,1,0,0,1,1,1,0,1,0,0],
+        [0,0,1,0,0,0,0,1,1,0,0,0,0,1,0,0],
+        [0,0,1,0,0,0,1,0,0,1,0,0,0,1,0,0],
+        [0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0],
+        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+        [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0],
+        [0,0,0,0,1,1,0,0,0,0,1,1,0,0,0,0]
+      ],
+      kuchipatchi_1: [
+        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+        [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0],
+        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+        [1,0,0,0,1,1,0,0,0,0,1,1,0,0,0,1],
+        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
+        [1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1],
+        [1,0,0,0,1,1,0,0,0,0,1,1,0,0,0,1],
+        [1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1],
+        [1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,1],
+        [1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1],
+        [1,0,1,1,0,0,0,0,0,0,0,0,1,1,0,1],
+        [0,1,0,1,1,1,1,1,1,1,1,1,1,0,1,0],
+        [0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0],
+        [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
+        [0,0,1,1,0,0,0,0,0,0,0,0,1,1,0,0]
+      ],
+      poop: [
+        [0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0],
+        [0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0],
+        [0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0],
+        [0,0,0,1,1,0,0,0,0,1,1,0,0,0,0,0],
+        [0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0],
+        [0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],
+        [0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+        [0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0],
+        [1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0],
+        [1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0],
+        [0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+      ],
+      skull: [
+        [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+        [0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0],
+        [0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+        [0,1,1,0,0,1,1,1,1,1,1,0,0,1,1,0],
+        [0,1,1,0,0,1,1,1,1,1,1,0,0,1,1,0],
+        [0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0],
+        [0,0,1,1,1,1,0,0,0,0,1,1,1,1,0,0],
+        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+        [0,0,0,0,1,0,1,0,1,0,1,0,0,0,0,0],
+        [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+      ],
+      tombstone: [
+        [0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0],
+        [0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0],
+        [0,0,1,0,0,0,0,1,1,0,0,0,0,1,0,0],
+        [0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,0],
+        [0,1,0,0,1,1,1,1,1,1,1,1,0,0,1,0],
+        [0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,0],
+        [0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,0],
+        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+        [0,1,0,0,1,1,1,1,1,1,1,1,0,0,1,0],
+        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+        [0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+      ],
+      heart_full: [
+        [0,1,1,0,0,1,1,0],
+        [1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1],
+        [0,1,1,1,1,1,1,0],
+        [0,0,1,1,1,1,0,0],
+        [0,0,0,1,1,0,0,0],
+        [0,0,0,0,0,0,0,0]
+      ],
+      heart_empty: [
+        [0,1,1,0,0,1,1,0],
+        [1,0,0,1,1,0,0,1],
+        [1,0,0,0,0,0,0,1],
+        [1,0,0,0,0,0,0,1],
+        [0,1,0,0,0,0,1,0],
+        [0,0,1,0,0,1,0,0],
+        [0,0,0,1,1,0,0,0],
+        [0,0,0,0,0,0,0,0]
+      ]
+    };
+    /**
+     * Modelo de Estado Contextual Completo
+     */
+    const STORAGE_KEY = 'tamagotchi_1996_engine_state_v1';
+
+    const DEFAULT_STATE = {
+      stage: 'egg',            // 'egg' | 'baby' | 'child' | 'teen' | 'adult' | 'dead'
+      character: 'egg',        // 'egg' | 'baby' | 'child' | 'mametchi' | 'kuchipatchi'
+      hunger: 0,               // 0 a 4 corazones
+      happiness: 0,            // 0 a 4 corazones
+      discipline: 0,           // 0 a 100 (%)
+      weight: 5,               // kg
+      poopCount: 0,            // 0 a 4
+      isSick: false,           // boolean
+      isSleeping: false,       // boolean
+      lightOn: true,           // boolean
+      careMisses: 0,           // contador
+      consecutiveSnacks: 0,    // gatillo de enfermedad (>3)
+      birthTimestamp: Date.now(),
+      lastUpdated: Date.now(),
+      stageStartedTimestamp: Date.now(),
+      attentionActive: false,  // alarma de atención
+      attentionTimerMs: 0,     // ventana de 15 minutos (900000ms)
+      attentionReason: null,   // 'hunger' | 'happiness' | 'discipline' | 'sleep'
+      ageDays: 0,
+      starvationTimerMs: 0     // contador de inanición continua
+    };
+
+    let state = { ...DEFAULT_STATE };
+
+    // Estados de navegación e interfaz (UI Menu FSM)
+    let ui = {
+      selectedIconIndex: -1,   // -1 = ninguno, 0 a 7
+      menuMode: 'IDLE',        // 'IDLE' | 'FOOD_SELECT' | 'LIGHT_SELECT' | 'GAME' | 'METER' | 'ANIM'
+      meterPage: 0,            // 0=Age/Weight, 1=Discipline, 2=Hunger, 3=Happy
+      foodOption: 0,           // 0=Meal, 1=Snack
+      animType: null,          // 'eating' | 'refusal' | 'flush' | 'clean' | 'shot'
+      animFrame: 0,
+      animTimer: 0,
+      gameRound: 0,            // 1 a 5
+      gameScore: 0,            // aciertos
+      gamePetChoice: null,     // 'left' | 'right'
+      gameUserChoice: null,
+      gamePhase: 'WAIT_INPUT', // 'WAIT_INPUT' | 'SHOW_RESULT' | 'ROUND_OVER'
+      gameTimer: 0,
+      frameTick: 0
+    };
+
+    /**
+     * Motor Delta-Time de Progresión Desconectada (Offline Catch-Up)
+     * Resuelve los bloques de 15 minutos acumulados mientras la pestaña estuvo cerrada
+     */
+    function calculateOfflineProgression(savedState, currentTimestamp) {
+      if (savedState.stage === 'dead') return savedState;
+
+      const BLOCK_MS = 15 * 60 * 1000; // 15 minutos en ms
+      let elapsedMs = currentTimestamp - savedState.lastUpdated;
+      if (elapsedMs < 1000) return savedState;
+
+      const next = { ...savedState };
+      const maxIterations = 96; // Hasta 24 horas simuladas
+      let iterations = 0;
+
+      while (elapsedMs >= BLOCK_MS && iterations < maxIterations && next.stage !== 'dead') {
+        iterations++;
+        elapsedMs -= BLOCK_MS;
+
+        // Horario de sueño clásico: 20:00 a 09:00
+        const simDate = new Date(next.lastUpdated + (iterations * BLOCK_MS));
+        const hour = simDate.getHours();
+        const shouldBeSleeping = (hour >= 20 || hour < 9) && next.stage !== 'egg' && next.stage !== 'baby';
+
+        if (shouldBeSleeping) {
+          next.isSleeping = true;
+          // Si la luz quedó encendida al dormir, genera Care Miss
+          if (next.lightOn) {
+            next.careMisses += 1;
+          }
+        } else {
+          next.isSleeping = false;
+        }
+
+        // Tasa de decaimiento metabólico (durante el sueño cae a mitad de ritmo)
+        const decayDivisor = next.isSleeping ? 2 : 1;
+
+        // Decaimiento de Hambre
+        if (iterations % (2 * decayDivisor) === 0) {
+          if (next.hunger > 0) {
+            next.hunger -= 1;
+          } else {
+            next.starvationTimerMs += BLOCK_MS;
+            // Inanición mayor a 12 horas produce muerte directa
+            if (next.starvationTimerMs >= 12 * 60 * 60 * 1000) {
+              next.stage = 'dead';
+              break;
+            }
+          }
+        }
+
+        // Decaimiento de Felicidad
+        if (iterations % (3 * decayDivisor) === 0) {
+          if (next.happiness > 0) {
+            next.happiness -= 1;
+          }
+        }
+
+        // Faltas de Cuidado (Care Misses) si permanece en 0 corazones sin atención
+        if (next.hunger === 0 || next.happiness === 0) {
+          next.careMisses += 1;
+        }
+
+        // Deposiciones de heces (solo despierto)
+        if (!next.isSleeping && iterations % 6 === 0) {
+          if (next.poopCount < 4) {
+            next.poopCount += 1;
+          }
+        }
+
+        // Riesgo de enfermedad por heces acumuladas (>2 heces por más de 3h)
+        if (next.poopCount >= 2 && Math.random() < 0.4) {
+          next.isSick = true;
+        }
+
+        // Verificación de Umbral de Muerte por descuido
+        if (next.careMisses >= 5) {
+          next.stage = 'dead';
+          break;
+        }
+
+        // Progresión de Edad (cada 24 horas reales = +1 día)
+        const totalAliveMs = (currentTimestamp - next.birthTimestamp);
+        next.ageDays = Math.floor(totalAliveMs / (24 * 60 * 60 * 1000));
+
+        // Progresión ontogénica evolutiva
+        evaluateEvolution(next, currentTimestamp);
+      }
+
+      next.lastUpdated = currentTimestamp;
+      return next;
+    }
+
+    /**
+     * Evalúa las condiciones ontogénicas y ramificaciones de evolución
+     */
+    function evaluateEvolution(tgtState, now) {
+      if (tgtState.stage === 'dead') return;
+
+      const stageAgeMs = now - tgtState.stageStartedTimestamp;
+
+      // 1. Huevo -> Bebé (5 minutos de incubación o 30s en demo acelerada)
+      if (tgtState.stage === 'egg' && stageAgeMs >= 60 * 1000) {
+        tgtState.stage = 'baby';
+        tgtState.character = 'baby';
+        tgtState.hunger = 2;
+        tgtState.happiness = 2;
+        tgtState.weight = 5;
+        tgtState.stageStartedTimestamp = now;
+        audio.playHappy();
+      }
+      // 2. Bebé -> Niño (65 minutos)
+      else if (tgtState.stage === 'baby' && stageAgeMs >= 65 * 60 * 1000) {
+        tgtState.stage = 'child';
+        tgtState.character = 'child';
+        tgtState.weight = Math.max(10, tgtState.weight);
+        tgtState.stageStartedTimestamp = now;
+        audio.playHappy();
+      }
+      // 3. Niño -> Adulto (3 días de vida)
+      else if (tgtState.stage === 'child' && stageAgeMs >= 3 * 24 * 60 * 60 * 1000) {
+        tgtState.stage = 'adult';
+        // Ramificación según Care Misses y Disciplina
+        if (tgtState.careMisses <= 2 && tgtState.discipline >= 75) {
+          tgtState.character = 'mametchi'; // Adulto perfecto
+        } else {
+          tgtState.character = 'kuchipatchi'; // Adulto descuidado
+        }
+        tgtState.weight = Math.max(30, tgtState.weight);
+        tgtState.stageStartedTimestamp = now;
+        audio.playHappy();
+      }
+    }
+
+    function loadSavedState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const progressed = calculateOfflineProgression(parsed, Date.now());
+          state = progressed;
+          saveState();
+        } else {
+          resetToNewEgg();
+        }
+      } catch (e) {
+        console.error('Error al cargar estado:', e);
+        resetToNewEgg();
+      }
+    }
+
+    function saveState() {
+      try {
+        state.lastUpdated = Date.now();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        updateDebugDisplay();
+      } catch (e) {
+        console.warn('Error al guardar:', e);
+      }
+    }
+
+    function resetToNewEgg() {
+      state = {
+        ...DEFAULT_STATE,
+        birthTimestamp: Date.now(),
+        lastUpdated: Date.now(),
+        stageStartedTimestamp: Date.now()
+      };
+      ui.selectedIconIndex = -1;
+      ui.menuMode = 'IDLE';
+      saveState();
+      audio.playTone(1800, 100);
+      setTimeout(() => audio.playTone(2400, 150), 120);
+    }
+    /**
+     * Paradigma de 3 Botones Bandai:
+     * [A] (Select): Recorre iconos o commuta opciones
+     * [B] (Confirm / Execute): Ejecuta la opción o muestra báscula si no hay selección
+     * [C] (Cancel): Vuelve a idle, deselecciona iconos
+     * [A] + [C] combo: Reinicio en caso de muerte
+     */
+
+    let isPressingA = false;
+    let isPressingC = false;
+
+    function handleButtonA() {
+      audio.init();
+      isPressingA = true;
+      checkComboReset();
+
+      if (state.stage === 'dead') {
+        audio.playCancel();
+        return;
+      }
+
+      // 1. Minijuego: A es "IZQUIERDA"
+      if (ui.menuMode === 'GAME' && ui.gamePhase === 'WAIT_INPUT') {
+        audio.playSelect();
+        submitGameChoice('left');
+        return;
+      }
+
+      // 2. Submenú de Comida: Alterna Meal y Snack
+      if (ui.menuMode === 'FOOD_SELECT') {
+        audio.playSelect();
+        ui.foodOption = ui.foodOption === 0 ? 1 : 0;
+        return;
+      }
+
+      // 3. Submenú de Luz: Alterna On/Off
+      if (ui.menuMode === 'LIGHT_SELECT') {
+        audio.playSelect();
+        state.lightOn = !state.lightOn;
+        saveState();
+        return;
+      }
+
+      // 4. Modo Báscula: Pasa de página (0 a 3)
+      if (ui.menuMode === 'METER') {
+        audio.playSelect();
+        ui.meterPage = (ui.meterPage + 1) % 4;
+        return;
+      }
+
+      // 5. Animación en curso: botón inactivo
+      if (ui.menuMode === 'ANIM') return;
+
+      // 6. Recorrido cíclico de los 7 iconos accionables (0 a 6; el 7 es indicador de alarma)
+      audio.playSelect();
+      if (ui.selectedIconIndex === -1) {
+        ui.selectedIconIndex = 0;
+      } else {
+        ui.selectedIconIndex = (ui.selectedIconIndex + 1) % 7;
+      }
+      ui.menuMode = 'IDLE';
+      updateIconHighlights();
+    }
+
+    function handleButtonB() {
+      audio.init();
+      if (state.stage === 'dead') {
+        audio.playCancel();
+        return;
+      }
+
+      // 1. Minijuego: B es "DERECHA"
+      if (ui.menuMode === 'GAME' && ui.gamePhase === 'WAIT_INPUT') {
+        audio.playSelect();
+        submitGameChoice('right');
+        return;
+      }
+
+      // 2. Confirmación en submenú de Alimento
+      if (ui.menuMode === 'FOOD_SELECT') {
+        executeFeed(ui.foodOption === 0 ? 'meal' : 'snack');
+        return;
+      }
+
+      // 3. Confirmación de Luz
+      if (ui.menuMode === 'LIGHT_SELECT') {
+        audio.playExecute();
+        ui.menuMode = 'IDLE';
+        ui.selectedIconIndex = -1;
+        updateIconHighlights();
+        return;
+      }
+
+      // 4. Si está en báscula, B avanza página también
+      if (ui.menuMode === 'METER') {
+        audio.playSelect();
+        ui.meterPage = (ui.meterPage + 1) % 4;
+        return;
+      }
+
+      // 5. Si no hay icono seleccionado: Acceso directo a Báscula de Salud (Fiel a 1996)
+      if (ui.selectedIconIndex === -1) {
+        audio.playExecute();
+        ui.menuMode = 'METER';
+        ui.meterPage = 0;
+        return;
+      }
+
+      // 6. Ejecución del icono seleccionado
+      executeSelectedIcon(ui.selectedIconIndex);
+    }
+
+    function handleButtonC() {
+      audio.init();
+      isPressingC = true;
+      checkComboReset();
+
+      if (state.stage === 'dead') {
+        audio.playCancel();
+        return;
+      }
+
+      audio.playCancel();
+
+      // Cancelar cualquier menú y volver a pantalla principal
+      ui.selectedIconIndex = -1;
+      ui.menuMode = 'IDLE';
+      ui.meterPage = 0;
+      updateIconHighlights();
+    }
+
+    function checkComboReset() {
+      if (isPressingA && isPressingC) {
+        if (state.stage === 'dead' || confirmResetNeeded()) {
+          resetToNewEgg();
+        }
+      }
+    }
+
+    function confirmResetNeeded() {
+      return state.stage === 'dead';
+    }
+
+    /**
+     * Ejecuta el comando correspondiente al icono seleccionado
+     */
+    function executeSelectedIcon(index) {
+      switch (index) {
+        case 0: // COMIDA (Feed)
+          if (state.isSleeping) {
+            triggerRefusal();
+            return;
+          }
+          audio.playExecute();
+          ui.menuMode = 'FOOD_SELECT';
+          ui.foodOption = 0;
+          break;
+
+        case 1: // LUZ (Light)
+          audio.playExecute();
+          ui.menuMode = 'LIGHT_SELECT';
+          break;
+
+        case 2: // JUEGO (Left or Right)
+          if (state.isSleeping || state.isSick || state.stage === 'egg') {
+            triggerRefusal();
+            return;
+          }
+          startLeftRightGame();
+          break;
+
+        case 3: // MEDICINA (Medicine)
+          if (state.isSick) {
+            audio.playExecute();
+            state.isSick = false;
+            triggerAnimation('shot', 1800);
+          } else {
+            triggerRefusal();
+          }
+          break;
+
+        case 4: // BAÑO / LIMPIEZA (Flush)
+          if (state.poopCount > 0) {
+            audio.playExecute();
+            state.poopCount = 0;
+            triggerAnimation('flush', 1600);
+          } else {
+            triggerRefusal();
+          }
+          break;
+
+        case 5: // BÁSCULA / ESTADO (Health Meter)
+          audio.playExecute();
+          ui.menuMode = 'METER';
+          ui.meterPage = 0;
+          ui.selectedIconIndex = -1;
+          updateIconHighlights();
+          break;
+
+        case 6: // DISCIPLINA (Discipline)
+          handleDisciplineAttempt();
+          break;
+      }
+    }
+
+    function handleDisciplineAttempt() {
+      // Regla Bandai: Solo es válida si hay Attention Call pero los corazones NO están vacíos y NO está enfermo
+      if (state.attentionActive && state.hunger > 0 && state.happiness > 0 && !state.isSick) {
+        audio.playHappy();
+        state.discipline = Math.min(100, state.discipline + 25);
+        state.attentionActive = false;
+        state.attentionReason = null;
+        triggerAnimation('praise', 1600);
+      } else {
+        // Castigo injustificado: se entristece
+        triggerRefusal();
+        if (state.happiness > 0) state.happiness -= 1;
+      }
+      ui.selectedIconIndex = -1;
+      updateIconHighlights();
+      saveState();
+    }
+
+    function triggerRefusal() {
+      audio.playRefusal();
+      triggerAnimation('refusal', 1400);
+      ui.selectedIconIndex = -1;
+      updateIconHighlights();
+    }
+
+    function triggerAnimation(type, durationMs) {
+      ui.menuMode = 'ANIM';
+      ui.animType = type;
+      ui.animTimer = durationMs;
+      ui.animFrame = 0;
+    }
+
+    function executeFeed(type) {
+      if (type === 'meal') {
+        if (state.hunger >= 4) {
+          triggerRefusal();
+          return;
+        }
+        audio.playExecute();
+        state.hunger = Math.min(4, state.hunger + 1);
+        state.weight += 1;
+        state.consecutiveSnacks = 0;
+        checkAttentionResolved();
+        triggerAnimation('eating_meal', 1600);
+      } else {
+        // Snack / Golosina
+        audio.playExecute();
+        state.happiness = Math.min(4, state.happiness + 1);
+        state.weight += 2;
+        state.consecutiveSnacks += 1;
+
+        // Sobredosis de snacks (>3 seguidos con corazones llenos -> enfermedad)
+        if (state.consecutiveSnacks >= 4) {
+          state.isSick = true;
+        }
+        checkAttentionResolved();
+        triggerAnimation('eating_snack', 1600);
+      }
+      ui.selectedIconIndex = -1;
+      updateIconHighlights();
+      saveState();
+    }
+
+    function checkAttentionResolved() {
+      if (state.attentionActive) {
+        if (state.hunger > 0 && state.happiness > 0) {
+          state.attentionActive = false;
+          state.attentionReason = null;
+        }
+      }
+    }
+    /**
+     * Minijuego Bandai: Left or Right (5 Rondas)
+     * Acierta hacia dónde mirará el Tamagotchi.
+     * Si ganas 3 o más rondas de 5: +1 Corazón de felicidad, -1 kg peso
+     */
+    function startLeftRightGame() {
+      audio.playExecute();
+      ui.menuMode = 'GAME';
+      ui.gameRound = 1;
+      ui.gameScore = 0;
+      ui.gamePhase = 'WAIT_INPUT';
+      ui.selectedIconIndex = -1;
+      updateIconHighlights();
+    }
+
+    function submitGameChoice(choice) {
+      ui.gameUserChoice = choice;
+      // Dirección del Tamagotchi calculada pseudoaleatoriamente
+      ui.gamePetChoice = Math.random() < 0.5 ? 'left' : 'right';
+      ui.gamePhase = 'SHOW_RESULT';
+      ui.gameTimer = 900; // ms de pose
+
+      if (ui.gameUserChoice === ui.gamePetChoice) {
+        ui.gameScore += 1;
+        audio.playTone(3200, 80);
+      } else {
+        audio.playTone(1200, 90);
+      }
+    }
+
+    function updateGameLoop(dt) {
+      if (ui.menuMode !== 'GAME') return;
+
+      if (ui.gamePhase === 'SHOW_RESULT') {
+        ui.gameTimer -= dt;
+        if (ui.gameTimer <= 0) {
+          if (ui.gameRound < 5) {
+            ui.gameRound += 1;
+            ui.gamePhase = 'WAIT_INPUT';
+          } else {
+            // Fin del juego (5 rondas concluidas)
+            if (ui.gameScore >= 3) {
+              // Victoria
+              audio.playHappy();
+              state.happiness = Math.min(4, state.happiness + 1);
+              state.weight = Math.max(getMinWeight(state.stage), state.weight - 1);
+              triggerAnimation('game_win', 1800);
+            } else {
+              // Derrota
+              audio.playRefusal();
+              triggerAnimation('game_lose', 1600);
+            }
+            saveState();
+          }
+        }
+      }
+    }
+
+    function getMinWeight(stage) {
+      switch (stage) {
+        case 'baby': return 5;
+        case 'child': return 10;
+        case 'teen': return 20;
+        case 'adult': return 30;
+        default: return 5;
+      }
+    }
+
+    const canvas = document.getElementById('lcdCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    const LCD_DARK = '#1b2612';
+    const LCD_BG = '#9fac88';
+
+    function drawPixelMatrix(matrix, startX, startY, pixelSize = 4, mirrorX = false) {
+      ctx.fillStyle = LCD_DARK;
+      for (let r = 0; r < matrix.length; r++) {
+        for (let c = 0; c < matrix[r].length; c++) {
+          if (matrix[r][c] === 1) {
+            const drawCol = mirrorX ? (matrix[r].length - 1 - c) : c;
+            ctx.fillRect(startX + (drawCol * pixelSize), startY + (r * pixelSize), pixelSize, pixelSize);
+          }
+        }
+      }
+    }
+
+    function renderLCD() {
+      // Limpiar con fondo LCD
+      ctx.fillStyle = state.lightOn ? LCD_BG : '#3b4233';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Si la luz está apagada en sueño
+      if (!state.lightOn && state.isSleeping) {
+        ctx.fillStyle = LCD_DARK;
+        ctx.font = '10px "Press Start 2P"';
+        ctx.fillText('Z z z . . .', 70, 70);
+        return;
+      }
+
+      // 1. Pantalla de Muerte
+      if (state.stage === 'dead') {
+        drawPixelMatrix(SPRITES.tombstone, 100, 30, 4);
+        ctx.fillStyle = LCD_DARK;
+        ctx.font = '8px "Press Start 2P"';
+        ctx.fillText('R.I.P.', 102, 105);
+        ctx.font = '7px "Press Start 2P"';
+        ctx.fillText('[A]+[C] RESTART', 62, 120);
+        return;
+      }
+
+      // 2. Pantalla de Báscula / Medidor de Estado (Health Meter)
+      if (ui.menuMode === 'METER') {
+        renderHealthMeter();
+        return;
+      }
+
+      // 3. Submenú de Comida
+      if (ui.menuMode === 'FOOD_SELECT') {
+        renderFoodSelectMenu();
+        return;
+      }
+
+      // 4. Submenú de Luz
+      if (ui.menuMode === 'LIGHT_SELECT') {
+        renderLightSelectMenu();
+        return;
+      }
+
+      // 5. Minijuego Left or Right
+      if (ui.menuMode === 'GAME') {
+        renderGameScreen();
+        return;
+      }
+
+      // 6. Animaciones temporales (comer, limpieza, inyección, negación)
+      if (ui.menuMode === 'ANIM') {
+        renderAnimationScreen();
+        return;
+      }
+
+      // 7. Renderizado Normal de Mascota en Pantalla Idle
+      renderPetIdle();
+    }
+
+    function renderPetIdle() {
+      // Determinar sprite según etapa y tick de animación
+      let spriteA = SPRITES.egg;
+      let spriteB = SPRITES.egg_wobble;
+      let scale = 4;
+      let posY = 35;
+      let posX = 100;
+
+      if (state.stage === 'baby') {
+        spriteA = SPRITES.baby_1;
+        spriteB = SPRITES.baby_2;
+        scale = 4;
+      } else if (state.stage === 'child') {
+        spriteA = SPRITES.child_1;
+        spriteB = SPRITES.child_2;
+        scale = 5;
+        posX = 85;
+        posY = 25;
+      } else if (state.stage === 'adult') {
+        spriteA = state.character === 'mametchi' ? SPRITES.mametchi_1 : SPRITES.kuchipatchi_1;
+        spriteB = state.character === 'mametchi' ? SPRITES.mametchi_2 : SPRITES.kuchipatchi_1;
+        scale = 5;
+        posX = 85;
+        posY = 25;
+      }
+
+      // Alternancia de 2 frames cada 500ms
+      const isSecondFrame = Math.floor(Date.now() / 500) % 2 === 0;
+      const activeSprite = isSecondFrame ? spriteB : spriteA;
+
+      // Dibujar Mascota
+      drawPixelMatrix(activeSprite, posX, posY, scale);
+
+      // Si está durmiendo, mostrar "Z"
+      if (state.isSleeping) {
+        ctx.fillStyle = LCD_DARK;
+        ctx.font = '8px "Press Start 2P"';
+        ctx.fillText('Z', posX + 60, posY + 10);
+        ctx.fillText('z', posX + 70, posY);
+      }
+
+      // Si está enfermo, mostrar Calavera al lado
+      if (state.isSick) {
+        drawPixelMatrix(SPRITES.skull, 180, 40, 3);
+      }
+
+      // Dibujar heces acumuladas
+      for (let i = 0; i < state.poopCount; i++) {
+        drawPixelMatrix(SPRITES.poop, 20 + (i * 26), 75, 2);
+      }
+    }
+
+    function renderFoodSelectMenu() {
+      ctx.fillStyle = LCD_DARK;
+      ctx.font = '9px "Press Start 2P"';
+      ctx.fillText(ui.foodOption === 0 ? '> MEAL' : '  MEAL', 40, 50);
+      ctx.fillText(ui.foodOption === 1 ? '> SNACK' : '  SNACK', 40, 75);
+
+      // Iconos gráficos al lado
+      ctx.font = '14px monospace';
+      ctx.fillText('🍚', 150, 50);
+      ctx.fillText('🍰', 150, 75);
+    }
+
+    function renderLightSelectMenu() {
+      ctx.fillStyle = LCD_DARK;
+      ctx.font = '9px "Press Start 2P"';
+      ctx.fillText(state.lightOn ? '> ON' : '  ON', 60, 50);
+      ctx.fillText(!state.lightOn ? '> OFF' : '  OFF', 60, 75);
+    }
+
+    function renderGameScreen() {
+      ctx.fillStyle = LCD_DARK;
+      ctx.font = '8px "Press Start 2P"';
+      ctx.fillText(`ROUND ${ui.gameRound}/5`, 20, 25);
+      ctx.fillText(`SCORE: ${ui.gameScore}`, 140, 25);
+
+      if (ui.gamePhase === 'WAIT_INPUT') {
+        // Personaje mirando al frente esperando decisión [A] o [B]
+        drawPixelMatrix(SPRITES.child_1, 95, 45, 4);
+        ctx.fillText('< [A]   [B] >', 60, 115);
+      } else {
+        // Mostrar giro hacia el resultado
+        const isMirror = ui.gamePetChoice === 'right';
+        drawPixelMatrix(SPRITES.child_2, 95, 45, 4, isMirror);
+
+        ctx.font = '9px "Press Start 2P"';
+        if (ui.gameUserChoice === ui.gamePetChoice) {
+          ctx.fillText('GREAT!', 90, 115);
+        } else {
+          ctx.fillText('MISS!', 95, 115);
+        }
+      }
+    }
+
+    function renderHealthMeter() {
+      ctx.fillStyle = LCD_DARK;
+      ctx.font = '8px "Press Start 2P"';
+
+      if (ui.meterPage === 0) {
+        // Página 1: Edad y Peso
+        ctx.fillText('--- STATUS ---', 50, 30);
+        ctx.fillText(`AGE:   ${state.ageDays} yr`, 40, 60);
+        ctx.fillText(`WEIGHT:${state.weight} kg`, 40, 85);
+      } else if (ui.meterPage === 1) {
+        // Página 2: Disciplina
+        ctx.fillText('--- TRAIN ---', 55, 30);
+        ctx.fillText(`DISCIPLINE:`, 30, 60);
+        // Barra de progreso de disciplina en bloques
+        const blocks = Math.floor(state.discipline / 25);
+        let bar = '[';
+        for (let i = 0; i < 4; i++) {
+          bar += i < blocks ? '■' : ' ';
+        }
+        bar += '] ' + state.discipline + '%';
+        ctx.fillText(bar, 30, 85);
+      } else if (ui.meterPage === 2) {
+        // Página 3: Corazones de Hambre
+        ctx.fillText('--- HUNGRY ---', 50, 30);
+        for (let i = 0; i < 4; i++) {
+          const heart = i < state.hunger ? SPRITES.heart_full : SPRITES.heart_empty;
+          drawPixelMatrix(heart, 45 + (i * 40), 60, 3);
+        }
+      } else if (ui.meterPage === 3) {
+        // Página 4: Corazones de Felicidad
+        ctx.fillText('--- HAPPY ---', 55, 30);
+        for (let i = 0; i < 4; i++) {
+          const heart = i < state.happiness ? SPRITES.heart_full : SPRITES.heart_empty;
+          drawPixelMatrix(heart, 45 + (i * 40), 60, 3);
+        }
+      }
+      ctx.font = '7px "Press Start 2P"';
+      ctx.fillText('PAGE ' + (ui.meterPage + 1) + '/4', 90, 118);
+    }
+
+    function renderAnimationScreen() {
+      ctx.fillStyle = LCD_DARK;
+      const progress = 1 - (ui.animTimer / 1800);
+
+      if (ui.animType === 'eating_meal' || ui.animType === 'eating_snack') {
+        const chewFrame = Math.floor(Date.now() / 200) % 2 === 0;
+        drawPixelMatrix(chewFrame ? SPRITES.child_1 : SPRITES.child_2, 85, 35, 4);
+        ctx.font = '16px monospace';
+        ctx.fillText(ui.animType === 'eating_meal' ? '🍚' : '🍰', 150 - (progress * 30), 65);
+      } else if (ui.animType === 'refusal') {
+        // Niega con la cabeza rápidamente
+        const shake = Math.floor(Date.now() / 150) % 2 === 0;
+        drawPixelMatrix(SPRITES.child_2, shake ? 90 : 100, 35, 4, shake);
+        ctx.font = '8px "Press Start 2P"';
+        ctx.fillText('NO !', 105, 95);
+      } else if (ui.animType === 'flush') {
+        // Ola de agua que barre la pantalla
+        renderPetIdle();
+        ctx.fillRect(0, 0, canvas.width * progress, canvas.height);
+      } else if (ui.animType === 'shot') {
+        // Inyección de jeringa
+        drawPixelMatrix(SPRITES.child_2, 90, 35, 4);
+        ctx.font = '18px monospace';
+        ctx.fillText('💉', 150 - (progress * 25), 65);
+      } else if (ui.animType === 'game_win') {
+        drawPixelMatrix(SPRITES.child_1, 95, 35, 4);
+        ctx.font = '8px "Press Start 2P"';
+        ctx.fillText('WINNER! +1♥', 60, 105);
+      } else if (ui.animType === 'game_lose') {
+        drawPixelMatrix(SPRITES.child_2, 95, 35, 4);
+        ctx.font = '8px "Press Start 2P"';
+        ctx.fillText('TRY AGAIN', 75, 105);
+      } else if (ui.animType === 'praise') {
+        drawPixelMatrix(SPRITES.child_1, 95, 35, 4);
+        ctx.font = '8px "Press Start 2P"';
+        ctx.fillText('+25% TRAIN', 65, 105);
+      }
+    }
+    /**
+     * Bucle Principal de Simulación en Tiempo Real (Delta-Time Loop)
+     */
+    let lastFrameTime = performance.now();
+
+    function gameLoop(now) {
+      const dt = now - lastFrameTime;
+      lastFrameTime = now;
+
+      // 1. Actualizar temporizador de animaciones
+      if (ui.menuMode === 'ANIM') {
+        ui.animTimer -= dt;
+        if (ui.animTimer <= 0) {
+          ui.menuMode = 'IDLE';
+        }
+      }
+
+      // 2. Actualizar lógica de minijuego
+      updateGameLoop(dt);
+
+      // 3. Evaluar decaimiento en tiempo real cada 30 segundos
+      ui.frameTick += dt;
+      if (ui.frameTick >= 30000) {
+        ui.frameTick = 0;
+        evaluateRealtimeTick();
+      }
+
+      // 4. Evaluar temporizador de Alerta de Atención (15 minutos = 900000ms)
+      if (state.attentionActive) {
+        state.attentionTimerMs -= dt;
+        if (state.attentionTimerMs <= 0) {
+          // Ventana de 15 minutos expirada sin ser atendida: Care Miss oficial
+          state.attentionActive = false;
+          state.attentionReason = null;
+          state.careMisses += 1;
+          saveState();
+        }
+      }
+
+      // 5. Renderizar vista LCD
+      renderLCD();
+
+      // 6. Sincronizar estado visual del contenedor y los iconos
+      const lcdContainer = document.getElementById('lcd-container');
+      if (lcdContainer) {
+        if (!state.lightOn && state.isSleeping) {
+          lcdContainer.classList.add('lights-off');
+        } else {
+          lcdContainer.classList.remove('lights-off');
+        }
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    /**
+     * Ciclo biológico periódico en tiempo real
+     */
+    function evaluateRealtimeTick() {
+      if (state.stage === 'dead') return;
+
+      const now = Date.now();
+      evaluateEvolution(state, now);
+
+      // Horario de descanso biológico
+      const hour = new Date().getHours();
+      state.isSleeping = (hour >= 20 || hour < 9) && state.stage !== 'egg' && state.stage !== 'baby';
+
+      // Disparador de Alerta de Atención si los corazones tocan 0
+      if ((state.hunger === 0 || state.happiness === 0) && !state.attentionActive && !state.isSleeping) {
+        triggerAttentionCall('hunger');
+      }
+
+      // Disparador de llamada al acostarse para apagar la luz
+      if (state.isSleeping && state.lightOn && !state.attentionActive) {
+        triggerAttentionCall('sleep');
+      }
+
+      saveState();
+    }
+
+    function triggerAttentionCall(reason) {
+      state.attentionActive = true;
+      state.attentionReason = reason;
+      state.attentionTimerMs = 15 * 60 * 1000; // Ventana de 15 min
+      audio.playAlertSiren();
+    }
+
+    function updateIconHighlights() {
+      for (let i = 0; i < 7; i++) {
+        const el = document.getElementById(`icon-${i}`);
+        if (el) {
+          if (ui.selectedIconIndex === i) {
+            el.classList.add('active');
+          } else {
+            el.classList.remove('active');
+          }
+        }
+      }
+
+      // Icono 7: Indicador de Alerta / Atención
+      const alertEl = document.getElementById('icon-7');
+      if (alertEl) {
+        if (state.attentionActive) {
+          alertEl.classList.add('attention-active');
+        } else {
+          alertEl.classList.remove('attention-active');
+        }
+      }
+    }
+
+    function updateDebugDisplay() {
+      document.getElementById('debugStageBadge').innerText = state.stage.toUpperCase() + ' (' + state.character + ')';
+      document.getElementById('dbgHunger').innerText = state.hunger;
+      document.getElementById('dbgHappy').innerText = state.happiness;
+      document.getElementById('dbgWeight').innerText = state.weight;
+      document.getElementById('dbgDiscipline').innerText = state.discipline;
+      document.getElementById('dbgPoop').innerText = state.poopCount;
+      document.getElementById('dbgMisses').innerText = state.careMisses;
+      document.getElementById('dbgSick').innerText = state.isSick ? 'SÍ (Infectado)' : 'No';
+      document.getElementById('dbgLight').innerText = state.lightOn ? 'Encendida' : 'Apagada';
+      updateIconHighlights();
+    }
+
+    // Mapeo táctil y de ratón para los tres botones
+    const btnA = document.getElementById('btnA');
+    const btnB = document.getElementById('btnB');
+    const btnC = document.getElementById('btnC');
+
+    btnA.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      btnA.classList.add('pressed');
+      handleButtonA();
+    });
+    btnA.addEventListener('pointerup', () => {
+      btnA.classList.remove('pressed');
+      isPressingA = false;
+    });
+
+    btnB.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      btnB.classList.add('pressed');
+      handleButtonB();
+    });
+    btnB.addEventListener('pointerup', () => {
+      btnB.classList.remove('pressed');
+    });
+
+    btnC.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      btnC.classList.add('pressed');
+      handleButtonC();
+    });
+    btnC.addEventListener('pointerup', () => {
+      btnC.classList.remove('pressed');
+      isPressingC = false;
+    });
+
+    // Mapeo accesible de teclado de PC
+    window.addEventListener('keydown', (e) => {
+      if (e.repeat) return;
+      if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') {
+        btnA.classList.add('pressed');
+        handleButtonA();
+      } else if (e.key === 's' || e.key === 'S' || e.key === ' ' || e.key === 'Enter') {
+        btnB.classList.add('pressed');
+        handleButtonB();
+      } else if (e.key === 'd' || e.key === 'D' || e.key === 'Escape' || e.key === 'ArrowRight') {
+        btnC.classList.add('pressed');
+        handleButtonC();
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') {
+        btnA.classList.remove('pressed');
+        isPressingA = false;
+      } else if (e.key === 's' || e.key === 'S' || e.key === ' ' || e.key === 'Enter') {
+        btnB.classList.remove('pressed');
+      } else if (e.key === 'd' || e.key === 'D' || e.key === 'Escape' || e.key === 'ArrowRight') {
+        btnC.classList.remove('pressed');
+        isPressingC = false;
+      }
+    });
+
+    // Botones de simulación acelerada para verificar comportamiento
+    document.getElementById('sim15m').addEventListener('click', () => {
+      state = calculateOfflineProgression(state, state.lastUpdated + (15 * 60 * 1000));
+      saveState();
+      audio.playTone(2200, 50);
+    });
+
+    document.getElementById('sim1h').addEventListener('click', () => {
+      state = calculateOfflineProgression(state, state.lastUpdated + (60 * 60 * 1000));
+      saveState();
+      audio.playTone(2400, 60);
+    });
+
+    document.getElementById('sim4h').addEventListener('click', () => {
+      state = calculateOfflineProgression(state, state.lastUpdated + (4 * 60 * 60 * 1000));
+      saveState();
+      audio.playTone(2800, 80);
+    });
+
+    document.getElementById('simSnacks').addEventListener('click', () => {
+      state.consecutiveSnacks = 4;
+      state.isSick = true;
+      state.happiness = 4;
+      state.weight += 8;
+      saveState();
+      audio.playRefusal();
+    });
+
+    document.getElementById('simAttention').addEventListener('click', () => {
+      triggerAttentionCall('discipline');
+      saveState();
+    });
+
+    window.addEventListener('load', () => {
+      loadSavedState();
+      updateDebugDisplay();
+      requestAnimationFrame(gameLoop);
+    });
+  </script>
+</body>
+</html>
