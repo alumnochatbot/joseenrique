@@ -1655,6 +1655,31 @@
             }
 
             animate();
+
+            // Modo Preview Automático
+            const isPreview = window.self !== window.top || window.location.search.includes('preview=true');
+            if (isPreview) {
+                const modalStart = document.getElementById('modal-start');
+                if (modalStart) {
+                    modalStart.classList.add('hidden');
+                }
+
+                // Forzar silencio en modo preview para evitar leaks de audio
+                if (gameApp.sound) {
+                    gameApp.sound.enabled = false;
+                }
+
+                gameApp.setupNewLevel(true);
+
+                // Bot simple (simula avance intermitente hacia adelante)
+                setInterval(() => {
+                    if (gameApp.state === FSM_STATES.READY || gameApp.state === FSM_STATES.CARRIED) {
+                        gameApp.tryJump(0, 1);
+                    } else if (gameApp.state === FSM_STATES.GAME_OVER) {
+                        gameApp.setupNewLevel(true);
+                    }
+                }, 800);
+            }
         };
     </script>
 </body>
