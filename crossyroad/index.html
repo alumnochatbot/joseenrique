@@ -722,7 +722,7 @@
             // Player Shadow
             ctx.fillStyle = 'rgba(0,0,0,0.3)';
             ctx.beginPath();
-            ctx.ellipse(px, py + 5, tileSize * 0.35, tileSize * 0.2, 0, 0, Math.PI * 2);
+            ctx.ellipse(px, py + 5, tileSize * 0.38, tileSize * 0.22, 0, 0, Math.PI * 2);
             ctx.fill();
 
             // Player Body with jump height & squash
@@ -730,23 +730,147 @@
             ctx.translate(px, py - player.jumpHeight);
             ctx.scale(player.squashX, player.squashY);
 
-            // Main body block
-            ctx.fillStyle = charData.color;
-            ctx.fillRect(-tileSize * 0.35, -tileSize * 0.6, tileSize * 0.7, tileSize * 0.6);
+            if (charData.body === 'chicken') {
+                // TRUE CROSSY ROAD VOXEL CHICKEN
+                const wingFlap = player.isJumping ? Math.sin(player.jumpProgress * Math.PI) * 5 : 0;
+                const bob = player.isJumping ? 0 : Math.sin(Date.now() / 150) * 1.5;
 
-            // Head / Hat block
-            ctx.fillStyle = charData.headColor;
-            ctx.fillRect(-tileSize * 0.25, -tileSize * 0.9, tileSize * 0.5, tileSize * 0.4);
+                // Legs & Feet (voxel yellow)
+                ctx.fillStyle = '#f59e0b';
+                // Left leg
+                ctx.fillRect(-tileSize * 0.22, -tileSize * 0.1, tileSize * 0.1, tileSize * 0.16);
+                // Right leg
+                ctx.fillRect(tileSize * 0.12, -tileSize * 0.1, tileSize * 0.1, tileSize * 0.16);
+                // Feet
+                if (player.direction === 'backward') {
+                    ctx.fillRect(-tileSize * 0.26, tileSize * 0.04, tileSize * 0.16, tileSize * 0.08);
+                    ctx.fillRect(tileSize * 0.08, tileSize * 0.04, tileSize * 0.16, tileSize * 0.08);
+                } else if (player.direction === 'left') {
+                    ctx.fillRect(-tileSize * 0.3, tileSize * 0.04, tileSize * 0.18, tileSize * 0.08);
+                    ctx.fillRect(tileSize * 0.04, tileSize * 0.04, tileSize * 0.18, tileSize * 0.08);
+                } else if (player.direction === 'right') {
+                    ctx.fillRect(-tileSize * 0.22, tileSize * 0.04, tileSize * 0.18, tileSize * 0.08);
+                    ctx.fillRect(tileSize * 0.12, tileSize * 0.04, tileSize * 0.18, tileSize * 0.08);
+                } else {
+                    // forward
+                    ctx.fillRect(-tileSize * 0.24, -tileSize * 0.02, tileSize * 0.14, tileSize * 0.08);
+                    ctx.fillRect(tileSize * 0.1, -tileSize * 0.02, tileSize * 0.14, tileSize * 0.08);
+                }
 
-            // Eyes
-            ctx.fillStyle = '#0f172a';
-            if (player.direction === 'forward' || player.direction === 'backward') {
-                ctx.fillRect(-tileSize * 0.15, -tileSize * 0.75, 4, 4);
-                ctx.fillRect(tileSize * 0.05, -tileSize * 0.75, 4, 4);
-            } else if (player.direction === 'left') {
-                ctx.fillRect(-tileSize * 0.2, -tileSize * 0.75, 4, 4);
+                // Main Torso / Body (Pure White Voxel Cube with isometric depth)
+                // Body shadow underside
+                ctx.fillStyle = '#e2e8f0';
+                ctx.fillRect(-tileSize * 0.35, -tileSize * 0.65 + bob, tileSize * 0.7, tileSize * 0.6);
+                // Front / Top face
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-tileSize * 0.33, -tileSize * 0.65 + bob, tileSize * 0.66, tileSize * 0.55);
+
+                // Feather tail (behind)
+                ctx.fillStyle = '#cbd5e1';
+                if (player.direction === 'forward') {
+                    // Tail facing camera when jumping away
+                    ctx.fillRect(-tileSize * 0.12, -tileSize * 0.35 + bob, tileSize * 0.24, tileSize * 0.25);
+                    ctx.fillStyle = '#f8fafc';
+                    ctx.fillRect(-tileSize * 0.08, -tileSize * 0.4 + bob, tileSize * 0.16, tileSize * 0.2);
+                } else if (player.direction === 'backward') {
+                    // Tail hidden on opposite side
+                } else if (player.direction === 'left') {
+                    ctx.fillRect(tileSize * 0.26, -tileSize * 0.55 + bob, tileSize * 0.15, tileSize * 0.25);
+                } else if (player.direction === 'right') {
+                    ctx.fillRect(-tileSize * 0.41, -tileSize * 0.55 + bob, tileSize * 0.15, tileSize * 0.25);
+                }
+
+                // Wings (Sides of torso, flap when hopping)
+                ctx.fillStyle = '#f1f5f9';
+                // Left Wing
+                ctx.fillRect(-tileSize * 0.42, -tileSize * 0.55 + bob - wingFlap, tileSize * 0.1, tileSize * 0.35);
+                // Right Wing
+                ctx.fillRect(tileSize * 0.32, -tileSize * 0.55 + bob - wingFlap, tileSize * 0.1, tileSize * 0.35);
+
+                // Head Cube
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-tileSize * 0.26, -tileSize * 0.98 + bob, tileSize * 0.52, tileSize * 0.4);
+
+                // Comb / Crest (Red on top of head)
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(-tileSize * 0.14, -tileSize * 1.14 + bob, tileSize * 0.28, tileSize * 0.18);
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(-tileSize * 0.1, -tileSize * 1.18 + bob, tileSize * 0.2, tileSize * 0.1);
+
+                // Directional Face Elements (Beak, Wattle, Eyes)
+                if (player.direction === 'forward') {
+                    // Looking Forward (away from camera): Show back of head & comb
+                    ctx.fillStyle = '#ef4444';
+                    ctx.fillRect(-tileSize * 0.08, -tileSize * 1.1 + bob, tileSize * 0.16, tileSize * 0.18);
+                } else if (player.direction === 'backward') {
+                    // Looking directly at player: Big eyes, beak & wattle centered
+                    // Eyes
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(-tileSize * 0.18, -tileSize * 0.82 + bob, tileSize * 0.1, tileSize * 0.1);
+                    ctx.fillRect(tileSize * 0.08, -tileSize * 0.82 + bob, tileSize * 0.1, tileSize * 0.1);
+                    // Eye shine
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(-tileSize * 0.18, -tileSize * 0.82 + bob, 2.5, 2.5);
+                    ctx.fillRect(tileSize * 0.08, -tileSize * 0.82 + bob, 2.5, 2.5);
+
+                    // Yellow Beak
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.fillRect(-tileSize * 0.1, -tileSize * 0.72 + bob, tileSize * 0.2, tileSize * 0.14);
+
+                    // Red Wattle (under beak)
+                    ctx.fillStyle = '#dc2626';
+                    ctx.fillRect(-tileSize * 0.06, -tileSize * 0.58 + bob, tileSize * 0.12, tileSize * 0.12);
+                } else if (player.direction === 'left') {
+                    // Profile looking left
+                    // Left Eye
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(-tileSize * 0.18, -tileSize * 0.84 + bob, tileSize * 0.1, tileSize * 0.1);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(-tileSize * 0.18, -tileSize * 0.84 + bob, 2.5, 2.5);
+
+                    // Yellow Beak protruding left
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.fillRect(-tileSize * 0.42, -tileSize * 0.78 + bob, tileSize * 0.18, tileSize * 0.14);
+
+                    // Red Wattle
+                    ctx.fillStyle = '#dc2626';
+                    ctx.fillRect(-tileSize * 0.32, -tileSize * 0.64 + bob, tileSize * 0.12, tileSize * 0.12);
+                } else if (player.direction === 'right') {
+                    // Profile looking right
+                    // Right Eye
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(tileSize * 0.08, -tileSize * 0.84 + bob, tileSize * 0.1, tileSize * 0.1);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(tileSize * 0.14, -tileSize * 0.84 + bob, 2.5, 2.5);
+
+                    // Yellow Beak protruding right
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.fillRect(tileSize * 0.24, -tileSize * 0.78 + bob, tileSize * 0.18, tileSize * 0.14);
+
+                    // Red Wattle
+                    ctx.fillStyle = '#dc2626';
+                    ctx.fillRect(tileSize * 0.2, -tileSize * 0.64 + bob, tileSize * 0.12, tileSize * 0.12);
+                }
             } else {
-                ctx.fillRect(tileSize * 0.1, -tileSize * 0.75, 4, 4);
+                // Fallback for other characters
+                // Main body block
+                ctx.fillStyle = charData.color;
+                ctx.fillRect(-tileSize * 0.35, -tileSize * 0.6, tileSize * 0.7, tileSize * 0.6);
+
+                // Head / Hat block
+                ctx.fillStyle = charData.headColor;
+                ctx.fillRect(-tileSize * 0.25, -tileSize * 0.9, tileSize * 0.5, tileSize * 0.4);
+
+                // Eyes
+                ctx.fillStyle = '#0f172a';
+                if (player.direction === 'forward' || player.direction === 'backward') {
+                    ctx.fillRect(-tileSize * 0.15, -tileSize * 0.75, 4, 4);
+                    ctx.fillRect(tileSize * 0.05, -tileSize * 0.75, 4, 4);
+                } else if (player.direction === 'left') {
+                    ctx.fillRect(-tileSize * 0.2, -tileSize * 0.75, 4, 4);
+                } else {
+                    ctx.fillRect(tileSize * 0.1, -tileSize * 0.75, 4, 4);
+                }
             }
 
             ctx.restore();
