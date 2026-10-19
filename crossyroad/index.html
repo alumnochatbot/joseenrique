@@ -2,995 +2,1660 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crossy Road Arcade 3D</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crossy Voxel Hopper 3D - Arquitectura Maestra</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- Three.js r128 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=JetBrains+Mono:wght@600;800&display=swap" rel="stylesheet">
+
     <style>
-        body {
-            font-family: 'Outfit', sans-serif;
-            touch-action: manipulation;
+        * {
             user-select: none;
-            background-color: #0f172a;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            font-family: 'Fredoka', sans-serif;
             color: #f8fafc;
         }
-        .pixel-font {
-            font-family: 'Press Start 2P', monospace;
+        .mono-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 1rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 0 0 2px rgba(255, 255, 255, 0.1);
         }
         canvas {
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
+            background-color: #87CEEB;
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
         }
-        .retro-shadow {
-            box-shadow: 4px 4px 0px #000;
+        canvas:active {
+            cursor: grabbing;
         }
-        .retro-shadow-sm {
-            box-shadow: 2px 2px 0px #000;
+        .arcade-btn {
+            background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+            border: 2px solid #bae6fd;
+            box-shadow: 0 6px 0 #0369a1, 0 10px 15px rgba(0, 0, 0, 0.4);
+            transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
         }
-        @keyframes bounce-short {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-6px); }
+        .arcade-btn:hover:not(:disabled) {
+            filter: brightness(1.1);
         }
-        .animate-bounce-short {
-            animation: bounce-short 0.4s ease-in-out infinite;
+        .arcade-btn:active:not(:disabled), .arcade-btn.pressed {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #0369a1, 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+        .arcade-btn-green {
+            background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+            border-color: #bbf7d0;
+            box-shadow: 0 6px 0 #15803d, 0 10px 15px rgba(0, 0, 0, 0.4);
+        }
+        .arcade-btn-green:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #15803d, 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+        .arcade-btn-amber {
+            background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+            border-color: #fde68a;
+            box-shadow: 0 5px 0 #b45309, 0 8px 12px rgba(0, 0, 0, 0.35);
+        }
+        .arcade-btn-amber:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #b45309, 0 3px 6px rgba(0, 0, 0, 0.35);
+        }
+        .arcade-btn:disabled {
+            background: linear-gradient(180deg, #64748b 0%, #475569 100%);
+            border-color: #94a3b8;
+            box-shadow: 0 4px 0 #334155;
+            cursor: not-allowed;
+            opacity: 0.75;
+        }
+        @keyframes pulse-danger {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+        .danger-pulse {
+            animation: pulse-danger 0.5s infinite;
         }
     </style>
 </head>
-<body class="overflow-hidden h-screen flex flex-col justify-between select-none">
+<body class="h-screen w-screen flex flex-col items-center justify-between p-2 sm:p-4 box-border">
 
-    <header class="w-full bg-slate-900/90 border-b border-slate-800 p-3 flex justify-between items-center z-10 shadow-lg">
-        <div class="flex items-center space-x-2">
-            <div class="bg-amber-500 text-slate-950 font-black px-2 py-1 rounded pixel-font text-xs retro-shadow-sm">CR</div>
-            <h1 class="font-extrabold text-lg sm:text-xl tracking-wider bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">CROSSY ROAD</h1>
+    <!-- Barra Superior de Telemetría y Estado (Fuera del Canvas) -->
+    <header class="w-full max-w-6xl flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-2xl shadow-lg mb-2 z-20">
+        <!-- Puntuación y Récord -->
+        <div class="flex items-center gap-3 sm:gap-5">
+            <div class="flex flex-col">
+                <span class="text-[10px] sm:text-xs uppercase tracking-wider text-sky-400 font-bold">Puntaje Neto (Z)</span>
+                <span id="hud-score" class="text-2xl sm:text-3xl font-extrabold text-white mono-font leading-none">0</span>
+            </div>
+            <div class="h-8 w-px bg-slate-700"></div>
+            <div class="flex flex-col">
+                <span class="text-[10px] sm:text-xs uppercase tracking-wider text-emerald-400 font-bold">Récord</span>
+                <span id="hud-highscore" class="text-xl sm:text-2xl font-bold text-emerald-300 mono-font leading-none">0</span>
+            </div>
+            <div class="h-8 w-px bg-slate-700"></div>
+            <div class="flex items-center gap-2 bg-amber-500/15 border border-amber-400/40 px-2.5 py-1 rounded-xl">
+                <i class="fa-solid fa-coins text-amber-400 text-base sm:text-lg"></i>
+                <span id="hud-coins" class="text-lg sm:text-xl font-bold text-amber-300 mono-font">0</span>
+            </div>
         </div>
-        <div class="flex items-center space-x-4">
-            <div class="bg-slate-800 px-3 py-1 rounded-full border border-slate-700 flex items-center space-x-2">
-                <span class="text-amber-400 pixel-font text-xs">SCORE:</span>
-                <span id="score-display" class="font-extrabold text-xl text-white">0</span>
+
+        <!-- Telemetría FSM y Temporizador Anti-Camping -->
+        <div class="flex items-center gap-2 sm:gap-4">
+            <!-- Barra de Inactividad (Anti-Camping 4.5s) -->
+            <div class="flex flex-col w-28 sm:w-36">
+                <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider mb-1">
+                    <span id="eagle-label" class="text-slate-300"><i class="fa-solid fa-feather-pointed mr-1"></i>Águila</span>
+                    <span id="hud-timer" class="mono-font text-slate-300">4.5s</span>
+                </div>
+                <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                    <div id="hud-timer-bar" class="h-full bg-emerald-400 transition-all duration-75" style="width: 100%;"></div>
+                </div>
             </div>
-            <div class="bg-slate-800 px-3 py-1 rounded-full border border-slate-700 hidden sm:flex items-center space-x-2">
-                <span class="text-emerald-400 pixel-font text-xs">BEST:</span>
-                <span id="best-display" class="font-extrabold text-xl text-white">0</span>
+
+            <!-- Indicador de Máquina de Estados Finitos (FSM) -->
+            <div class="hidden md:flex flex-col items-end">
+                <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Estado FSM</span>
+                <span id="hud-fsm" class="mono-font text-xs px-2.5 py-0.5 rounded-md bg-sky-500/20 text-sky-300 border border-sky-500/40 font-bold">BOOT_INIT</span>
             </div>
-            <button id="sound-btn" onclick="toggleSound()" class="bg-slate-800 hover:bg-slate-700 p-2 rounded-full border border-slate-700 transition cursor-pointer">
-                🔊
+
+            <!-- Botones de Utilidad -->
+            <button id="btn-reset-cam" title="Restaurar Ángulo Isométrico (30°, 45°)" class="arcade-btn-amber px-3 py-2 rounded-xl text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                <i class="fa-solid fa-video"></i>
+                <span class="hidden sm:inline">Iso</span>
+            </button>
+            <button id="btn-sound" title="Alternar Sonido Sintetizado" class="arcade-btn-amber px-3 py-2 rounded-xl text-slate-950 font-bold text-xs sm:text-sm flex items-center justify-center">
+                <i id="icon-sound" class="fa-solid fa-volume-high"></i>
             </button>
         </div>
     </header>
 
-    <main class="relative flex-1 flex items-center justify-center bg-gradient-to-b from-sky-400 via-sky-300 to-indigo-300 overflow-hidden">
-        
-        <!-- Game Canvas -->
-        <canvas id="gameCanvas" class="w-full h-full block cursor-pointer"></canvas>
+    <!-- Contenedor Central del Canvas 3D -->
+    <main class="w-full max-w-6xl flex-1 min-h-0 relative flex items-center justify-center">
+        <div id="canvas-container" class="w-full h-full">
+            <canvas id="game-canvas"></canvas>
 
-        <!-- Start Screen Overlay -->
-        <div id="start-screen" class="absolute inset-0 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center z-20 p-4 text-center">
-            <div class="max-w-md w-full bg-slate-900 border-4 border-amber-500 rounded-2xl p-6 retro-shadow flex flex-col items-center space-y-6">
-                <div class="animate-bounce-short">
-                    <span class="text-5xl sm:text-6xl">🐔🚗</span>
+            <!-- Etiqueta flotante de telemetría de terreno y cámara -->
+            <div class="absolute top-3 left-3 pointer-events-none flex flex-col gap-1 bg-slate-900/75 backdrop-blur-md px-3 py-2 rounded-xl border border-white/10 text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400">Posición Rejilla:</span>
+                    <span id="hud-coords" class="mono-font text-white font-bold">(X: 0, Z: 0)</span>
                 </div>
-                <div>
-                    <h2 class="text-2xl sm:text-3xl font-black text-amber-400 pixel-font tracking-tight">CROSSY ROAD</h2>
-                    <p class="text-slate-400 text-sm mt-2">¡Cruza la calle, esquiva coches y sobrevive al tren!</p>
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400">Peligro Procedural:</span>
+                    <span id="hud-hazard" class="mono-font text-amber-300 font-bold">50%</span>
                 </div>
-
-                <div class="flex items-center justify-center gap-2 text-xs text-slate-300 pixel-font bg-slate-800/80 px-4 py-2 rounded-lg border border-slate-700">
-                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-amber-400 font-bold border border-slate-600">W</span>
-                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-amber-400 font-bold border border-slate-600">A</span>
-                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-amber-400 font-bold border border-slate-600">S</span>
-                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-amber-400 font-bold border border-slate-600">D</span>
-                    <span class="text-slate-400 mx-1">o</span>
-                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-sky-400 border border-slate-600">⬆️⬅️⬇️➡️</span>
+                <div class="text-[11px] text-sky-200/80 hidden sm:block">
+                    <i class="fa-solid fa-mouse mr-1"></i>Arrastra con el ratón para orbitar la cámara
                 </div>
-
-                <!-- Character Selector Preview -->
-                <div class="w-full bg-slate-800 p-3 rounded-xl border border-slate-700 flex items-center justify-between">
-                    <span class="text-xs text-slate-400 uppercase pixel-font">Personaje:</span>
-                    <div class="flex items-center space-x-3">
-                        <button onclick="changeCharacter(-1)" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold text-white transition">◀</button>
-                        <span id="char-name" class="font-bold text-amber-300">Pollo 🐔</span>
-                        <button onclick="changeCharacter(1)" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold text-white transition">▶</button>
-                    </div>
-                </div>
-
-                <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-lg sm:text-xl rounded-xl pixel-font retro-shadow transition transform active:scale-95 cursor-pointer">
-                    ¡JUGAR AHORA!
-                </button>
             </div>
-        </div>
 
-        <!-- Game Over Screen Overlay -->
-        <div id="gameover-screen" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md hidden flex flex-col items-center justify-center z-20 p-4 text-center">
-            <div class="max-w-md w-full bg-slate-900 border-4 border-rose-500 rounded-2xl p-6 retro-shadow flex flex-col items-center space-y-5">
-                <div class="text-5xl">💥💀</div>
-                <div>
-                    <h2 class="text-2xl sm:text-3xl font-black text-rose-500 pixel-font">¡HAS PERDIDO!</h2>
-                    <p id="death-reason" class="text-slate-400 text-sm mt-2">¡Te atropelló un camión!</p>
-                </div>
-                <div class="grid grid-cols-2 gap-4 w-full">
-                    <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
-                        <div class="text-xs text-slate-400 pixel-font">PUNTUACIÓN</div>
-                        <div id="final-score" class="text-2xl font-black text-amber-400 mt-1">0</div>
-                    </div>
-                    <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
-                        <div class="text-xs text-slate-400 pixel-font">MEJOR</div>
-                        <div id="final-best" class="text-2xl font-black text-emerald-400 mt-1">0</div>
-                    </div>
-                </div>
-                <button onclick="restartGame()" class="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-lg sm:text-xl rounded-xl pixel-font retro-shadow transition transform active:scale-95 cursor-pointer">
-                    JUGAR DE NUEVO
-                </button>
+            <!-- Alerta de Peligro por Inactividad -->
+            <div id="eagle-warning" class="hidden absolute top-14 left-1/2 -translate-x-1/2 pointer-events-none bg-red-600/90 text-white px-4 py-1.5 rounded-full font-bold text-xs sm:text-sm shadow-lg border border-red-300 danger-pulse">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> ¡AVANZA O EL ÁGUILA TE ATRAPARÁ!
             </div>
-        </div>
 
-        <!-- Eagle Warning Banner -->
-        <div id="eagle-warning" class="absolute top-4 bg-rose-600 text-white font-black px-6 py-2 rounded-full pixel-font text-xs sm:text-sm hidden animate-bounce shadow-2xl z-10 border-2 border-white">
-            ⚠️ ¡CUIDADO CON EL ÁGUILA! ⚠️
+            <!-- Modal de Inicio / Menú Principal -->
+            <div id="modal-start" class="absolute inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-30">
+                <div class="bg-slate-900 border-2 border-sky-400/50 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl">
+                    <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-3xl text-sky-300">
+                        <i class="fa-solid fa-cubes"></i>
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-1">CROSSY VOXEL</h1>
+                    <p class="text-xs sm:text-sm text-sky-300 font-medium mb-5">Motor Cinemático en Rejilla & Generación Procedural</p>
+
+                    <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-3.5 text-left text-xs sm:text-sm space-y-2 mb-6 text-slate-200">
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-arrows-up-down-left-right text-sky-400 w-5 text-center"></i>
+                            <span>Usa <b>Flechas / WASD</b>, desliza o usa los botones inferiores para saltar.</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-water text-cyan-400 w-5 text-center"></i>
+                            <span>En los <b>Ríos</b>, salta únicamente sobre los troncos flotantes.</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-stopwatch text-amber-400 w-5 text-center"></i>
+                            <span><b>Anti-Camping:</b> No te detengas más de 4.5s ni retrocedas demasiado.</span>
+                        </div>
+                    </div>
+
+                    <button id="btn-start-game" class="arcade-btn arcade-btn-green w-full py-3.5 rounded-2xl text-white font-extrabold text-lg tracking-wide flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> INICIAR PARTIDA
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal de Fin de Partida (GAME_OVER con Cooldown de 3.0s) -->
+            <div id="modal-gameover" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-30">
+                <div class="bg-slate-900 border-2 border-rose-500/60 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl">
+                    <div id="death-icon-box" class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-rose-500/20 border border-rose-400/40 flex items-center justify-center text-3xl text-rose-400">
+                        <i id="death-icon" class="fa-solid fa-car-burst"></i>
+                    </div>
+                    <h2 class="text-3xl font-extrabold text-white mb-1">¡FIN DE PARTIDA!</h2>
+                    <p id="death-reason" class="text-sm text-rose-300 font-semibold mb-5">Impacto vehicular en carretera</p>
+
+                    <!-- Resumen de Estadísticas -->
+                    <div class="grid grid-cols-3 gap-2.5 mb-5">
+                        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-3">
+                            <div class="text-[10px] uppercase text-slate-400 font-bold">Pasos (Z)</div>
+                            <div id="final-score" class="text-2xl font-extrabold text-white mono-font mt-0.5">0</div>
+                        </div>
+                        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-3">
+                            <div class="text-[10px] uppercase text-emerald-400 font-bold">Récord</div>
+                            <div id="final-best" class="text-2xl font-extrabold text-emerald-300 mono-font mt-0.5">0</div>
+                        </div>
+                        <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-3">
+                            <div class="text-[10px] uppercase text-amber-400 font-bold">Monedas</div>
+                            <div id="final-coins" class="text-2xl font-extrabold text-amber-300 mono-font mt-0.5">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Barra de Cooldown Obligatorio (3.0 segundos según especificación) -->
+                    <div class="mb-4">
+                        <div class="flex justify-between text-xs text-slate-300 mb-1 font-medium">
+                            <span>Bloqueo preventivo de reinicio</span>
+                            <span id="cooldown-text" class="mono-font font-bold text-amber-300">3.0s</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                            <div id="cooldown-bar" class="h-full bg-amber-400 transition-all duration-75" style="width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <button id="btn-restart" disabled class="arcade-btn arcade-btn-green w-full py-3.5 rounded-2xl text-white font-extrabold text-base sm:text-lg tracking-wide flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span id="btn-restart-label">ESPERA 3.0s...</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </main>
 
-    <footer class="bg-slate-900 border-t border-slate-800 p-4 flex flex-col items-center justify-center space-y-3 z-10">
-        <div class="grid grid-cols-3 gap-2 w-full max-w-xs sm:hidden">
-            <div></div>
-            <button onclick="playerMove('forward')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">⬆️</button>
-            <div></div>
-            <button onclick="playerMove('left')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">⬅️</button>
-            <button onclick="playerMove('backward')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">⬇️</button>
-            <button onclick="playerMove('right')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">➡️</button>
+    <!-- Panel Inferior de Controles Táctiles / Botones Arcade (Fuera del Canvas) -->
+    <footer class="w-full max-w-6xl mt-2 px-3 py-2 bg-slate-900/90 border border-slate-700/80 rounded-2xl shadow-lg flex items-center justify-between gap-2 z-20">
+        <div class="hidden sm:flex items-center gap-2 text-xs text-slate-300">
+            <span class="px-2 py-1 rounded bg-slate-800 border border-slate-700 mono-font text-sky-300">W A S D</span>
+            <span>o</span>
+            <span class="px-2 py-1 rounded bg-slate-800 border border-slate-700 mono-font text-sky-300">↑ ← ↓ →</span>
+            <span>para saltar 1.0u en rejilla</span>
         </div>
-        <div class="text-xs text-slate-400 text-center font-medium flex flex-wrap items-center justify-center gap-1.5">
-            <span>Muévete con</span>
-            <span class="bg-slate-800 text-amber-400 px-1.5 py-0.5 rounded border border-slate-700 font-bold font-mono">W</span>
-            <span class="bg-slate-800 text-amber-400 px-1.5 py-0.5 rounded border border-slate-700 font-bold font-mono">A</span>
-            <span class="bg-slate-800 text-amber-400 px-1.5 py-0.5 rounded border border-slate-700 font-bold font-mono">S</span>
-            <span class="bg-slate-800 text-amber-400 px-1.5 py-0.5 rounded border border-slate-700 font-bold font-mono">D</span>
-            <span>o las flechas ⬆️ ⬇️ ⬅️ ➡️. ¡No te detengas o el águila te atrapará!</span>
+
+        <!-- Botonera Direccional Centrada -->
+        <div class="flex items-center justify-center gap-2 sm:gap-3 mx-auto">
+            <button id="ctrl-left" aria-label="Mover Izquierda" class="arcade-btn w-14 h-12 sm:w-16 sm:h-12 rounded-2xl text-white text-lg flex items-center justify-center">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button id="ctrl-up" aria-label="Saltar Adelante" class="arcade-btn arcade-btn-green w-20 h-12 sm:w-24 sm:h-12 rounded-2xl text-white text-xl font-bold flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-arrow-up"></i>
+                <span class="text-xs font-extrabold hidden sm:inline">SALTAR</span>
+            </button>
+            <button id="ctrl-down" aria-label="Mover Atrás" class="arcade-btn w-14 h-12 sm:w-16 sm:h-12 rounded-2xl text-white text-lg flex items-center justify-center">
+                <i class="fa-solid fa-arrow-down"></i>
+            </button>
+            <button id="ctrl-right" aria-label="Mover Derecha" class="arcade-btn w-14 h-12 sm:w-16 sm:h-12 rounded-2xl text-white text-lg flex items-center justify-center">
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <div class="hidden lg:flex items-center gap-2 text-xs text-slate-400">
+            <i class="fa-solid fa-layer-group text-emerald-400"></i>
+            <span>Pool Activo: <strong id="hud-lanes-count" class="mono-font text-white">0</strong> carriles</span>
         </div>
     </footer>
 
     <script>
-        // Audio Synthesizer using Web Audio API
-        let audioCtx = null;
-        let soundEnabled = true;
-
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-
-        function playSound(type) {
-            if (!soundEnabled || !audioCtx) return;
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                const now = audioCtx.currentTime;
-
-                if (type === 'hop') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(300, now);
-                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
-                    osc.start(now);
-                    osc.stop(now + 0.08);
-                } else if (type === 'coin') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(987.77, now); // B5
-                    osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now);
-                    osc.stop(now + 0.25);
-                } else if (type === 'hit') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(150, now);
-                    osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
-                    gain.gain.setValueAtTime(0.3, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-                    osc.start(now);
-                    osc.stop(now + 0.3);
-                } else if (type === 'eagle') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(400, now);
-                    osc.frequency.linearRampToValueAtTime(200, now + 0.4);
-                    gain.gain.setValueAtTime(0.25, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
-                    osc.start(now);
-                    osc.stop(now + 0.4);
-                }
-            } catch (e) {
-                console.error("Audio error:", e);
-            }
-        }
-
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            document.getElementById('sound-btn').innerText = soundEnabled ? '🔊' : '🔇';
-        }
-
-        // Characters list
-        const characters = [
-            { name: "Pollo 🐔", color: "#facc15", headColor: "#ef4444", body: "chicken" },
-            { name: "Rana 🐸", color: "#22c55e", headColor: "#15803d", body: "frog" },
-            { name: "Cerdito 🐷", color: "#f472b6", headColor: "#db2777", body: "pig" },
-            { name: "Robot 🤖", color: "#94a3b8", headColor: "#38bdf8", body: "robot" },
-            { name: "Conejo 🐰", color: "#f8fafc", headColor: "#cbd5e1", body: "bunny" }
-        ];
-        let currentCharIndex = 0;
-
-        function changeCharacter(dir) {
-            currentCharIndex = (currentCharIndex + dir + characters.length) % characters.length;
-            document.getElementById('char-name').innerText = characters[currentCharIndex].name;
-        }
-
-        // Game State Variables
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-
-        let tileSize = 40;
-        let cameraX = 0;
-        let cameraY = 0;
-        let score = 0;
-        let bestScore = localStorage.getItem('crossy_best') || 0;
-        let gameRunning = false;
-        let gameOver = false;
-        let idleTimer = 0;
-        let eagleComing = false;
-        let eagleY = -500;
-
-        document.getElementById('best-display').innerText = bestScore;
-
-        // Player object
-        let player = {
-            x: 0,
-            y: 0,
-            targetX: 0,
-            targetY: 0,
-            isJumping: false,
-            jumpProgress: 1,
-            jumpHeight: 0,
-            direction: 'forward', // forward, backward, left, right
-            squashX: 1,
-            squashY: 1
+        /**
+         * ============================================================================
+         * 1. PARÁMETROS TÉCNICOS DE LA ESPECIFICACIÓN MAESTRA
+         * ============================================================================
+         */
+        const CONFIG = {
+            GRID_MIN_X: -5,
+            GRID_MAX_X: 5,
+            WATER_KILL_BOUNDS_X: 5.5,
+            MOVE_DURATION: 0.20,       // t_duration = 0.2s
+            JUMP_HEIGHT: 0.45,         // h_max = 0.45u
+            HEIGHT_GRASS: 0.20,        // Y_base en césped
+            HEIGHT_ROAD: 0.10,         // Y_base en carretera
+            HEIGHT_WATER: 0.00,        // Y_base en agua (o sobre tronco)
+            HEIGHT_LOG_SURFACE: 0.18,  // Altura de apoyo sobre tronco
+            LANES_FORWARD: 25,         // N_forward = 25 carriles
+            LANES_BACKWARD: 15,        // N_backward = 15 carriles antes de reciclaje
+            HAZARD_P_MIN: 0.50,        // Probabilidad inicial de peligro
+            HAZARD_P_MAX: 0.90,        // Probabilidad máxima de peligro
+            HAZARD_Z_SCALE: 250,       // Escala Z donde alcanza el 90%
+            MAX_CONSECUTIVE_WATER: 4,  // Límite de seguridad de ríos seguidos
+            VEHICLE_BOUNDS_X: 12.0,    // Teletransporte toroidal en |X| > 12
+            IDLE_TIMEOUT: 4.5,         // Anti-camping: 4.5 segundos
+            MAX_BACKTRACK_STEPS: 8,    // Máximo retroceso permitido respecto al Score
+            RESTART_COOLDOWN: 3.0      // Bloqueo obligatorio de 3.0s en Game Over
         };
 
-        // World Rows Generation
-        let rows = [];
-        const rowTypes = ['grass', 'road', 'rail', 'water'];
+        /**
+         * Estados discretos de la Máquina de Estados Finitos (FSM)
+         */
+        const FSM_STATES = {
+            BOOT_INIT: 'BOOT_INIT',
+            READY: 'READY',
+            MOVING: 'MOVING',
+            CARRIED: 'CARRIED',
+            DYING: 'DYING',
+            GAME_OVER: 'GAME_OVER'
+        };
 
-        function createRow(rowIndex) {
-            let type;
-            if (rowIndex <= 3) {
-                type = 'grass';
-            } else {
-                const rand = Math.random();
-                if (rand < 0.35) type = 'grass';
-                else if (rand < 0.70) type = 'road';
-                else if (rand < 0.88) type = 'water';
-                else type = 'rail';
+        /**
+         * ============================================================================
+         * 2. SINTETIZADOR DE AUDIO PROCEDURAL (Sin dependencias de archivos externos)
+         * ============================================================================
+         */
+        class SoundSynthesizer {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
             }
 
-            let row = {
-                index: rowIndex,
-                type: type,
-                speed: (Math.random() * 2 + 1.5) * (Math.random() < 0.5 ? 1 : -1),
-                elements: [],
-                hasCoin: Math.random() < 0.3
-            };
-
-            // Populate obstacles / items based on type
-            if (type === 'road') {
-                let carCount = Math.floor(Math.random() * 2) + 1;
-                for (let i = 0; i < carCount; i++) {
-                    row.elements.push({
-                        pos: (i * 6) + Math.random() * 3,
-                        width: Math.floor(Math.random() * 2) + 1.5,
-                        color: ['#ef4444', '#3b82f6', '#10b981', '#a855f7', '#f97316'][Math.floor(Math.random() * 5)]
-                    });
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
                 }
-            } else if (type === 'water') {
-                let logCount = Math.floor(Math.random() * 2) + 2;
-                for (let i = 0; i < logCount; i++) {
-                    row.elements.push({
-                        pos: (i * 5) + Math.random() * 2,
-                        width: Math.floor(Math.random() * 2) + 2.5
-                    });
-                }
-            } else if (type === 'rail') {
-                row.speed = 8; // fast train warning
-                row.trainActive = false;
-                row.trainWarning = false;
-                row.trainPos = -10;
-            } else if (type === 'grass') {
-                // Trees or rocks
-                let treeCount = Math.floor(Math.random() * 3);
-                for (let i = 0; i < treeCount; i++) {
-                    let treeX = Math.floor(Math.random() * 11) - 5;
-                    // Prevent blocking spawn point and initial step forward
-                    if (rowIndex <= 1 && treeX === 0) continue;
-                    if (rowIndex !== 0 || treeX !== 0) { // Don't block spawn
-                        row.elements.push({ pos: treeX });
-                    }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
                 }
             }
 
-            if (row.hasCoin && type === 'grass') {
-                row.coinPos = Math.floor(Math.random() * 9) - 4;
-                row.coinCollected = false;
+            toggle() {
+                this.enabled = !this.enabled;
+                return this.enabled;
             }
 
-            return row;
-        }
+            playHop() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(240, now);
+                osc.frequency.exponentialRampToValueAtTime(520, now + 0.09);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            }
 
-        function initWorld() {
-            rows = [];
-            for (let i = -2; i <= 20; i++) {
-                rows.push(createRow(i));
+            playCoin() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(987.77, now); // B5
+                osc.frequency.setValueAtTime(1318.51, now + 0.07); // E6
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            }
+
+            playCrash() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(38, now + 0.35);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.36);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.36);
+            }
+
+            playSplash() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                // Ruido blanco filtrado para simular agua
+                const bufferSize = this.ctx.sampleRate * 0.35;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(900, now);
+                filter.frequency.exponentialRampToValueAtTime(280, now + 0.35);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.32, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start(now);
+            }
+
+            playEagleSwoosh() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1100, now);
+                osc.frequency.exponentialRampToValueAtTime(220, now + 0.4);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.4);
             }
         }
 
-        // Resize Canvas
-        function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-            // Calculate tile size based on screen width
-            if (canvas.width < 500) {
-                tileSize = Math.floor(canvas.width / 9);
-            } else {
-                tileSize = 48;
+        /**
+         * ============================================================================
+         * 3. CACHÉ DE GEOMETRÍAS Y MATERIALES COMPARTIDOS (Optimización GPU)
+         * ============================================================================
+         */
+        const SharedAssets = {
+            geometries: {},
+            materials: {},
+            init() {
+                // Geometrías reutilizables para todos los carriles y entidades
+                this.geometries.unitBox = new THREE.BoxGeometry(1, 1, 1);
+                this.geometries.coin = new THREE.CylinderGeometry(0.26, 0.26, 0.08, 12);
+                this.geometries.wheel = new THREE.CylinderGeometry(0.16, 0.16, 0.12, 10);
+                this.geometries.wheel.rotateZ(Math.PI / 2);
+
+                // Materiales vóxel con sombreado plano estilizado
+                const mat = (color, roughness = 0.75) => new THREE.MeshStandardMaterial({
+                    color,
+                    roughness,
+                    metalness: 0.05,
+                    flatShading: true
+                });
+
+                this.materials = {
+                    grassPlayable: mat(0x6ade91),
+                    grassOutBounds: mat(0x46b46c),
+                    roadPlayable: mat(0x334155),
+                    roadOutBounds: mat(0x1e293b),
+                    roadLine: mat(0xcbd5e1),
+                    waterPlayable: new THREE.MeshStandardMaterial({
+                        color: 0x38bdf8,
+                        roughness: 0.25,
+                        metalness: 0.1,
+                        flatShading: true
+                    }),
+                    waterOutBounds: mat(0x0284c7),
+                    waterFoam: mat(0xe0f2fe),
+                    treeTrunk: mat(0x78350f),
+                    treeLeaves1: mat(0x22c55e),
+                    treeLeaves2: mat(0x16a34a),
+                    rock: mat(0x94a3b8),
+                    logBark: mat(0x854d0e),
+                    logInner: mat(0xfde68a),
+                    coinGold: new THREE.MeshStandardMaterial({
+                        color: 0xfacc15,
+                        roughness: 0.3,
+                        metalness: 0.6,
+                        emissive: 0x713f12,
+                        emissiveIntensity: 0.25
+                    }),
+                    playerBody: mat(0xffffff),
+                    playerComb: mat(0xef4444),
+                    playerBeak: mat(0xf97316),
+                    playerEye: mat(0x0f172a),
+                    vehicleWindow: mat(0xbae6fd, 0.2),
+                    vehicleWheel: mat(0x0f172a),
+                    headlight: new THREE.MeshBasicMaterial({ color: 0xfef08a }),
+                    taillight: new THREE.MeshBasicMaterial({ color: 0xef4444 }),
+                    eagleBody: mat(0x451a03),
+                    eagleWing: mat(0x78350f),
+                    eagleHead: mat(0xf8fafc),
+                    vehicleColors: [
+                        mat(0xde4d49), // Rojo
+                        mat(0x3e99de), // Azul
+                        mat(0xde8155), // Naranja
+                        mat(0xa855f7), // Púrpura
+                        mat(0xeab308), // Amarillo Taxi
+                        mat(0x10b981)  // Verde Esmeralda
+                    ]
+                };
             }
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        };
 
-        function startGame() {
-            initAudio();
-            initWorld();
-            player.x = 0;
-            player.y = 0;
-            player.targetX = 0;
-            player.targetY = 0;
-            player.isJumping = false;
-            score = 0;
-            idleTimer = 0;
-            eagleComing = false;
-            eagleY = -500;
-            document.getElementById('score-display').innerText = score;
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('gameover-screen').classList.add('hidden');
-            document.getElementById('eagle-warning').classList.add('hidden');
-            gameRunning = true;
-            gameOver = false;
-        }
-
-        function triggerGameOver(reason) {
-            if (gameOver) return;
-            gameOver = true;
-            gameRunning = false;
-            playSound('hit');
-            document.getElementById('death-reason').innerText = reason;
-            document.getElementById('final-score').innerText = score;
-            if (score > bestScore) {
-                bestScore = score;
-                localStorage.setItem('crossy_best', bestScore);
-                document.getElementById('best-display').innerText = bestScore;
-            }
-            document.getElementById('final-best').innerText = bestScore;
-            document.getElementById('gameover-screen').classList.remove('hidden');
-            document.getElementById('eagle-warning').classList.add('hidden');
-        }
-
-        function restartGame() {
-            startGame();
-        }
-
-        // Controls
-        function playerMove(dir) {
-            // Auto-start if player begins moving
-            if (!gameRunning) {
-                startGame();
-            }
-            if (gameOver) return;
-
-            // If player is currently mid-hop, snap cleanly to target to allow rapid, fluid hopping
-            if (player.isJumping) {
-                player.x = player.targetX;
-                player.y = player.targetY;
-                player.jumpHeight = 0;
-                player.isJumping = false;
-                checkCollisions();
-                if (gameOver) return;
+        /**
+         * ============================================================================
+         * 4. FÁBRICA DE MODELOS VÓXEL 3D
+         * ============================================================================
+         */
+        class VoxelFactory {
+            static createBox(w, h, d, material, x = 0, y = 0, z = 0, castShadow = true) {
+                const mesh = new THREE.Mesh(SharedAssets.geometries.unitBox, material);
+                mesh.scale.set(w, h, d);
+                mesh.position.set(x, y, z);
+                mesh.castShadow = castShadow;
+                mesh.receiveShadow = true;
+                return mesh;
             }
 
-            let newX = player.targetX;
-            let newY = player.targetY;
+            /**
+             * Construye el personaje jugador con jerarquía separada:
+             * - Root Group: posición lógica e interpolación espacial.
+             * - Model Group: rotaciones direccionales y cabeceo durante el salto.
+             */
+            static createPlayer() {
+                const root = new THREE.Group();
+                const model = new THREE.Group();
 
-            if (dir === 'forward') {
-                newY += 1;
-                player.direction = 'forward';
-            } else if (dir === 'backward') {
-                if (newY > score - 3 && newY > -2) {
-                    newY -= 1;
-                    player.direction = 'backward';
+                // Cuerpo principal vóxel
+                const body = this.createBox(0.55, 0.55, 0.60, SharedAssets.materials.playerBody, 0, 0.32, 0);
+                // Alas laterales
+                const wingL = this.createBox(0.10, 0.30, 0.36, SharedAssets.materials.playerBody, -0.32, 0.32, -0.02);
+                const wingR = this.createBox(0.10, 0.30, 0.36, SharedAssets.materials.playerBody, 0.32, 0.32, -0.02);
+                // Cresta roja superior
+                const comb = this.createBox(0.16, 0.16, 0.32, SharedAssets.materials.playerComb, 0, 0.66, 0.04);
+                // Pico frontal (+Z es frente, ángulo 0°)
+                const beak = this.createBox(0.20, 0.14, 0.18, SharedAssets.materials.playerBeak, 0, 0.40, 0.36);
+                // Barbilla roja
+                const wattle = this.createBox(0.14, 0.12, 0.12, SharedAssets.materials.playerComb, 0, 0.27, 0.33);
+                // Ojos
+                const eyeL = this.createBox(0.07, 0.07, 0.07, SharedAssets.materials.playerEye, -0.28, 0.45, 0.18, false);
+                const eyeR = this.createBox(0.07, 0.07, 0.07, SharedAssets.materials.playerEye, 0.28, 0.45, 0.18, false);
+                // Patas
+                const legL = this.createBox(0.10, 0.10, 0.18, SharedAssets.materials.playerBeak, -0.15, 0.05, 0.02);
+                const legR = this.createBox(0.10, 0.10, 0.18, SharedAssets.materials.playerBeak, 0.15, 0.05, 0.02);
+
+                model.add(body, wingL, wingR, comb, beak, wattle, eyeL, eyeR, legL, legR);
+                root.add(model);
+                return { root, model };
+            }
+
+            static createTree(scaleVariant = 1.0) {
+                const tree = new THREE.Group();
+                const trunk = this.createBox(0.36, 0.45, 0.36, SharedAssets.materials.treeTrunk, 0, 0.225, 0);
+                const crown1 = this.createBox(0.78, 0.45, 0.78, SharedAssets.materials.treeLeaves1, 0, 0.65, 0);
+                const crown2 = this.createBox(0.60, 0.40, 0.60, SharedAssets.materials.treeLeaves2, 0, 1.05, 0);
+                const crown3 = this.createBox(0.38, 0.28, 0.38, SharedAssets.materials.treeLeaves1, 0, 1.38, 0);
+                tree.add(trunk, crown1, crown2, crown3);
+                tree.scale.setScalar(scaleVariant);
+                return tree;
+            }
+
+            static createRock() {
+                const rock = new THREE.Group();
+                const base = this.createBox(0.65, 0.32, 0.58, SharedAssets.materials.rock, 0, 0.16, 0);
+                const top = this.createBox(0.42, 0.22, 0.38, SharedAssets.materials.rock, 0.05, 0.40, -0.04);
+                rock.add(base, top);
+                return rock;
+            }
+
+            static createVehicle(isTruck, colorMat, direction) {
+                const group = new THREE.Group();
+                const length = isTruck ? 1.85 : 1.15;
+                const height = isTruck ? 0.68 : 0.48;
+
+                // Chasis
+                const chassis = this.createBox(length, 0.28, 0.68, colorMat, 0, 0.22, 0);
+                group.add(chassis);
+
+                if (isTruck) {
+                    // Cabina y remolque
+                    const cabin = this.createBox(0.55, 0.38, 0.64, colorMat, 0.55, 0.50, 0);
+                    const windshield = this.createBox(0.57, 0.22, 0.56, SharedAssets.materials.vehicleWindow, 0.56, 0.54, 0);
+                    const cargo = this.createBox(1.12, 0.52, 0.70, SharedAssets.materials.playerBody, -0.32, 0.55, 0);
+                    group.add(cabin, windshield, cargo);
                 } else {
-                    return;
+                    // Cabina de automóvil
+                    const top = this.createBox(0.62, 0.26, 0.58, colorMat, -0.04, 0.48, 0);
+                    const glass = this.createBox(0.66, 0.18, 0.52, SharedAssets.materials.vehicleWindow, -0.04, 0.48, 0);
+                    group.add(top, glass);
                 }
-            } else if (dir === 'left') {
-                newX -= 1;
-                player.direction = 'left';
-            } else if (dir === 'right') {
-                newX += 1;
-                player.direction = 'right';
-            } else {
-                return;
-            }
 
-            // Check tree collision
-            const targetRowObj = rows.find(r => r.index === newY);
-            if (targetRowObj) {
-                if (targetRowObj.type === 'grass') {
-                    let hitTree = targetRowObj.elements.some(t => t.pos === newX);
-                    if (hitTree) return; // Blocked by tree
+                // Faros delanteros y traseros
+                const frontX = length / 2 + 0.01;
+                const headL = this.createBox(0.04, 0.10, 0.14, SharedAssets.materials.headlight, frontX, 0.24, 0.22, false);
+                const headR = this.createBox(0.04, 0.10, 0.14, SharedAssets.materials.headlight, frontX, 0.24, -0.22, false);
+                const tailL = this.createBox(0.04, 0.10, 0.14, SharedAssets.materials.taillight, -frontX, 0.24, 0.22, false);
+                const tailR = this.createBox(0.04, 0.10, 0.14, SharedAssets.materials.taillight, -frontX, 0.24, -0.22, false);
+                group.add(headL, headR, tailL, tailR);
+
+                // Ruedas
+                const wheelOffsets = isTruck ? [-0.62, 0.0, 0.62] : [-0.36, 0.36];
+                wheelOffsets.forEach(wx => {
+                    const w1 = this.createBox(0.24, 0.24, 0.74, SharedAssets.materials.vehicleWheel, wx, 0.12, 0);
+                    group.add(w1);
+                });
+
+                // Si la dirección es negativa (-1, hacia la izquierda), rotamos 180 grados
+                if (direction < 0) {
+                    group.rotation.y = Math.PI;
                 }
+
+                return {
+                    mesh: group,
+                    halfLength: length * 0.46, // Ligera tolerancia a favor del jugador (grace hitbox)
+                    height
+                };
             }
 
-            // Boundary check
-            if (newX < -5 || newX > 5) return;
-
-            player.targetX = newX;
-            player.targetY = newY;
-            player.isJumping = true;
-            player.jumpProgress = 0;
-            player.squashX = 0.7;
-            player.squashY = 1.3;
-
-            idleTimer = 0; // Reset idle timer on move
-            if (eagleComing) {
-                eagleComing = false;
-                document.getElementById('eagle-warning').classList.add('hidden');
+            static createLog(lengthUnits) {
+                const group = new THREE.Group();
+                const body = this.createBox(lengthUnits, 0.28, 0.66, SharedAssets.materials.logBark, 0, 0.04, 0);
+                const ends = this.createBox(lengthUnits + 0.04, 0.20, 0.52, SharedAssets.materials.logInner, 0, 0.05, 0);
+                group.add(body, ends);
+                return {
+                    mesh: group,
+                    length: lengthUnits,
+                    halfLength: lengthUnits * 0.50
+                };
             }
 
-            // Update score
-            if (player.targetY > score) {
-                score = player.targetY;
-                document.getElementById('score-display').innerText = score;
-                
-                // Add new row ahead
-                let maxRow = Math.max(...rows.map(r => r.index));
-                if (player.targetY + 12 > maxRow) {
-                    rows.push(createRow(maxRow + 1));
-                }
+            static createCoin() {
+                const group = new THREE.Group();
+                const mesh = new THREE.Mesh(SharedAssets.geometries.coin, SharedAssets.materials.coinGold);
+                mesh.rotation.x = Math.PI / 2;
+                mesh.position.y = 0.36;
+                mesh.castShadow = true;
+                group.add(mesh);
+                return group;
             }
 
-            playSound('hop');
+            static createEagle() {
+                const group = new THREE.Group();
+                const body = this.createBox(0.55, 0.40, 1.10, SharedAssets.materials.eagleBody, 0, 0, 0);
+                const head = this.createBox(0.42, 0.36, 0.45, SharedAssets.materials.eagleHead, 0, 0.12, 0.65);
+                const beak = this.createBox(0.22, 0.20, 0.32, SharedAssets.materials.playerBeak, 0, 0.08, 0.95);
+                const wingL = this.createBox(1.80, 0.12, 0.55, SharedAssets.materials.eagleWing, -1.10, 0.10, 0);
+                const wingR = this.createBox(1.80, 0.12, 0.55, SharedAssets.materials.eagleWing, 1.10, 0.10, 0);
+                group.add(body, head, beak, wingL, wingR);
+                group.visible = false;
+                return group;
+            }
         }
 
-        window.addEventListener('keydown', (e) => {
-            const k = e.key.toLowerCase();
-            const code = e.code;
-
-            // Allow starting game immediately by pressing any movement key
-            if (!gameRunning && !gameOver) {
-                if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'enter'].includes(k) ||
-                    ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Enter'].includes(code)) {
-                    e.preventDefault();
-                    startGame();
-                    return;
-                }
-            }
-            // Allow restarting quickly with Space, Enter or W/Up
-            if (gameOver) {
-                if ([' ', 'enter', 'w', 'arrowup'].includes(k) || ['Space', 'Enter', 'KeyW', 'ArrowUp'].includes(code)) {
-                    e.preventDefault();
-                    restartGame();
-                    return;
-                }
+        /**
+         * ============================================================================
+         * 5. SISTEMA DE PARTÍCULAS VÓXEL (Explosión por colisión y Salpicadura de agua)
+         * ============================================================================
+         */
+        class VoxelParticleSystem {
+            constructor(scene) {
+                this.scene = scene;
+                this.particles = [];
             }
 
-            if (k === 'w' || k === 'arrowup' || code === 'KeyW' || code === 'ArrowUp') {
-                e.preventDefault();
-                playerMove('forward');
-            } else if (k === 's' || k === 'arrowdown' || code === 'KeyS' || code === 'ArrowDown') {
-                e.preventDefault();
-                playerMove('backward');
-            } else if (k === 'a' || k === 'arrowleft' || code === 'KeyA' || code === 'ArrowLeft') {
-                e.preventDefault();
-                playerMove('left');
-            } else if (k === 'd' || k === 'arrowright' || code === 'KeyD' || code === 'ArrowRight') {
-                e.preventDefault();
-                playerMove('right');
-            }
-        });
-
-        // Click canvas to hop forward or start
-        canvas.addEventListener('click', () => {
-            if (!gameRunning && !gameOver) {
-                startGame();
-            } else if (gameRunning && !gameOver) {
-                playerMove('forward');
-            }
-        });
-
-        // Touch tap and swipe handling
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let touchStartTime = 0;
-        canvas.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            touchStartTime = Date.now();
-        }, { passive: true });
-
-        canvas.addEventListener('touchend', (e) => {
-            if (!gameRunning) {
-                startGame();
-                return;
-            }
-            if (gameOver) return;
-
-            let diffX = e.changedTouches[0].clientX - touchStartX;
-            let diffY = e.changedTouches[0].clientY - touchStartY;
-            let duration = Date.now() - touchStartTime;
-
-            // Tap anywhere on canvas to hop forward
-            if (Math.hypot(diffX, diffY) < 15 && duration < 300) {
-                playerMove('forward');
-                return;
-            }
-
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                if (Math.abs(diffX) > 25) {
-                    if (diffX > 0) playerMove('right');
-                    else playerMove('left');
-                }
-            } else {
-                if (Math.abs(diffY) > 25) {
-                    if (diffY < 0) playerMove('forward');
-                    else playerMove('backward');
-                }
-            }
-        }, { passive: true });
-
-        // Update Game Loop
-        function update(dt) {
-            if (!gameRunning || gameOver) return;
-
-            // Idle timer for Eagle attack
-            idleTimer += dt;
-            if (idleTimer > 4.5 && !eagleComing) {
-                eagleComing = true;
-                eagleY = player.y - 12;
-                playSound('eagle');
-                document.getElementById('eagle-warning').classList.remove('hidden');
-            }
-
-            if (eagleComing) {
-                eagleY += 8 * dt;
-                if (eagleY >= player.y) {
-                    triggerGameOver("¡El águila te ha cazado por quedarte quieto!");
-                }
-            }
-
-            // Player jump interpolation
-            if (player.isJumping) {
-                player.jumpProgress += dt * 10;
-                player.x += (player.targetX - player.x) * 0.35;
-                player.y += (player.targetY - player.y) * 0.35;
-                player.jumpHeight = Math.sin(player.jumpProgress * Math.PI) * 25;
-
-                // Squash recovery
-                player.squashX += (1 - player.squashX) * 0.2;
-                player.squashY += (1 - player.squashY) * 0.2;
-
-                if (player.jumpProgress >= 1) {
-                    player.x = player.targetX;
-                    player.y = player.targetY;
-                    player.jumpHeight = 0;
-                    player.isJumping = false;
-
-                    // Check row collisions upon landing
-                    checkCollisions();
-                }
-            }
-
-            // Update rows elements (cars, trains, logs)
-            rows.forEach(row => {
-                if (row.type === 'road') {
-                    row.elements.forEach(car => {
-                        car.pos += row.speed * dt * 0.8;
-                        if (car.pos > 6) car.pos = -6;
-                        if (car.pos < -6) car.pos = 6;
-                    });
-                } else if (row.type === 'water') {
-                    row.elements.forEach(log => {
-                        log.pos += row.speed * dt * 0.6;
-                        if (log.pos > 7) log.pos = -7;
-                        if (log.pos < -7) log.pos = 7;
-                    });
-                } else if (row.type === 'rail') {
-                    if (!row.trainActive && Math.random() < 0.005) {
-                        row.trainWarning = true;
-                        setTimeout(() => {
-                            if (gameRunning) {
-                                row.trainWarning = false;
-                                row.trainActive = true;
-                                row.trainPos = row.speed > 0 ? -10 : 10;
-                            }
-                        }, 1200);
+            spawnExplosion(origin, isWater = false) {
+                this.clear();
+                const count = isWater ? 26 : 34;
+                for (let i = 0; i < count; i++) {
+                    const size = 0.10 + Math.random() * 0.12;
+                    let mat;
+                    if (isWater) {
+                        mat = Math.random() > 0.35 ? SharedAssets.materials.waterFoam : SharedAssets.materials.waterPlayable;
+                    } else {
+                        const r = Math.random();
+                        mat = r < 0.65 ? SharedAssets.materials.playerBody : (r < 0.85 ? SharedAssets.materials.playerComb : SharedAssets.materials.playerBeak);
                     }
-                    if (row.trainActive) {
-                        row.trainPos += (row.speed > 0 ? 15 : -15) * dt;
-                        if (row.trainPos > 12 || row.trainPos < -12) {
-                            row.trainActive = false;
+
+                    const mesh = VoxelFactory.createBox(size, size, size, mat, origin.x, origin.y + 0.25, origin.z);
+                    this.scene.add(mesh);
+
+                    const angle = Math.random() * Math.PI * 2;
+                    const speedXZ = (isWater ? 1.8 : 3.5) * (0.3 + Math.random() * 0.8);
+                    const vel = new THREE.Vector3(
+                        Math.cos(angle) * speedXZ,
+                        (isWater ? 3.8 : 5.2) * (0.5 + Math.random() * 0.7),
+                        Math.sin(angle) * speedXZ
+                    );
+                    const rotVel = new THREE.Vector3(
+                        (Math.random() - 0.5) * 12,
+                        (Math.random() - 0.5) * 12,
+                        (Math.random() - 0.5) * 12
+                    );
+
+                    this.particles.push({ mesh, vel, rotVel, life: 1.4 });
+                }
+            }
+
+            update(dt) {
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.life -= dt;
+                    if (p.life <= 0) {
+                        this.scene.remove(p.mesh);
+                        this.particles.splice(i, 1);
+                        continue;
+                    }
+                    p.vel.y -= 14.5 * dt; // Gravedad
+                    p.mesh.position.addScaledVector(p.vel, dt);
+                    if (p.mesh.position.y < 0.12) {
+                        p.mesh.position.y = 0.12;
+                        p.vel.y *= -0.45;
+                        p.vel.x *= 0.75;
+                        p.vel.z *= 0.75;
+                    }
+                    p.mesh.rotation.x += p.rotVel.x * dt;
+                    p.mesh.rotation.y += p.rotVel.y * dt;
+                }
+            }
+
+            clear() {
+                for (const p of this.particles) {
+                    this.scene.remove(p.mesh);
+                }
+                this.particles = [];
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 6. MOTOR PROCEDURAL DE CARRILES, TRÁFICO TOROIDAL Y RÍOS
+         * ============================================================================
+         */
+        class ProceduralLane {
+            constructor(zIndex, type, zDifficultyFactor, guaranteedFreeX = 0) {
+                this.z = zIndex;
+                this.type = type; // 'GRASS' | 'ROAD' | 'WATER'
+                this.group = new THREE.Group();
+                this.group.position.set(0, 0, zIndex);
+
+                this.blockedX = new Set([-6, 6]); // Límites laterales fuera de [-5, 5]
+                this.vehicles = [];
+                this.logs = [];
+                this.coin = null;
+                this.direction = Math.random() < 0.5 ? -1 : 1;
+                this.speed = 0;
+
+                if (type === 'GRASS') {
+                    this.height = CONFIG.HEIGHT_GRASS;
+                    this.buildGrass(zIndex, guaranteedFreeX);
+                } else if (type === 'ROAD') {
+                    this.height = CONFIG.HEIGHT_ROAD;
+                    this.buildRoad(zDifficultyFactor);
+                } else if (type === 'WATER') {
+                    this.height = CONFIG.HEIGHT_WATER;
+                    this.buildWater(zDifficultyFactor);
+                }
+            }
+
+            buildBaseSlab(playableMat, outBoundsMat, height) {
+                // Zona central jugable de 11 unidades (X de -5 a +5)
+                const center = VoxelFactory.createBox(11, height, 1, playableMat, 0, height / 2, 0, false);
+                // Bordes oscuros fuera de límites a izquierda y derecha
+                const leftOB = VoxelFactory.createBox(11, height, 1, outBoundsMat, -11, height / 2, 0, false);
+                const rightOB = VoxelFactory.createBox(11, height, 1, outBoundsMat, 11, height / 2, 0, false);
+                this.group.add(center, leftOB, rightOB);
+            }
+
+            buildGrass(zIndex, guaranteedFreeX) {
+                this.buildBaseSlab(SharedAssets.materials.grassPlayable, SharedAssets.materials.grassOutBounds, CONFIG.HEIGHT_GRASS);
+
+                // Árboles decorativos en las bandas exteriores (X <= -6 y X >= 6)
+                [-9, -7, -6, 6, 7, 9].forEach(bx => {
+                    const tree = VoxelFactory.createTree(0.78);
+                    tree.position.set(bx, CONFIG.HEIGHT_GRASS, 0);
+                    this.group.add(tree);
+                });
+
+                // Si es la barrera trasera (Z <= -4), bloqueamos todo el ancho con bosque
+                if (zIndex <= -4) {
+                    for (let x = CONFIG.GRID_MIN_X; x <= CONFIG.GRID_MAX_X; x++) {
+                        this.blockedX.add(x);
+                        const tree = VoxelFactory.createTree(0.75 + (Math.abs(x) % 2) * 0.1);
+                        tree.position.set(x, CONFIG.HEIGHT_GRASS, 0);
+                        this.group.add(tree);
+                    }
+                    return;
+                }
+
+                // Zona inicial limpia (Z entre -3 y 0)
+                if (zIndex <= 0) return;
+
+                // En carriles procedurales Z > 0: generamos entre 1 y 4 obstáculos garantizando paso libre
+                const numObstacles = 1 + Math.floor(Math.random() * 4);
+                for (let i = 0; i < numObstacles; i++) {
+                    const rx = Math.floor(Math.random() * 11) - 5; // [-5, 5]
+                    if (rx === guaranteedFreeX || this.blockedX.has(rx)) continue;
+                    this.blockedX.add(rx);
+
+                    const obs = Math.random() < 0.78
+                        ? VoxelFactory.createTree(0.72 + Math.random() * 0.16)
+                        : VoxelFactory.createRock();
+                    obs.position.set(rx, CONFIG.HEIGHT_GRASS, 0);
+                    this.group.add(obs);
+                }
+
+                // Probabilidad de instanciar moneda coleccionable en casilla libre
+                if (Math.random() < 0.22) {
+                    const candidates = [];
+                    for (let x = -4; x <= 4; x++) {
+                        if (!this.blockedX.has(x)) candidates.push(x);
+                    }
+                    if (candidates.length > 0) {
+                        const cx = candidates[Math.floor(Math.random() * candidates.length)];
+                        const coinMesh = VoxelFactory.createCoin();
+                        coinMesh.position.set(cx, CONFIG.HEIGHT_GRASS, 0);
+                        this.group.add(coinMesh);
+                        this.coin = { x: cx, mesh: coinMesh, collected: false };
+                    }
+                }
+            }
+
+            buildRoad(zDifficultyFactor) {
+                this.buildBaseSlab(SharedAssets.materials.roadPlayable, SharedAssets.materials.roadOutBounds, CONFIG.HEIGHT_ROAD);
+
+                // Líneas discontinuas blancas de asfalto
+                for (let x = -5; x <= 5; x += 2) {
+                    const stripe = VoxelFactory.createBox(0.45, 0.02, 0.08, SharedAssets.materials.roadLine, x, CONFIG.HEIGHT_ROAD + 0.01, 0.42, false);
+                    this.group.add(stripe);
+                }
+
+                const isTruckLane = Math.random() < 0.32;
+                const minSpd = THREE.MathUtils.lerp(2.2, 4.5, zDifficultyFactor);
+                const maxSpd = THREE.MathUtils.lerp(4.8, 8.5, zDifficultyFactor);
+                this.speed = THREE.MathUtils.lerp(minSpd, maxSpd, Math.random()) * (isTruckLane ? 0.78 : 1.0);
+
+                const vehicleCount = isTruckLane ? (1 + Math.floor(Math.random() * 2)) : (2 + Math.floor(Math.random() * 2));
+                const spacing = (CONFIG.VEHICLE_BOUNDS_X * 2) / vehicleCount;
+                const colorMat = SharedAssets.materials.vehicleColors[Math.floor(Math.random() * SharedAssets.materials.vehicleColors.length)];
+                const phaseOffset = (Math.random() - 0.5) * 4;
+
+                for (let i = 0; i < vehicleCount; i++) {
+                    const vObj = VoxelFactory.createVehicle(isTruckLane, colorMat, this.direction);
+                    const startX = -CONFIG.VEHICLE_BOUNDS_X + i * spacing + phaseOffset;
+                    vObj.mesh.position.set(startX, CONFIG.HEIGHT_ROAD, 0);
+                    this.group.add(vObj.mesh);
+                    this.vehicles.push(vObj);
+                }
+            }
+
+            buildWater(zDifficultyFactor) {
+                // Base de agua ligeramente hundida para acentuar el desnivel topográfico
+                const center = VoxelFactory.createBox(11, 0.12, 1, SharedAssets.materials.waterPlayable, 0, -0.04, 0, false);
+                const leftOB = VoxelFactory.createBox(11, 0.12, 1, SharedAssets.materials.waterOutBounds, -11, -0.04, 0, false);
+                const rightOB = VoxelFactory.createBox(11, 0.12, 1, SharedAssets.materials.waterOutBounds, 11, -0.04, 0, false);
+                this.group.add(center, leftOB, rightOB);
+
+                this.speed = THREE.MathUtils.lerp(1.6, 3.6, Math.random() * 0.6 + zDifficultyFactor * 0.4);
+                const logCount = 3;
+                const logLength = Math.random() < 0.5 ? 2.4 : 3.2;
+                const spacing = (CONFIG.VEHICLE_BOUNDS_X * 2) / logCount;
+                const phaseOffset = Math.random() * 5;
+
+                for (let i = 0; i < logCount; i++) {
+                    const logObj = VoxelFactory.createLog(logLength);
+                    const startX = -CONFIG.VEHICLE_BOUNDS_X + i * spacing + phaseOffset;
+                    logObj.mesh.position.set(startX, 0.04, 0);
+                    this.group.add(logObj.mesh);
+                    this.logs.push(logObj);
+                }
+            }
+
+            /**
+             * Actualización cinemática continua y teletransporte toroidal en |X| > 12
+             */
+            update(dt, elapsedTime) {
+                const deltaX = this.direction * this.speed * dt;
+                const limit = CONFIG.VEHICLE_BOUNDS_X;
+
+                if (this.type === 'ROAD') {
+                    for (const v of this.vehicles) {
+                        v.mesh.position.x += deltaX;
+                        if (this.direction > 0 && v.mesh.position.x > limit) {
+                            v.mesh.position.x = -limit;
+                        } else if (this.direction < 0 && v.mesh.position.x < -limit) {
+                            v.mesh.position.x = limit;
+                        }
+                    }
+                } else if (this.type === 'WATER') {
+                    for (const log of this.logs) {
+                        log.mesh.position.x += deltaX;
+                        if (this.direction > 0 && log.mesh.position.x > limit) {
+                            log.mesh.position.x = -limit;
+                        } else if (this.direction < 0 && log.mesh.position.x < -limit) {
+                            log.mesh.position.x = limit;
                         }
                     }
                 }
-            });
 
-            // If player is on water, ride the log
-            let currentRow = rows.find(r => r.index === Math.round(player.y));
-            if (currentRow && currentRow.type === 'water' && !player.isJumping) {
-                let onLog = false;
-                currentRow.elements.forEach(log => {
-                    if (player.x >= log.pos - 0.5 && player.x <= log.pos + log.width - 0.5) {
-                        onLog = true;
-                        player.x += currentRow.speed * dt * 0.6;
-                        player.targetX = player.x;
+                if (this.coin && !this.coin.collected) {
+                    this.coin.mesh.rotation.y = elapsedTime * 3.0;
+                }
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 7. GESTOR PRINCIPAL DEL JUEGO Y MÁQUINA DE ESTADOS FINITOS (FSM)
+         * ============================================================================
+         */
+        class CrossyGameApp {
+            constructor() {
+                this.state = FSM_STATES.BOOT_INIT;
+                this.sound = new SoundSynthesizer();
+
+                // Métricas y persistencia local
+                this.score = 0;
+                this.highScore = parseInt(localStorage.getItem('crossy_voxel_highscore') || '0', 10);
+                this.totalCoins = parseInt(localStorage.getItem('crossy_voxel_coins') || '0', 10);
+
+                // Coordenadas en la rejilla y estado cinemático del jugador
+                this.gridPos = { x: 0, z: 0 };
+                this.continuousX = 0;
+                this.moveTimer = 0;
+                this.moveStartPos = new THREE.Vector3();
+                this.moveEndPos = new THREE.Vector3();
+                this.targetGridZ = 0;
+                this.currentLogCarrier = null;
+
+                // Temporizadores de Anti-Camping y Cooldown de Reinicio
+                this.idleTimer = 0;
+                this.restartCooldownTimer = 0;
+                this.eagleActive = false;
+
+                // Almacén de carriles activos (Map indexado por coordenada entera Z)
+                this.lanes = new Map();
+                this.maxGeneratedZ = -6;
+                this.consecutiveWaterCount = 0;
+                this.safePathX = 0;
+
+                // Control de cámara isométrica + órbita interactiva con ratón
+                this.camAzimuthDeg = 45;
+                this.camElevationDeg = 30;
+                this.isDraggingCam = false;
+                this.prevMouse = { x: 0, y: 0 };
+                this.smoothedCamTarget = new THREE.Vector3(0, 0, 0);
+
+                this.initThreeScene();
+                this.initUI();
+                this.initInputs();
+                this.setupNewLevel(false);
+            }
+
+            initThreeScene() {
+                SharedAssets.init();
+
+                this.canvas = document.getElementById('game-canvas');
+                this.container = document.getElementById('canvas-container');
+
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x87CEEB);
+
+                // Cámara Ortográfica Isométrica (Sección 7.1 de la Directiva)
+                this.frustumSize = 11.5;
+                const aspect = this.container.clientWidth / Math.max(1, this.container.clientHeight);
+                this.camera = new THREE.OrthographicCamera(
+                    -this.frustumSize * aspect / 2,
+                    this.frustumSize * aspect / 2,
+                    this.frustumSize / 2,
+                    -this.frustumSize / 2,
+                    -30,
+                    65
+                );
+
+                this.renderer = new THREE.WebGLRenderer({
+                    canvas: this.canvas,
+                    antialias: true,
+                    powerPreference: 'high-performance'
+                });
+                this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+                // Iluminación Ambiental y Direccional con Sombras Calibradas al Frustum
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+                this.scene.add(ambientLight);
+
+                this.dirLight = new THREE.DirectionalLight(0xfffbeb, 0.85);
+                this.dirLight.position.set(-12, 18, -10);
+                this.dirLight.castShadow = true;
+                this.dirLight.shadow.mapSize.width = 2048;
+                this.dirLight.shadow.mapSize.height = 2048;
+                const d = 14;
+                this.dirLight.shadow.camera.left = -d;
+                this.dirLight.shadow.camera.right = d;
+                this.dirLight.shadow.camera.top = d;
+                this.dirLight.shadow.camera.bottom = -d;
+                this.dirLight.shadow.camera.near = 1;
+                this.dirLight.shadow.camera.far = 45;
+                this.dirLight.shadow.bias = -0.0008;
+                this.scene.add(this.dirLight);
+                this.scene.add(this.dirLight.target);
+
+                // Contenedor jerárquico de carriles, jugador, águila y partículas
+                this.worldGroup = new THREE.Group();
+                this.scene.add(this.worldGroup);
+
+                this.player = VoxelFactory.createPlayer();
+                this.scene.add(this.player.root);
+
+                this.eagle = VoxelFactory.createEagle();
+                this.scene.add(this.eagle);
+
+                this.particles = new VoxelParticleSystem(this.scene);
+
+                window.addEventListener('resize', () => this.onResize());
+            }
+
+            onResize() {
+                const w = this.container.clientWidth;
+                const h = Math.max(1, this.container.clientHeight);
+                const aspect = w / h;
+                // Ajuste adaptativo en pantallas verticales móviles
+                const adaptiveFrustum = aspect < 0.85 ? 14.5 : 11.5;
+                this.camera.left = -adaptiveFrustum * aspect / 2;
+                this.camera.right = adaptiveFrustum * aspect / 2;
+                this.camera.top = adaptiveFrustum / 2;
+                this.camera.bottom = -adaptiveFrustum / 2;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(w, h);
+            }
+
+            initUI() {
+                this.elScore = document.getElementById('hud-score');
+                this.elHighScore = document.getElementById('hud-highscore');
+                this.elCoins = document.getElementById('hud-coins');
+                this.elFsm = document.getElementById('hud-fsm');
+                this.elTimer = document.getElementById('hud-timer');
+                this.elTimerBar = document.getElementById('hud-timer-bar');
+                this.elCoords = document.getElementById('hud-coords');
+                this.elHazard = document.getElementById('hud-hazard');
+                this.elLanesCount = document.getElementById('hud-lanes-count');
+                this.elEagleWarn = document.getElementById('eagle-warning');
+
+                this.modalStart = document.getElementById('modal-start');
+                this.modalGameOver = document.getElementById('modal-gameover');
+                this.btnRestart = document.getElementById('btn-restart');
+                this.btnRestartLabel = document.getElementById('btn-restart-label');
+                this.elCooldownText = document.getElementById('cooldown-text');
+                this.elCooldownBar = document.getElementById('cooldown-bar');
+
+                this.elHighScore.textContent = this.highScore;
+                this.elCoins.textContent = this.totalCoins;
+
+                document.getElementById('btn-start-game').addEventListener('click', () => {
+                    this.sound.init();
+                    this.modalStart.classList.add('hidden');
+                    this.setState(FSM_STATES.READY);
+                });
+
+                this.btnRestart.addEventListener('click', () => {
+                    if (this.state === FSM_STATES.GAME_OVER && this.restartCooldownTimer <= 0) {
+                        this.setupNewLevel(true);
                     }
                 });
-                if (!onLog) {
-                    triggerGameOver("¡Te has ahogado en el río!");
-                } else if (player.x < -4.5 || player.x > 4.5) {
-                    triggerGameOver("¡Caíste fuera del mapa!");
-                }
-            }
 
-            // Coin collection check
-            if (currentRow && currentRow.hasCoin && !currentRow.coinCollected) {
-                if (Math.abs(player.x - currentRow.coinPos) < 0.6 && Math.round(player.y) === currentRow.index) {
-                    currentRow.coinCollected = true;
-                    score += 5;
-                    document.getElementById('score-display').innerText = score;
-                    playSound('coin');
-                }
-            }
-        }
+                document.getElementById('btn-reset-cam').addEventListener('click', () => {
+                    this.camAzimuthDeg = 45;
+                    this.camElevationDeg = 30;
+                });
 
-        function checkCollisions() {
-            let currentRow = rows.find(r => r.index === Math.round(player.y));
-            if (!currentRow) return;
-
-            // Car collision check
-            if (currentRow.type === 'road') {
-                currentRow.elements.forEach(car => {
-                    if (player.x >= car.pos - 0.6 && player.x <= car.pos + car.width - 0.4) {
-                        triggerGameOver("¡Te ha atropellado un vehículo!");
-                    }
+                document.getElementById('btn-sound').addEventListener('click', () => {
+                    const active = this.sound.toggle();
+                    const icon = document.getElementById('icon-sound');
+                    icon.className = active ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
                 });
             }
 
-            // Train collision check
-            if (currentRow.type === 'rail' && currentRow.trainActive) {
-                if (player.x >= currentRow.trainPos - 2.5 && player.x <= currentRow.trainPos + 2.5) {
-                    triggerGameOver("¡Te ha arrollado el tren express!");
+            setState(newState) {
+                this.state = newState;
+                this.elFsm.textContent = newState;
+            }
+
+            initInputs() {
+                // 1. Teclado (Flechas y WASD) + Reinicio con cualquier tecla tras el Cooldown
+                window.addEventListener('keydown', (e) => {
+                    if (this.state === FSM_STATES.GAME_OVER && this.restartCooldownTimer <= 0) {
+                        this.setupNewLevel(true);
+                        return;
+                    }
+
+                    if (this.state !== FSM_STATES.READY && this.state !== FSM_STATES.CARRIED) return;
+
+                    switch (e.key) {
+                        case 'ArrowUp':
+                        case 'w':
+                        case 'W':
+                        case ' ':
+                            e.preventDefault();
+                            this.tryJump(0, 1);
+                            break;
+                        case 'ArrowDown':
+                        case 's':
+                        case 'S':
+                            e.preventDefault();
+                            this.tryJump(0, -1);
+                            break;
+                        case 'ArrowLeft':
+                        case 'a':
+                        case 'A':
+                            e.preventDefault();
+                            // En vista isométrica (+Z hacia arriba-derecha), Izquierda es +X o -X según cámara
+                            this.tryJump(1, 0);
+                            break;
+                        case 'ArrowRight':
+                        case 'd':
+                        case 'D':
+                            e.preventDefault();
+                            this.tryJump(-1, 0);
+                            break;
+                    }
+                });
+
+                // 2. Botones Arcade Inferiores
+                document.getElementById('ctrl-up').addEventListener('click', () => this.tryJump(0, 1));
+                document.getElementById('ctrl-down').addEventListener('click', () => this.tryJump(0, -1));
+                document.getElementById('ctrl-left').addEventListener('click', () => this.tryJump(1, 0));
+                document.getElementById('ctrl-right').addEventListener('click', () => this.tryJump(-1, 0));
+
+                // 3. Eventos de Ratón para Orbitar el Ángulo de Cámara (mousedown, mousemove, mouseup)
+                this.canvas.addEventListener('mousedown', (e) => {
+                    this.isDraggingCam = true;
+                    this.prevMouse.x = e.clientX;
+                    this.prevMouse.y = e.clientY;
+                });
+
+                window.addEventListener('mousemove', (e) => {
+                    if (!this.isDraggingCam) return;
+                    const dx = e.clientX - this.prevMouse.x;
+                    const dy = e.clientY - this.prevMouse.y;
+                    this.prevMouse.x = e.clientX;
+                    this.prevMouse.y = e.clientY;
+
+                    this.camAzimuthDeg = THREE.MathUtils.clamp(this.camAzimuthDeg - dx * 0.35, 15, 75);
+                    this.camElevationDeg = THREE.MathUtils.clamp(this.camElevationDeg + dy * 0.25, 20, 60);
+                });
+
+                window.addEventListener('mouseup', () => {
+                    this.isDraggingCam = false;
+                });
+
+                // 4. Gestos Táctiles (Swipe para dirección o Tap para avanzar) en el Canvas
+                let touchStartX = 0;
+                let touchStartY = 0;
+                this.canvas.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 0) {
+                        touchStartX = e.touches[0].clientX;
+                        touchStartY = e.touches[0].clientY;
+                    }
+                }, { passive: true });
+
+                this.canvas.addEventListener('touchend', (e) => {
+                    if (this.state !== FSM_STATES.READY && this.state !== FSM_STATES.CARRIED) return;
+                    if (e.changedTouches.length === 0) return;
+                    const dx = e.changedTouches[0].clientX - touchStartX;
+                    const dy = e.changedTouches[0].clientY - touchStartY;
+                    const dist = Math.hypot(dx, dy);
+
+                    if (dist < 24) {
+                        this.tryJump(0, 1); // Tap simple avanza hacia adelante
+                    } else if (Math.abs(dx) > Math.abs(dy)) {
+                        this.tryJump(dx < 0 ? 1 : -1, 0);
+                    } else {
+                        this.tryJump(0, dy < 0 ? 1 : -1);
+                    }
+                }, { passive: true });
+            }
+
+            setupNewLevel(startImmediately = true) {
+                this.setState(FSM_STATES.BOOT_INIT);
+                this.modalGameOver.classList.add('hidden');
+                this.elEagleWarn.classList.add('hidden');
+                this.particles.clear();
+                this.eagle.visible = false;
+                this.eagleActive = false;
+
+                // Limpiar carriles previos
+                for (const lane of this.lanes.values()) {
+                    this.worldGroup.remove(lane.group);
+                }
+                this.lanes.clear();
+
+                // Reiniciar variables de estado y jugador
+                this.score = 0;
+                this.elScore.textContent = '0';
+                this.gridPos = { x: 0, z: 0 };
+                this.continuousX = 0;
+                this.currentLogCarrier = null;
+                this.idleTimer = 0;
+                this.maxGeneratedZ = -6;
+                this.consecutiveWaterCount = 0;
+                this.safePathX = 0;
+
+                this.player.root.visible = true;
+                this.player.root.position.set(0, CONFIG.HEIGHT_GRASS, 0);
+                this.player.model.rotation.set(0, 0, 0);
+                this.smoothedCamTarget.set(0, 0, 0);
+
+                // Generar zona inicial y los primeros N_forward carriles
+                this.maintainProceduralLanes();
+                this.updateTelemetryUI();
+
+                if (startImmediately) {
+                    this.setState(FSM_STATES.READY);
                 }
             }
-        }
 
-        // Render Graphics (Pseudo-Isometric Voxel 3D Style)
-        function render() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            /**
+             * Ecuación de Probabilidad Dinámica (Sección 5.2):
+             * P_hazard(Z) = P_min + (P_max - P_min) * min(1.0, Z / Z_scale)
+             */
+            getHazardProbability(z) {
+                if (z <= 0) return 0;
+                const t = Math.min(1.0, z / CONFIG.HAZARD_Z_SCALE);
+                return CONFIG.HAZARD_P_MIN + (CONFIG.HAZARD_P_MAX - CONFIG.HAZARD_P_MIN) * t;
+            }
 
-            // Smooth camera follow
-            let targetCamY = player.y * tileSize;
-            cameraY += (targetCamY - cameraY) * 0.1;
-
-            ctx.save();
-            // Center camera, angle perspective
-            ctx.translate(canvas.width / 2, canvas.height * 0.65 + cameraY);
-
-            // Draw world rows from bottom to top (back to front in isometric view)
-            let renderRows = [...rows].sort((a, b) => a.index - b.index);
-
-            renderRows.forEach(row => {
-                let yPos = -row.index * tileSize;
-
-                // Don't render rows way off screen
-                if (yPos > cameraY + canvas.height || yPos < cameraY - canvas.height - 200) return;
-
-                // Draw Row Background
-                if (row.type === 'grass') {
-                    ctx.fillStyle = (row.index % 2 === 0) ? '#86efac' : '#4ade80';
-                } else if (row.type === 'road') {
-                    ctx.fillStyle = '#334155';
-                } else if (row.type === 'water') {
-                    ctx.fillStyle = '#38bdf8';
-                } else if (row.type === 'rail') {
-                    ctx.fillStyle = '#64748b';
+            maintainProceduralLanes() {
+                // 1. Spawning de carriles hasta Z_jugador + N_forward (25)
+                const targetMaxZ = this.gridPos.z + CONFIG.LANES_FORWARD;
+                while (this.maxGeneratedZ < targetMaxZ) {
+                    this.maxGeneratedZ++;
+                    this.spawnLaneAt(this.maxGeneratedZ);
                 }
 
-                ctx.fillRect(-canvas.width, yPos - tileSize / 2, canvas.width * 2, tileSize);
-
-                // Row specific decorations
-                if (row.type === 'road') {
-                    // Dashed lines
-                    ctx.strokeStyle = '#94a3b8';
-                    ctx.lineWidth = 2;
-                    ctx.setLineDash([10, 10]);
-                    ctx.beginPath();
-                    ctx.moveTo(-canvas.width, yPos);
-                    ctx.lineTo(canvas.width, yPos);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-                } else if (row.type === 'rail') {
-                    // Train tracks
-                    ctx.fillStyle = '#1e293b';
-                    ctx.fillRect(-canvas.width, yPos - 6, canvas.width * 2, 12);
-                    if (row.trainWarning) {
-                        ctx.fillStyle = Math.floor(Date.now() / 200) % 2 === 0 ? '#ef4444' : '#f59e0b';
-                        ctx.fillRect(-canvas.width, yPos - tileSize / 2, canvas.width * 2, 6);
+                // 2. Reciclaje/Culling espacial detrás de Z_jugador - N_backward (15)
+                const cullLimitZ = this.gridPos.z - CONFIG.LANES_BACKWARD;
+                for (const [zKey, lane] of this.lanes.entries()) {
+                    if (zKey < cullLimitZ) {
+                        this.worldGroup.remove(lane.group);
+                        this.lanes.delete(zKey);
                     }
                 }
 
-                // Draw Elements in Row
-                if (row.type === 'grass') {
-                    row.elements.forEach(tree => {
-                        let tx = tree.pos * tileSize;
-                        // Tree shadow
-                        ctx.fillStyle = 'rgba(0,0,0,0.15)';
-                        ctx.fillRect(tx - tileSize * 0.35, yPos - tileSize * 0.2, tileSize * 0.7, tileSize * 0.4);
-                        // Tree trunk
-                        ctx.fillStyle = '#b45309';
-                        ctx.fillRect(tx - tileSize * 0.15, yPos - tileSize * 0.3, tileSize * 0.3, tileSize * 0.4);
-                        // Tree leaves
-                        ctx.fillStyle = '#15803d';
-                        ctx.fillRect(tx - tileSize * 0.35, yPos - tileSize * 0.7, tileSize * 0.7, tileSize * 0.5);
-                    });
+                if (this.elLanesCount) {
+                    this.elLanesCount.textContent = this.lanes.size;
+                }
+            }
 
-                    // Draw Coin
-                    if (row.hasCoin && !row.coinCollected) {
-                        let cx = row.coinPos * tileSize;
-                        ctx.fillStyle = '#f59e0b';
-                        ctx.beginPath();
-                        ctx.arc(cx, yPos, tileSize * 0.25, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.strokeStyle = '#d97706';
-                        ctx.lineWidth = 3;
-                        ctx.stroke();
-                        // Dollar sign or shine
-                        ctx.fillStyle = '#fef3c7';
-                        ctx.font = 'bold 16px sans-serif';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText('$', cx, yPos);
+            spawnLaneAt(z) {
+                let type = 'GRASS';
+                const zDiffFactor = Math.min(1.0, Math.max(0, z / CONFIG.HAZARD_Z_SCALE));
+
+                if (z > 0) {
+                    const pHazard = this.getHazardProbability(z);
+                    if (Math.random() < pHazard) {
+                        // Elegir entre Carretera y Río respetando el límite de 4 ríos seguidos
+                        const wantWater = z > 3 && Math.random() < 0.34 && this.consecutiveWaterCount < CONFIG.MAX_CONSECUTIVE_WATER;
+                        type = wantWater ? 'WATER' : 'ROAD';
                     }
-                } else if (row.type === 'road') {
-                    row.elements.forEach(car => {
-                        let cx = car.pos * tileSize;
-                        // Car Shadow
-                        ctx.fillStyle = 'rgba(0,0,0,0.2)';
-                        ctx.fillRect(cx - 2, yPos - tileSize * 0.3, car.width * tileSize, tileSize * 0.6);
-                        // Car Body
-                        ctx.fillStyle = car.color;
-                        ctx.fillRect(cx, yPos - tileSize * 0.35, car.width * tileSize - 4, tileSize * 0.6);
-                        // Windshield / Cabin
-                        ctx.fillStyle = '#cbd5e1';
-                        ctx.fillRect(cx + tileSize * 0.3, yPos - tileSize * 0.25, car.width * tileSize * 0.4, tileSize * 0.4);
-                    });
-                } else if (row.type === 'water') {
-                    row.elements.forEach(log => {
-                        let lx = log.pos * tileSize;
-                        // Log
-                        ctx.fillStyle = '#78350f';
-                        ctx.fillRect(lx, yPos - tileSize * 0.35, log.width * tileSize - 4, tileSize * 0.65);
-                        ctx.fillStyle = '#92400e';
-                        ctx.fillRect(lx + 4, yPos - tileSize * 0.25, log.width * tileSize - 12, tileSize * 0.45);
-                    });
-                } else if (row.type === 'rail' && row.trainActive) {
-                    let tx = row.trainPos * tileSize;
-                    // Train Locomotive
-                    ctx.fillStyle = '#b91c1c';
-                    ctx.fillRect(tx - tileSize * 2, yPos - tileSize * 0.45, tileSize * 4, tileSize * 0.9);
-                    // Train Windows
-                    ctx.fillStyle = '#fde047';
-                    ctx.fillRect(tx - tileSize * 1.5, yPos - tileSize * 0.3, tileSize * 1, tileSize * 0.4);
                 }
-            });
 
-            // Draw Player Character
-            let px = player.x * tileSize;
-            let py = -player.y * tileSize;
-            let charData = characters[currentCharIndex];
-
-            // Player Shadow
-            ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.beginPath();
-            ctx.ellipse(px, py + 5, tileSize * 0.38, tileSize * 0.22, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Player Body with jump height & squash
-            ctx.save();
-            ctx.translate(px, py - player.jumpHeight);
-            ctx.scale(player.squashX, player.squashY);
-
-            if (charData.body === 'chicken') {
-                // TRUE CROSSY ROAD VOXEL CHICKEN
-                const wingFlap = player.isJumping ? Math.sin(player.jumpProgress * Math.PI) * 5 : 0;
-                const bob = player.isJumping ? 0 : Math.sin(Date.now() / 150) * 1.5;
-
-                // Legs & Feet (voxel yellow)
-                ctx.fillStyle = '#f59e0b';
-                // Left leg
-                ctx.fillRect(-tileSize * 0.22, -tileSize * 0.1, tileSize * 0.1, tileSize * 0.16);
-                // Right leg
-                ctx.fillRect(tileSize * 0.12, -tileSize * 0.1, tileSize * 0.1, tileSize * 0.16);
-                // Feet
-                if (player.direction === 'backward') {
-                    ctx.fillRect(-tileSize * 0.26, tileSize * 0.04, tileSize * 0.16, tileSize * 0.08);
-                    ctx.fillRect(tileSize * 0.08, tileSize * 0.04, tileSize * 0.16, tileSize * 0.08);
-                } else if (player.direction === 'left') {
-                    ctx.fillRect(-tileSize * 0.3, tileSize * 0.04, tileSize * 0.18, tileSize * 0.08);
-                    ctx.fillRect(tileSize * 0.04, tileSize * 0.04, tileSize * 0.18, tileSize * 0.08);
-                } else if (player.direction === 'right') {
-                    ctx.fillRect(-tileSize * 0.22, tileSize * 0.04, tileSize * 0.18, tileSize * 0.08);
-                    ctx.fillRect(tileSize * 0.12, tileSize * 0.04, tileSize * 0.18, tileSize * 0.08);
+                if (type === 'WATER') {
+                    this.consecutiveWaterCount++;
                 } else {
-                    // forward
-                    ctx.fillRect(-tileSize * 0.24, -tileSize * 0.02, tileSize * 0.14, tileSize * 0.08);
-                    ctx.fillRect(tileSize * 0.1, -tileSize * 0.02, tileSize * 0.14, tileSize * 0.08);
+                    this.consecutiveWaterCount = 0;
                 }
 
-                // Main Torso / Body (Pure White Voxel Cube with isometric depth)
-                // Body shadow underside
-                ctx.fillStyle = '#e2e8f0';
-                ctx.fillRect(-tileSize * 0.35, -tileSize * 0.65 + bob, tileSize * 0.7, tileSize * 0.6);
-                // Front / Top face
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(-tileSize * 0.33, -tileSize * 0.65 + bob, tileSize * 0.66, tileSize * 0.55);
-
-                // Feather tail (behind)
-                ctx.fillStyle = '#cbd5e1';
-                if (player.direction === 'forward') {
-                    // Tail facing camera when jumping away
-                    ctx.fillRect(-tileSize * 0.12, -tileSize * 0.35 + bob, tileSize * 0.24, tileSize * 0.25);
-                    ctx.fillStyle = '#f8fafc';
-                    ctx.fillRect(-tileSize * 0.08, -tileSize * 0.4 + bob, tileSize * 0.16, tileSize * 0.2);
-                } else if (player.direction === 'backward') {
-                    // Tail hidden on opposite side
-                } else if (player.direction === 'left') {
-                    ctx.fillRect(tileSize * 0.26, -tileSize * 0.55 + bob, tileSize * 0.15, tileSize * 0.25);
-                } else if (player.direction === 'right') {
-                    ctx.fillRect(-tileSize * 0.41, -tileSize * 0.55 + bob, tileSize * 0.15, tileSize * 0.25);
+                // Variar ligeramente la columna garantizada libre en césped para crear rutas orgánicas
+                if (z > 0 && Math.random() < 0.45) {
+                    this.safePathX = THREE.MathUtils.clamp(
+                        this.safePathX + (Math.random() < 0.5 ? -1 : 1),
+                        -4,
+                        4
+                    );
                 }
 
-                // Wings (Sides of torso, flap when hopping)
-                ctx.fillStyle = '#f1f5f9';
-                // Left Wing
-                ctx.fillRect(-tileSize * 0.42, -tileSize * 0.55 + bob - wingFlap, tileSize * 0.1, tileSize * 0.35);
-                // Right Wing
-                ctx.fillRect(tileSize * 0.32, -tileSize * 0.55 + bob - wingFlap, tileSize * 0.1, tileSize * 0.35);
+                const lane = new ProceduralLane(z, type, zDiffFactor, this.safePathX);
+                this.lanes.set(z, lane);
+                this.worldGroup.add(lane.group);
+            }
 
-                // Head Cube
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(-tileSize * 0.26, -tileSize * 0.98 + bob, tileSize * 0.52, tileSize * 0.4);
+            /**
+             * ============================================================================
+             * 8. CINEMÁTICA DEL JUGADOR Y MOVIMIENTO DISCRETO EN REJILLA
+             * ============================================================================
+             */
+            tryJump(dx, dz) {
+                if (this.state !== FSM_STATES.READY && this.state !== FSM_STATES.CARRIED) return;
 
-                // Comb / Crest (Red on top of head)
-                ctx.fillStyle = '#dc2626';
-                ctx.fillRect(-tileSize * 0.14, -tileSize * 1.14 + bob, tileSize * 0.28, tileSize * 0.18);
-                ctx.fillStyle = '#ef4444';
-                ctx.fillRect(-tileSize * 0.1, -tileSize * 1.18 + bob, tileSize * 0.2, tileSize * 0.1);
+                // Si estaba sobre un tronco, redondeamos su coordenada X actual al entero más cercano
+                const baseGridX = this.state === FSM_STATES.CARRIED
+                    ? Math.round(this.continuousX)
+                    : this.gridPos.x;
 
-                // Directional Face Elements (Beak, Wattle, Eyes)
-                if (player.direction === 'forward') {
-                    // Looking Forward (away from camera): Show back of head & comb
-                    ctx.fillStyle = '#ef4444';
-                    ctx.fillRect(-tileSize * 0.08, -tileSize * 1.1 + bob, tileSize * 0.16, tileSize * 0.18);
-                } else if (player.direction === 'backward') {
-                    // Looking directly at player: Big eyes, beak & wattle centered
-                    // Eyes
-                    ctx.fillStyle = '#0f172a';
-                    ctx.fillRect(-tileSize * 0.18, -tileSize * 0.82 + bob, tileSize * 0.1, tileSize * 0.1);
-                    ctx.fillRect(tileSize * 0.08, -tileSize * 0.82 + bob, tileSize * 0.1, tileSize * 0.1);
-                    // Eye shine
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(-tileSize * 0.18, -tileSize * 0.82 + bob, 2.5, 2.5);
-                    ctx.fillRect(tileSize * 0.08, -tileSize * 0.82 + bob, 2.5, 2.5);
+                const nextX = baseGridX + dx;
+                const nextZ = this.gridPos.z + dz;
 
-                    // Yellow Beak
-                    ctx.fillStyle = '#f59e0b';
-                    ctx.fillRect(-tileSize * 0.1, -tileSize * 0.72 + bob, tileSize * 0.2, tileSize * 0.14);
+                // Orientar el modelo 3D según la dirección de intento (Sección 4.3)
+                if (dz > 0) this.player.model.rotation.y = 0;                 // Frente (+Z): 0°
+                else if (dz < 0) this.player.model.rotation.y = Math.PI;      // Atrás (-Z): 180°
+                else if (dx > 0) this.player.model.rotation.y = Math.PI / 2;  // Izquierda vista iso (+X): 90°
+                else if (dx < 0) this.player.model.rotation.y = -Math.PI / 2; // Derecha vista iso (-X): 270°
 
-                    // Red Wattle (under beak)
-                    ctx.fillStyle = '#dc2626';
-                    ctx.fillRect(-tileSize * 0.06, -tileSize * 0.58 + bob, tileSize * 0.12, tileSize * 0.12);
-                } else if (player.direction === 'left') {
-                    // Profile looking left
-                    // Left Eye
-                    ctx.fillStyle = '#0f172a';
-                    ctx.fillRect(-tileSize * 0.18, -tileSize * 0.84 + bob, tileSize * 0.1, tileSize * 0.1);
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(-tileSize * 0.18, -tileSize * 0.84 + bob, 2.5, 2.5);
+                // Verificar límites laterales [-5, 5] y obstáculos estáticos (árboles/rocas)
+                if (nextX < CONFIG.GRID_MIN_X || nextX > CONFIG.GRID_MAX_X) return;
+                const destLane = this.lanes.get(nextZ);
+                if (!destLane || destLane.blockedX.has(nextX)) return;
 
-                    // Yellow Beak protruding left
-                    ctx.fillStyle = '#f59e0b';
-                    ctx.fillRect(-tileSize * 0.42, -tileSize * 0.78 + bob, tileSize * 0.18, tileSize * 0.14);
+                // Iniciar transición cinemática al estado MOVING
+                this.setState(FSM_STATES.MOVING);
+                this.currentLogCarrier = null;
+                this.moveTimer = 0;
 
-                    // Red Wattle
-                    ctx.fillStyle = '#dc2626';
-                    ctx.fillRect(-tileSize * 0.32, -tileSize * 0.64 + bob, tileSize * 0.12, tileSize * 0.12);
-                } else if (player.direction === 'right') {
-                    // Profile looking right
-                    // Right Eye
-                    ctx.fillStyle = '#0f172a';
-                    ctx.fillRect(tileSize * 0.08, -tileSize * 0.84 + bob, tileSize * 0.1, tileSize * 0.1);
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(tileSize * 0.14, -tileSize * 0.84 + bob, 2.5, 2.5);
+                this.moveStartPos.copy(this.player.root.position);
+                this.gridPos.x = nextX;
+                this.gridPos.z = nextZ;
+                this.continuousX = nextX;
 
-                    // Yellow Beak protruding right
-                    ctx.fillStyle = '#f59e0b';
-                    ctx.fillRect(tileSize * 0.24, -tileSize * 0.78 + bob, tileSize * 0.18, tileSize * 0.14);
+                // Altura basal del carril destino
+                const targetBaseY = destLane.type === 'WATER'
+                    ? CONFIG.HEIGHT_LOG_SURFACE
+                    : destLane.height;
 
-                    // Red Wattle
-                    ctx.fillStyle = '#dc2626';
-                    ctx.fillRect(tileSize * 0.2, -tileSize * 0.64 + bob, tileSize * 0.12, tileSize * 0.12);
-                }
-            } else {
-                // Fallback for other characters
-                // Main body block
-                ctx.fillStyle = charData.color;
-                ctx.fillRect(-tileSize * 0.35, -tileSize * 0.6, tileSize * 0.7, tileSize * 0.6);
+                this.moveEndPos.set(nextX, targetBaseY, nextZ);
+                this.sound.playHop();
+            }
 
-                // Head / Hat block
-                ctx.fillStyle = charData.headColor;
-                ctx.fillRect(-tileSize * 0.25, -tileSize * 0.9, tileSize * 0.5, tileSize * 0.4);
+            /**
+             * Interpolación lineal XZ y parábola cuadrática Y(t) durante el salto (Sección 4.2):
+             * Y(t) = Y_base + 4 * h_max * (t / dur) * (1 - t / dur)
+             */
+            updatePlayerMovement(dt) {
+                this.moveTimer += dt;
+                const u = Math.min(1.0, this.moveTimer / CONFIG.MOVE_DURATION);
 
-                // Eyes
-                ctx.fillStyle = '#0f172a';
-                if (player.direction === 'forward' || player.direction === 'backward') {
-                    ctx.fillRect(-tileSize * 0.15, -tileSize * 0.75, 4, 4);
-                    ctx.fillRect(tileSize * 0.05, -tileSize * 0.75, 4, 4);
-                } else if (player.direction === 'left') {
-                    ctx.fillRect(-tileSize * 0.2, -tileSize * 0.75, 4, 4);
-                } else {
-                    ctx.fillRect(tileSize * 0.1, -tileSize * 0.75, 4, 4);
+                // Interpolación horizontal Lerp(P_start, P_end, u)
+                const curX = THREE.MathUtils.lerp(this.moveStartPos.x, this.moveEndPos.x, u);
+                const curZ = THREE.MathUtils.lerp(this.moveStartPos.z, this.moveEndPos.z, u);
+                const baseLerpY = THREE.MathUtils.lerp(this.moveStartPos.y, this.moveEndPos.y, u);
+
+                // Elevación parabólica cuadrática exacta de la especificación
+                const parabolaOffset = 4.0 * CONFIG.JUMP_HEIGHT * u * (1.0 - u);
+                this.player.root.position.set(curX, baseLerpY + parabolaOffset, curZ);
+
+                // Ligero cabeceo tangencial del modelo durante el salto sin afectar su colisionador
+                this.player.model.rotation.x = -0.26 * Math.cos(Math.PI * u);
+
+                if (u >= 1.0) {
+                    this.player.model.rotation.x = 0;
+                    this.continuousX = this.gridPos.x;
+                    this.onPlayerLanded();
                 }
             }
 
-            ctx.restore();
+            onPlayerLanded() {
+                const lane = this.lanes.get(this.gridPos.z);
+                if (!lane) return;
 
-            // Draw Eagle if coming
-            if (eagleComing) {
-                let ex = player.x * tileSize;
-                let ey = -eagleY * tileSize;
-                ctx.fillStyle = '#475569';
-                ctx.beginPath();
-                ctx.moveTo(ex, ey + 40);
-                ctx.lineTo(ex - 50, ey - 30);
-                ctx.lineTo(ex + 50, ey - 30);
-                ctx.closePath();
-                ctx.fill();
+                // Verificar recolección de moneda
+                if (lane.coin && !lane.coin.collected && lane.coin.x === this.gridPos.x) {
+                    lane.coin.collected = true;
+                    lane.coin.mesh.visible = false;
+                    this.totalCoins++;
+                    localStorage.setItem('crossy_voxel_coins', String(this.totalCoins));
+                    this.elCoins.textContent = this.totalCoins;
+                    this.sound.playCoin();
+                }
+
+                // Progreso neto positivo (Sección 8.1): Score = max(Score, floor(Z_jugador))
+                if (this.gridPos.z > this.score) {
+                    this.score = this.gridPos.z;
+                    this.elScore.textContent = this.score;
+                    this.idleTimer = 0; // Reiniciar temporizador anti-camping al avanzar
+                    if (this.score > this.highScore) {
+                        this.highScore = this.score;
+                        localStorage.setItem('crossy_voxel_highscore', String(this.highScore));
+                        this.elHighScore.textContent = this.highScore;
+                    }
+                }
+
+                this.maintainProceduralLanes();
+                this.updateTelemetryUI();
+
+                // Verificar si el jugador retrocedió más de 8 carriles respecto al avance máximo (Sección 8.2)
+                if (this.score - this.gridPos.z >= CONFIG.MAX_BACKTRACK_STEPS) {
+                    this.triggerEagleStrike('Retrocediste demasiados carriles');
+                    return;
+                }
+
+                // Evaluar aterrizaje en carril de Agua (Sección 6.2)
+                if (lane.type === 'WATER') {
+                    const logHit = this.findOverlappingLog(lane, this.continuousX);
+                    if (logHit) {
+                        this.currentLogCarrier = { lane, log: logHit };
+                        // Alinear suavemente sobre el tronco y pasar a estado CARRIED
+                        this.player.root.position.y = CONFIG.HEIGHT_LOG_SURFACE;
+                        this.setState(FSM_STATES.CARRIED);
+                    } else {
+                        // Aterrizó en agua abierta -> Muerte inmediata por inmersión
+                        this.player.root.position.y = -0.15;
+                        this.triggerDeath('WATER', 'Caíste al agua profunda del río');
+                    }
+                } else {
+                    this.player.root.position.y = lane.height;
+                    this.setState(FSM_STATES.READY);
+                }
             }
 
-            ctx.restore();
+            findOverlappingLog(lane, playerX) {
+                for (const log of lane.logs) {
+                    const dist = Math.abs(playerX - log.mesh.position.x);
+                    if (dist <= log.halfLength + 0.15) {
+                        return log;
+                    }
+                }
+                return null;
+            }
+
+            checkActiveHazards(dt) {
+                const currentZ = Math.round(this.player.root.position.z);
+                const lane = this.lanes.get(currentZ);
+
+                // 1. Si está en estado CARRIED sobre un tronco, acoplar cinemáticamente su coordenada X
+                if (this.state === FSM_STATES.CARRIED && this.currentLogCarrier) {
+                    const carrierLane = this.currentLogCarrier.lane;
+                    const deltaX = carrierLane.direction * carrierLane.speed * dt;
+                    this.continuousX += deltaX;
+                    this.player.root.position.x = this.continuousX;
+                    this.gridPos.x = Math.round(this.continuousX);
+
+                    // Si el tronco arrastra al jugador fuera de los límites X in [-5.5, 5.5]
+                    if (Math.abs(this.continuousX) > CONFIG.WATER_KILL_BOUNDS_X) {
+                        this.triggerDeath('WATER', 'Un tronco te arrastró fuera del mapa');
+                        return;
+                    }
+                }
+
+                // 2. Comprobar colisiones axiales contra vehículos en carretera
+                if (lane && lane.type === 'ROAD') {
+                    const px = this.player.root.position.x;
+                    for (const v of lane.vehicles) {
+                        const dist = Math.abs(px - v.mesh.position.x);
+                        if (dist < v.halfLength + 0.24) {
+                            this.triggerDeath('ROAD', 'Atropellado por el tráfico vehicular');
+                            return;
+                        }
+                    }
+                }
+
+                // 3. Mecánica Anti-Camping (Temporizador de inactividad de 4.5s - Sección 8.2)
+                if (this.score > 0 && (this.state === FSM_STATES.READY || this.state === FSM_STATES.CARRIED)) {
+                    this.idleTimer += dt;
+                    const remaining = Math.max(0, CONFIG.IDLE_TIMEOUT - this.idleTimer);
+                    this.elTimer.textContent = remaining.toFixed(1) + 's';
+                    const pct = (remaining / CONFIG.IDLE_TIMEOUT) * 100;
+                    this.elTimerBar.style.width = pct + '%';
+
+                    if (remaining < 1.8) {
+                        this.elTimerBar.className = 'h-full bg-rose-500 transition-all duration-75';
+                        this.elEagleWarn.classList.remove('hidden');
+                    } else if (remaining < 3.0) {
+                        this.elTimerBar.className = 'h-full bg-amber-400 transition-all duration-75';
+                        this.elEagleWarn.classList.add('hidden');
+                    } else {
+                        this.elTimerBar.className = 'h-full bg-emerald-400 transition-all duration-75';
+                        this.elEagleWarn.classList.add('hidden');
+                    }
+
+                    if (this.idleTimer >= CONFIG.IDLE_TIMEOUT) {
+                        this.triggerEagleStrike('El Águila Cazadora te atrapó por inactividad (4.5s)');
+                    }
+                } else {
+                    this.elTimer.textContent = '4.5s';
+                    this.elTimerBar.style.width = '100%';
+                    this.elTimerBar.className = 'h-full bg-emerald-400 transition-all duration-75';
+                }
+            }
+
+            triggerEagleStrike(reason) {
+                if (this.state === FSM_STATES.DYING || this.state === FSM_STATES.GAME_OVER) return;
+                this.setState(FSM_STATES.DYING);
+                this.elEagleWarn.classList.add('hidden');
+                this.sound.playEagleSwoosh();
+
+                this.eagleActive = true;
+                this.eagle.visible = true;
+                this.eagle.position.set(this.player.root.position.x, 4.5, this.player.root.position.z + 10);
+                this.pendingDeathReason = reason;
+            }
+
+            triggerDeath(causeType, reasonText) {
+                if (this.state === FSM_STATES.DYING || this.state === FSM_STATES.GAME_OVER) return;
+                this.setState(FSM_STATES.DYING);
+                this.elEagleWarn.classList.add('hidden');
+
+                const isWater = causeType === 'WATER';
+                if (isWater) {
+                    this.sound.playSplash();
+                } else {
+                    this.sound.playCrash();
+                }
+
+                this.player.root.visible = false;
+                this.particles.spawnExplosion(this.player.root.position, isWater);
+
+                // Configurar icono y mensaje del modal de fin de partida
+                const iconEl = document.getElementById('death-icon');
+                if (causeType === 'WATER') iconEl.className = 'fa-solid fa-water';
+                else if (causeType === 'EAGLE') iconEl.className = 'fa-solid fa-feather-pointed';
+                else iconEl.className = 'fa-solid fa-car-burst';
+
+                document.getElementById('death-reason').textContent = reasonText;
+                document.getElementById('final-score').textContent = this.score;
+                document.getElementById('final-best').textContent = this.highScore;
+                document.getElementById('final-coins').textContent = this.totalCoins;
+
+                // Transición al estado GAME_OVER con bloqueo obligatorio de 3.0s (Sección 8.3)
+                setTimeout(() => {
+                    this.enterGameOverState();
+                }, 650);
+            }
+
+            enterGameOverState() {
+                this.setState(FSM_STATES.GAME_OVER);
+                this.restartCooldownTimer = CONFIG.RESTART_COOLDOWN;
+                this.btnRestart.disabled = true;
+                this.modalGameOver.classList.remove('hidden');
+            }
+
+            updateTelemetryUI() {
+                this.elCoords.textContent = `(X: ${this.gridPos.x}, Z: ${this.gridPos.z})`;
+                const p = Math.round(this.getHazardProbability(Math.max(1, this.gridPos.z)) * 100);
+                this.elHazard.textContent = `${p}%`;
+            }
+
+            /**
+             * Seguimiento suavizado de Cámara Ortográfica Isométrica (Sección 7.1)
+             */
+            updateCamera(dt) {
+                // La cámara avanza suavemente en Z y atenúa el eje X al corredor central [-3, 3]
+                const clampedX = THREE.MathUtils.clamp(this.player.root.position.x * 0.55, -2.8, 2.8);
+                const targetZ = Math.max(this.player.root.position.z + 1.2, this.smoothedCamTarget.z - 2.0);
+
+                const lerpFactor = 1.0 - Math.exp(-6.5 * dt);
+                this.smoothedCamTarget.x = THREE.MathUtils.lerp(this.smoothedCamTarget.x, clampedX, lerpFactor);
+                this.smoothedCamTarget.z = THREE.MathUtils.lerp(this.smoothedCamTarget.z, targetZ, lerpFactor);
+
+                // Posicionar la cámara según los ángulos Eulerianos configurados (por defecto 30°, 45°)
+                const dist = 20;
+                const elevRad = THREE.MathUtils.degToRad(this.camElevationDeg);
+                const azimRad = THREE.MathUtils.degToRad(this.camAzimuthDeg);
+
+                const offsetX = -dist * Math.cos(elevRad) * Math.sin(azimRad);
+                const offsetY = dist * Math.sin(elevRad);
+                const offsetZ = -dist * Math.cos(elevRad) * Math.cos(azimRad);
+
+                this.camera.position.set(
+                    this.smoothedCamTarget.x + offsetX,
+                    offsetY,
+                    this.smoothedCamTarget.z + offsetZ
+                );
+                this.camera.lookAt(this.smoothedCamTarget.x, 0, this.smoothedCamTarget.z);
+
+                // Mantener la luz direccional y su frustum de sombras sincronizados con el jugador
+                this.dirLight.position.set(
+                    this.smoothedCamTarget.x - 10,
+                    18,
+                    this.smoothedCamTarget.z - 8
+                );
+                this.dirLight.target.position.set(this.smoothedCamTarget.x, 0, this.smoothedCamTarget.z);
+                this.dirLight.target.updateMatrixWorld();
+            }
+
+            update(dt, elapsedTime) {
+                // Actualizar todos los carriles activos (vehículos, troncos y monedas)
+                for (const lane of this.lanes.values()) {
+                    lane.update(dt, elapsedTime);
+                }
+
+                // Actualizar sistema de partículas
+                this.particles.update(dt);
+
+                // Máquina de Estados Finitos (FSM)
+                if (this.state === FSM_STATES.MOVING) {
+                    this.updatePlayerMovement(dt);
+                    this.checkActiveHazards(dt);
+                } else if (this.state === FSM_STATES.READY || this.state === FSM_STATES.CARRIED) {
+                    this.checkActiveHazards(dt);
+                } else if (this.state === FSM_STATES.DYING && this.eagleActive) {
+                    // Animación hiperbólica del Águila Cazadora
+                    this.eagle.position.z -= 32.0 * dt;
+                    this.eagle.position.y = Math.max(0.8, this.eagle.position.y - 10.0 * dt);
+                    if (this.eagle.position.z <= this.player.root.position.z) {
+                        this.eagleActive = false;
+                        this.triggerDeath('EAGLE', this.pendingDeathReason || 'Capturado por el Águila');
+                    }
+                } else if (this.state === FSM_STATES.GAME_OVER) {
+                    // Actualizar temporizador de enfriamiento obligatorio de 3.0 segundos
+                    if (this.restartCooldownTimer > 0) {
+                        this.restartCooldownTimer = Math.max(0, this.restartCooldownTimer - dt);
+                        this.elCooldownText.textContent = this.restartCooldownTimer.toFixed(1) + 's';
+                        const pct = (this.restartCooldownTimer / CONFIG.RESTART_COOLDOWN) * 100;
+                        this.elCooldownBar.style.width = pct + '%';
+
+                        if (this.restartCooldownTimer > 0) {
+                            this.btnRestartLabel.textContent = `ESPERA ${this.restartCooldownTimer.toFixed(1)}s...`;
+                        } else {
+                            this.btnRestart.disabled = false;
+                            this.elCooldownText.textContent = '¡LISTO!';
+                            this.btnRestartLabel.textContent = 'JUGAR DE NUEVO (O PULSA UNA TECLA)';
+                        }
+                    }
+                }
+
+                this.updateCamera(dt);
+                this.renderer.render(this.scene, this.camera);
+            }
         }
 
-        // Main Loop
-        let lastTime = performance.now();
-        function mainLoop(now) {
-            let dt = (now - lastTime) / 1000;
-            if (dt > 0.1) dt = 0.1; // cap dt
-            lastTime = now;
+        /**
+         * ============================================================================
+         * 9. CICLO DE VIDA Y BUCLE DE ANIMACIÓN EN WINDOW.ONLOAD
+         * ============================================================================
+         */
+        window.onload = function () {
+            const gameApp = new CrossyGameApp();
+            const clock = new THREE.Clock();
 
-            update(dt);
-            render();
+            function animate() {
+                requestAnimationFrame(animate);
+                const dt = Math.min(clock.getDelta(), 0.1);
+                const elapsed = clock.getElapsedTime();
+                gameApp.update(dt, elapsed);
+            }
 
-            requestAnimationFrame(mainLoop);
-        }
-
-        requestAnimationFrame(mainLoop);
+            animate();
+        };
     </script>
 </body>
 </html>
