@@ -1,725 +1,996 @@
 <!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jose Enrique | Desarrollador de Aplicaciones Web y Móviles</title>
+    <title>Crossy Road Arcade 3D</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <!-- SDK oficial de Vimeo Player para control de reproducción y audio -->
-    <script src="https://player.vimeo.com/api/player.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .bg-grid {
-            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
-            background-size: 40px 40px;
+        body {
+            font-family: 'Outfit', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            background-color: #0f172a;
+            color: #f8fafc;
         }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-        .faq-item.active .faq-answer { max-height: 200px; padding-bottom: 1.25rem; }
-        .faq-item.active .faq-icon { transform: rotate(180deg); }
-
-        /* Floating live preview container */
-        #floating-preview {
-            position: fixed;
-            pointer-events: none;
-            z-index: 100;
-            width: 1024px;
-            height: 600px;
-            transform: scale(0.25);
-            transform-origin: top left;
-            display: none;
-            overflow: hidden;
-            border: 4px solid #3b82f6;
-            border-radius: 12px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            background-color: #020617;
+        .pixel-font {
+            font-family: 'Press Start 2P', monospace;
         }
-        #floating-preview iframe {
-            width: 1024px;
-            height: 600px;
-            border: none;
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        .retro-shadow {
+            box-shadow: 4px 4px 0px #000;
+        }
+        .retro-shadow-sm {
+            box-shadow: 2px 2px 0px #000;
+        }
+        @keyframes bounce-short {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-bounce-short {
+            animation: bounce-short 0.4s ease-in-out infinite;
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 bg-grid">
+<body class="overflow-hidden h-screen flex flex-col justify-between select-none">
 
-    <!-- Navegación -->
-    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 py-6">
-        <div class="max-w-6xl mx-auto px-6 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center font-bold text-xl shadow-lg shadow-blue-500/20">JE</div>
-                <span class="hidden sm:block font-semibold tracking-tight">Jose Enrique</span>
-            </div>
-            <div class="flex gap-4 md:gap-8 text-xs md:text-sm font-medium">
-                <button onclick="switchTab('inicio')" class="nav-link text-blue-400 capitalize hover:text-white transition-colors" data-tab="inicio">Inicio</button>
-                <button onclick="switchTab('proyectos')" class="nav-link text-slate-400 capitalize hover:text-white transition-colors" data-tab="proyectos">Proyectos</button>
-                <button onclick="switchTab('hobbies')" class="nav-link text-slate-400 capitalize hover:text-white transition-colors" data-tab="hobbies">Hobbies</button>
-                <button onclick="switchTab('ayuda')" class="nav-link text-slate-400 capitalize hover:text-white transition-colors" data-tab="ayuda">Ayuda</button>
-            </div>
+    <header class="w-full bg-slate-900/90 border-b border-slate-800 p-3 flex justify-between items-center z-10 shadow-lg">
+        <div class="flex items-center space-x-2">
+            <div class="bg-amber-500 text-slate-950 font-black px-2 py-1 rounded pixel-font text-xs retro-shadow-sm">CR</div>
+            <h1 class="font-extrabold text-lg sm:text-xl tracking-wider bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">CROSSY ROAD</h1>
         </div>
-    </nav>
+        <div class="flex items-center space-x-4">
+            <div class="bg-slate-800 px-3 py-1 rounded-full border border-slate-700 flex items-center space-x-2">
+                <span class="text-amber-400 pixel-font text-xs">SCORE:</span>
+                <span id="score-display" class="font-extrabold text-xl text-white">0</span>
+            </div>
+            <div class="bg-slate-800 px-3 py-1 rounded-full border border-slate-700 hidden sm:flex items-center space-x-2">
+                <span class="text-emerald-400 pixel-font text-xs">BEST:</span>
+                <span id="best-display" class="font-extrabold text-xl text-white">0</span>
+            </div>
+            <button id="sound-btn" onclick="toggleSound()" class="bg-slate-800 hover:bg-slate-700 p-2 rounded-full border border-slate-700 transition cursor-pointer">
+                🔊
+            </button>
+        </div>
+    </header>
 
-    <!-- Contenido Principal -->
-    <main class="min-h-screen">
+    <main class="relative flex-1 flex items-center justify-center bg-gradient-to-b from-sky-400 via-sky-300 to-indigo-300 overflow-hidden">
         
-        <!-- PESTAÑA: INICIO -->
-        <div id="inicio" class="tab-content active pt-32 animate-fade-in">
-            <header class="relative pb-20 px-6 overflow-hidden">
-                <!-- Video de Portada (Vimeo Background) -->
-                <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-                    <div class="absolute inset-0 bg-slate-950/75 z-10 backdrop-blur-[0.5px]"></div>
-                    <iframe 
-                        id="hero-vimeo-iframe"
-                        src="https://player.vimeo.com/video/1229278300?background=1&autoplay=1&loop=1&muted=1&autopause=0" 
-                        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[177.78vh] min-w-full min-h-full h-[56.25vw] pointer-events-none scale-105" 
-                        frameborder="0" 
-                        allow="autoplay; fullscreen; picture-in-picture" 
-                        title="Video de Portada Vimeo">
-                    </iframe>
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas" class="w-full h-full block cursor-pointer"></canvas>
+
+        <!-- Start Screen Overlay -->
+        <div id="start-screen" class="absolute inset-0 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center z-20 p-4 text-center">
+            <div class="max-w-md w-full bg-slate-900 border-4 border-amber-500 rounded-2xl p-6 retro-shadow flex flex-col items-center space-y-6">
+                <div class="animate-bounce-short">
+                    <span class="text-5xl sm:text-6xl">🐔🚗</span>
+                </div>
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-amber-400 pixel-font tracking-tight">CROSSY ROAD</h2>
+                    <p class="text-slate-400 text-sm mt-2">¡Cruza la calle, esquiva coches y sobrevive al tren!</p>
                 </div>
 
-                <!-- Botón de Control de Audio ON / OFF -->
-                <div class="absolute bottom-4 right-4 sm:bottom-6 sm:right-8 z-30">
-                    <button id="audioToggleBtn" onclick="toggleHeroAudio()" class="flex items-center gap-2.5 px-4 py-2 sm:py-2.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700/70 shadow-xl backdrop-blur-md transition-all duration-300 group hover:scale-105 active:scale-95 cursor-pointer" aria-label="Alternar audio del video de portada">
-                        <span class="relative flex h-2.5 w-2.5">
-                            <span id="audioPing" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                            <span id="audioDot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-500 transition-colors"></span>
-                        </span>
-                        <i id="audioIcon" class="fa-solid fa-volume-xmark text-slate-400 group-hover:text-white transition-colors"></i>
-                        <span id="audioText" class="text-xs font-semibold tracking-wide">Audio: OFF</span>
-                    </button>
+                <div class="flex items-center justify-center gap-2 text-xs text-slate-300 pixel-font bg-slate-800/80 px-4 py-2 rounded-lg border border-slate-700">
+                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-amber-400 font-bold border border-slate-600">W</span>
+                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-amber-400 font-bold border border-slate-600">A</span>
+                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-amber-400 font-bold border border-slate-600">S</span>
+                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-amber-400 font-bold border border-slate-600">D</span>
+                    <span class="text-slate-400 mx-1">o</span>
+                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-sky-400 border border-slate-600">⬆️⬅️⬇️➡️</span>
                 </div>
 
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_10%,#1e40af33,transparent_50%)] pointer-events-none z-10"></div>
-                <div class="max-w-4xl mx-auto text-center relative z-20">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold mb-6 backdrop-blur-sm">
-                        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                        DISPONIBLE PARA PROYECTOS
-                    </div>
-                    <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">
-                        Desarrollo de <br>Aplicaciones <span class="text-blue-500">Web y Mobile</span>
-                    </h1>
-                    <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-                        Hola, soy <span class="text-white font-medium">Jose Enrique</span> de la Unidad Educativa Cambridge. Estudiante apasionado por el desarrollo de software y la creación de soluciones interactivas, responsivas y de alto rendimiento para web y dispositivos móviles.
-                    </p>
-                    <div class="flex flex-wrap justify-center gap-4">
-        <button onclick="document.getElementById('inicio-proyectos').scrollIntoView({ behavior: 'smooth' })" class="px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold transition-all transform hover:scale-105 flex items-center gap-2">
-                            Ver Proyectos <i class="fa-solid fa-chevron-down text-xs"></i>
-                        </button>
-                        <button onclick="switchTab('ayuda')" class="px-8 py-4 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl font-bold transition-all flex items-center gap-2">
-                            Contactar <i class="fa-solid fa-envelope"></i>
-                        </button>
+                <!-- Character Selector Preview -->
+                <div class="w-full bg-slate-800 p-3 rounded-xl border border-slate-700 flex items-center justify-between">
+                    <span class="text-xs text-slate-400 uppercase pixel-font">Personaje:</span>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="changeCharacter(-1)" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold text-white transition">◀</button>
+                        <span id="char-name" class="font-bold text-amber-300">Pollo 🐔</span>
+                        <button onclick="changeCharacter(1)" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold text-white transition">▶</button>
                     </div>
                 </div>
-            </header>
 
-            <!-- Habilidades -->
-            <section class="py-20 px-6 bg-slate-900/30">
-                <div class="max-w-6xl mx-auto">
-                    <div class="flex items-center gap-4 mb-12">
-                        <h2 class="text-3xl font-bold">Habilidades Core</h2>
-                        <div class="h-px flex-1 bg-slate-800"></div>
-                    </div>
-                    <div class="grid md:grid-cols-3 gap-6">
-                        <!-- Card 1 -->
-                        <div class="p-8 rounded-2xl bg-slate-950 border border-slate-800 hover:border-blue-500/50 transition-all group">
-                            <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-6 group-hover:bg-blue-500 group-hover:text-white transition-all">
-                                <i class="fa-solid fa-mobile-screen-button text-xl"></i>
-                            </div>
-                            <h3 class="text-xl font-bold mb-2">Desarrollo Frontend y Mobile</h3>
-                            <p class="text-blue-400 text-sm mb-4 font-medium uppercase tracking-wider">Avanzado</p>
-                            <p class="text-slate-400 text-sm leading-relaxed">Creación de interfaces web y móviles modernas, responsivas y optimizadas, empleando estándares actuales y diseños fluidos.</p>
-                        </div>
-                        <!-- Card 2 -->
-                        <div class="p-8 rounded-2xl bg-slate-950 border border-slate-800 hover:border-blue-500/50 transition-all group">
-                            <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-6 group-hover:bg-blue-500 group-hover:text-white transition-all">
-                                <i class="fa-solid fa-cube text-xl"></i>
-                            </div>
-                            <h3 class="text-xl font-bold mb-2">Integración de IA & APIs</h3>
-                            <p class="text-blue-400 text-sm mb-4 font-medium uppercase tracking-wider">En formación</p>
-                            <p class="text-slate-400 text-sm leading-relaxed">Consumo de APIs rest, sincronización de bases de datos en tiempo real y características inteligentes como asistentes y chatbots interactivos.</p>
-                        </div>
-                        <!-- Card 3 -->
-                        <div class="p-8 rounded-2xl bg-slate-950 border border-slate-800 hover:border-blue-500/50 transition-all group">
-                            <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-6 group-hover:bg-blue-500 group-hover:text-white transition-all">
-                                <i class="fa-solid fa-palette text-xl"></i>
-                            </div>
-                            <h3 class="text-xl font-bold mb-2">Diseño UX/UI & Prototipado</h3>
-                            <p class="text-blue-400 text-sm mb-4 font-medium uppercase tracking-wider">Especialista</p>
-                            <p class="text-slate-400 text-sm leading-relaxed">Diseño de la experiencia y del flujo de usuario, wireframing detallado y prototipado rápido con Tailwind CSS para máxima interactividad.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Sección de proyectos integrada en inicio -->
-            <section id="inicio-proyectos" class="py-10 px-6">
-                <div class="max-w-6xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-12 text-center">Mis Proyectos y Juegos</h2>
-                    <div class="grid md:grid-cols-3 gap-6">
-                        <!-- Minecraft -->
-                        <a href="minecraft.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧱</div>
-                            <h3 class="font-bold text-lg mb-2">Minecraft</h3>
-                            <p class="text-slate-400 text-xs">Juego sandbox creativo</p>
-                        </a>
-                        <!-- Ajedrez 3d -->
-                        <a href="ajedrez3d.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">♟️</div>
-                            <h3 class="font-bold text-lg mb-2">Ajedrez 3D</h3>
-                            <p class="text-slate-400 text-xs">Desafío estratégico</p>
-                        </a>
-                        <!-- Angry bird -->
-                        <a href="angrybird.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐦</div>
-                            <h3 class="font-bold text-lg mb-2">Angry Bird</h3>
-                            <p class="text-slate-400 text-xs">Juego de física</p>
-                        </a>
-                        <!-- Blooket -->
-                        <a href="blooket.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🎮</div>
-                            <h3 class="font-bold text-lg mb-2">Blooket</h3>
-                            <p class="text-slate-400 text-xs">Aprendizaje interactivo</p>
-                        </a>
-                        <!-- Roblox -->
-                        <a href="roblox.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🚀</div>
-                            <h3 class="font-bold text-lg mb-2">Roblox</h3>
-                            <p class="text-slate-400 text-xs">Mundos compartidos</p>
-                        </a>
-                        <!-- Quiero queque -->
-                        <a href="quieroqueque.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🍰</div>
-                            <h3 class="font-bold text-lg mb-2">Quiero Queque</h3>
-                            <p class="text-slate-400 text-xs">Juego de cocina</p>
-                        </a>
-                        <!-- Serpiente -->
-                        <a href="serpiente.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐍</div>
-                            <h3 class="font-bold text-lg mb-2">Serpiente</h3>
-                            <p class="text-slate-400 text-xs">Juego de agilidad mental</p>
-                        </a>
-                        <!-- Laberinto -->
-                        <a href="laberinto.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧩</div>
-                            <h3 class="font-bold text-lg mb-2">Laberinto</h3>
-                            <p class="text-slate-400 text-xs">Dungeon crawler hardcore</p>
-                        </a>
-                        <!-- Juego del Calamar -->
-                        <a href="juegodelcalamar.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🦑</div>
-                            <h3 class="font-bold text-lg mb-2">Juego del Calamar</h3>
-                            <p class="text-slate-400 text-xs">Juego de supervivencia</p>
-                        </a>
-                        <!-- Sopa de Letras -->
-                        <a href="sopadeletras/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🔤</div>
-                            <h3 class="font-bold text-lg mb-2">Sopa de Letras</h3>
-                            <p class="text-slate-400 text-xs">Juego clásico de buscar palabras</p>
-                        </a>
-                        <!-- Rompecabezas -->
-                        <a href="rompecabezas/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🦁</div>
-                            <h3 class="font-bold text-lg mb-2">Rompecabezas</h3>
-                            <p class="text-slate-400 text-xs">Rompecabezas Maestro: El León Majestuoso</p>
-                        </a>
-                        <!-- Trivia -->
-                        <a href="https://joseenriqueflores.com/trivia/" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧠</div>
-                            <h3 class="font-bold text-lg mb-2">Trivia</h3>
-                            <p class="text-slate-400 text-xs">Desafío interactivo de preguntas y respuestas</p>
-                        </a>
-                        <!-- Juego de Memoria -->
-                        <a href="index (4).html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧩</div>
-                            <h3 class="font-bold text-lg mb-2">Juego de Memoria</h3>
-                            <p class="text-slate-400 text-xs">Juego de memoria y concentración</p>
-                        </a>
-                        <!-- Crossy Road -->
-                        <a href="crossyroad/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐔</div>
-                            <h3 class="font-bold text-lg mb-2">Crossy Road</h3>
-                            <p class="text-slate-400 text-xs">Crossy Road Arcade 3D</p>
-                        </a>
-                    </div>
-                </div>
-            </section>
+                <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-lg sm:text-xl rounded-xl pixel-font retro-shadow transition transform active:scale-95 cursor-pointer">
+                    ¡JUGAR AHORA!
+                </button>
+            </div>
         </div>
 
-        <!-- PESTAÑA: PROYECTOS -->
-        <div id="proyectos" class="tab-content pt-32">
-            <section class="py-10 px-6">
-                <div class="max-w-6xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-12 text-center">Mis Proyectos y Juegos</h2>
-                    <div class="grid md:grid-cols-3 gap-6">
-                        <!-- Minecraft -->
-                        <a href="minecraft.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧱</div>
-                            <h3 class="font-bold text-lg mb-2">Minecraft</h3>
-                            <p class="text-slate-400 text-xs">Juego sandbox creativo</p>
-                        </a>
-                        <!-- Ajedrez 3d -->
-                        <a href="ajedrez3d.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">♟️</div>
-                            <h3 class="font-bold text-lg mb-2">Ajedrez 3D</h3>
-                            <p class="text-slate-400 text-xs">Desafío estratégico</p>
-                        </a>
-                        <!-- Angry bird -->
-                        <a href="angrybird.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐦</div>
-                            <h3 class="font-bold text-lg mb-2">Angry Bird</h3>
-                            <p class="text-slate-400 text-xs">Juego de física</p>
-                        </a>
-                        <!-- Blooket -->
-                        <a href="blooket.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🎮</div>
-                            <h3 class="font-bold text-lg mb-2">Blooket</h3>
-                            <p class="text-slate-400 text-xs">Aprendizaje interactivo</p>
-                        </a>
-                        <!-- Roblox -->
-                        <a href="roblox.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🚀</div>
-                            <h3 class="font-bold text-lg mb-2">Roblox</h3>
-                            <p class="text-slate-400 text-xs">Mundos compartidos</p>
-                        </a>
-                        <!-- Quiero queque -->
-                        <a href="quieroqueque.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🍰</div>
-                            <h3 class="font-bold text-lg mb-2">Quiero Queque</h3>
-                            <p class="text-slate-400 text-xs">Juego de cocina</p>
-                        </a>
-                        <!-- Serpiente -->
-                        <a href="serpiente.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐍</div>
-                            <h3 class="font-bold text-lg mb-2">Serpiente</h3>
-                            <p class="text-slate-400 text-xs">Juego de agilidad mental</p>
-                        </a>
-                        <!-- Laberinto -->
-                        <a href="laberinto.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧩</div>
-                            <h3 class="font-bold text-lg mb-2">Laberinto</h3>
-                            <p class="text-slate-400 text-xs">Dungeon crawler hardcore</p>
-                        </a>
-                        <!-- Juego del Calamar -->
-                        <a href="juegodelcalamar.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🦑</div>
-                            <h3 class="font-bold text-lg mb-2">Juego del Calamar</h3>
-                            <p class="text-slate-400 text-xs">Juego de supervivencia</p>
-                        </a>
-                        <!-- Sopa de Letras -->
-                        <a href="sopadeletras/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🔤</div>
-                            <h3 class="font-bold text-lg mb-2">Sopa de Letras</h3>
-                            <p class="text-slate-400 text-xs">Juego clásico de buscar palabras</p>
-                        </a>
-                        <!-- Rompecabezas -->
-                        <a href="rompecabezas/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🦁</div>
-                            <h3 class="font-bold text-lg mb-2">Rompecabezas</h3>
-                            <p class="text-slate-400 text-xs">Rompecabezas Maestro: El León Majestuoso</p>
-                        </a>
-                        <!-- Trivia -->
-                        <a href="https://joseenriqueflores.com/trivia/" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧠</div>
-                            <h3 class="font-bold text-lg mb-2">Trivia</h3>
-                            <p class="text-slate-400 text-xs">Desafío interactivo de preguntas y respuestas</p>
-                        </a>
-                        <!-- Juego de Memoria -->
-                        <a href="index (4).html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧩</div>
-                            <h3 class="font-bold text-lg mb-2">Juego de Memoria</h3>
-                            <p class="text-slate-400 text-xs">Juego de memoria y concentración</p>
-                        </a>
-                        <!-- Crossy Road -->
-                        <a href="crossyroad/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
-                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐔</div>
-                            <h3 class="font-bold text-lg mb-2">Crossy Road</h3>
-                            <p class="text-slate-400 text-xs">Crossy Road Arcade 3D</p>
-                        </a>
+        <!-- Game Over Screen Overlay -->
+        <div id="gameover-screen" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md hidden flex flex-col items-center justify-center z-20 p-4 text-center">
+            <div class="max-w-md w-full bg-slate-900 border-4 border-rose-500 rounded-2xl p-6 retro-shadow flex flex-col items-center space-y-5">
+                <div class="text-5xl">💥💀</div>
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-rose-500 pixel-font">¡HAS PERDIDO!</h2>
+                    <p id="death-reason" class="text-slate-400 text-sm mt-2">¡Te atropelló un camión!</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4 w-full">
+                    <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-400 pixel-font">PUNTUACIÓN</div>
+                        <div id="final-score" class="text-2xl font-black text-amber-400 mt-1">0</div>
+                    </div>
+                    <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-400 pixel-font">MEJOR</div>
+                        <div id="final-best" class="text-2xl font-black text-emerald-400 mt-1">0</div>
                     </div>
                 </div>
-            </section>
+                <button onclick="restartGame()" class="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-lg sm:text-xl rounded-xl pixel-font retro-shadow transition transform active:scale-95 cursor-pointer">
+                    JUGAR DE NUEVO
+                </button>
+            </div>
         </div>
 
-        <!-- PESTAÑA: HOBBIES -->
-        <div id="hobbies" class="tab-content pt-32">
-            <section class="py-10 px-6">
-                <div class="max-w-4xl mx-auto text-center">
-                    <h2 class="text-4xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300 italic">"Mente activa, cuerpo sano"</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
-                        <div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 group hover:bg-blue-600/5 transition-all">
-                            <div class="w-16 h-16 bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner text-blue-400 text-3xl group-hover:scale-110 transition-transform">
-                                <i class="fa-solid fa-chess"></i>
-                            </div>
-                            <h3 class="font-bold text-xl mb-2">Ajedrez</h3>
-                            <p class="text-slate-500 text-sm">Estrategia, paciencia y visión a futuro.</p>
-                        </div>
-                        <div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 group hover:bg-purple-600/5 transition-all">
-                            <div class="w-16 h-16 bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner text-purple-400 text-3xl group-hover:scale-110 transition-transform">
-                                <i class="fa-solid fa-gamepad"></i>
-                            </div>
-                            <h3 class="font-bold text-xl mb-2">Videojuegos</h3>
-                            <p class="text-slate-500 text-sm">Exploración de mundos y narrativa digital.</p>
-                        </div>
-                        <div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 group hover:bg-cyan-600/5 transition-all">
-                            <div class="w-16 h-16 bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner text-cyan-400 text-3xl group-hover:scale-110 transition-transform">
-                                <i class="fa-solid fa-person-swimming"></i>
-                            </div>
-                            <h3 class="font-bold text-xl mb-2">Natación</h3>
-                            <p class="text-slate-500 text-sm">Disciplina física y desconexión mental.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <!-- PESTAÑA: AYUDA -->
-        <div id="ayuda" class="tab-content pt-32">
-            <section class="py-10 px-6">
-                <div class="max-w-5xl mx-auto">
-                    <div class="text-center mb-16">
-                        <h2 class="text-4xl font-bold mb-4">Centro de Ayuda</h2>
-                        <p class="text-slate-400">¿Tienes dudas sobre mis proyectos o quieres colaborar? Aquí estoy.</p>
-                    </div>
-
-                    <div class="grid md:grid-cols-2 gap-12">
-                        <!-- FAQ -->
-                        <div>
-                            <h3 class="text-2xl font-bold mb-8 flex items-center gap-3">
-                                <i class="fa-solid fa-circle-question text-blue-500"></i> Preguntas Frecuentes
-                            </h3>
-                            <div class="space-y-4">
-                                <div class="faq-item bg-slate-900 border border-slate-800 rounded-xl px-5">
-                                    <button onclick="toggleFaq(this)" class="w-full py-5 flex justify-between items-center text-left">
-                                        <span class="font-medium pr-4">¿Cómo contactarte para un proyecto?</span>
-                                        <i class="fa-solid fa-plus faq-icon transition-transform text-slate-500"></i>
-                                    </button>
-                                    <div class="faq-answer text-slate-400 text-sm leading-relaxed">
-                                        Puedes escribirme directamente a través del formulario de la derecha o mediante mis redes sociales en el pie de página. Respondo en menos de 24 horas.
-                                    </div>
-                                </div>
-                                <div class="faq-item bg-slate-900 border border-slate-800 rounded-xl px-5">
-                                    <button onclick="toggleFaq(this)" class="w-full py-5 flex justify-between items-center text-left">
-                                        <span class="font-medium pr-4">¿Qué herramientas de IA utilizas?</span>
-                                        <i class="fa-solid fa-plus faq-icon transition-transform text-slate-500"></i>
-                                    </button>
-                                    <div class="faq-answer text-slate-400 text-sm leading-relaxed">
-                                        Principalmente modelos de lenguaje (LLMs) para lógica de diseño y herramientas generativas de imágenes y assets 3D adaptadas a motores de juego.
-                                    </div>
-                                </div>
-                                <div class="faq-item bg-slate-900 border border-slate-800 rounded-xl px-5">
-                                    <button onclick="toggleFaq(this)" class="w-full py-5 flex justify-between items-center text-left">
-                                        <span class="font-medium pr-4">¿Haces diseño web para otros?</span>
-                                        <i class="fa-solid fa-plus faq-icon transition-transform text-slate-500"></i>
-                                    </button>
-                                    <div class="faq-answer text-slate-400 text-sm leading-relaxed">
-                                        ¡Claro! Me encanta colaborar en sitios web modernos y portafolios creativos que busquen destacar visualmente.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Formulario -->
-                        <div class="bg-slate-900 p-8 rounded-3xl border border-slate-800 shadow-xl">
-                            <h3 class="text-2xl font-bold mb-6 flex items-center gap-3">
-                                <i class="fa-solid fa-paper-plane text-blue-500 text-xl"></i> Mensaje Directo
-                            </h3>
-                            <form id="contactForm" onsubmit="handleContact(event)" class="space-y-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Nombre Completo</label>
-                                    <input required type="text" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm focus:border-blue-500 outline-none transition-all placeholder:text-slate-700" placeholder="Escribe tu nombre...">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Tu Correo</label>
-                                    <input required type="email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm focus:border-blue-500 outline-none transition-all placeholder:text-slate-700" placeholder="ejemplo@correo.com">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Asunto</label>
-                                    <textarea required rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm focus:border-blue-500 outline-none transition-all placeholder:text-slate-700" placeholder="¿En qué puedo ayudarte?"></textarea>
-                                </div>
-                                <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-600/20 active:scale-95">
-                                    Enviar Petición de Ayuda
-                                </button>
-                            </form>
-                            <div id="successMsg" class="hidden mt-4 p-4 bg-green-500/10 border border-green-500/20 text-green-400 text-sm rounded-xl text-center">
-                                <i class="fa-solid fa-check-circle mr-2"></i> ¡Mensaje enviado con éxito!
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+        <!-- Eagle Warning Banner -->
+        <div id="eagle-warning" class="absolute top-4 bg-rose-600 text-white font-black px-6 py-2 rounded-full pixel-font text-xs sm:text-sm hidden animate-bounce shadow-2xl z-10 border-2 border-white">
+            ⚠️ ¡CUIDADO CON EL ÁGUILA! ⚠️
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="py-16 px-6 border-t border-slate-900 bg-slate-950/50 backdrop-blur-sm">
-        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
-            <div>
-                <div class="flex items-center gap-2 mb-4 justify-center md:justify-start">
-                    <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-500/20">JE</div>
-                    <span class="font-semibold text-lg tracking-tight">Jose Enrique</span>
-                </div>
-                <p class="text-slate-500 text-sm italic">Unidad Educativa Cambridge - 2024</p>
-                <p class="text-slate-600 text-xs mt-2 font-mono tracking-widest uppercase">Building the AI Future</p>
-            </div>
-            <div class="flex gap-4">
-                <a href="#" class="w-12 h-12 bg-slate-900 hover:bg-blue-600 transition-all rounded-full flex items-center justify-center text-slate-400 hover:text-white border border-slate-800 hover:border-transparent">
-                    <i class="fa-brands fa-github text-xl"></i>
-                </a>
-                <a href="#" class="w-12 h-12 bg-slate-900 hover:bg-blue-600 transition-all rounded-full flex items-center justify-center text-slate-400 hover:text-white border border-slate-800 hover:border-transparent">
-                    <i class="fa-brands fa-linkedin text-xl"></i>
-                </a>
-                <a href="#" class="w-12 h-12 bg-slate-900 hover:bg-blue-600 transition-all rounded-full flex items-center justify-center text-slate-400 hover:text-white border border-slate-800 hover:border-transparent">
-                    <i class="fa-solid fa-envelope text-xl"></i>
-                </a>
-            </div>
+    <footer class="bg-slate-900 border-t border-slate-800 p-4 flex flex-col items-center justify-center space-y-3 z-10">
+        <div class="grid grid-cols-3 gap-2 w-full max-w-xs sm:hidden">
+            <div></div>
+            <button onclick="playerMove('forward')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">⬆️</button>
+            <div></div>
+            <button onclick="playerMove('left')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">⬅️</button>
+            <button onclick="playerMove('backward')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">⬇️</button>
+            <button onclick="playerMove('right')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">➡️</button>
+        </div>
+        <div class="text-xs text-slate-400 text-center font-medium flex flex-wrap items-center justify-center gap-1.5">
+            <span>Muévete con</span>
+            <span class="bg-slate-800 text-amber-400 px-1.5 py-0.5 rounded border border-slate-700 font-bold font-mono">W</span>
+            <span class="bg-slate-800 text-amber-400 px-1.5 py-0.5 rounded border border-slate-700 font-bold font-mono">A</span>
+            <span class="bg-slate-800 text-amber-400 px-1.5 py-0.5 rounded border border-slate-700 font-bold font-mono">S</span>
+            <span class="bg-slate-800 text-amber-400 px-1.5 py-0.5 rounded border border-slate-700 font-bold font-mono">D</span>
+            <span>o las flechas ⬆️ ⬇️ ⬅️ ➡️. ¡No te detengas o el águila te atrapará!</span>
         </div>
     </footer>
 
-    <!-- Contenedor flotante para simular vista previa de aplicaciones al pasar el cursor -->
-    <div id="floating-preview">
-        <iframe id="preview-iframe" src=""></iframe>
-    </div>
-
     <script>
-        // Lógica del simulador de vistas previas flotantes guiadas por cursor
-        document.addEventListener("DOMContentLoaded", () => {
-            const previewContainer = document.getElementById("floating-preview");
-            const previewIframe = document.getElementById("preview-iframe");
+        // Audio Synthesizer using Web Audio API
+        let audioCtx = null;
+        let soundEnabled = true;
 
-            // Selector para todas las tarjetas de proyectos que tengan links locales
-            const projectCards = document.querySelectorAll("#inicio-proyectos a, #proyectos a");
-
-            projectCards.forEach(card => {
-                card.addEventListener("mouseenter", (e) => {
-                    const href = card.getAttribute("href");
-                    if (href && !href.startsWith("http")) {
-                        previewIframe.src = href;
-                        previewContainer.style.display = "block";
-                    }
-                });
-
-                card.addEventListener("mousemove", (e) => {
-                    // Posicionamos el contenedor un poco desfasado del cursor para que no lo cubra y se mueva suavemente
-                    const offsetX = 20;
-                    const offsetY = 20;
-
-                    // Aseguramos que la ventana no se desborde por los límites derecho o inferior
-                    let x = e.clientX + offsetX;
-                    let y = e.clientY + offsetY;
-
-                    // Ajustar si se sale por la derecha (tomando en cuenta el escalado de 0.25 en un contenedor de 1024px, lo que equivale a 256px de ancho real renderizado)
-                    if (x + 260 > window.innerWidth) {
-                        x = e.clientX - 270;
-                    }
-                    // Ajustar si se sale por abajo (150px de alto real renderizado)
-                    if (y + 160 > window.innerHeight) {
-                        y = e.clientY - 170;
-                    }
-
-                    previewContainer.style.left = `${x}px`;
-                    previewContainer.style.top = `${y}px`;
-                });
-
-                card.addEventListener("mouseleave", () => {
-                    previewContainer.style.display = "none";
-                    // Inmediatamente descargamos el iframe src para detener ejecuciones de juegos y ruidos en background
-                    previewIframe.src = "";
-                });
-            });
-        });
-
-        // Lógica de cambio de pestañas
-        function switchTab(tabId) {
-            // Ocultar todos los contenidos
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            // Quitar estilos activos de la nav
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('text-blue-400');
-                link.classList.add('text-slate-400');
-            });
-
-            // Mostrar el seleccionado
-            const activeTab = document.getElementById(tabId);
-            activeTab.classList.add('active');
-            
-            // Marcar link activo
-            const activeLink = document.querySelector(`[data-tab="${tabId}"]`);
-            activeLink.classList.remove('text-slate-400');
-            activeLink.classList.add('text-blue-400');
-
-            // Scroll al inicio suave
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
         }
 
-        // Efecto scroll en Navbar
-        window.onscroll = function() {
-            const nav = document.getElementById('navbar');
-            if (window.scrollY > 50) {
-                nav.classList.add('bg-slate-950/80', 'backdrop-blur-md', 'border-b', 'border-slate-800', 'py-4');
-                nav.classList.remove('py-6');
-            } else {
-                nav.classList.remove('bg-slate-950/80', 'backdrop-blur-md', 'border-b', 'border-slate-800', 'py-4');
-                nav.classList.add('py-6');
+        function playSound(type) {
+            if (!soundEnabled || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'hop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'coin') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(987.77, now); // B5
+                    osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'hit') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'eagle') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.linearRampToValueAtTime(200, now + 0.4);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                }
+            } catch (e) {
+                console.error("Audio error:", e);
             }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-btn').innerText = soundEnabled ? '🔊' : '🔇';
+        }
+
+        // Characters list
+        const characters = [
+            { name: "Pollo 🐔", color: "#facc15", headColor: "#ef4444", body: "chicken" },
+            { name: "Rana 🐸", color: "#22c55e", headColor: "#15803d", body: "frog" },
+            { name: "Cerdito 🐷", color: "#f472b6", headColor: "#db2777", body: "pig" },
+            { name: "Robot 🤖", color: "#94a3b8", headColor: "#38bdf8", body: "robot" },
+            { name: "Conejo 🐰", color: "#f8fafc", headColor: "#cbd5e1", body: "bunny" }
+        ];
+        let currentCharIndex = 0;
+
+        function changeCharacter(dir) {
+            currentCharIndex = (currentCharIndex + dir + characters.length) % characters.length;
+            document.getElementById('char-name').innerText = characters[currentCharIndex].name;
+        }
+
+        // Game State Variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let tileSize = 40;
+        let cameraX = 0;
+        let cameraY = 0;
+        let score = 0;
+        let bestScore = localStorage.getItem('crossy_best') || 0;
+        let gameRunning = false;
+        let gameOver = false;
+        let idleTimer = 0;
+        let eagleComing = false;
+        let eagleY = -500;
+
+        document.getElementById('best-display').innerText = bestScore;
+
+        // Player object
+        let player = {
+            x: 0,
+            y: 0,
+            targetX: 0,
+            targetY: 0,
+            isJumping: false,
+            jumpProgress: 1,
+            jumpHeight: 0,
+            direction: 'forward', // forward, backward, left, right
+            squashX: 1,
+            squashY: 1
         };
 
-        // Hero Background Fading Slider Logic
-        document.addEventListener("DOMContentLoaded", () => {
-            const slides = document.querySelectorAll('.hero-slide');
-            if (slides.length > 0) {
-                let currentSlide = 0;
-                setInterval(() => {
-                    slides[currentSlide].classList.remove('opacity-100');
-                    slides[currentSlide].classList.add('opacity-0');
+        // World Rows Generation
+        let rows = [];
+        const rowTypes = ['grass', 'road', 'rail', 'water'];
 
-                    currentSlide = (currentSlide + 1) % slides.length;
+        function createRow(rowIndex) {
+            let type;
+            if (rowIndex <= 3) {
+                type = 'grass';
+            } else {
+                const rand = Math.random();
+                if (rand < 0.35) type = 'grass';
+                else if (rand < 0.70) type = 'road';
+                else if (rand < 0.88) type = 'water';
+                else type = 'rail';
+            }
 
-                    slides[currentSlide].classList.remove('opacity-0');
-                    slides[currentSlide].classList.add('opacity-100');
-                }, 4000); // Change image every 4 seconds
+            let row = {
+                index: rowIndex,
+                type: type,
+                speed: (Math.random() * 2 + 1.5) * (Math.random() < 0.5 ? 1 : -1),
+                elements: [],
+                hasCoin: Math.random() < 0.3
+            };
+
+            // Populate obstacles / items based on type
+            if (type === 'road') {
+                let carCount = Math.floor(Math.random() * 2) + 1;
+                for (let i = 0; i < carCount; i++) {
+                    row.elements.push({
+                        pos: (i * 6) + Math.random() * 3,
+                        width: Math.floor(Math.random() * 2) + 1.5,
+                        color: ['#ef4444', '#3b82f6', '#10b981', '#a855f7', '#f97316'][Math.floor(Math.random() * 5)]
+                    });
+                }
+            } else if (type === 'water') {
+                let logCount = Math.floor(Math.random() * 2) + 2;
+                for (let i = 0; i < logCount; i++) {
+                    row.elements.push({
+                        pos: (i * 5) + Math.random() * 2,
+                        width: Math.floor(Math.random() * 2) + 2.5
+                    });
+                }
+            } else if (type === 'rail') {
+                row.speed = 8; // fast train warning
+                row.trainActive = false;
+                row.trainWarning = false;
+                row.trainPos = -10;
+            } else if (type === 'grass') {
+                // Trees or rocks
+                let treeCount = Math.floor(Math.random() * 3);
+                for (let i = 0; i < treeCount; i++) {
+                    let treeX = Math.floor(Math.random() * 11) - 5;
+                    // Prevent blocking spawn point and initial step forward
+                    if (rowIndex <= 1 && treeX === 0) continue;
+                    if (rowIndex !== 0 || treeX !== 0) { // Don't block spawn
+                        row.elements.push({ pos: treeX });
+                    }
+                }
+            }
+
+            if (row.hasCoin && type === 'grass') {
+                row.coinPos = Math.floor(Math.random() * 9) - 4;
+                row.coinCollected = false;
+            }
+
+            return row;
+        }
+
+        function initWorld() {
+            rows = [];
+            for (let i = -2; i <= 20; i++) {
+                rows.push(createRow(i));
+            }
+        }
+
+        // Resize Canvas
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            // Calculate tile size based on screen width
+            if (canvas.width < 500) {
+                tileSize = Math.floor(canvas.width / 9);
+            } else {
+                tileSize = 48;
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function startGame() {
+            initAudio();
+            initWorld();
+            player.x = 0;
+            player.y = 0;
+            player.targetX = 0;
+            player.targetY = 0;
+            player.isJumping = false;
+            score = 0;
+            idleTimer = 0;
+            eagleComing = false;
+            eagleY = -500;
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('gameover-screen').classList.add('hidden');
+            document.getElementById('eagle-warning').classList.add('hidden');
+            gameRunning = true;
+            gameOver = false;
+        }
+
+        function triggerGameOver(reason) {
+            if (gameOver) return;
+            gameOver = true;
+            gameRunning = false;
+            playSound('hit');
+            document.getElementById('death-reason').innerText = reason;
+            document.getElementById('final-score').innerText = score;
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('crossy_best', bestScore);
+                document.getElementById('best-display').innerText = bestScore;
+            }
+            document.getElementById('final-best').innerText = bestScore;
+            document.getElementById('gameover-screen').classList.remove('hidden');
+            document.getElementById('eagle-warning').classList.add('hidden');
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        // Controls
+        function playerMove(dir) {
+            // Auto-start if player begins moving
+            if (!gameRunning) {
+                startGame();
+            }
+            if (gameOver) return;
+
+            // If player is currently mid-hop, snap cleanly to target to allow rapid, fluid hopping
+            if (player.isJumping) {
+                player.x = player.targetX;
+                player.y = player.targetY;
+                player.jumpHeight = 0;
+                player.isJumping = false;
+                checkCollisions();
+                if (gameOver) return;
+            }
+
+            let newX = player.targetX;
+            let newY = player.targetY;
+
+            if (dir === 'forward') {
+                newY += 1;
+                player.direction = 'forward';
+            } else if (dir === 'backward') {
+                if (newY > score - 3 && newY > -2) {
+                    newY -= 1;
+                    player.direction = 'backward';
+                } else {
+                    return;
+                }
+            } else if (dir === 'left') {
+                newX -= 1;
+                player.direction = 'left';
+            } else if (dir === 'right') {
+                newX += 1;
+                player.direction = 'right';
+            } else {
+                return;
+            }
+
+            // Check tree collision
+            const targetRowObj = rows.find(r => r.index === newY);
+            if (targetRowObj) {
+                if (targetRowObj.type === 'grass') {
+                    let hitTree = targetRowObj.elements.some(t => t.pos === newX);
+                    if (hitTree) return; // Blocked by tree
+                }
+            }
+
+            // Boundary check
+            if (newX < -5 || newX > 5) return;
+
+            player.targetX = newX;
+            player.targetY = newY;
+            player.isJumping = true;
+            player.jumpProgress = 0;
+            player.squashX = 0.7;
+            player.squashY = 1.3;
+
+            idleTimer = 0; // Reset idle timer on move
+            if (eagleComing) {
+                eagleComing = false;
+                document.getElementById('eagle-warning').classList.add('hidden');
+            }
+
+            // Update score
+            if (player.targetY > score) {
+                score = player.targetY;
+                document.getElementById('score-display').innerText = score;
+                
+                // Add new row ahead
+                let maxRow = Math.max(...rows.map(r => r.index));
+                if (player.targetY + 12 > maxRow) {
+                    rows.push(createRow(maxRow + 1));
+                }
+            }
+
+            playSound('hop');
+        }
+
+        window.addEventListener('keydown', (e) => {
+            const k = e.key.toLowerCase();
+            const code = e.code;
+
+            // Allow starting game immediately by pressing any movement key
+            if (!gameRunning && !gameOver) {
+                if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'enter'].includes(k) ||
+                    ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Enter'].includes(code)) {
+                    e.preventDefault();
+                    startGame();
+                    return;
+                }
+            }
+            // Allow restarting quickly with Space, Enter or W/Up
+            if (gameOver) {
+                if ([' ', 'enter', 'w', 'arrowup'].includes(k) || ['Space', 'Enter', 'KeyW', 'ArrowUp'].includes(code)) {
+                    e.preventDefault();
+                    restartGame();
+                    return;
+                }
+            }
+
+            if (k === 'w' || k === 'arrowup' || code === 'KeyW' || code === 'ArrowUp') {
+                e.preventDefault();
+                playerMove('forward');
+            } else if (k === 's' || k === 'arrowdown' || code === 'KeyS' || code === 'ArrowDown') {
+                e.preventDefault();
+                playerMove('backward');
+            } else if (k === 'a' || k === 'arrowleft' || code === 'KeyA' || code === 'ArrowLeft') {
+                e.preventDefault();
+                playerMove('left');
+            } else if (k === 'd' || k === 'arrowright' || code === 'KeyD' || code === 'ArrowRight') {
+                e.preventDefault();
+                playerMove('right');
             }
         });
 
-        // Lógica FAQ (Acordeón)
-        function toggleFaq(btn) {
-            const item = btn.parentElement;
-            const isActive = item.classList.contains('active');
-            
-            // Cerrar otros
-            document.querySelectorAll('.faq-item').forEach(el => {
-                el.classList.remove('active');
-                el.querySelector('.faq-icon').classList.replace('fa-minus', 'fa-plus');
-            });
-
-            if (!isActive) {
-                item.classList.add('active');
-                btn.querySelector('.faq-icon').classList.replace('fa-plus', 'fa-minus');
+        // Click canvas to hop forward or start
+        canvas.addEventListener('click', () => {
+            if (!gameRunning && !gameOver) {
+                startGame();
+            } else if (gameRunning && !gameOver) {
+                playerMove('forward');
             }
-        }
+        });
 
-        // Simulación de envío de formulario
-        function handleContact(e) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            const msg = document.getElementById('successMsg');
-            
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> Enviando...';
-            btn.disabled = true;
+        // Touch tap and swipe handling
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartTime = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchStartTime = Date.now();
+        }, { passive: true });
 
-            setTimeout(() => {
-                e.target.reset();
-                btn.innerHTML = 'Enviar Petición de Ayuda';
-                btn.disabled = false;
-                msg.classList.remove('hidden');
-                setTimeout(() => msg.classList.add('hidden'), 5000);
-            }, 1500);
-        }
-
-        // Lógica de control de Audio ON / OFF para el video de fondo Vimeo
-        let isHeroAudioOn = false;
-        let vimeoHeroPlayer = null;
-
-        function initVimeoAudio() {
-            const iframe = document.getElementById('hero-vimeo-iframe');
-            if (iframe && window.Vimeo && window.Vimeo.Player) {
-                try {
-                    vimeoHeroPlayer = new Vimeo.Player(iframe);
-                    // Iniciar silenciado respetando políticas de autoplay de navegadores
-                    vimeoHeroPlayer.setVolume(0);
-                    vimeoHeroPlayer.setMuted(true);
-                } catch (err) {
-                    console.warn("No se pudo inicializar Vimeo Player SDK:", err);
-                }
+        canvas.addEventListener('touchend', (e) => {
+            if (!gameRunning) {
+                startGame();
+                return;
             }
-        }
+            if (gameOver) return;
 
-        function toggleHeroAudio() {
-            const iframe = document.getElementById('hero-vimeo-iframe');
-            isHeroAudioOn = !isHeroAudioOn;
+            let diffX = e.changedTouches[0].clientX - touchStartX;
+            let diffY = e.changedTouches[0].clientY - touchStartY;
+            let duration = Date.now() - touchStartTime;
 
-            const audioText = document.getElementById('audioText');
-            const audioIcon = document.getElementById('audioIcon');
-            const audioDot = document.getElementById('audioDot');
-            const audioPing = document.getElementById('audioPing');
-            const audioBtn = document.getElementById('audioToggleBtn');
+            // Tap anywhere on canvas to hop forward
+            if (Math.hypot(diffX, diffY) < 15 && duration < 300) {
+                playerMove('forward');
+                return;
+            }
 
-            if (isHeroAudioOn) {
-                // Activar audio con SDK y fallback con postMessage
-                if (vimeoHeroPlayer) {
-                    vimeoHeroPlayer.setMuted(false)
-                        .then(() => vimeoHeroPlayer.setVolume(1))
-                        .catch(() => {
-                            if (vimeoHeroPlayer.setVolume) vimeoHeroPlayer.setVolume(1);
-                        });
-                }
-                if (iframe && iframe.contentWindow) {
-                    iframe.contentWindow.postMessage(JSON.stringify({ method: 'setMuted', value: false }), '*');
-                    iframe.contentWindow.postMessage(JSON.stringify({ method: 'setVolume', value: 1 }), '*');
-                }
-
-                // Actualizar interfaz a estado ON
-                if (audioText) audioText.textContent = 'Audio: ON';
-                if (audioIcon) {
-                    audioIcon.className = 'fa-solid fa-volume-high text-cyan-400 transition-colors';
-                }
-                if (audioDot) {
-                    audioDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-400 shadow-sm';
-                }
-                if (audioPing) {
-                    audioPing.classList.remove('hidden');
-                }
-                if (audioBtn) {
-                    audioBtn.classList.add('border-cyan-500/60', 'shadow-cyan-500/20', 'text-white');
-                    audioBtn.classList.remove('border-slate-700/70', 'text-slate-200');
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (Math.abs(diffX) > 25) {
+                    if (diffX > 0) playerMove('right');
+                    else playerMove('left');
                 }
             } else {
-                // Silenciar audio con SDK y fallback con postMessage
-                if (vimeoHeroPlayer) {
-                    vimeoHeroPlayer.setMuted(true)
-                        .then(() => vimeoHeroPlayer.setVolume(0))
-                        .catch(() => {
-                            if (vimeoHeroPlayer.setVolume) vimeoHeroPlayer.setVolume(0);
-                        });
+                if (Math.abs(diffY) > 25) {
+                    if (diffY < 0) playerMove('forward');
+                    else playerMove('backward');
                 }
-                if (iframe && iframe.contentWindow) {
-                    iframe.contentWindow.postMessage(JSON.stringify({ method: 'setMuted', value: true }), '*');
-                    iframe.contentWindow.postMessage(JSON.stringify({ method: 'setVolume', value: 0 }), '*');
-                }
+            }
+        }, { passive: true });
 
-                // Actualizar interfaz a estado OFF
-                if (audioText) audioText.textContent = 'Audio: OFF';
-                if (audioIcon) {
-                    audioIcon.className = 'fa-solid fa-volume-xmark text-slate-400 group-hover:text-white transition-colors';
+        // Update Game Loop
+        function update(dt) {
+            if (!gameRunning || gameOver) return;
+
+            // Idle timer for Eagle attack
+            idleTimer += dt;
+            if (idleTimer > 4.5 && !eagleComing) {
+                eagleComing = true;
+                eagleY = player.y - 12;
+                playSound('eagle');
+                document.getElementById('eagle-warning').classList.remove('hidden');
+            }
+
+            if (eagleComing) {
+                eagleY += 8 * dt;
+                if (eagleY >= player.y) {
+                    triggerGameOver("¡El águila te ha cazado por quedarte quieto!");
                 }
-                if (audioDot) {
-                    audioDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-500 transition-colors';
+            }
+
+            // Player jump interpolation
+            if (player.isJumping) {
+                player.jumpProgress += dt * 10;
+                player.x += (player.targetX - player.x) * 0.35;
+                player.y += (player.targetY - player.y) * 0.35;
+                player.jumpHeight = Math.sin(player.jumpProgress * Math.PI) * 25;
+
+                // Squash recovery
+                player.squashX += (1 - player.squashX) * 0.2;
+                player.squashY += (1 - player.squashY) * 0.2;
+
+                if (player.jumpProgress >= 1) {
+                    player.x = player.targetX;
+                    player.y = player.targetY;
+                    player.jumpHeight = 0;
+                    player.isJumping = false;
+
+                    // Check row collisions upon landing
+                    checkCollisions();
                 }
-                if (audioPing) {
-                    audioPing.classList.add('hidden');
+            }
+
+            // Update rows elements (cars, trains, logs)
+            rows.forEach(row => {
+                if (row.type === 'road') {
+                    row.elements.forEach(car => {
+                        car.pos += row.speed * dt * 0.8;
+                        if (car.pos > 6) car.pos = -6;
+                        if (car.pos < -6) car.pos = 6;
+                    });
+                } else if (row.type === 'water') {
+                    row.elements.forEach(log => {
+                        log.pos += row.speed * dt * 0.6;
+                        if (log.pos > 7) log.pos = -7;
+                        if (log.pos < -7) log.pos = 7;
+                    });
+                } else if (row.type === 'rail') {
+                    if (!row.trainActive && Math.random() < 0.005) {
+                        row.trainWarning = true;
+                        setTimeout(() => {
+                            if (gameRunning) {
+                                row.trainWarning = false;
+                                row.trainActive = true;
+                                row.trainPos = row.speed > 0 ? -10 : 10;
+                            }
+                        }, 1200);
+                    }
+                    if (row.trainActive) {
+                        row.trainPos += (row.speed > 0 ? 15 : -15) * dt;
+                        if (row.trainPos > 12 || row.trainPos < -12) {
+                            row.trainActive = false;
+                        }
+                    }
                 }
-                if (audioBtn) {
-                    audioBtn.classList.remove('border-cyan-500/60', 'shadow-cyan-500/20', 'text-white');
-                    audioBtn.classList.add('border-slate-700/70', 'text-slate-200');
+            });
+
+            // If player is on water, ride the log
+            let currentRow = rows.find(r => r.index === Math.round(player.y));
+            if (currentRow && currentRow.type === 'water' && !player.isJumping) {
+                let onLog = false;
+                currentRow.elements.forEach(log => {
+                    if (player.x >= log.pos - 0.5 && player.x <= log.pos + log.width - 0.5) {
+                        onLog = true;
+                        player.x += currentRow.speed * dt * 0.6;
+                        player.targetX = player.x;
+                    }
+                });
+                if (!onLog) {
+                    triggerGameOver("¡Te has ahogado en el río!");
+                } else if (player.x < -4.5 || player.x > 4.5) {
+                    triggerGameOver("¡Caíste fuera del mapa!");
+                }
+            }
+
+            // Coin collection check
+            if (currentRow && currentRow.hasCoin && !currentRow.coinCollected) {
+                if (Math.abs(player.x - currentRow.coinPos) < 0.6 && Math.round(player.y) === currentRow.index) {
+                    currentRow.coinCollected = true;
+                    score += 5;
+                    document.getElementById('score-display').innerText = score;
+                    playSound('coin');
                 }
             }
         }
 
-        // Inicializar cuando la ventana termine de cargar
-        window.addEventListener('load', initVimeoAudio);
-    </script>
+        function checkCollisions() {
+            let currentRow = rows.find(r => r.index === Math.round(player.y));
+            if (!currentRow) return;
 
-        <script
-        src="https://catza-digital.github.io/catza-ai-widget/widget.js"
-        data-client="joseenrique"
-        data-position="right"
-        data-message="🤖 ¿Hola soy Jose tu asistente virtual ?">
-        </script>
-    
+            // Car collision check
+            if (currentRow.type === 'road') {
+                currentRow.elements.forEach(car => {
+                    if (player.x >= car.pos - 0.6 && player.x <= car.pos + car.width - 0.4) {
+                        triggerGameOver("¡Te ha atropellado un vehículo!");
+                    }
+                });
+            }
+
+            // Train collision check
+            if (currentRow.type === 'rail' && currentRow.trainActive) {
+                if (player.x >= currentRow.trainPos - 2.5 && player.x <= currentRow.trainPos + 2.5) {
+                    triggerGameOver("¡Te ha arrollado el tren express!");
+                }
+            }
+        }
+
+        // Render Graphics (Pseudo-Isometric Voxel 3D Style)
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Smooth camera follow
+            let targetCamY = player.y * tileSize;
+            cameraY += (targetCamY - cameraY) * 0.1;
+
+            ctx.save();
+            // Center camera, angle perspective
+            ctx.translate(canvas.width / 2, canvas.height * 0.65 + cameraY);
+
+            // Draw world rows from bottom to top (back to front in isometric view)
+            let renderRows = [...rows].sort((a, b) => a.index - b.index);
+
+            renderRows.forEach(row => {
+                let yPos = -row.index * tileSize;
+
+                // Don't render rows way off screen
+                if (yPos > cameraY + canvas.height || yPos < cameraY - canvas.height - 200) return;
+
+                // Draw Row Background
+                if (row.type === 'grass') {
+                    ctx.fillStyle = (row.index % 2 === 0) ? '#86efac' : '#4ade80';
+                } else if (row.type === 'road') {
+                    ctx.fillStyle = '#334155';
+                } else if (row.type === 'water') {
+                    ctx.fillStyle = '#38bdf8';
+                } else if (row.type === 'rail') {
+                    ctx.fillStyle = '#64748b';
+                }
+
+                ctx.fillRect(-canvas.width, yPos - tileSize / 2, canvas.width * 2, tileSize);
+
+                // Row specific decorations
+                if (row.type === 'road') {
+                    // Dashed lines
+                    ctx.strokeStyle = '#94a3b8';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([10, 10]);
+                    ctx.beginPath();
+                    ctx.moveTo(-canvas.width, yPos);
+                    ctx.lineTo(canvas.width, yPos);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                } else if (row.type === 'rail') {
+                    // Train tracks
+                    ctx.fillStyle = '#1e293b';
+                    ctx.fillRect(-canvas.width, yPos - 6, canvas.width * 2, 12);
+                    if (row.trainWarning) {
+                        ctx.fillStyle = Math.floor(Date.now() / 200) % 2 === 0 ? '#ef4444' : '#f59e0b';
+                        ctx.fillRect(-canvas.width, yPos - tileSize / 2, canvas.width * 2, 6);
+                    }
+                }
+
+                // Draw Elements in Row
+                if (row.type === 'grass') {
+                    row.elements.forEach(tree => {
+                        let tx = tree.pos * tileSize;
+                        // Tree shadow
+                        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                        ctx.fillRect(tx - tileSize * 0.35, yPos - tileSize * 0.2, tileSize * 0.7, tileSize * 0.4);
+                        // Tree trunk
+                        ctx.fillStyle = '#b45309';
+                        ctx.fillRect(tx - tileSize * 0.15, yPos - tileSize * 0.3, tileSize * 0.3, tileSize * 0.4);
+                        // Tree leaves
+                        ctx.fillStyle = '#15803d';
+                        ctx.fillRect(tx - tileSize * 0.35, yPos - tileSize * 0.7, tileSize * 0.7, tileSize * 0.5);
+                    });
+
+                    // Draw Coin
+                    if (row.hasCoin && !row.coinCollected) {
+                        let cx = row.coinPos * tileSize;
+                        ctx.fillStyle = '#f59e0b';
+                        ctx.beginPath();
+                        ctx.arc(cx, yPos, tileSize * 0.25, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = '#d97706';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        // Dollar sign or shine
+                        ctx.fillStyle = '#fef3c7';
+                        ctx.font = 'bold 16px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('$', cx, yPos);
+                    }
+                } else if (row.type === 'road') {
+                    row.elements.forEach(car => {
+                        let cx = car.pos * tileSize;
+                        // Car Shadow
+                        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                        ctx.fillRect(cx - 2, yPos - tileSize * 0.3, car.width * tileSize, tileSize * 0.6);
+                        // Car Body
+                        ctx.fillStyle = car.color;
+                        ctx.fillRect(cx, yPos - tileSize * 0.35, car.width * tileSize - 4, tileSize * 0.6);
+                        // Windshield / Cabin
+                        ctx.fillStyle = '#cbd5e1';
+                        ctx.fillRect(cx + tileSize * 0.3, yPos - tileSize * 0.25, car.width * tileSize * 0.4, tileSize * 0.4);
+                    });
+                } else if (row.type === 'water') {
+                    row.elements.forEach(log => {
+                        let lx = log.pos * tileSize;
+                        // Log
+                        ctx.fillStyle = '#78350f';
+                        ctx.fillRect(lx, yPos - tileSize * 0.35, log.width * tileSize - 4, tileSize * 0.65);
+                        ctx.fillStyle = '#92400e';
+                        ctx.fillRect(lx + 4, yPos - tileSize * 0.25, log.width * tileSize - 12, tileSize * 0.45);
+                    });
+                } else if (row.type === 'rail' && row.trainActive) {
+                    let tx = row.trainPos * tileSize;
+                    // Train Locomotive
+                    ctx.fillStyle = '#b91c1c';
+                    ctx.fillRect(tx - tileSize * 2, yPos - tileSize * 0.45, tileSize * 4, tileSize * 0.9);
+                    // Train Windows
+                    ctx.fillStyle = '#fde047';
+                    ctx.fillRect(tx - tileSize * 1.5, yPos - tileSize * 0.3, tileSize * 1, tileSize * 0.4);
+                }
+            });
+
+            // Draw Player Character
+            let px = player.x * tileSize;
+            let py = -player.y * tileSize;
+            let charData = characters[currentCharIndex];
+
+            // Player Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(px, py + 5, tileSize * 0.38, tileSize * 0.22, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Player Body with jump height & squash
+            ctx.save();
+            ctx.translate(px, py - player.jumpHeight);
+            ctx.scale(player.squashX, player.squashY);
+
+            if (charData.body === 'chicken') {
+                // TRUE CROSSY ROAD VOXEL CHICKEN
+                const wingFlap = player.isJumping ? Math.sin(player.jumpProgress * Math.PI) * 5 : 0;
+                const bob = player.isJumping ? 0 : Math.sin(Date.now() / 150) * 1.5;
+
+                // Legs & Feet (voxel yellow)
+                ctx.fillStyle = '#f59e0b';
+                // Left leg
+                ctx.fillRect(-tileSize * 0.22, -tileSize * 0.1, tileSize * 0.1, tileSize * 0.16);
+                // Right leg
+                ctx.fillRect(tileSize * 0.12, -tileSize * 0.1, tileSize * 0.1, tileSize * 0.16);
+                // Feet
+                if (player.direction === 'backward') {
+                    ctx.fillRect(-tileSize * 0.26, tileSize * 0.04, tileSize * 0.16, tileSize * 0.08);
+                    ctx.fillRect(tileSize * 0.08, tileSize * 0.04, tileSize * 0.16, tileSize * 0.08);
+                } else if (player.direction === 'left') {
+                    ctx.fillRect(-tileSize * 0.3, tileSize * 0.04, tileSize * 0.18, tileSize * 0.08);
+                    ctx.fillRect(tileSize * 0.04, tileSize * 0.04, tileSize * 0.18, tileSize * 0.08);
+                } else if (player.direction === 'right') {
+                    ctx.fillRect(-tileSize * 0.22, tileSize * 0.04, tileSize * 0.18, tileSize * 0.08);
+                    ctx.fillRect(tileSize * 0.12, tileSize * 0.04, tileSize * 0.18, tileSize * 0.08);
+                } else {
+                    // forward
+                    ctx.fillRect(-tileSize * 0.24, -tileSize * 0.02, tileSize * 0.14, tileSize * 0.08);
+                    ctx.fillRect(tileSize * 0.1, -tileSize * 0.02, tileSize * 0.14, tileSize * 0.08);
+                }
+
+                // Main Torso / Body (Pure White Voxel Cube with isometric depth)
+                // Body shadow underside
+                ctx.fillStyle = '#e2e8f0';
+                ctx.fillRect(-tileSize * 0.35, -tileSize * 0.65 + bob, tileSize * 0.7, tileSize * 0.6);
+                // Front / Top face
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-tileSize * 0.33, -tileSize * 0.65 + bob, tileSize * 0.66, tileSize * 0.55);
+
+                // Feather tail (behind)
+                ctx.fillStyle = '#cbd5e1';
+                if (player.direction === 'forward') {
+                    // Tail facing camera when jumping away
+                    ctx.fillRect(-tileSize * 0.12, -tileSize * 0.35 + bob, tileSize * 0.24, tileSize * 0.25);
+                    ctx.fillStyle = '#f8fafc';
+                    ctx.fillRect(-tileSize * 0.08, -tileSize * 0.4 + bob, tileSize * 0.16, tileSize * 0.2);
+                } else if (player.direction === 'backward') {
+                    // Tail hidden on opposite side
+                } else if (player.direction === 'left') {
+                    ctx.fillRect(tileSize * 0.26, -tileSize * 0.55 + bob, tileSize * 0.15, tileSize * 0.25);
+                } else if (player.direction === 'right') {
+                    ctx.fillRect(-tileSize * 0.41, -tileSize * 0.55 + bob, tileSize * 0.15, tileSize * 0.25);
+                }
+
+                // Wings (Sides of torso, flap when hopping)
+                ctx.fillStyle = '#f1f5f9';
+                // Left Wing
+                ctx.fillRect(-tileSize * 0.42, -tileSize * 0.55 + bob - wingFlap, tileSize * 0.1, tileSize * 0.35);
+                // Right Wing
+                ctx.fillRect(tileSize * 0.32, -tileSize * 0.55 + bob - wingFlap, tileSize * 0.1, tileSize * 0.35);
+
+                // Head Cube
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-tileSize * 0.26, -tileSize * 0.98 + bob, tileSize * 0.52, tileSize * 0.4);
+
+                // Comb / Crest (Red on top of head)
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(-tileSize * 0.14, -tileSize * 1.14 + bob, tileSize * 0.28, tileSize * 0.18);
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(-tileSize * 0.1, -tileSize * 1.18 + bob, tileSize * 0.2, tileSize * 0.1);
+
+                // Directional Face Elements (Beak, Wattle, Eyes)
+                if (player.direction === 'forward') {
+                    // Looking Forward (away from camera): Show back of head & comb
+                    ctx.fillStyle = '#ef4444';
+                    ctx.fillRect(-tileSize * 0.08, -tileSize * 1.1 + bob, tileSize * 0.16, tileSize * 0.18);
+                } else if (player.direction === 'backward') {
+                    // Looking directly at player: Big eyes, beak & wattle centered
+                    // Eyes
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(-tileSize * 0.18, -tileSize * 0.82 + bob, tileSize * 0.1, tileSize * 0.1);
+                    ctx.fillRect(tileSize * 0.08, -tileSize * 0.82 + bob, tileSize * 0.1, tileSize * 0.1);
+                    // Eye shine
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(-tileSize * 0.18, -tileSize * 0.82 + bob, 2.5, 2.5);
+                    ctx.fillRect(tileSize * 0.08, -tileSize * 0.82 + bob, 2.5, 2.5);
+
+                    // Yellow Beak
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.fillRect(-tileSize * 0.1, -tileSize * 0.72 + bob, tileSize * 0.2, tileSize * 0.14);
+
+                    // Red Wattle (under beak)
+                    ctx.fillStyle = '#dc2626';
+                    ctx.fillRect(-tileSize * 0.06, -tileSize * 0.58 + bob, tileSize * 0.12, tileSize * 0.12);
+                } else if (player.direction === 'left') {
+                    // Profile looking left
+                    // Left Eye
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(-tileSize * 0.18, -tileSize * 0.84 + bob, tileSize * 0.1, tileSize * 0.1);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(-tileSize * 0.18, -tileSize * 0.84 + bob, 2.5, 2.5);
+
+                    // Yellow Beak protruding left
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.fillRect(-tileSize * 0.42, -tileSize * 0.78 + bob, tileSize * 0.18, tileSize * 0.14);
+
+                    // Red Wattle
+                    ctx.fillStyle = '#dc2626';
+                    ctx.fillRect(-tileSize * 0.32, -tileSize * 0.64 + bob, tileSize * 0.12, tileSize * 0.12);
+                } else if (player.direction === 'right') {
+                    // Profile looking right
+                    // Right Eye
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(tileSize * 0.08, -tileSize * 0.84 + bob, tileSize * 0.1, tileSize * 0.1);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(tileSize * 0.14, -tileSize * 0.84 + bob, 2.5, 2.5);
+
+                    // Yellow Beak protruding right
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.fillRect(tileSize * 0.24, -tileSize * 0.78 + bob, tileSize * 0.18, tileSize * 0.14);
+
+                    // Red Wattle
+                    ctx.fillStyle = '#dc2626';
+                    ctx.fillRect(tileSize * 0.2, -tileSize * 0.64 + bob, tileSize * 0.12, tileSize * 0.12);
+                }
+            } else {
+                // Fallback for other characters
+                // Main body block
+                ctx.fillStyle = charData.color;
+                ctx.fillRect(-tileSize * 0.35, -tileSize * 0.6, tileSize * 0.7, tileSize * 0.6);
+
+                // Head / Hat block
+                ctx.fillStyle = charData.headColor;
+                ctx.fillRect(-tileSize * 0.25, -tileSize * 0.9, tileSize * 0.5, tileSize * 0.4);
+
+                // Eyes
+                ctx.fillStyle = '#0f172a';
+                if (player.direction === 'forward' || player.direction === 'backward') {
+                    ctx.fillRect(-tileSize * 0.15, -tileSize * 0.75, 4, 4);
+                    ctx.fillRect(tileSize * 0.05, -tileSize * 0.75, 4, 4);
+                } else if (player.direction === 'left') {
+                    ctx.fillRect(-tileSize * 0.2, -tileSize * 0.75, 4, 4);
+                } else {
+                    ctx.fillRect(tileSize * 0.1, -tileSize * 0.75, 4, 4);
+                }
+            }
+
+            ctx.restore();
+
+            // Draw Eagle if coming
+            if (eagleComing) {
+                let ex = player.x * tileSize;
+                let ey = -eagleY * tileSize;
+                ctx.fillStyle = '#475569';
+                ctx.beginPath();
+                ctx.moveTo(ex, ey + 40);
+                ctx.lineTo(ex - 50, ey - 30);
+                ctx.lineTo(ex + 50, ey - 30);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // Main Loop
+        let lastTime = performance.now();
+        function mainLoop(now) {
+            let dt = (now - lastTime) / 1000;
+            if (dt > 0.1) dt = 0.1; // cap dt
+            lastTime = now;
+
+            update(dt);
+            render();
+
+            requestAnimationFrame(mainLoop);
+        }
+
+        requestAnimationFrame(mainLoop);
+    </script>
 </body>
 </html>
