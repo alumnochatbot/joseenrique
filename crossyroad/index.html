@@ -74,6 +74,15 @@
                     <p class="text-slate-400 text-sm mt-2">¡Cruza la calle, esquiva coches y sobrevive al tren!</p>
                 </div>
 
+                <div class="flex items-center justify-center gap-2 text-xs text-slate-300 pixel-font bg-slate-800/80 px-4 py-2 rounded-lg border border-slate-700">
+                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-amber-400 font-bold border border-slate-600">W</span>
+                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-amber-400 font-bold border border-slate-600">A</span>
+                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-amber-400 font-bold border border-slate-600">S</span>
+                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-amber-400 font-bold border border-slate-600">D</span>
+                    <span class="text-slate-400 mx-1">o</span>
+                    <span class="bg-slate-700 px-1.5 py-0.5 rounded text-sky-400 border border-slate-600">⬆️⬅️⬇️➡️</span>
+                </div>
+
                 <!-- Character Selector Preview -->
                 <div class="w-full bg-slate-800 p-3 rounded-xl border border-slate-700 flex items-center justify-between">
                     <span class="text-xs text-slate-400 uppercase pixel-font">Personaje:</span>
@@ -129,8 +138,13 @@
             <button onclick="playerMove('backward')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">⬇️</button>
             <button onclick="playerMove('right')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">➡️</button>
         </div>
-        <div class="text-xs text-slate-400 text-center font-medium">
-            Usa las flechas del teclado ⬆️ ⬇️ ⬅️ ➡️ o los botones táctiles para moverte. ¡No te detengas mucho tiempo o el águila te atrapará!
+        <div class="text-xs text-slate-400 text-center font-medium flex flex-wrap items-center justify-center gap-1.5">
+            <span>Muévete con</span>
+            <span class="bg-slate-800 text-amber-400 px-1.5 py-0.5 rounded border border-slate-700 font-bold font-mono">W</span>
+            <span class="bg-slate-800 text-amber-400 px-1.5 py-0.5 rounded border border-slate-700 font-bold font-mono">A</span>
+            <span class="bg-slate-800 text-amber-400 px-1.5 py-0.5 rounded border border-slate-700 font-bold font-mono">S</span>
+            <span class="bg-slate-800 text-amber-400 px-1.5 py-0.5 rounded border border-slate-700 font-bold font-mono">D</span>
+            <span>o las flechas ⬆️ ⬇️ ⬅️ ➡️. ¡No te detengas o el águila te atrapará!</span>
         </div>
     </footer>
 
@@ -295,6 +309,8 @@
                 let treeCount = Math.floor(Math.random() * 3);
                 for (let i = 0; i < treeCount; i++) {
                     let treeX = Math.floor(Math.random() * 11) - 5;
+                    // Prevent blocking spawn point and initial step forward
+                    if (rowIndex <= 1 && treeX === 0) continue;
                     if (rowIndex !== 0 || treeX !== 0) { // Don't block spawn
                         row.elements.push({ pos: treeX });
                     }
@@ -373,7 +389,21 @@
 
         // Controls
         function playerMove(dir) {
-            if (!gameRunning || gameOver || player.isJumping < 1) return;
+            // Auto-start if player begins moving
+            if (!gameRunning) {
+                startGame();
+            }
+            if (gameOver) return;
+
+            // If player is currently mid-hop, snap cleanly to target to allow rapid, fluid hopping
+            if (player.isJumping) {
+                player.x = player.targetX;
+                player.y = player.targetY;
+                player.jumpHeight = 0;
+                player.isJumping = false;
+                checkCollisions();
+                if (gameOver) return;
+            }
 
             let newX = player.targetX;
             let newY = player.targetY;
@@ -381,9 +411,13 @@
             if (dir === 'forward') {
                 newY += 1;
                 player.direction = 'forward';
-            } else if (dir === 'backward' && newY > player.targetY - 3) {
-                newY -= 1;
-                player.direction = 'backward';
+            } else if (dir === 'backward') {
+                if (newY > score - 3 && newY > -2) {
+                    newY -= 1;
+                    player.direction = 'backward';
+                } else {
+                    return;
+                }
             } else if (dir === 'left') {
                 newX -= 1;
                 player.direction = 'left';
@@ -434,39 +468,91 @@
             playSound('hop');
         }
 
-        // Keyboard event listeners
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp' || e.key === 'w') playerMove('forward');
-            if (e.key === 'ArrowDown' || e.key === 's') playerMove('backward');
-            if (e.key === 'ArrowLeft' || e.key === 'a') playerMove('left');
-            if (e.key === 'ArrowRight' || e.key === 'd') playerMove('right');
+            const k = e.key.toLowerCase();
+            const code = e.code;
+
+            // Allow starting game immediately by pressing any movement key
+            if (!gameRunning && !gameOver) {
+                if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'enter'].includes(k) ||
+                    ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Enter'].includes(code)) {
+                    e.preventDefault();
+                    startGame();
+                    return;
+                }
+            }
+            // Allow restarting quickly with Space, Enter or W/Up
+            if (gameOver) {
+                if ([' ', 'enter', 'w', 'arrowup'].includes(k) || ['Space', 'Enter', 'KeyW', 'ArrowUp'].includes(code)) {
+                    e.preventDefault();
+                    restartGame();
+                    return;
+                }
+            }
+
+            if (k === 'w' || k === 'arrowup' || code === 'KeyW' || code === 'ArrowUp') {
+                e.preventDefault();
+                playerMove('forward');
+            } else if (k === 's' || k === 'arrowdown' || code === 'KeyS' || code === 'ArrowDown') {
+                e.preventDefault();
+                playerMove('backward');
+            } else if (k === 'a' || k === 'arrowleft' || code === 'KeyA' || code === 'ArrowLeft') {
+                e.preventDefault();
+                playerMove('left');
+            } else if (k === 'd' || k === 'arrowright' || code === 'KeyD' || code === 'ArrowRight') {
+                e.preventDefault();
+                playerMove('right');
+            }
         });
 
-        // Touch swipe handling
+        // Click canvas to hop forward or start
+        canvas.addEventListener('click', () => {
+            if (!gameRunning && !gameOver) {
+                startGame();
+            } else if (gameRunning && !gameOver) {
+                playerMove('forward');
+            }
+        });
+
+        // Touch tap and swipe handling
         let touchStartX = 0;
         let touchStartY = 0;
+        let touchStartTime = 0;
         canvas.addEventListener('touchstart', (e) => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
-        }, false);
+            touchStartTime = Date.now();
+        }, { passive: true });
 
         canvas.addEventListener('touchend', (e) => {
-            if (!gameRunning || gameOver) return;
+            if (!gameRunning) {
+                startGame();
+                return;
+            }
+            if (gameOver) return;
+
             let diffX = e.changedTouches[0].clientX - touchStartX;
             let diffY = e.changedTouches[0].clientY - touchStartY;
+            let duration = Date.now() - touchStartTime;
+
+            // Tap anywhere on canvas to hop forward
+            if (Math.hypot(diffX, diffY) < 15 && duration < 300) {
+                playerMove('forward');
+                return;
+            }
 
             if (Math.abs(diffX) > Math.abs(diffY)) {
-                if (Math.abs(diffX) > 30) {
+                if (Math.abs(diffX) > 25) {
                     if (diffX > 0) playerMove('right');
                     else playerMove('left');
                 }
             } else {
-                if (Math.abs(diffY) > 30) {
+                if (Math.abs(diffY) > 25) {
                     if (diffY < 0) playerMove('forward');
                     else playerMove('backward');
                 }
             }
-        }, false);
+        }, { passive: true });
 
         // Update Game Loop
         function update(dt) {
