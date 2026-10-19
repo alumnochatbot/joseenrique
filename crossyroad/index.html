@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossy Road Arcade 3D</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .pixel-font {
+            font-family: 'Press Start 2P', monospace;
+        }
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        .retro-shadow {
+            box-shadow: 4px 4px 0px #000;
+        }
+        .retro-shadow-sm {
+            box-shadow: 2px 2px 0px #000;
+        }
+        @keyframes bounce-short {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-bounce-short {
+            animation: bounce-short 0.4s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="overflow-hidden h-screen flex flex-col justify-between select-none">
+
+    <header class="w-full bg-slate-900/90 border-b border-slate-800 p-3 flex justify-between items-center z-10 shadow-lg">
+        <div class="flex items-center space-x-2">
+            <div class="bg-amber-500 text-slate-950 font-black px-2 py-1 rounded pixel-font text-xs retro-shadow-sm">CR</div>
+            <h1 class="font-extrabold text-lg sm:text-xl tracking-wider bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">CROSSY ROAD</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="bg-slate-800 px-3 py-1 rounded-full border border-slate-700 flex items-center space-x-2">
+                <span class="text-amber-400 pixel-font text-xs">SCORE:</span>
+                <span id="score-display" class="font-extrabold text-xl text-white">0</span>
+            </div>
+            <div class="bg-slate-800 px-3 py-1 rounded-full border border-slate-700 hidden sm:flex items-center space-x-2">
+                <span class="text-emerald-400 pixel-font text-xs">BEST:</span>
+                <span id="best-display" class="font-extrabold text-xl text-white">0</span>
+            </div>
+            <button id="sound-btn" onclick="toggleSound()" class="bg-slate-800 hover:bg-slate-700 p-2 rounded-full border border-slate-700 transition cursor-pointer">
+                🔊
+            </button>
+        </div>
+    </header>
+
+    <main class="relative flex-1 flex items-center justify-center bg-gradient-to-b from-sky-400 via-sky-300 to-indigo-300 overflow-hidden">
+        
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas" class="w-full h-full block cursor-pointer"></canvas>
+
+        <!-- Start Screen Overlay -->
+        <div id="start-screen" class="absolute inset-0 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center z-20 p-4 text-center">
+            <div class="max-w-md w-full bg-slate-900 border-4 border-amber-500 rounded-2xl p-6 retro-shadow flex flex-col items-center space-y-6">
+                <div class="animate-bounce-short">
+                    <span class="text-5xl sm:text-6xl">🐔🚗</span>
+                </div>
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-amber-400 pixel-font tracking-tight">CROSSY ROAD</h2>
+                    <p class="text-slate-400 text-sm mt-2">¡Cruza la calle, esquiva coches y sobrevive al tren!</p>
+                </div>
+
+                <!-- Character Selector Preview -->
+                <div class="w-full bg-slate-800 p-3 rounded-xl border border-slate-700 flex items-center justify-between">
+                    <span class="text-xs text-slate-400 uppercase pixel-font">Personaje:</span>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="changeCharacter(-1)" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold text-white transition">◀</button>
+                        <span id="char-name" class="font-bold text-amber-300">Pollo 🐔</span>
+                        <button onclick="changeCharacter(1)" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold text-white transition">▶</button>
+                    </div>
+                </div>
+
+                <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-lg sm:text-xl rounded-xl pixel-font retro-shadow transition transform active:scale-95 cursor-pointer">
+                    ¡JUGAR AHORA!
+                </button>
+            </div>
+        </div>
+
+        <!-- Game Over Screen Overlay -->
+        <div id="gameover-screen" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md hidden flex flex-col items-center justify-center z-20 p-4 text-center">
+            <div class="max-w-md w-full bg-slate-900 border-4 border-rose-500 rounded-2xl p-6 retro-shadow flex flex-col items-center space-y-5">
+                <div class="text-5xl">💥💀</div>
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-rose-500 pixel-font">¡HAS PERDIDO!</h2>
+                    <p id="death-reason" class="text-slate-400 text-sm mt-2">¡Te atropelló un camión!</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4 w-full">
+                    <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-400 pixel-font">PUNTUACIÓN</div>
+                        <div id="final-score" class="text-2xl font-black text-amber-400 mt-1">0</div>
+                    </div>
+                    <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-400 pixel-font">MEJOR</div>
+                        <div id="final-best" class="text-2xl font-black text-emerald-400 mt-1">0</div>
+                    </div>
+                </div>
+                <button onclick="restartGame()" class="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-lg sm:text-xl rounded-xl pixel-font retro-shadow transition transform active:scale-95 cursor-pointer">
+                    JUGAR DE NUEVO
+                </button>
+            </div>
+        </div>
+
+        <!-- Eagle Warning Banner -->
+        <div id="eagle-warning" class="absolute top-4 bg-rose-600 text-white font-black px-6 py-2 rounded-full pixel-font text-xs sm:text-sm hidden animate-bounce shadow-2xl z-10 border-2 border-white">
+            ⚠️ ¡CUIDADO CON EL ÁGUILA! ⚠️
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 border-t border-slate-800 p-4 flex flex-col items-center justify-center space-y-3 z-10">
+        <div class="grid grid-cols-3 gap-2 w-full max-w-xs sm:hidden">
+            <div></div>
+            <button onclick="playerMove('forward')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">⬆️</button>
+            <div></div>
+            <button onclick="playerMove('left')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">⬅️</button>
+            <button onclick="playerMove('backward')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">⬇️</button>
+            <button onclick="playerMove('right')" class="bg-slate-800 active:bg-amber-500 active:text-slate-950 border border-slate-700 py-3 rounded-xl text-xl font-bold flex items-center justify-center transition retro-shadow-sm">➡️</button>
+        </div>
+        <div class="text-xs text-slate-400 text-center font-medium">
+            Usa las flechas del teclado ⬆️ ⬇️ ⬅️ ➡️ o los botones táctiles para moverte. ¡No te detengas mucho tiempo o el águila te atrapará!
+        </div>
+    </footer>
+
+    <script>
+        // Audio Synthesizer using Web Audio API
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'hop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'coin') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(987.77, now); // B5
+                    osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'hit') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'eagle') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.linearRampToValueAtTime(200, now + 0.4);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                }
+            } catch (e) {
+                console.error("Audio error:", e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-btn').innerText = soundEnabled ? '🔊' : '🔇';
+        }
+
+        // Characters list
+        const characters = [
+            { name: "Pollo 🐔", color: "#facc15", headColor: "#ef4444", body: "chicken" },
+            { name: "Rana 🐸", color: "#22c55e", headColor: "#15803d", body: "frog" },
+            { name: "Cerdito 🐷", color: "#f472b6", headColor: "#db2777", body: "pig" },
+            { name: "Robot 🤖", color: "#94a3b8", headColor: "#38bdf8", body: "robot" },
+            { name: "Conejo 🐰", color: "#f8fafc", headColor: "#cbd5e1", body: "bunny" }
+        ];
+        let currentCharIndex = 0;
+
+        function changeCharacter(dir) {
+            currentCharIndex = (currentCharIndex + dir + characters.length) % characters.length;
+            document.getElementById('char-name').innerText = characters[currentCharIndex].name;
+        }
+
+        // Game State Variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let tileSize = 40;
+        let cameraX = 0;
+        let cameraY = 0;
+        let score = 0;
+        let bestScore = localStorage.getItem('crossy_best') || 0;
+        let gameRunning = false;
+        let gameOver = false;
+        let idleTimer = 0;
+        let eagleComing = false;
+        let eagleY = -500;
+
+        document.getElementById('best-display').innerText = bestScore;
+
+        // Player object
+        let player = {
+            x: 0,
+            y: 0,
+            targetX: 0,
+            targetY: 0,
+            isJumping: false,
+            jumpProgress: 1,
+            jumpHeight: 0,
+            direction: 'forward', // forward, backward, left, right
+            squashX: 1,
+            squashY: 1
+        };
+
+        // World Rows Generation
+        let rows = [];
+        const rowTypes = ['grass', 'road', 'rail', 'water'];
+
+        function createRow(rowIndex) {
+            let type;
+            if (rowIndex <= 3) {
+                type = 'grass';
+            } else {
+                const rand = Math.random();
+                if (rand < 0.35) type = 'grass';
+                else if (rand < 0.70) type = 'road';
+                else if (rand < 0.88) type = 'water';
+                else type = 'rail';
+            }
+
+            let row = {
+                index: rowIndex,
+                type: type,
+                speed: (Math.random() * 2 + 1.5) * (Math.random() < 0.5 ? 1 : -1),
+                elements: [],
+                hasCoin: Math.random() < 0.3
+            };
+
+            // Populate obstacles / items based on type
+            if (type === 'road') {
+                let carCount = Math.floor(Math.random() * 2) + 1;
+                for (let i = 0; i < carCount; i++) {
+                    row.elements.push({
+                        pos: (i * 6) + Math.random() * 3,
+                        width: Math.floor(Math.random() * 2) + 1.5,
+                        color: ['#ef4444', '#3b82f6', '#10b981', '#a855f7', '#f97316'][Math.floor(Math.random() * 5)]
+                    });
+                }
+            } else if (type === 'water') {
+                let logCount = Math.floor(Math.random() * 2) + 2;
+                for (let i = 0; i < logCount; i++) {
+                    row.elements.push({
+                        pos: (i * 5) + Math.random() * 2,
+                        width: Math.floor(Math.random() * 2) + 2.5
+                    });
+                }
+            } else if (type === 'rail') {
+                row.speed = 8; // fast train warning
+                row.trainActive = false;
+                row.trainWarning = false;
+                row.trainPos = -10;
+            } else if (type === 'grass') {
+                // Trees or rocks
+                let treeCount = Math.floor(Math.random() * 3);
+                for (let i = 0; i < treeCount; i++) {
+                    let treeX = Math.floor(Math.random() * 11) - 5;
+                    if (rowIndex !== 0 || treeX !== 0) { // Don't block spawn
+                        row.elements.push({ pos: treeX });
+                    }
+                }
+            }
+
+            if (row.hasCoin && type === 'grass') {
+                row.coinPos = Math.floor(Math.random() * 9) - 4;
+                row.coinCollected = false;
+            }
+
+            return row;
+        }
+
+        function initWorld() {
+            rows = [];
+            for (let i = -2; i <= 20; i++) {
+                rows.push(createRow(i));
+            }
+        }
+
+        // Resize Canvas
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            // Calculate tile size based on screen width
+            if (canvas.width < 500) {
+                tileSize = Math.floor(canvas.width / 9);
+            } else {
+                tileSize = 48;
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function startGame() {
+            initAudio();
+            initWorld();
+            player.x = 0;
+            player.y = 0;
+            player.targetX = 0;
+            player.targetY = 0;
+            player.isJumping = false;
+            score = 0;
+            idleTimer = 0;
+            eagleComing = false;
+            eagleY = -500;
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('gameover-screen').classList.add('hidden');
+            document.getElementById('eagle-warning').classList.add('hidden');
+            gameRunning = true;
+            gameOver = false;
+        }
+
+        function triggerGameOver(reason) {
+            if (gameOver) return;
+            gameOver = true;
+            gameRunning = false;
+            playSound('hit');
+            document.getElementById('death-reason').innerText = reason;
+            document.getElementById('final-score').innerText = score;
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('crossy_best', bestScore);
+                document.getElementById('best-display').innerText = bestScore;
+            }
+            document.getElementById('final-best').innerText = bestScore;
+            document.getElementById('gameover-screen').classList.remove('hidden');
+            document.getElementById('eagle-warning').classList.add('hidden');
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        // Controls
+        function playerMove(dir) {
+            if (!gameRunning || gameOver || player.isJumping < 1) return;
+
+            let newX = player.targetX;
+            let newY = player.targetY;
+
+            if (dir === 'forward') {
+                newY += 1;
+                player.direction = 'forward';
+            } else if (dir === 'backward' && newY > player.targetY - 3) {
+                newY -= 1;
+                player.direction = 'backward';
+            } else if (dir === 'left') {
+                newX -= 1;
+                player.direction = 'left';
+            } else if (dir === 'right') {
+                newX += 1;
+                player.direction = 'right';
+            } else {
+                return;
+            }
+
+            // Check tree collision
+            const targetRowObj = rows.find(r => r.index === newY);
+            if (targetRowObj) {
+                if (targetRowObj.type === 'grass') {
+                    let hitTree = targetRowObj.elements.some(t => t.pos === newX);
+                    if (hitTree) return; // Blocked by tree
+                }
+            }
+
+            // Boundary check
+            if (newX < -5 || newX > 5) return;
+
+            player.targetX = newX;
+            player.targetY = newY;
+            player.isJumping = true;
+            player.jumpProgress = 0;
+            player.squashX = 0.7;
+            player.squashY = 1.3;
+
+            idleTimer = 0; // Reset idle timer on move
+            if (eagleComing) {
+                eagleComing = false;
+                document.getElementById('eagle-warning').classList.add('hidden');
+            }
+
+            // Update score
+            if (player.targetY > score) {
+                score = player.targetY;
+                document.getElementById('score-display').innerText = score;
+                
+                // Add new row ahead
+                let maxRow = Math.max(...rows.map(r => r.index));
+                if (player.targetY + 12 > maxRow) {
+                    rows.push(createRow(maxRow + 1));
+                }
+            }
+
+            playSound('hop');
+        }
+
+        // Keyboard event listeners
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'w') playerMove('forward');
+            if (e.key === 'ArrowDown' || e.key === 's') playerMove('backward');
+            if (e.key === 'ArrowLeft' || e.key === 'a') playerMove('left');
+            if (e.key === 'ArrowRight' || e.key === 'd') playerMove('right');
+        });
+
+        // Touch swipe handling
+        let touchStartX = 0;
+        let touchStartY = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, false);
+
+        canvas.addEventListener('touchend', (e) => {
+            if (!gameRunning || gameOver) return;
+            let diffX = e.changedTouches[0].clientX - touchStartX;
+            let diffY = e.changedTouches[0].clientY - touchStartY;
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (Math.abs(diffX) > 30) {
+                    if (diffX > 0) playerMove('right');
+                    else playerMove('left');
+                }
+            } else {
+                if (Math.abs(diffY) > 30) {
+                    if (diffY < 0) playerMove('forward');
+                    else playerMove('backward');
+                }
+            }
+        }, false);
+
+        // Update Game Loop
+        function update(dt) {
+            if (!gameRunning || gameOver) return;
+
+            // Idle timer for Eagle attack
+            idleTimer += dt;
+            if (idleTimer > 4.5 && !eagleComing) {
+                eagleComing = true;
+                eagleY = player.y - 12;
+                playSound('eagle');
+                document.getElementById('eagle-warning').classList.remove('hidden');
+            }
+
+            if (eagleComing) {
+                eagleY += 8 * dt;
+                if (eagleY >= player.y) {
+                    triggerGameOver("¡El águila te ha cazado por quedarte quieto!");
+                }
+            }
+
+            // Player jump interpolation
+            if (player.isJumping) {
+                player.jumpProgress += dt * 10;
+                player.x += (player.targetX - player.x) * 0.35;
+                player.y += (player.targetY - player.y) * 0.35;
+                player.jumpHeight = Math.sin(player.jumpProgress * Math.PI) * 25;
+
+                // Squash recovery
+                player.squashX += (1 - player.squashX) * 0.2;
+                player.squashY += (1 - player.squashY) * 0.2;
+
+                if (player.jumpProgress >= 1) {
+                    player.x = player.targetX;
+                    player.y = player.targetY;
+                    player.jumpHeight = 0;
+                    player.isJumping = false;
+
+                    // Check row collisions upon landing
+                    checkCollisions();
+                }
+            }
+
+            // Update rows elements (cars, trains, logs)
+            rows.forEach(row => {
+                if (row.type === 'road') {
+                    row.elements.forEach(car => {
+                        car.pos += row.speed * dt * 0.8;
+                        if (car.pos > 6) car.pos = -6;
+                        if (car.pos < -6) car.pos = 6;
+                    });
+                } else if (row.type === 'water') {
+                    row.elements.forEach(log => {
+                        log.pos += row.speed * dt * 0.6;
+                        if (log.pos > 7) log.pos = -7;
+                        if (log.pos < -7) log.pos = 7;
+                    });
+                } else if (row.type === 'rail') {
+                    if (!row.trainActive && Math.random() < 0.005) {
+                        row.trainWarning = true;
+                        setTimeout(() => {
+                            if (gameRunning) {
+                                row.trainWarning = false;
+                                row.trainActive = true;
+                                row.trainPos = row.speed > 0 ? -10 : 10;
+                            }
+                        }, 1200);
+                    }
+                    if (row.trainActive) {
+                        row.trainPos += (row.speed > 0 ? 15 : -15) * dt;
+                        if (row.trainPos > 12 || row.trainPos < -12) {
+                            row.trainActive = false;
+                        }
+                    }
+                }
+            });
+
+            // If player is on water, ride the log
+            let currentRow = rows.find(r => r.index === Math.round(player.y));
+            if (currentRow && currentRow.type === 'water' && !player.isJumping) {
+                let onLog = false;
+                currentRow.elements.forEach(log => {
+                    if (player.x >= log.pos - 0.5 && player.x <= log.pos + log.width - 0.5) {
+                        onLog = true;
+                        player.x += currentRow.speed * dt * 0.6;
+                        player.targetX = player.x;
+                    }
+                });
+                if (!onLog) {
+                    triggerGameOver("¡Te has ahogado en el río!");
+                } else if (player.x < -4.5 || player.x > 4.5) {
+                    triggerGameOver("¡Caíste fuera del mapa!");
+                }
+            }
+
+            // Coin collection check
+            if (currentRow && currentRow.hasCoin && !currentRow.coinCollected) {
+                if (Math.abs(player.x - currentRow.coinPos) < 0.6 && Math.round(player.y) === currentRow.index) {
+                    currentRow.coinCollected = true;
+                    score += 5;
+                    document.getElementById('score-display').innerText = score;
+                    playSound('coin');
+                }
+            }
+        }
+
+        function checkCollisions() {
+            let currentRow = rows.find(r => r.index === Math.round(player.y));
+            if (!currentRow) return;
+
+            // Car collision check
+            if (currentRow.type === 'road') {
+                currentRow.elements.forEach(car => {
+                    if (player.x >= car.pos - 0.6 && player.x <= car.pos + car.width - 0.4) {
+                        triggerGameOver("¡Te ha atropellado un vehículo!");
+                    }
+                });
+            }
+
+            // Train collision check
+            if (currentRow.type === 'rail' && currentRow.trainActive) {
+                if (player.x >= currentRow.trainPos - 2.5 && player.x <= currentRow.trainPos + 2.5) {
+                    triggerGameOver("¡Te ha arrollado el tren express!");
+                }
+            }
+        }
+
+        // Render Graphics (Pseudo-Isometric Voxel 3D Style)
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Smooth camera follow
+            let targetCamY = player.y * tileSize;
+            cameraY += (targetCamY - cameraY) * 0.1;
+
+            ctx.save();
+            // Center camera, angle perspective
+            ctx.translate(canvas.width / 2, canvas.height * 0.65 + cameraY);
+
+            // Draw world rows from bottom to top (back to front in isometric view)
+            let renderRows = [...rows].sort((a, b) => a.index - b.index);
+
+            renderRows.forEach(row => {
+                let yPos = -row.index * tileSize;
+
+                // Don't render rows way off screen
+                if (yPos > cameraY + canvas.height || yPos < cameraY - canvas.height - 200) return;
+
+                // Draw Row Background
+                if (row.type === 'grass') {
+                    ctx.fillStyle = (row.index % 2 === 0) ? '#86efac' : '#4ade80';
+                } else if (row.type === 'road') {
+                    ctx.fillStyle = '#334155';
+                } else if (row.type === 'water') {
+                    ctx.fillStyle = '#38bdf8';
+                } else if (row.type === 'rail') {
+                    ctx.fillStyle = '#64748b';
+                }
+
+                ctx.fillRect(-canvas.width, yPos - tileSize / 2, canvas.width * 2, tileSize);
+
+                // Row specific decorations
+                if (row.type === 'road') {
+                    // Dashed lines
+                    ctx.strokeStyle = '#94a3b8';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([10, 10]);
+                    ctx.beginPath();
+                    ctx.moveTo(-canvas.width, yPos);
+                    ctx.lineTo(canvas.width, yPos);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                } else if (row.type === 'rail') {
+                    // Train tracks
+                    ctx.fillStyle = '#1e293b';
+                    ctx.fillRect(-canvas.width, yPos - 6, canvas.width * 2, 12);
+                    if (row.trainWarning) {
+                        ctx.fillStyle = Math.floor(Date.now() / 200) % 2 === 0 ? '#ef4444' : '#f59e0b';
+                        ctx.fillRect(-canvas.width, yPos - tileSize / 2, canvas.width * 2, 6);
+                    }
+                }
+
+                // Draw Elements in Row
+                if (row.type === 'grass') {
+                    row.elements.forEach(tree => {
+                        let tx = tree.pos * tileSize;
+                        // Tree shadow
+                        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                        ctx.fillRect(tx - tileSize * 0.35, yPos - tileSize * 0.2, tileSize * 0.7, tileSize * 0.4);
+                        // Tree trunk
+                        ctx.fillStyle = '#b45309';
+                        ctx.fillRect(tx - tileSize * 0.15, yPos - tileSize * 0.3, tileSize * 0.3, tileSize * 0.4);
+                        // Tree leaves
+                        ctx.fillStyle = '#15803d';
+                        ctx.fillRect(tx - tileSize * 0.35, yPos - tileSize * 0.7, tileSize * 0.7, tileSize * 0.5);
+                    });
+
+                    // Draw Coin
+                    if (row.hasCoin && !row.coinCollected) {
+                        let cx = row.coinPos * tileSize;
+                        ctx.fillStyle = '#f59e0b';
+                        ctx.beginPath();
+                        ctx.arc(cx, yPos, tileSize * 0.25, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = '#d97706';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        // Dollar sign or shine
+                        ctx.fillStyle = '#fef3c7';
+                        ctx.font = 'bold 16px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('$', cx, yPos);
+                    }
+                } else if (row.type === 'road') {
+                    row.elements.forEach(car => {
+                        let cx = car.pos * tileSize;
+                        // Car Shadow
+                        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                        ctx.fillRect(cx - 2, yPos - tileSize * 0.3, car.width * tileSize, tileSize * 0.6);
+                        // Car Body
+                        ctx.fillStyle = car.color;
+                        ctx.fillRect(cx, yPos - tileSize * 0.35, car.width * tileSize - 4, tileSize * 0.6);
+                        // Windshield / Cabin
+                        ctx.fillStyle = '#cbd5e1';
+                        ctx.fillRect(cx + tileSize * 0.3, yPos - tileSize * 0.25, car.width * tileSize * 0.4, tileSize * 0.4);
+                    });
+                } else if (row.type === 'water') {
+                    row.elements.forEach(log => {
+                        let lx = log.pos * tileSize;
+                        // Log
+                        ctx.fillStyle = '#78350f';
+                        ctx.fillRect(lx, yPos - tileSize * 0.35, log.width * tileSize - 4, tileSize * 0.65);
+                        ctx.fillStyle = '#92400e';
+                        ctx.fillRect(lx + 4, yPos - tileSize * 0.25, log.width * tileSize - 12, tileSize * 0.45);
+                    });
+                } else if (row.type === 'rail' && row.trainActive) {
+                    let tx = row.trainPos * tileSize;
+                    // Train Locomotive
+                    ctx.fillStyle = '#b91c1c';
+                    ctx.fillRect(tx - tileSize * 2, yPos - tileSize * 0.45, tileSize * 4, tileSize * 0.9);
+                    // Train Windows
+                    ctx.fillStyle = '#fde047';
+                    ctx.fillRect(tx - tileSize * 1.5, yPos - tileSize * 0.3, tileSize * 1, tileSize * 0.4);
+                }
+            });
+
+            // Draw Player Character
+            let px = player.x * tileSize;
+            let py = -player.y * tileSize;
+            let charData = characters[currentCharIndex];
+
+            // Player Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(px, py + 5, tileSize * 0.35, tileSize * 0.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Player Body with jump height & squash
+            ctx.save();
+            ctx.translate(px, py - player.jumpHeight);
+            ctx.scale(player.squashX, player.squashY);
+
+            // Main body block
+            ctx.fillStyle = charData.color;
+            ctx.fillRect(-tileSize * 0.35, -tileSize * 0.6, tileSize * 0.7, tileSize * 0.6);
+
+            // Head / Hat block
+            ctx.fillStyle = charData.headColor;
+            ctx.fillRect(-tileSize * 0.25, -tileSize * 0.9, tileSize * 0.5, tileSize * 0.4);
+
+            // Eyes
+            ctx.fillStyle = '#0f172a';
+            if (player.direction === 'forward' || player.direction === 'backward') {
+                ctx.fillRect(-tileSize * 0.15, -tileSize * 0.75, 4, 4);
+                ctx.fillRect(tileSize * 0.05, -tileSize * 0.75, 4, 4);
+            } else if (player.direction === 'left') {
+                ctx.fillRect(-tileSize * 0.2, -tileSize * 0.75, 4, 4);
+            } else {
+                ctx.fillRect(tileSize * 0.1, -tileSize * 0.75, 4, 4);
+            }
+
+            ctx.restore();
+
+            // Draw Eagle if coming
+            if (eagleComing) {
+                let ex = player.x * tileSize;
+                let ey = -eagleY * tileSize;
+                ctx.fillStyle = '#475569';
+                ctx.beginPath();
+                ctx.moveTo(ex, ey + 40);
+                ctx.lineTo(ex - 50, ey - 30);
+                ctx.lineTo(ex + 50, ey - 30);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // Main Loop
+        let lastTime = performance.now();
+        function mainLoop(now) {
+            let dt = (now - lastTime) / 1000;
+            if (dt > 0.1) dt = 0.1; // cap dt
+            lastTime = now;
+
+            update(dt);
+            render();
+
+            requestAnimationFrame(mainLoop);
+        }
+
+        requestAnimationFrame(mainLoop);
+    </script>
+</body>
+</html>
