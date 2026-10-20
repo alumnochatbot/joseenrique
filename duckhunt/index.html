@@ -1,1280 +1,2499 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Duck Hunt - Clásico NES</title>
-  <!-- Tailwind CSS -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Duck Hunt NES Engine (1984) - Arquitectura Fiel</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Press Start 2P para estilo retro NES -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      --nes-sky: #64b0ff;
+      --nes-flyaway: #fca044;
+      --nes-green: #70c010;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #090a0f;
+      color: #e2e8f0;
       user-select: none;
       -webkit-user-select: none;
+      overflow-x: hidden;
+    }
+    .font-nes {
       font-family: 'Press Start 2P', monospace;
     }
-    
-    body {
-      background-color: #111418;
-      overflow-x: hidden;
-      touch-action: manipulation;
+    #nes-canvas {
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-crisp-edges;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+      touch-action: none;
     }
-
-    /* Efecto CRT Scanlines opcional */
-    .crt::after {
+    .crt-container {
+      aspect-ratio: 256 / 224;
+      position: relative;
+      background: #000;
+      box-shadow: 0 0 40px rgba(100, 176, 255, 0.18), inset 0 0 18px rgba(0,0,0,0.8);
+      border: 6px solid #262936;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .crt-scanlines::after {
       content: " ";
       display: block;
       position: absolute;
       top: 0; left: 0; bottom: 0; right: 0;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-      background-size: 100% 4px;
-      z-index: 40;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.32) 50%
+      ), linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.04),
+        rgba(0, 255, 0, 0.01),
+        rgba(0, 0, 255, 0.04)
+      );
+      z-index: 20;
+      background-size: 100% 4px, 6px 100%;
       pointer-events: none;
-      opacity: 0.75;
     }
-
-    /* Muzzle Flash Efecto NES Zapper */
-    .zapper-flash {
-      animation: flash-anim 0.07s ease-out;
+    .arcade-btn {
+      transition: all 0.12s ease;
+      box-shadow: 0 4px 0 #1e293b;
     }
-    @keyframes flash-anim {
-      0% { filter: invert(1) brightness(2); }
-      100% { filter: invert(0) brightness(1); }
-    }
-
-    /* Custom Crosshair Cursor */
-    .game-cursor {
-      cursor: crosshair;
-    }
-
-    /* Botones arcade */
-    .nes-btn {
-      position: relative;
-      background: #e52521;
-      color: #fff;
-      box-shadow: inset -4px -4px 0px 0px #8b0000, inset 4px 4px 0px 0px #ff7b78;
-      transition: transform 0.08s, filter 0.08s;
-    }
-    .nes-btn:hover {
-      filter: brightness(1.1);
-    }
-    .nes-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: inset -2px -2px 0px 0px #8b0000, inset 2px 2px 0px 0px #ff7b78;
-    }
-    .nes-btn-blue {
-      background: #0070ec;
-      box-shadow: inset -4px -4px 0px 0px #00367a, inset 4px 4px 0px 0px #70b3ff;
-    }
-    .nes-btn-green {
-      background: #00a800;
-      box-shadow: inset -4px -4px 0px 0px #005000, inset 4px 4px 0px 0px #6ef56e;
-    }
-
-    /* Parpadeo de textos */
-    @keyframes blink {
-      0%, 49% { opacity: 1; }
-      50%, 100% { opacity: 0; }
-    }
-    .blink {
-      animation: blink 0.9s infinite;
+    .arcade-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #1e293b;
     }
   </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-2 sm:p-4 text-white">
+<body class="min-h-screen flex flex-col items-center justify-between p-2 sm:p-4 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
 
-  <!-- Marco Arcade NES -->
-  <div class="relative w-full max-w-[800px] flex flex-col items-center">
-    
-    <!-- Barra superior retro con controles rápidos -->
-    <header class="w-full flex justify-between items-center bg-[#212121] px-4 py-2 border-4 border-[#3c3c3c] rounded-t-lg text-[10px] sm:text-xs">
-      <div class="flex items-center space-x-2 text-[#fc9838]">
-        <span>NES</span>
-        <span class="text-white text-[9px] hidden sm:inline">DUCK HUNT 1984</span>
-      </div>
-      <div class="flex items-center space-x-3">
-        <button id="soundToggleBtn" class="text-[10px] bg-[#333] hover:bg-[#444] px-2 py-1 rounded border border-gray-600 active:scale-95 text-[#00e800]">
-          SONIDO: ON
-        </button>
-        <button id="crtToggleBtn" class="text-[10px] bg-[#333] hover:bg-[#444] px-2 py-1 rounded border border-gray-600 active:scale-95 text-[#63adff]">
-          CRT: ON
-        </button>
-      </div>
-    </header>
-
-    <!-- Contenedor del Juego -->
-    <div id="gameWrapper" class="relative w-full aspect-[4/3] bg-black border-4 border-[#3c3c3c] overflow-hidden crt game-cursor shadow-2xl">
-      <!-- Canvas Principal -->
-      <canvas id="gameCanvas" class="w-full h-full block image-render-pixelated"></canvas>
-
-      <!-- Pantalla de Inicio / Menú Principal -->
-      <div id="startScreen" class="absolute inset-0 bg-[#000000dd] z-30 flex flex-col items-center justify-center p-4 text-center">
-        <h1 class="text-2xl sm:text-4xl text-[#fc9838] tracking-widest mb-2 drop-shadow-[0_4px_0_#983800]">
-          DUCK HUNT
-        </h1>
-        <p class="text-[10px] sm:text-xs text-[#00e800] mb-6 tracking-wide">
-          1984 NINTENDO CO., LTD.
-        </p>
-
-        <div class="flex flex-col gap-3 w-64 max-w-full mb-6">
-          <button id="btnModeA" class="nes-btn py-3 px-4 text-xs font-bold rounded">
-            JUEGO A (1 PATO)
-          </button>
-          <button id="btnModeB" class="nes-btn nes-btn-blue py-3 px-4 text-xs font-bold rounded">
-            JUEGO B (2 PATOS)
-          </button>
-        </div>
-
-        <div class="text-[9px] sm:text-[10px] text-gray-300 space-y-1 bg-black/60 p-3 rounded border border-gray-700 max-w-sm">
-          <p class="text-[#fce4a0]">🎯 CÓMO JUGAR:</p>
-          <p>• Haz clic o toca en pantalla para disparar el Zapper.</p>
-          <p>• Tienes 3 cartuchos por bandada.</p>
-          <p>• ¡Caza mínimo 6 patos para pasar de ronda!</p>
-        </div>
-
-        <p class="text-[9px] text-[#e52521] mt-5 blink">
-          HAZ CLIC EN UN MODO PARA COMENZAR
-        </p>
-      </div>
-
-      <!-- Pantalla de Game Over Overlay -->
-      <div id="gameOverScreen" class="absolute inset-0 bg-[#000000cc] z-30 hidden flex-col items-center justify-center p-4 text-center">
-        <h2 class="text-2xl sm:text-3xl text-[#e52521] mb-4 drop-shadow-[0_4px_0_#600]">
-          GAME OVER
-        </h2>
-        <div class="bg-[#181818] p-4 rounded-lg border-2 border-[#555] mb-5 w-72 text-left space-y-2 text-[10px] sm:text-xs">
-          <p class="text-gray-400">RONDA ALCANZADA: <span id="finalRound" class="text-white">1</span></p>
-          <p class="text-gray-400">PATOS CAZADOS: <span id="finalHits" class="text-[#00e800]">0</span></p>
-          <p class="text-gray-400">PUNTUACIÓN FINAL: <span id="finalScore" class="text-[#fc9838]">0</span></p>
-          <p class="text-gray-400">RÉCORD: <span id="finalHighScore" class="text-[#63adff]">0</span></p>
-        </div>
-        <button id="btnRestart" class="nes-btn nes-btn-green py-3 px-6 text-xs font-bold rounded">
-          JUGAR DE NUEVO
-        </button>
-      </div>
-
-      <!-- Mensaje Flotante de Anuncio (ej: FLY AWAY / ROUND X) -->
-      <div id="announcementBanner" class="absolute inset-0 pointer-events-none z-20 hidden items-center justify-center">
-        <div id="announcementText" class="bg-black/90 text-white border-2 border-white px-6 py-3 text-xs sm:text-sm font-bold tracking-widest text-center shadow-lg">
-          ROUND 1
-        </div>
+  <!-- Top Header & Engine Status Bar -->
+  <header class="w-full max-w-5xl flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-slate-900/90 border border-slate-800 rounded-xl shadow-lg mb-2">
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]"></div>
+      <div>
+        <h1 class="font-nes text-xs sm:text-sm text-amber-400 tracking-wider">DUCK HUNT NES ENGINE</h1>
+        <p class="text-[11px] text-slate-400">256×224 NTSC • 60Hz Fixed-Timestep • RP2A03 WebAudio Synth</p>
       </div>
     </div>
 
-    <!-- HUD Inferior Auténtico Estilo NES -->
-    <footer class="w-full bg-black border-4 border-t-0 border-[#3c3c3c] rounded-b-lg p-2 sm:p-3 flex justify-between items-center text-[9px] sm:text-xs">
-      
-      <!-- Balas Restantes -->
-      <div class="flex items-center space-x-2">
-        <div class="flex flex-col text-[#00e800]">
-          <span>BALAS</span>
-          <div id="bulletsContainer" class="flex space-x-1 mt-1 text-[#fc9838]">
-            <span class="bullet-icon">❚</span>
-            <span class="bullet-icon">❚</span>
-            <span class="bullet-icon">❚</span>
+    <!-- Quick Controls -->
+    <div class="flex flex-wrap items-center gap-2">
+      <button id="btn-zapper-mode" class="arcade-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-600 hover:bg-amber-500 text-slate-950 flex items-center gap-1.5">
+        <span id="zapper-mode-dot" class="w-2 h-2 rounded-full bg-slate-950"></span>
+        <span id="zapper-mode-label">Zapper: Puntero Directo</span>
+      </button>
+      <button id="btn-crt-toggle" class="arcade-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">
+        CRT Scanlines: ON
+      </button>
+      <button id="btn-audio-toggle" class="arcade-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-700 hover:bg-emerald-600 text-white">
+        Audio RP2A03: ON
+      </button>
+    </div>
+  </header>
+
+  <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-4 items-start my-auto">
+    
+    <!-- NES 4:3 Viewport Column -->
+    <div class="lg:col-span-8 flex flex-col items-center w-full">
+      <div id="crt-wrapper" class="crt-container crt-scanlines w-full max-w-[680px]">
+        <canvas id="nes-canvas" width="256" height="224"></canvas>
+      </div>
+
+      <!-- NES Control Deck & Zapper Action Bar -->
+      <div class="w-full max-w-[680px] mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <button id="btn-select" class="arcade-btn py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 font-nes text-[10px] text-slate-200">
+          SELECT (MODO)
+        </button>
+        <button id="btn-start" class="arcade-btn py-2 px-3 rounded-lg bg-red-600 hover:bg-red-500 border border-red-500 font-nes text-[10px] text-white">
+          START / PAUSA
+        </button>
+        <button id="btn-offscreen-shot" class="arcade-btn py-2 px-3 rounded-lg bg-orange-600 hover:bg-orange-500 border border-orange-400 font-nes text-[10px] text-white" title="Apuntar fuera de la pantalla y disparar con la Zapper cambia el modo en el menú">
+          ZAPPER FUERA TV
+        </button>
+        <button id="btn-reset" class="arcade-btn py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 font-nes text-[10px] text-amber-400">
+          RESET ROM
+        </button>
+      </div>
+    </div>
+
+    <aside class="lg:col-span-4 w-full flex flex-col gap-3">
+      <!-- Real-time Mathematical Telemetry Panel -->
+      <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-3.5 shadow-lg">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2.5">
+          <h2 class="font-nes text-[10px] text-sky-400">TELEMETRÍA MATEMÁTICA ROM</h2>
+          <span id="telemetry-fsm" class="px-2 py-0.5 rounded bg-sky-950 text-sky-300 font-mono text-[11px] border border-sky-800">TITLE_MENU</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+          <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800/80">
+            <span class="text-slate-400 block text-[10px]">Ronda Activa (8-bit)</span>
+            <span id="tel-round" class="text-sm font-bold text-white">R = 1</span>
+          </div>
+          <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800/80">
+            <span class="text-slate-400 block text-[10px]">Velocidad v(R)</span>
+            <span id="tel-speed" class="text-sm font-bold text-emerald-400">55.0 px/s</span>
+          </div>
+          <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800/80">
+            <span class="text-slate-400 block text-[10px]">Escape T_flight(R)</span>
+            <span id="tel-flight" class="text-sm font-bold text-amber-400">11.50 s</span>
+          </div>
+          <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800/80">
+            <span class="text-slate-400 block text-[10px]">Hitbox A_hb(R)</span>
+            <span id="tel-hitbox" class="text-sm font-bold text-purple-400">1024 px² (32×32)</span>
+          </div>
+        </div>
+
+        <div class="mt-2.5 bg-slate-950/80 p-2 rounded-lg border border-slate-800/80 text-[11px] font-mono flex items-center justify-between">
+          <span class="text-slate-400">Pass Line Exigida:</span>
+          <span id="tel-passline" class="text-sky-300 font-bold">6 / 10 Aciertos</span>
+        </div>
+        <div class="mt-1.5 bg-slate-950/80 p-2 rounded-lg border border-slate-800/80 text-[11px] font-mono flex items-center justify-between">
+          <span class="text-slate-400">Sensor Óptico Zapper:</span>
+          <span id="tel-zapper" class="text-emerald-400 font-bold">LISTO (IDLE)</span>
+        </div>
+      </div>
+
+      <!-- Round Warp / Kill Screen Test Panel -->
+      <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-3.5 shadow-lg">
+        <h3 class="font-nes text-[10px] text-amber-400 mb-2">LABORATORIO DE RONDAS (SALTO)</h3>
+        <p class="text-[11px] text-slate-400 mb-2.5">Prueba las curvas de aceleración, reducción de hitbox y el desbordamiento de 8 bits (Kill Screen):</p>
+        <div class="grid grid-cols-2 gap-1.5 text-xs">
+          <button data-round="1" class="round-jump-btn arcade-btn py-1.5 px-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium">
+            Ronda 1 (55 px/s)
+          </button>
+          <button data-round="8" class="round-jump-btn arcade-btn py-1.5 px-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium">
+            Ronda 8 (109 px/s)
+          </button>
+          <button data-round="15" class="round-jump-btn arcade-btn py-1.5 px-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium">
+            Ronda 15 (Pass 9/10)
+          </button>
+          <button data-round="27" class="round-jump-btn arcade-btn py-1.5 px-2 rounded bg-purple-950/80 hover:bg-purple-900 text-purple-200 border border-purple-700 font-medium">
+            Ronda 27 (Hitbox 24²)
+          </button>
+          <button data-round="99" class="round-jump-btn arcade-btn py-1.5 px-2 rounded bg-amber-950/80 hover:bg-amber-900 text-amber-200 border border-amber-700 font-medium">
+            Ronda 99 (Límite)
+          </button>
+          <button data-round="0" class="round-jump-btn arcade-btn py-1.5 px-2 rounded bg-red-950/80 hover:bg-red-900 text-red-200 border border-red-700 font-bold">
+            Ronda 0 (Kill Screen)
+          </button>
+        </div>
+      </div>
+
+      <!-- Asymmetric P2 Control Pad (For Game A) -->
+      <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-3.5 shadow-lg">
+        <div class="flex items-center justify-between mb-1.5">
+          <h3 class="font-nes text-[10px] text-emerald-400">MULTIJUGADOR ASIMÉTRICO (P2)</h3>
+          <span id="p2-status" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">WASD / Flechas</span>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-2">En <strong>GAME A (1 DUCK)</strong>, el Jugador 2 controla el vector de vuelo del pato con el teclado, Gamepad o esta cruceta táctil antes del <em>Fly Away</em>:</p>
+        <div class="flex items-center justify-center gap-2 my-1">
+          <div class="grid grid-cols-3 gap-1 w-32">
+            <div></div>
+            <button data-dir="up" class="p2-dpad arcade-btn py-2 rounded bg-slate-800 active:bg-emerald-600 text-center text-xs font-bold border border-slate-700">▲</button>
+            <div></div>
+            <button data-dir="left" class="p2-dpad arcade-btn py-2 rounded bg-slate-800 active:bg-emerald-600 text-center text-xs font-bold border border-slate-700">◀</button>
+            <div class="flex items-center justify-center text-[9px] font-mono text-slate-500">P2</div>
+            <button data-dir="right" class="p2-dpad arcade-btn py-2 rounded bg-slate-800 active:bg-emerald-600 text-center text-xs font-bold border border-slate-700">▶</button>
+            <div></div>
+            <button data-dir="down" class="p2-dpad arcade-btn py-2 rounded bg-slate-800 active:bg-emerald-600 text-center text-xs font-bold border border-slate-700">▼</button>
+            <div></div>
           </div>
         </div>
       </div>
+    </aside>
+  </main>
 
-      <!-- Indicadores de Patos de la Ronda (10 patos) -->
-      <div class="flex flex-col items-center">
-        <span class="text-[#00e800] text-[8px] sm:text-[10px] mb-1">PATOS (OBJETIVO: 6)</span>
-        <div id="duckMarkers" class="flex space-x-1 sm:space-x-1.5 bg-[#1a1a1a] p-1 rounded border border-gray-700">
-          <!-- 10 Marcadores de patos generados dinámicamente -->
-        </div>
-      </div>
-
-      <!-- Puntuación y Ronda -->
-      <div class="text-right">
-        <div class="text-[#63adff]">RONDA <span id="hudRound" class="text-white">1</span></div>
-        <div class="text-[#fc9838] mt-1 font-bold">PTS <span id="hudScore" class="text-white">000000</span></div>
-      </div>
-    </footer>
-
-    <!-- Controles táctiles / Guía rápida en móviles -->
-    <div class="w-full text-center text-gray-400 text-[9px] sm:text-[10px] mt-2">
-      Dispara a los patos antes de que escapen. ¡No dejes que el perro se burle de ti!
-    </div>
-  </div>
+  <footer class="w-full max-w-5xl mt-3 text-center text-xs text-slate-500 py-2 border-t border-slate-900">
+    Haz clic o toca directamente sobre la pantalla para disparar con la NES Zapper (o seleccionar modo en el menú).
+  </footer>
 
   <script>
-    // =========================================================================
-    // MOTOR DE AUDIO RETRO 8-BITS (Web Audio API nativa sin dependencias)
-    // =========================================================================
-    class SoundEngine {
+    const LOGICAL_WIDTH = 256;
+    const LOGICAL_HEIGHT = 224;
+    const FIXED_DT = 1 / 60; // 60 Hz deterministic step (0.016667s)
+    const GRASS_LINE_Y = 170;
+
+    const FSM_STATES = {
+      BOOT_PRELOAD: 'BOOT_PRELOAD',
+      TITLE_MENU: 'TITLE_MENU',
+      ROUND_INTRO: 'ROUND_INTRO',
+      WAVE_SPAWN: 'WAVE_SPAWN',
+      ACTIVE_HUNT: 'ACTIVE_HUNT',
+      TARGET_RESOLUTION: 'TARGET_RESOLUTION',
+      FLY_AWAY: 'FLY_AWAY',
+      ROUND_EVALUATION: 'ROUND_EVALUATION',
+      NEXT_ROUND_TRANSITION: 'NEXT_ROUND_TRANSITION',
+      GAME_OVER: 'GAME_OVER'
+    };
+
+    const GAME_MODES = {
+      GAME_A: 0, // 1 Duck (supports P2 control)
+      GAME_B: 1, // 2 Ducks
+      GAME_C: 2  // Clay Shooting
+    };
+
+    class EventBus {
+      constructor() {
+        this.listeners = {};
+      }
+      on(event, callback) {
+        if (!this.listeners[event]) this.listeners[event] = [];
+        this.listeners[event].push(callback);
+      }
+      emit(event, payload) {
+        if (!this.listeners[event]) return;
+        for (let i = 0; i < this.listeners[event].length; i++) {
+          this.listeners[event][i](payload);
+        }
+      }
+    }
+
+    class SoundSynthesizer {
       constructor() {
         this.ctx = null;
         this.enabled = true;
+        this.noiseBuffer = null;
       }
 
       init() {
         if (!this.ctx) {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          this.ctx = new AudioContext();
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioCtx();
+          this.createNoiseBuffer();
         }
         if (this.ctx && this.ctx.state === 'suspended') {
           this.ctx.resume();
         }
       }
 
-      playTone(freq, type = 'square', duration = 0.1, gainVal = 0.15, pitchDecay = false) {
-        if (!this.enabled || !this.ctx) return;
-        try {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-          
-          if (pitchDecay) {
-            osc.frequency.exponentialRampToValueAtTime(Math.max(10, freq * 0.1), this.ctx.currentTime + duration);
-          }
-
-          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
-
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-
-          osc.start();
-          osc.stop(this.ctx.currentTime + duration);
-        } catch (e) {
-          console.error(e);
+      createNoiseBuffer() {
+        if (!this.ctx) return;
+        const bufferSize = this.ctx.sampleRate * 0.5;
+        this.noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = this.noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
         }
       }
 
-      // Disparo de escopeta Zapper
       playGunshot() {
-        if (!this.enabled || !this.ctx) return;
-        try {
-          // Generador de ruido blanco para la explosión del disparo
-          const bufferSize = this.ctx.sampleRate * 0.15;
-          const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-          const data = buffer.getChannelData(0);
-          for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
-          }
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
 
-          const noise = this.ctx.createBufferSource();
-          noise.buffer = buffer;
+        // 1. White Noise passed through Low-Pass BiquadFilter (3000Hz -> 100Hz in 150ms)
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = this.noiseBuffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(3000, now);
+        filter.frequency.exponentialRampToValueAtTime(100, now + 0.15);
 
-          const filter = this.ctx.createBiquadFilter();
-          filter.type = 'lowpass';
-          filter.frequency.setValueAtTime(1200, this.ctx.currentTime);
-          filter.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.15);
+        const noiseGain = this.ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.6, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
 
-          const gain = this.ctx.createGain();
-          gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(this.ctx.destination);
+        noise.start(now);
+        noise.stop(now + 0.15);
 
-          noise.connect(filter);
-          filter.connect(gain);
-          gain.connect(this.ctx.destination);
+        // 2. Square Oscillator (800Hz -> 80Hz with exponential decay tau=0.03s)
+        const osc = this.ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.14);
 
-          noise.start();
-        } catch (e) {}
+        const oscGain = this.ctx.createGain();
+        oscGain.gain.setValueAtTime(0.45, now);
+        oscGain.gain.setTargetAtTime(0.001, now, 0.03);
+
+        osc.connect(oscGain);
+        oscGain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
       }
 
-      // Clic de recámara vacía sin balas
-      playEmptyClick() {
-        this.playTone(800, 'triangle', 0.04, 0.1, true);
-      }
-
-      // Aleteo de pato
       playFlap() {
-        this.playTone(180, 'triangle', 0.06, 0.09, true);
+        if (!this.enabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.setValueAtTime(440, now + 0.025);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.18, now + 0.002);
+        gain.gain.exponentialRampToValueAtTime(0.005, now + 0.045);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.05);
       }
 
-      // Graznido de pato
       playQuack() {
         if (!this.enabled || !this.ctx) return;
-        this.playTone(420, 'sawtooth', 0.08, 0.15);
-        setTimeout(() => this.playTone(330, 'sawtooth', 0.09, 0.15), 90);
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(950, now);
+        osc.frequency.linearRampToValueAtTime(520, now + 0.07);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.075);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.08);
       }
 
-      // Pato impactado cayendo
-      playDuckHit() {
-        this.playTone(600, 'square', 0.12, 0.2, true);
+      playFalling() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.linearRampToValueAtTime(120, now + 0.65);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.setValueAtTime(0.01, now + 0.65);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.66);
       }
 
-      // Pato tocando el suelo
-      playDuckThud() {
-        this.playTone(90, 'sine', 0.1, 0.25, true);
+      playDropThud() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.exponentialRampToValueAtTime(45, now + 0.12);
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.13);
       }
 
-      // Risa burlona del perro icónico
       playDogLaugh() {
-        if (!this.enabled || !this.ctx) return;
-        const notes = [600, 750, 600, 750, 600, 750, 600, 750];
-        notes.forEach((freq, i) => {
-          setTimeout(() => {
-            this.playTone(freq, 'square', 0.07, 0.2);
-          }, i * 90);
-        });
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        // Staccato alternating pulses between 400Hz and 550Hz (60ms pulse, 40ms silence)
+        for (let i = 0; i < 4; i++) {
+          const start = now + i * 0.20;
+          this.playNote(550, start, 0.06, 'square', 0.2);
+          this.playNote(400, start + 0.07, 0.06, 'square', 0.2);
+        }
       }
 
-      // Fanfarria de inicio de ronda
-      playRoundIntro() {
+      playBark() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        for (let i = 0; i < 2; i++) {
+          const t = now + i * 0.14;
+          const osc = this.ctx.createOscillator();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(280, t);
+          osc.frequency.exponentialRampToValueAtTime(620, t + 0.05);
+          osc.frequency.exponentialRampToValueAtTime(180, t + 0.09);
+
+          const g = this.ctx.createGain();
+          g.gain.setValueAtTime(0.25, t);
+          g.gain.exponentialRampToValueAtTime(0.01, t + 0.095);
+          osc.connect(g);
+          g.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.1);
+        }
+      }
+
+      playClayLaunchBeeps() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        this.playNote(1046.5, now, 0.07, 'square', 0.2);
+        this.playNote(1046.5, now + 0.12, 0.07, 'square', 0.2);
+      }
+
+      playNote(freq, startTime, duration, type = 'square', volume = 0.2) {
         if (!this.enabled || !this.ctx) return;
-        const melody = [
-          { f: 330, d: 0.1 },
-          { f: 392, d: 0.1 },
-          { f: 523, d: 0.12 },
-          { f: 659, d: 0.25 }
+        const osc = this.ctx.createOscillator();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, startTime);
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(volume, startTime);
+        gain.gain.setValueAtTime(volume * 0.8, startTime + duration * 0.8);
+        gain.gain.linearRampToValueAtTime(0.001, startTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      }
+
+      playMenuBeep() {
+        if (!this.enabled) return;
+        this.init();
+        this.playNote(880, this.ctx.currentTime, 0.05, 'square', 0.2);
+      }
+
+      playRoundIntroJingle() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const notes = [
+          { f: 523.25, d: 0.12 }, { f: 659.25, d: 0.12 }, { f: 783.99, d: 0.12 },
+          { f: 1046.50, d: 0.24 }, { f: 783.99, d: 0.12 }, { f: 1046.50, d: 0.35 }
         ];
-        let delay = 0;
-        melody.forEach(m => {
-          setTimeout(() => this.playTone(m.f, 'square', m.d, 0.18), delay);
-          delay += m.d * 1000 + 40;
+        let t = now;
+        notes.forEach(n => {
+          this.playNote(n.f, t, n.d * 0.9, 'square', 0.22);
+          this.playNote(n.f * 0.5, t, n.d * 0.9, 'triangle', 0.18);
+          t += n.d;
         });
       }
 
-      // Éxito: perro mostrando el pato cazado
-      playDuckCaught() {
-        if (!this.enabled || !this.ctx) return;
-        const melody = [523, 659, 784, 1046];
-        melody.forEach((f, idx) => {
-          setTimeout(() => this.playTone(f, 'square', 0.08, 0.18), idx * 80);
+      playDuckCaughtJingle() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const notes = [
+          { f: 587.33, d: 0.08 }, { f: 659.25, d: 0.08 }, { f: 783.99, d: 0.08 },
+          { f: 1046.50, d: 0.16 }, { f: 783.99, d: 0.08 }, { f: 1046.50, d: 0.25 }
+        ];
+        let t = now;
+        notes.forEach(n => {
+          this.playNote(n.f, t, n.d * 0.9, 'square', 0.22);
+          t += n.d;
         });
       }
 
-      // Game Over
-      playGameOver() {
-        if (!this.enabled || !this.ctx) return;
-        const tones = [440, 415, 392, 349, 293];
-        tones.forEach((freq, idx) => {
-          setTimeout(() => this.playTone(freq, 'triangle', 0.22, 0.2, true), idx * 180);
+      playRoundClearJingle() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const notes = [
+          { f: 523.25, d: 0.12 }, { f: 659.25, d: 0.12 }, { f: 783.99, d: 0.12 },
+          { f: 1046.50, d: 0.15 }, { f: 880.00, d: 0.12 }, { f: 1046.50, d: 0.15 },
+          { f: 1174.66, d: 0.15 }, { f: 1318.51, d: 0.40 }
+        ];
+        let t = now;
+        notes.forEach(n => {
+          this.playNote(n.f, t, n.d * 0.9, 'square', 0.22);
+          t += n.d;
+        });
+      }
+
+      playPerfectJingle() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const notes = [
+          { f: 659.25, d: 0.10 }, { f: 783.99, d: 0.10 }, { f: 1046.50, d: 0.10 },
+          { f: 1318.51, d: 0.20 }, { f: 1174.66, d: 0.12 }, { f: 1318.51, d: 0.12 },
+          { f: 1567.98, d: 0.45 }
+        ];
+        let t = now;
+        notes.forEach(n => {
+          this.playNote(n.f, t, n.d * 0.9, 'square', 0.25);
+          t += n.d;
+        });
+      }
+
+      playGameOverJingle() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const notes = [
+          { f: 523.25, d: 0.22 }, { f: 493.88, d: 0.22 }, { f: 440.00, d: 0.22 },
+          { f: 392.00, d: 0.55 }
+        ];
+        let t = now;
+        notes.forEach(n => {
+          this.playNote(n.f, t, n.d * 0.9, 'square', 0.22);
+          this.playNote(n.f * 0.5, t, n.d * 0.9, 'triangle', 0.22);
+          t += n.d;
         });
       }
     }
 
-    const sound = new SoundEngine();
-
-    // =========================================================================
-    // CONFIGURACIÓN Y ESTADO DEL JUEGO
-    // =========================================================================
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const gameWrapper = document.getElementById('gameWrapper');
-
-    // Canvas resolución nativa estilo retro 4:3 (escalado por CSS)
-    const VIRTUAL_WIDTH = 400;
-    const VIRTUAL_HEIGHT = 300;
-    canvas.width = VIRTUAL_WIDTH;
-    canvas.height = VIRTUAL_HEIGHT;
-
-    // Colores NES icónicos
-    const COLORS = {
-      skyDay: '#63adff',
-      skyFlyAway: '#f87858',
-      grassFront: '#00a800',
-      grassBack: '#006800',
-      dirt: '#804000',
-      treeTrunk: '#703400',
-      treeFoliage: '#008800',
-      cloud: '#ffffff'
-    };
-
-    // Tipos de pato con velocidades y colores
-    const DUCK_TYPES = [
-      { name: 'green', color: '#00a800', headColor: '#00e800', bodyColor: '#5c4033', points: 500, speedMultiplier: 1.0 },
-      { name: 'blue',  color: '#0070ec', headColor: '#63adff', bodyColor: '#4b382a', points: 1000, speedMultiplier: 1.3 },
-      { name: 'red',   color: '#e52521', headColor: '#fc9838', bodyColor: '#6b2010', points: 1500, speedMultiplier: 1.6 }
-    ];
-
-    // Estados generales del juego
-    const STATE = {
-      MENU: 'MENU',
-      INTRO_DOG: 'INTRO_DOG',
-      FLYING: 'FLYING',
-      FLY_AWAY: 'FLY_AWAY',
-      DOG_CELEBRATE: 'DOG_CELEBRATE',
-      DOG_LAUGH: 'DOG_LAUGH',
-      ROUND_RESULTS: 'ROUND_RESULTS',
-      GAME_OVER: 'GAME_OVER'
-    };
-
-    let gameState = STATE.MENU;
-    let gameMode = 'A'; // 'A' = 1 pato, 'B' = 2 patos
-    let round = 1;
-    let score = 0;
-    let highScore = parseInt(localStorage.getItem('duckhunt_highscore') || '0', 10);
-    let bullets = 3;
-    let ducksInRound = 10;
-    let duckRoundProgress = 0; // Cantidad de patos lanzados en la ronda
-    let roundHits = 0; // Patos cazados en esta ronda
-    let roundDuckStatuses = []; // Array de 10 estados: 'pending', 'hit', 'miss'
-    let flightTime = 0;
-    const FLIGHT_DURATION = 5000; // 5 segundos para disparar antes de que escapen
-    let ducks = [];
-    let dog = null;
-    let lastTime = 0;
-    let announcementTimer = 0;
-
-    // Elementos DOM
-    const startScreen = document.getElementById('startScreen');
-    const gameOverScreen = document.getElementById('gameOverScreen');
-    const announcementBanner = document.getElementById('announcementBanner');
-    const announcementText = document.getElementById('announcementText');
-    const hudRound = document.getElementById('hudRound');
-    const hudScore = document.getElementById('hudScore');
-    const bulletsContainer = document.getElementById('bulletsContainer');
-    const duckMarkers = document.getElementById('duckMarkers');
-    const finalRound = document.getElementById('finalRound');
-    const finalHits = document.getElementById('finalHits');
-    const finalScore = document.getElementById('finalScore');
-    const finalHighScore = document.getElementById('finalHighScore');
-
-    // =========================================================================
-    // DIBUJO DE SPRITES PIXEL ART EN CANVAS
-    // =========================================================================
-
-    // Dibuja una nube clásica NES
-    function drawCloud(x, y, scale = 1) {
-      ctx.fillStyle = COLORS.cloud;
-      ctx.beginPath();
-      ctx.arc(x, y, 14 * scale, 0, Math.PI * 2);
-      ctx.arc(x + 16 * scale, y - 6 * scale, 18 * scale, 0, Math.PI * 2);
-      ctx.arc(x + 36 * scale, y, 14 * scale, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Dibuja el escenario icónico (árbol, arbusto, suelo de césped)
-    function drawScenery(skyColor) {
-      // 1. Cielo
-      ctx.fillStyle = skyColor;
-      ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
-
-      // Nubes flotantes de fondo
-      drawCloud(60, 45, 1.1);
-      drawCloud(240, 60, 0.9);
-      drawCloud(340, 35, 0.7);
-
-      // 2. Tronco del árbol a la izquierda
-      ctx.fillStyle = COLORS.treeTrunk;
-      ctx.fillRect(40, 110, 24, 120);
-      ctx.fillRect(32, 130, 14, 10);
-      ctx.fillRect(58, 145, 12, 10);
-
-      // Follaje del árbol
-      ctx.fillStyle = COLORS.treeFoliage;
-      ctx.beginPath();
-      ctx.arc(52, 90, 42, 0, Math.PI * 2);
-      ctx.arc(30, 80, 28, 0, Math.PI * 2);
-      ctx.arc(75, 82, 32, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Sombra en follaje
-      ctx.fillStyle = '#005800';
-      ctx.beginPath();
-      ctx.arc(52, 98, 38, 0, Math.PI);
-      ctx.fill();
-
-      // 3. Arbusto verde a la derecha
-      ctx.fillStyle = '#007800';
-      ctx.beginPath();
-      ctx.arc(310, 215, 26, 0, Math.PI * 2);
-      ctx.arc(335, 208, 32, 0, Math.PI * 2);
-      ctx.arc(365, 218, 24, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 4. Capa de tierra base
-      ctx.fillStyle = COLORS.dirt;
-      ctx.fillRect(0, 240, VIRTUAL_WIDTH, 60);
-
-      // Capa de césped inferior
-      ctx.fillStyle = COLORS.grassFront;
-      ctx.fillRect(0, 228, VIRTUAL_WIDTH, 14);
-
-      // Detalle de briznas de césped pixeladas
-      ctx.fillStyle = '#6ef56e';
-      for (let x = 0; x < VIRTUAL_WIDTH; x += 12) {
-        ctx.fillRect(x, 227, 4, 3);
-        ctx.fillRect(x + 6, 229, 3, 3);
+    class SpriteAtlas {
+      constructor() {
+        this.sprites = {};
+        this.compileAllSprites();
       }
-    }
 
-    // Dibuja el césped frontal que cubre a los patos caídos y al perro
-    function drawForegroundGrass() {
-      ctx.fillStyle = COLORS.grassFront;
-      ctx.fillRect(0, 230, VIRTUAL_WIDTH, 12);
-      
-      ctx.fillStyle = '#00d000';
-      for (let i = 0; i < VIRTUAL_WIDTH; i += 8) {
-        ctx.fillRect(i + 2, 226, 4, 4);
+      createCanvasFromMatrix(matrix, palette, scale = 1) {
+        const h = matrix.length;
+        const w = matrix[0].length;
+        const c = document.createElement('canvas');
+        c.width = w * scale;
+        c.height = h * scale;
+        const ctx = c.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        for (let y = 0; y < h; y++) {
+          const row = matrix[y];
+          for (let x = 0; x < w; x++) {
+            const ch = row[x];
+            if (ch !== '.' && palette[ch]) {
+              ctx.fillStyle = palette[ch];
+              ctx.fillRect(x * scale, y * scale, scale, scale);
+            }
+          }
+        }
+        return c;
       }
-    }
 
-    // Render del Pato Clásico
-    function drawDuckSprite(duck) {
-      ctx.save();
-      ctx.translate(duck.x, duck.y);
-
-      // Orientación según la dirección del vuelo
-      if (duck.vx < 0 && !duck.isFalling) {
+      flipCanvasHorizontal(sourceCanvas) {
+        const c = document.createElement('canvas');
+        c.width = sourceCanvas.width;
+        c.height = sourceCanvas.height;
+        const ctx = c.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        ctx.translate(c.width, 0);
         ctx.scale(-1, 1);
+        ctx.drawImage(sourceCanvas, 0, 0);
+        return c;
       }
 
-      const type = duck.type;
+      compileAllSprites() {
+        // NES Duck Species Color Palettes
+        const duckPalettes = {
+          black: {
+            'B': '#000000', // Body primary
+            'H': '#008844', // Head green
+            'W': '#ffffff', // Wing/Collar highlight
+            'O': '#fca044', // Beak/Feet orange
+            'E': '#000000'  // Eye pupil
+          },
+          blue: {
+            'B': '#0058f8', // Royal blue body
+            'H': '#3cbcfc', // Cyan head
+            'W': '#ffffff', // White collar/wing
+            'O': '#fca044', // Beak/Feet orange
+            'E': '#000000'
+          },
+          red: {
+            'B': '#d82800', // Crimson body
+            'H': '#881400', // Dark red head
+            'W': '#fca044', // Gold/tan wing accent
+            'O': '#fc9838', // Beak/feet
+            'E': '#000000'
+          }
+        };
 
-      if (duck.isShot && !duck.isFalling) {
-        // Pato en shock tras ser disparado
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-12, -10, 24, 20);
-        ctx.fillStyle = '#e52521';
-        ctx.fillRect(-8, -6, 16, 12);
-        ctx.fillStyle = '#fc9838';
-        ctx.fillRect(8, -4, 8, 8); // Pico
-        ctx.restore();
-        return;
+        // 16x16 matrix scaled 2x -> 32x32 NES Duck Sprite
+        const duckFlyHoriz0 = [
+          "....WWWW........",
+          "...WWWWWW.......",
+          "...BBBBWWW...HHH",
+          "....BBBBWWW.HHHH",
+          ".....BBBBBBWHHEH",
+          "..BBBBBBBBBBHHHO",
+          ".BBBBBBBBBBBBHOO",
+          "BBBBBBBBBBBBBB..",
+          "..BBBBBBBBBBB...",
+          "...WWWWWW.......",
+          "..WWWWWWWW......",
+          ".WWWWWW.........",
+          "OO..............",
+          "................",
+          "................",
+          "................"
+        ];
+
+        const duckFlyHoriz1 = [
+          "................",
+          "..........HHH...",
+          ".........HHHH...",
+          "........WHHEH...",
+          "..BBBBBBWHHHOOO.",
+          ".BBBBBBBBBBHHOO.",
+          "BBBBWWWWWWWWB...",
+          "BBBWWWWWWWWBB...",
+          "..BBBBBBBBBB....",
+          "...BBBBBBBB.....",
+          "..OO............",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................"
+        ];
+
+        const duckFlyDiag0 = [
+          "..........HHH...",
+          ".........HHHH...",
+          "...WWWW..HHEH...",
+          "..WWWWWWWHHHOOO.",
+          "..BWWWWWWBHHOO..",
+          "...BBBBBBBB.....",
+          "...BBBBBBBBB....",
+          "..BBBBBBBBBB....",
+          ".BBBBBBBBBBB....",
+          ".BBBBBBBB.......",
+          "..BBBBBB........",
+          ".OO..OO.........",
+          "................",
+          "................",
+          "................",
+          "................"
+        ];
+
+        const duckFlyDiag1 = [
+          "..........HHH...",
+          ".........HHHH...",
+          ".........HHEH...",
+          "........WHHHOOO.",
+          ".....BBBBHHOO...",
+          "....BBBBBBBB....",
+          "...BWWWWWWWWB...",
+          "..BBWWWWWWWWBB..",
+          ".BBBBWWWWWWBBB..",
+          ".BBBBBBBB.......",
+          "..BBBBBB........",
+          ".OO..OO.........",
+          "................",
+          "................",
+          "................",
+          "................"
+        ];
+
+        const duckHitMatrix = [
+          "..WW........WW..",
+          ".WWWW..HH..WWWW.",
+          ".WWWW.HHHH.WWWW.",
+          "..BBBWHWEWHWBBB.",
+          "..BBBBWEHEWBBBB.",
+          "...BBBHOOOOBBB..",
+          "...BBBBHOOOBBB..",
+          "..BBBBBBBBBBBBB.",
+          "..BBBBWWWWBBBBB.",
+          "...BBBWWWWBBBB..",
+          "....BBBBBBBB....",
+          "...OO......OO...",
+          "..OO........OO..",
+          "................",
+          "................",
+          "................"
+        ];
+
+        const duckFallMatrix = [
+          ".....OO..OO.....",
+          "......BBBB......",
+          "....BBBBBBBB....",
+          "...BBBBWWBBBB...",
+          "...BBBWWWWBBB...",
+          "...BBBBBBBBBB...",
+          "....BBBBBBBB....",
+          ".....WHHHO......",
+          ".....HHEHOO.....",
+          ".....HHHH.......",
+          "......HH........",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................"
+        ];
+
+        ['black', 'blue', 'red'].forEach(color => {
+          const pal = duckPalettes[color];
+          const h0 = this.createCanvasFromMatrix(duckFlyHoriz0, pal, 2);
+          const h1 = this.createCanvasFromMatrix(duckFlyHoriz1, pal, 2);
+          const d0 = this.createCanvasFromMatrix(duckFlyDiag0, pal, 2);
+          const d1 = this.createCanvasFromMatrix(duckFlyDiag1, pal, 2);
+          const hit = this.createCanvasFromMatrix(duckHitMatrix, pal, 2);
+          const fall0 = this.createCanvasFromMatrix(duckFallMatrix, pal, 2);
+          const fall1 = this.flipCanvasHorizontal(fall0);
+
+          this.sprites[`duck_${color}_horiz_r_0`] = h0;
+          this.sprites[`duck_${color}_horiz_r_1`] = h1;
+          this.sprites[`duck_${color}_horiz_l_0`] = this.flipCanvasHorizontal(h0);
+          this.sprites[`duck_${color}_horiz_l_1`] = this.flipCanvasHorizontal(h1);
+
+          this.sprites[`duck_${color}_diag_r_0`] = d0;
+          this.sprites[`duck_${color}_diag_r_1`] = d1;
+          this.sprites[`duck_${color}_diag_l_0`] = this.flipCanvasHorizontal(d0);
+          this.sprites[`duck_${color}_diag_l_1`] = this.flipCanvasHorizontal(d1);
+
+          this.sprites[`duck_${color}_hit`] = hit;
+          this.sprites[`duck_${color}_fall_0`] = fall0;
+          this.sprites[`duck_${color}_fall_1`] = fall1;
+        });
+
+        const dogPalette = {
+          'B': '#d84c0c', // Authentic NES vibrant orange-brown coat
+          'L': '#fca044', // Light tan fur / ear & paw highlights
+          'K': '#000000', // Black ears, nose, whisker dots & paw outlines
+          'W': '#ffffff', // White muzzle & eye sclera
+          'R': '#d82800', // Red mouth / duck body accent
+          'G': '#008844', // Caught duck green head
+          'Y': '#fc9838'  // Caught duck orange beak
+        };
+
+        // 1:1 Native NES resolution matrices (scale = 1) matching the iconic NES sprites
+        const dogSniff0 = [
+          "............................................",
+          "............................................",
+          "..........................KKKKKK............",
+          "........................KKKKKKKKKK..........",
+          "....BBBB..............KKKKBBBBBBKKKK........",
+          "..BBBBBBBB..........KKKKBBBBBBBBBBKKKK......",
+          "...BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBLLKKK....",
+          ".....BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBLLLLKKKK.",
+          ".....BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBLLLLLLKKK",
+          "......BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBWWWW..",
+          ".......BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.......",
+          "........BBBBBBBBBBBBBBBBBBBBBBBBBBBB........",
+          "........BBBBBBBB............BBBBBBBB........",
+          "........BBBBBBBB............BBBBBBBB........",
+          "........BBBBBBBB............BBBBBBBB........",
+          "........WWWWWWWW............WWWWWWWW........"
+        ];
+
+        const dogSniff1 = [
+          "............................................",
+          "............................................",
+          "............................KKKKKK..........",
+          "..........................KKKKKKKKKK........",
+          "......BBBB..............KKKKBBBBBBKKKK......",
+          "....BBBBBBBB..........KKKKBBBBBBBBBBKKKK....",
+          "....BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBLLKKK....",
+          ".....BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBLLLLKKKK.",
+          ".....BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBLLLLLLKKK",
+          "......BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBWWWW..",
+          ".......BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.......",
+          "........BBBBBBBBBBBBBBBBBBBBBBBBBBBB........",
+          ".......BBBBBBBB..............BBBBBBBB.......",
+          "......BBBBBBBB................BBBBBBBB......",
+          "......WWWWWWWW................WWWWWWWW......",
+          "............................................"
+        ];
+
+        const dogAlert = [
+          "..........................KKKK..KKKK........",
+          ".........................KKKKKKKKKKKK.......",
+          ".........................KKBBBBBBBBKK.......",
+          ".......................KKKKBBWWBBWWKKKK.....",
+          ".......................KKKKBBWKBBWKKKKK.....",
+          ".......................KKKKBBBBBBBBLLKKK....",
+          "....BBBB.................BBBBBBBBBBLLLLKK...",
+          "..BBBBBBBB.............BBBBBBBBBBBBLLLL.....",
+          "...BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.........",
+          ".....BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.........",
+          "......BBBBBBBBBBBBBBBBBBBBBBBBBBBB..........",
+          "........BBBBBBBBBBBBBBBBBBBBBBBB............",
+          "........BBBBBBBB........BBBBBBBB............",
+          "........BBBBBBBB........BBBBBBBB............",
+          "........BBBBBBBB........BBBBBBBB............",
+          "........WWWWWWWW........WWWWWWWW............"
+        ];
+
+        const dogJump = [
+          "..........................KKKKKKKK..........",
+          "........................KKKKBBBBKKKK........",
+          "......................KKKKBBBBBBBBWWKK......",
+          "....................BBBBBBBBBBBBBBBBLLKK....",
+          "......BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBLLLL....",
+          "....BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB........",
+          "..WWWW..BBBBBBBBBBBBBBBBBBBBBBBB..WWWW......",
+          "............BBBBBBBBBBBBBBBB................",
+          "............................................",
+          "............................................"
+        ];
+
+        // Exact 32x36 pixel reproduction of the attached NES Laughing Dog reference image
+        const dogLaugh0 = [
+          "......KKKKK.........KKKK........",
+          "....KKKKKKKK.......KKKKKKKKKKK..",
+          "...KKKKKKKKKKBBBBBBKKKKKKKKKKKK.",
+          "..KKKKKKKKKKBBBBBBBBKKKKKKKKKKK.",
+          "..KKKKKKK..BBBBBBBBBB....KKKKKK.",
+          "..KKKKKK..BBWWWWBWWWWBB....KKK..",
+          "..KKKKKK..BBWWKKBWWKKBB.........",
+          "...KKKK...BBWWKKBWWKKBB.........",
+          "....KK....BBWWWWBWWWWBB.........",
+          "..........BBBWWKKKWWBBB.........",
+          "........WWWWWWKKKKKWWWWWW.......",
+          ".......WWWWWWWWKKKKWWWWWWW......",
+          ".......WWWKWWWKWWWWKWWWKWW......",
+          "......WWWWWWWWWWWWWWWWWWWWW.....",
+          "....BBWWWWKWKWKKKKKKWKWKWWWWBB..",
+          "...BBBBWWWWWWKKKKKKKKWWWWWWBBBB.",
+          "..BBBBBBWWWWWWKKKKKKKWWKWWWBBBBB",
+          "..BBBBBBBKKWWWWWWWWKBBKBBKBBBBBB",
+          ".BBBBBBBBBBKKWWWWWWKBBBBKBBBBBBB",
+          ".BBBBBBBBBBBBKKKKKKBBKBBKBBBBBBB",
+          ".BBBBBBBBBBKBBBBBBBBKBBBBKBBBBBB",
+          ".BBBBBBBBBBKBBBBBBBBBBKKBBBBBBBB",
+          "..BBBBBBBBBBKKKKKKKKBBBBBBKBBBBB",
+          "...BBBBBBBBBBBBBBBBKBBBBBKBBBBBB",
+          ".....BBBBBBBBBBBBBKBKBBBKBBBBBBB",
+          ".......BBBBBBBBBKBKBBBBKBBBBBBBB",
+          ".......BBBBBBBBBBKBBBBKBBBBBBBBB",
+          ".......BBBBBBBBBBBBKKBBBBBBBBBBB",
+          ".......BBBBBBBBBBBBBBBBBBBBBBBBB",
+          ".......BBBBBBBBBBBBBBBBBBBBBBBBB",
+          ".......BBBBBBBBBBBBBBBBBBBBBBBBB",
+          ".......BBBBBBBBBBBBBBBBBBBBBBBBB",
+          "........BBBBBBBBBBBBBBBBBBBBBBB.",
+          "........BBBBBBBBBBBBBBBBBBBBBBB.",
+          ".........BBBBBBBBBBBBBBBBBBBBB..",
+          ".........BBBBBBBBBBBBBBBBBBBBB.."
+        ];
+
+        // Frame 2 of laugh animation (ears & shoulders bounce, mouth/paw shifts)
+        const dogLaugh1 = [
+          "................................",
+          "......KKKKK.........KKKK........",
+          "....KKKKKKKK.......KKKKKKKKKKK..",
+          "...KKKKKKKKKKBBBBBBKKKKKKKKKKKK.",
+          "..KKKKKKKKKKBBBBBBBBKKKKKKKKKKK.",
+          "..KKKKKKK..BBBBBBBBBB....KKKKKK.",
+          "..KKKKKK..BBWWWWBWWWWBB....KKK..",
+          "..KKKKKK..BBKKKKBKKKKBB.........",
+          "...KKKK...BBWWWWBWWWWBB.........",
+          "....KK....BBBWWKKKWWBBB.........",
+          "........WWWWWWKKKKKWWWWWW.......",
+          ".......WWWWWWWWKKKKWWWWWWW......",
+          ".......WWWKWWWKWWWWKWWWKWW......",
+          "......WWWWWWWWWWWWWWWWWWWWW.....",
+          "....BBWWWWKWKWKKKKKKWKWKWWWWBB..",
+          "...BBBBWWWWWWKKKKKKKKWWWWWWBBBB.",
+          "..BBBBBBWWWWWWKKKKRRKWWKWWWBBBBB",
+          "..BBBBBBBKKWWWWWWWRRBBKBBKBBBBBB",
+          ".BBBBBBBBBBKKWWWWWWKBBBBKBBBBBBB",
+          ".BBBBBBBBBBBBKKKKKKBBKBBKBBBBBBB",
+          ".BBBBBBBBBBBKKKKKKKKKBBBBKBBBBBB",
+          ".BBBBBBBBBBKBBBBBBBBBBKKBBBBBBBB",
+          "..BBBBBBBBBBKKKKKKKKBBBBBBKBBBBB",
+          "...BBBBBBBBBBBBBBBBKBBBBBKBBBBBB",
+          ".....BBBBBBBBBBBBBKBKBBBKBBBBBBB",
+          ".......BBBBBBBBBKBKBBBBKBBBBBBBB",
+          ".......BBBBBBBBBBKBBBBKBBBBBBBBB",
+          ".......BBBBBBBBBBBBKKBBBBBBBBBBB",
+          ".......BBBBBBBBBBBBBBBBBBBBBBBBB",
+          ".......BBBBBBBBBBBBBBBBBBBBBBBBB",
+          ".......BBBBBBBBBBBBBBBBBBBBBBBBB",
+          ".......BBBBBBBBBBBBBBBBBBBBBBBBB",
+          "........BBBBBBBBBBBBBBBBBBBBBBB.",
+          "........BBBBBBBBBBBBBBBBBBBBBBB.",
+          ".........BBBBBBBBBBBBBBBBBBBBB..",
+          ".........BBBBBBBBBBBBBBBBBBBBB.."
+        ];
+
+        const dogHold1 = [
+          "......KKKKK.........KKKK........",
+          "....KKKKKKKK.......KKKKKKKKKKK..",
+          "...KKKKKKKKKKBBBBBBKKKKKKKKKKKK.",
+          "..KKKKKKKKKKBBBBBBBBKKKKKKKKKKK.",
+          "..KKKKKKK..BBBBBBBBBB....KKKKKK.",
+          "..KKKKKK..BBWWWWBWWWWBB....KKK..",
+          "..KKKKKK..BBWWKKBWWKKBB....GGGG.",
+          "...KKKK...BBWWKKBWWKKBB...GGGGGG",
+          "....KK....BBWWWWBWWWWBB...GGWWYY",
+          "..........BBBWWKKKWWBBB....RRRR.",
+          "........WWWWWWKKKKKWWWWWW.RRRRRR",
+          ".......WWWWWWWWKKKKWWWWWWWRRRRRR",
+          ".......WWWKWWWKWWWWKWWWKWWWRRRR.",
+          "......WWWWWWWWWWWWWWWWWWWWWWWWW.",
+          "....BBWWWWKWKWKKKKKKWKWKWWWWBBBB",
+          "...BBBBWWWWWWKKKKKKKKWWWWWWBBBBB",
+          "..BBBBBBWWWWWWKKKKKKKWWWWBBBBBBB",
+          "..BBBBBBBKKWWWWWWWWWWWWBBBBBBBBB",
+          "..BBBBBBBBBKKKKKKKKKKKKBBBBBBBBB",
+          "...BBBBBBBBBBBBBBBBBBBBBBBBBBBB.",
+          "....BBBBBBBBBBBBBBBBBBBBBBBBBB..",
+          "......BBBBBBBBBBBBBBBBBBBBBB....",
+          ".......BBBBBBBBBBBBBBBBBBBB.....",
+          ".......BBBBBBBBBBBBBBBBBBBB.....",
+          ".......BBBBBBBBBBBBBBBBBBBB.....",
+          ".......BBBBBBBBBBBBBBBBBBBB.....",
+          "........BBBBBBBBBBBBBBBBBB......",
+          "........BBBBBBBBBBBBBBBBBB......"
+        ];
+
+        const dogHold2 = [
+          "........KKKKK.........KKKK..........",
+          "......KKKKKKKK.......KKKKKKKKKKK....",
+          ".....KKKKKKKKKKBBBBBBKKKKKKKKKKKK...",
+          "....KKKKKKKKKKBBBBBBBBKKKKKKKKKKK...",
+          "....KKKKKKK..BBBBBBBBBB....KKKKKK...",
+          ".GGGGKKKKK..BBWWWWBWWWWBB....KKK....",
+          "GGGGGGKKKK..BBWWKKBWWKKBB....GGGG...",
+          "YYWWGGKKK...BBWWKKBWWKKBB...GGGGGG..",
+          ".RRRR.KK....BBWWWWBWWWWBB...GGWWYY..",
+          "RRRRRR......BBBWWKKKWWBBB....RRRR...",
+          "RRRRRR....WWWWWWKKKKKWWWWWW.RRRRRR..",
+          ".RRRR....WWWWWWWWKKKKWWWWWWWRRRRRR..",
+          ".WWWWW...WWWKWWWKWWWWKWWWKWWWRRRR...",
+          "BBBBWWW.WWWWWWWWWWWWWWWWWWWWWWWWW...",
+          "BBBBBWWWWWWWKWKWKKKKKKWKWKWWWWBBBB..",
+          "BBBBBBWWWWWWWWKKKKKKKKWWWWWWBBBBBB..",
+          ".BBBBBBBWWWWWWKKKKKKKWWWWBBBBBBBB...",
+          "..BBBBBBBKKWWWWWWWWWWWWBBBBBBBBB....",
+          "...BBBBBBBBKKKKKKKKKKKKBBBBBBBB.....",
+          "....BBBBBBBBBBBBBBBBBBBBBBBBBB......",
+          "......BBBBBBBBBBBBBBBBBBBBBB........",
+          "........BBBBBBBBBBBBBBBBBBBB........",
+          ".........BBBBBBBBBBBBBBBBBB.........",
+          ".........BBBBBBBBBBBBBBBBBB.........",
+          ".........BBBBBBBBBBBBBBBBBB.........",
+          ".........BBBBBBBBBBBBBBBBBB.........",
+          "..........BBBBBBBBBBBBBBBB..........",
+          "..........BBBBBBBBBBBBBBBB.........."
+        ];
+
+        this.sprites.dog_sniff_0 = this.createCanvasFromMatrix(dogSniff0, dogPalette, 1);
+        this.sprites.dog_sniff_1 = this.createCanvasFromMatrix(dogSniff1, dogPalette, 1);
+        this.sprites.dog_alert = this.createCanvasFromMatrix(dogAlert, dogPalette, 1);
+        this.sprites.dog_jump = this.createCanvasFromMatrix(dogJump, dogPalette, 1);
+        this.sprites.dog_hold_1 = this.createCanvasFromMatrix(dogHold1, dogPalette, 1);
+        this.sprites.dog_hold_2 = this.createCanvasFromMatrix(dogHold2, dogPalette, 1);
+        this.sprites.dog_laugh_0 = this.createCanvasFromMatrix(dogLaugh0, dogPalette, 1);
+        this.sprites.dog_laugh_1 = this.createCanvasFromMatrix(dogLaugh1, dogPalette, 1);
       }
-
-      if (duck.isFalling) {
-        // Pato cayendo en picado
-        ctx.rotate(Math.PI / 2);
-        ctx.fillStyle = type.bodyColor;
-        ctx.fillRect(-14, -8, 28, 16);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-6, -4, 12, 8);
-        ctx.fillStyle = type.headColor;
-        ctx.fillRect(-16, -6, 8, 12);
-        ctx.fillStyle = '#fc9838';
-        ctx.fillRect(-22, -2, 6, 6);
-        ctx.restore();
-        return;
-      }
-
-      // Animación de alas (Flap cycle: 0 = alas arriba, 1 = planeando, 2 = alas abajo)
-      const frame = Math.floor(duck.animTimer / 80) % 3;
-
-      // Cuerpo
-      ctx.fillStyle = type.bodyColor;
-      ctx.fillRect(-12, -6, 22, 14);
-
-      // Vientre / pecho blanco/gris
-      ctx.fillStyle = '#e8d8b8';
-      ctx.fillRect(-6, 0, 14, 8);
-
-      // Cabeza
-      ctx.fillStyle = type.headColor;
-      ctx.fillRect(8, -12, 12, 12);
-
-      // Ojo
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(14, -10, 4, 4);
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(16, -9, 2, 2);
-
-      // Pico naranja
-      ctx.fillStyle = '#fc9838';
-      ctx.fillRect(20, -7, 8, 5);
-
-      // Alas según frame
-      ctx.fillStyle = type.color;
-      if (frame === 0) {
-        // Alas arriba
-        ctx.beginPath();
-        ctx.moveTo(-6, -6);
-        ctx.lineTo(-2, -22);
-        ctx.lineTo(8, -6);
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, -18, 5, 8);
-      } else if (frame === 1) {
-        // Alas al medio (planeando horizontal)
-        ctx.fillRect(-10, -3, 18, 5);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-4, -2, 8, 3);
-      } else {
-        // Alas abajo
-        ctx.beginPath();
-        ctx.moveTo(-6, 4);
-        ctx.lineTo(0, 18);
-        ctx.lineTo(8, 4);
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(1, 8, 5, 6);
-      }
-
-      ctx.restore();
     }
 
-    // Render del Perro (Caminando, Saltando, Celebrando o Riendo)
-    function drawDogSprite(dog) {
-      if (!dog.visible) return;
-      ctx.save();
-      ctx.translate(dog.x, dog.y);
+    class ScoreManager {
+      constructor() {
+        this.score = 0;
+        this.topScores = {
+          [GAME_MODES.GAME_A]: 12000,
+          [GAME_MODES.GAME_B]: 12000,
+          [GAME_MODES.GAME_C]: 12000
+        };
+        this.loadTopScores();
+        this.round = 1;
+        this.targetResults = new Array(10).fill(0); // 0: pending, 1: hit, 2: miss
+        this.targetsSpawnedInRound = 0;
+      }
 
-      const dColor = '#8c501e'; // Marrón pelaje
-      const bellyColor = '#d9a066'; // Color beige hocico/barriga
-      const black = '#000000';
-      const white = '#ffffff';
+      loadTopScores() {
+        try {
+          const saved = localStorage.getItem('duck_hunt_nes_top_scores');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            this.topScores = { ...this.topScores, ...parsed };
+          }
+        } catch (e) {
+          // Fallback to default 12000
+        }
+      }
 
-      if (dog.action === 'walk') {
-        // Caminando en el pasto
-        ctx.fillStyle = dColor;
-        ctx.fillRect(-18, -26, 36, 24); // Cuerpo
-        ctx.fillStyle = bellyColor;
-        ctx.fillRect(-4, -14, 18, 12);
+      saveTopScores(mode) {
+        if (this.score > this.topScores[mode]) {
+          this.topScores[mode] = this.score;
+          try {
+            localStorage.setItem('duck_hunt_nes_top_scores', JSON.stringify(this.topScores));
+          } catch (e) {}
+        }
+      }
 
-        // Cabeza
-        ctx.fillStyle = dColor;
-        ctx.fillRect(12, -34, 16, 18);
-        // Oreja larga
-        ctx.fillStyle = '#5c3210';
-        ctx.fillRect(8, -32, 6, 18);
-        // Hocico
-        ctx.fillStyle = bellyColor;
-        ctx.fillRect(24, -26, 10, 10);
-        ctx.fillStyle = black;
-        ctx.fillRect(32, -26, 4, 4); // Nariz
-        // Ojo
-        ctx.fillStyle = black;
-        ctx.fillRect(20, -31, 3, 3);
+      resetForNewGame() {
+        this.score = 0;
+        this.round = 1;
+        this.resetRoundTargets();
+      }
 
-        // Patitas animadas
-        ctx.fillStyle = dColor;
-        const step = Math.floor(dog.animTimer / 100) % 2;
-        if (step === 0) {
-          ctx.fillRect(-14, -2, 7, 12);
-          ctx.fillRect(8, -2, 7, 12);
+      resetRoundTargets() {
+        this.targetResults.fill(0);
+        this.targetsSpawnedInRound = 0;
+      }
+
+      getPassLineRequirement(round) {
+        if (round === 0) return 10; // Kill screen
+        if (round <= 10) return 6;
+        if (round <= 12) return 7;
+        if (round <= 14) return 8;
+        if (round <= 19) return 9;
+        return 10;
+      }
+
+      getTargetScoreValue(type, round) {
+        const idx = round <= 5 ? 0 : (round <= 10 ? 1 : 2);
+        const matrix = {
+          black: [500, 800, 1000],
+          blue:  [1000, 1600, 2000],
+          red:   [1500, 2400, 3000],
+          clay:  [1000, 1500, 2000]
+        };
+        return (matrix[type] || matrix.black)[idx];
+      }
+
+      getPerfectBonusValue(round) {
+        if (round <= 10) return 10000;
+        if (round <= 14) return 15000;
+        if (round <= 19) return 20000;
+        return 30000;
+      }
+
+      registerTargetHit(index, type, mode) {
+        const pts = this.getTargetScoreValue(type, this.round);
+        this.score = Math.min(999999, this.score + pts);
+        this.saveTopScores(mode);
+        if (index >= 0 && index < 10) {
+          this.targetResults[index] = 1;
+        }
+        return pts;
+      }
+
+      registerTargetMiss(index) {
+        if (index >= 0 && index < 10 && this.targetResults[index] === 0) {
+          this.targetResults[index] = 2;
+        }
+      }
+
+      getHitsCount() {
+        return this.targetResults.filter(r => r === 1).length;
+      }
+
+      static computeBaseSpeed(round) {
+        if (round === 0) return 0; // Round 0 Kill Screen anomaly
+        if (round <= 8) {
+          return 55 + 15.28 * (round - 1);
+        } else if (round <= 12) {
+          return 109 + 13.25 * (round - 8);
+        } else if (round <= 27) {
+          return 162 + 0.20 * (round - 12);
         } else {
-          ctx.fillRect(-8, -2, 7, 12);
-          ctx.fillRect(14, -2, 7, 12);
+          return 165.5;
         }
-      } else if (dog.action === 'sniff') {
-        // Husmeando el suelo
-        ctx.fillStyle = dColor;
-        ctx.fillRect(-18, -22, 36, 22);
-        ctx.fillStyle = bellyColor;
-        ctx.fillRect(-2, -10, 16, 10);
-        // Cabeza baja
-        ctx.fillStyle = dColor;
-        ctx.fillRect(14, -18, 16, 16);
-        ctx.fillStyle = '#5c3210';
-        ctx.fillRect(10, -18, 6, 16);
-        ctx.fillStyle = bellyColor;
-        ctx.fillRect(26, -10, 10, 8);
-        ctx.fillStyle = black;
-        ctx.fillRect(34, -10, 4, 4);
-      } else if (dog.action === 'jump') {
-        // Perro saltando hacia el arbusto
-        ctx.fillStyle = dColor;
-        ctx.fillRect(-16, -30, 32, 26);
-        ctx.fillStyle = bellyColor;
-        ctx.fillRect(-4, -18, 16, 14);
-        // Cabeza alegre mirando arriba
-        ctx.fillStyle = dColor;
-        ctx.fillRect(10, -42, 18, 18);
-        ctx.fillStyle = '#5c3210';
-        ctx.fillRect(4, -40, 8, 16);
-        ctx.fillStyle = bellyColor;
-        ctx.fillRect(22, -36, 10, 10);
-        ctx.fillStyle = black;
-        ctx.fillRect(30, -36, 4, 4);
-      } else if (dog.action === 'caught') {
-        // Perro asomándose detrás del pasto con 1 o 2 patos cazados
-        // Cabeza y cuerpo
-        ctx.fillStyle = dColor;
-        ctx.fillRect(-20, -42, 40, 44);
-        ctx.fillStyle = bellyColor;
-        ctx.fillRect(-12, -26, 24, 28);
-        // Orejas
-        ctx.fillStyle = '#5c3210';
-        ctx.fillRect(-26, -42, 8, 22);
-        ctx.fillRect(18, -42, 8, 22);
-        // Hocico sonriente
-        ctx.fillStyle = bellyColor;
-        ctx.fillRect(-10, -28, 20, 16);
-        ctx.fillStyle = black;
-        ctx.fillRect(-4, -28, 8, 6); // Nariz
-        // Ojos felices cerrados ^ ^
-        ctx.fillStyle = black;
-        ctx.fillRect(-14, -36, 6, 3);
-        ctx.fillRect(8, -36, 6, 3);
-
-        // Pato(s) sostenido(s) en mano
-        ctx.fillStyle = '#00a800';
-        ctx.fillRect(14, -50, 18, 14);
-        ctx.fillStyle = '#fc9838';
-        ctx.fillRect(28, -46, 6, 5); // Pico de pato
-        if (dog.duckCount === 2) {
-          ctx.fillStyle = '#0070ec';
-          ctx.fillRect(-32, -50, 18, 14);
-          ctx.fillStyle = '#fc9838';
-          ctx.fillRect(-36, -46, 6, 5);
-        }
-      } else if (dog.action === 'laugh') {
-        // El icónico perro burlón riéndose con la pata en el hocico
-        const laughFrame = Math.floor(dog.animTimer / 120) % 2;
-        const offsetY = laughFrame === 0 ? 0 : -4;
-
-        ctx.fillStyle = dColor;
-        ctx.fillRect(-20, -42 + offsetY, 40, 44);
-        ctx.fillStyle = bellyColor;
-        ctx.fillRect(-12, -24 + offsetY, 24, 26);
-        // Orejas
-        ctx.fillStyle = '#5c3210';
-        ctx.fillRect(-26, -42 + offsetY, 8, 22);
-        ctx.fillRect(18, -42 + offsetY, 8, 22);
-        // Ojos burlones abiertos
-        ctx.fillStyle = white;
-        ctx.fillRect(-14, -36 + offsetY, 8, 8);
-        ctx.fillRect(6, -36 + offsetY, 8, 8);
-        ctx.fillStyle = black;
-        ctx.fillRect(-10, -34 + offsetY, 4, 4);
-        ctx.fillRect(10, -34 + offsetY, 4, 4);
-
-        // Pata cubriendo la boca para reírse
-        ctx.fillStyle = bellyColor;
-        ctx.fillRect(-6, -26 + offsetY, 16, 12);
-        ctx.fillStyle = black;
-        ctx.fillRect(2, -26 + offsetY, 4, 4);
       }
 
-      ctx.restore();
+      static computeFlightDuration(round) {
+        if (round === 0) return 1.2; // Glitch rapid timeout
+        return Math.max(5.1, 11.5 - 0.337 * (round - 1));
+      }
+
+      static computeHitboxArea(round) {
+        if (round === 0) return 64; // Nearly impossible glitch hitbox
+        return round < 27 ? 1024 : 591;
+      }
     }
 
-    // =========================================================================
-    // LÓGICA DE PATOS Y PERRO
-    // =========================================================================
-    class Duck {
-      constructor(type, speedBoost) {
-        this.type = type;
-        // Inician saliendo desde la parte inferior del pasto
-        this.x = 80 + Math.random() * (VIRTUAL_WIDTH - 160);
-        this.y = 220;
-        
-        const baseSpeed = 2.2 * type.speedMultiplier * speedBoost;
-        const angle = -Math.PI / 4 + (Math.random() * -Math.PI / 2); // Vuelo ascendente aleatorio
-        this.vx = Math.cos(angle) * baseSpeed;
-        this.vy = Math.sin(angle) * baseSpeed;
+    class DuckEntity {
+      constructor(atlas, sound) {
+        this.atlas = atlas;
+        this.sound = sound;
+        this.active = false;
+        this.reset();
+      }
 
+      reset() {
+        this.index = 0;
+        this.colorType = 'black';
+        this.x = 128;
+        this.y = GRASS_LINE_Y;
+        this.vx = 0;
+        this.vy = 0;
+        this.width = 32;
+        this.height = 32;
+        this.state = 'INACTIVE'; // 'FLYING', 'HIT_FREEZE', 'FALLING', 'ESCAPING', 'DONE'
+        this.flightTimer = 0;
+        this.maxFlightTime = 11.5;
+        this.stateTimer = 0;
         this.animTimer = 0;
-        this.isShot = false;
-        this.isFalling = false;
-        this.escaped = false;
-        this.visible = true;
-        this.shotPauseTimer = 0;
-        this.fallSpeed = 0;
-        this.quackTimer = Math.random() * 800 + 400;
+        this.animFrame = 0;
+        this.flapSoundTimer = 0;
+        this.quackTimer = 0;
+        this.scorePopup = 0;
+        this.scorePopupTimer = 0;
+        this.killScreenGlitch = false;
+      }
+
+      // Box-Muller transform for normal distribution N(mu, sigma)
+      static randomNormal(mu, sigma) {
+        let u1 = 0, u2 = 0;
+        while (u1 === 0) u1 = Math.random();
+        while (u2 === 0) u2 = Math.random();
+        const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+        return mu + z0 * sigma;
+      }
+
+      spawn(index, round) {
+        this.reset();
+        this.active = true;
+        this.index = index;
+        this.state = 'FLYING';
+
+        // Species assignment weighted by speed/points
+        const rollColor = Math.random();
+        if (rollColor < 0.45) this.colorType = 'black';
+        else if (rollColor < 0.80) this.colorType = 'blue';
+        else this.colorType = 'red';
+
+        const speciesMultiplier = this.colorType === 'red' ? 1.22 : (this.colorType === 'blue' ? 1.08 : 0.95);
+        const baseV = ScoreManager.computeBaseSpeed(round) * speciesMultiplier;
+        this.maxFlightTime = ScoreManager.computeFlightDuration(round);
+
+        // Empirical NES Spawn Distribution (Left 39.9% Normal mu=60, sigma=8; Right 60.1% Uniform [110, 214])
+        const isLeftRegion = Math.random() < 0.399;
+        let thetaDeg = 45;
+
+        if (isLeftRegion) {
+          this.x = Math.max(16, Math.min(96, DuckEntity.randomNormal(60, 8)));
+          thetaDeg = 25 + Math.random() * 50; // [25°, 75°]
+        } else {
+          this.x = 110 + Math.random() * 104; // [110, 214]
+          thetaDeg = 105 + Math.random() * 50; // [105°, 155°]
+        }
+
+        this.y = GRASS_LINE_Y - 12;
+        const thetaRad = (thetaDeg * Math.PI) / 180;
+        this.vx = baseV * Math.cos(thetaRad);
+        this.vy = -baseV * Math.sin(thetaRad);
+
+        // Kill Screen (Round 0) emulation
+        if (round === 0) {
+          this.killScreenGlitch = true;
+          this.vx = (Math.random() - 0.5) * 450;
+          this.vy = 0;
+        }
+      }
+
+      update(dt, p2InputVector, canP2Control) {
+        if (!this.active || this.state === 'DONE') return;
+
+        if (this.scorePopupTimer > 0) {
+          this.scorePopupTimer -= dt;
+        }
+
+        if (this.state === 'FLYING') {
+          this.flightTimer += dt;
+          if (this.flightTimer >= this.maxFlightTime) {
+            this.triggerFlyAway();
+            return;
+          }
+
+          // Asymmetric Multiplayer P2 Force Vector
+          if (canP2Control && (p2InputVector.x !== 0 || p2InputVector.y !== 0)) {
+            const speedMag = Math.hypot(this.vx, this.vy) || 90;
+            this.vx = p2InputVector.x * speedMag;
+            this.vy = p2InputVector.y * speedMag;
+          }
+
+          // Kill screen erratic teleportation
+          if (this.killScreenGlitch && Math.random() < 0.15) {
+            this.x = (this.x + 85) % LOGICAL_WIDTH;
+            this.y = 20 + Math.random() * 120;
+          }
+
+          this.x += this.vx * dt;
+          this.y += this.vy * dt;
+
+          // Stochastic Angular Reflection on Borders (delta in [-15°, 15°])
+          if (this.x <= 4) {
+            this.x = 4;
+            this.reflectVector(true);
+          } else if (this.x >= LOGICAL_WIDTH - this.width - 4) {
+            this.x = LOGICAL_WIDTH - this.width - 4;
+            this.reflectVector(true);
+          }
+
+          if (this.y <= 6) {
+            this.y = 6;
+            this.reflectVector(false);
+          } else if (this.y >= GRASS_LINE_Y - 24) {
+            this.y = GRASS_LINE_Y - 24;
+            this.vy = -Math.abs(this.vy);
+          }
+
+          // Wing flap animation & procedural audio
+          this.animTimer += dt;
+          if (this.animTimer >= 0.08) {
+            this.animTimer = 0;
+            this.animFrame = (this.animFrame + 1) % 2;
+          }
+          this.flapSoundTimer += dt;
+          if (this.flapSoundTimer >= 0.16) {
+            this.flapSoundTimer = 0;
+            this.sound.playFlap();
+          }
+          this.quackTimer += dt;
+          if (this.quackTimer >= 1.4) {
+            this.quackTimer = 0;
+            this.sound.playQuack();
+          }
+        } else if (this.state === 'HIT_FREEZE') {
+          // 200ms impact freeze frame
+          this.stateTimer += dt;
+          if (this.stateTimer >= 0.22) {
+            this.state = 'FALLING';
+            this.stateTimer = 0;
+            this.sound.playFalling();
+          }
+        } else if (this.state === 'FALLING') {
+          this.y += 165 * dt;
+          this.animTimer += dt;
+          if (this.animTimer >= 0.07) {
+            this.animTimer = 0;
+            this.animFrame = (this.animFrame + 1) % 2;
+          }
+          if (this.y >= GRASS_LINE_Y + 4) {
+            this.y = GRASS_LINE_Y + 4;
+            this.state = 'DONE';
+            this.sound.playDropThud();
+          }
+        } else if (this.state === 'ESCAPING') {
+          this.y += this.vy * dt;
+          this.x += this.vx * dt;
+          this.animTimer += dt;
+          if (this.animTimer >= 0.06) {
+            this.animTimer = 0;
+            this.animFrame = (this.animFrame + 1) % 2;
+          }
+          if (this.y < -36) {
+            this.state = 'DONE';
+          }
+        }
+      }
+
+      reflectVector(isHorizontalWall) {
+        const deltaDeg = (Math.random() * 30) - 15; // [-15°, 15°]
+        const deltaRad = (deltaDeg * Math.PI) / 180;
+        const cosD = Math.cos(deltaRad);
+        const sinD = Math.sin(deltaRad);
+
+        let rx = isHorizontalWall ? -this.vx : this.vx;
+        let ry = isHorizontalWall ? this.vy : -this.vy;
+
+        const nextVx = rx * cosD - ry * sinD;
+        const nextVy = rx * sinD + ry * cosD;
+
+        // Prevent horizontal lock by ensuring minimum vertical velocity
+        this.vx = nextVx;
+        this.vy = Math.abs(nextVy) < 25 ? (nextVy < 0 ? -35 : 35) : nextVy;
+      }
+
+      triggerFlyAway() {
+        if (this.state !== 'FLYING') return;
+        this.state = 'ESCAPING';
+        const speed = Math.max(130, Math.hypot(this.vx, this.vy) * 1.35);
+        this.vx = (Math.random() - 0.5) * 30;
+        this.vy = -speed;
+      }
+
+      checkHit(px, py, hitboxArea) {
+        if (!this.active || (this.state !== 'FLYING' && this.state !== 'ESCAPING')) return false;
+        if (this.killScreenGlitch) return false; // Round 0 unshootable anomaly
+
+        const boxSide = Math.sqrt(hitboxArea);
+        const half = boxSide / 2;
+        const cx = this.x + this.width / 2;
+        const cy = this.y + this.height / 2;
+
+        if (px >= cx - half && px <= cx + half && py >= cy - half && py <= cy + half) {
+          this.state = 'HIT_FREEZE';
+          this.stateTimer = 0;
+          return true;
+        }
+        return false;
+      }
+
+      getHitboxRect(hitboxArea) {
+        const side = Math.sqrt(hitboxArea);
+        const cx = this.x + this.width / 2;
+        const cy = this.y + this.height / 2;
+        return {
+          x: Math.round(cx - side / 2),
+          y: Math.round(cy - side / 2),
+          w: Math.round(side),
+          h: Math.round(side)
+        };
+      }
+
+      render(ctx) {
+        if (!this.active) return;
+
+        if (this.state !== 'DONE') {
+          let spriteKey = '';
+          const dir = this.vx >= 0 ? 'r' : 'l';
+          const isDiag = Math.abs(this.vy) > Math.abs(this.vx) * 0.65;
+
+          if (this.state === 'HIT_FREEZE') {
+            spriteKey = `duck_${this.colorType}_hit`;
+          } else if (this.state === 'FALLING') {
+            spriteKey = `duck_${this.colorType}_fall_${this.animFrame}`;
+          } else {
+            const pose = isDiag ? 'diag' : 'horiz';
+            spriteKey = `duck_${this.colorType}_${pose}_${dir}_${this.animFrame}`;
+          }
+
+          const img = this.atlas.sprites[spriteKey];
+          if (img) {
+            ctx.drawImage(img, Math.round(this.x), Math.round(this.y));
+          }
+        }
+
+        // Render points popup on hit
+        if (this.scorePopupTimer > 0 && this.scorePopup > 0) {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '8px "Press Start 2P", monospace';
+          ctx.fillText(String(this.scorePopup), Math.round(this.x), Math.round(this.y + 12));
+        }
+      }
+    }
+
+    class ClayEntity {
+      constructor(sound) {
+        this.sound = sound;
+        this.active = false;
+        this.reset();
+      }
+
+      reset() {
+        this.index = 0;
+        this.x = 128;
+        this.y = 165;
+        this.vx = 0;
+        this.vy = 0;
+        this.z = 0; // 0.0 (near) to 1.0 (horizon vanish)
+        this.vz = 0.25;
+        this.radiusX = 12;
+        this.radiusY = 5;
+        this.state = 'INACTIVE'; // 'FLYING', 'SHATTERED', 'MISSED', 'DONE'
+        this.shatterTimer = 0;
+        this.scorePopup = 0;
+        this.scorePopupTimer = 0;
+      }
+
+      spawn(index, round, slot) {
+        this.reset();
+        this.active = true;
+        this.index = index;
+        this.state = 'FLYING';
+
+        this.x = slot === 0 ? 90 + Math.random() * 25 : 140 + Math.random() * 25;
+        this.y = 162;
+
+        const speedFactor = 1 + Math.min(20, round - 1) * 0.06;
+        this.vx = (slot === 0 ? -1 : 1) * (12 + Math.random() * 22) * speedFactor;
+        this.vy = -(48 + Math.random() * 14) * speedFactor;
+        this.vz = 0.24 * speedFactor;
       }
 
       update(dt) {
-        if (!this.visible) return;
+        if (!this.active || this.state === 'DONE') return;
 
-        this.animTimer += dt;
-        this.quackTimer -= dt;
-
-        // Sonido ocasional de aleteo y graznido
-        if (!this.isShot && this.quackTimer <= 0) {
-          sound.playQuack();
-          this.quackTimer = 1800 + Math.random() * 1500;
+        if (this.scorePopupTimer > 0) {
+          this.scorePopupTimer -= dt;
         }
 
-        // Si ha sido disparado pero aún en pausa dramática antes de caer
-        if (this.isShot && !this.isFalling) {
-          this.shotPauseTimer -= dt;
-          if (this.shotPauseTimer <= 0) {
-            this.isFalling = true;
-            this.fallSpeed = 4.0;
+        if (this.state === 'FLYING') {
+          this.z += this.vz * dt;
+          this.x += this.vx * dt;
+          this.y += this.vy * dt;
+          // Gravity curve as clay pigeon arcs toward distant hills
+          this.vy += 18 * dt;
+
+          const scale = Math.max(0.22, 1 - this.z * 0.78);
+          this.radiusX = Math.max(3, Math.round(11 * scale));
+          this.radiusY = Math.max(2, Math.round(4 * scale));
+
+          if (this.z >= 1.0 || this.y > 150) {
+            this.state = 'MISSED';
           }
-          return;
-        }
-
-        // Si está cayendo hacia el pasto
-        if (this.isFalling) {
-          this.y += this.fallSpeed;
-          if (this.y >= 235) {
-            this.visible = false;
-            sound.playDuckThud();
+        } else if (this.state === 'SHATTERED') {
+          this.shatterTimer += dt;
+          if (this.shatterTimer >= 0.45) {
+            this.state = 'DONE';
           }
-          return;
+        } else if (this.state === 'MISSED') {
+          this.state = 'DONE';
+        }
+      }
+
+      checkHit(px, py) {
+        if (!this.active || this.state !== 'FLYING') return false;
+        const hitW = Math.max(8, this.radiusX * 1.4);
+        const hitH = Math.max(6, this.radiusY * 1.8);
+        if (px >= this.x - hitW && px <= this.x + hitW && py >= this.y - hitH && py <= this.y + hitH) {
+          this.state = 'SHATTERED';
+          this.shatterTimer = 0;
+          this.sound.playDropThud();
+          return true;
+        }
+        return false;
+      }
+
+      getHitboxRect() {
+        const hitW = Math.max(8, this.radiusX * 1.4);
+        const hitH = Math.max(6, this.radiusY * 1.8);
+        return {
+          x: Math.round(this.x - hitW),
+          y: Math.round(this.y - hitH),
+          w: Math.round(hitW * 2),
+          h: Math.round(hitH * 2)
+        };
+      }
+
+      render(ctx) {
+        if (!this.active) return;
+
+        if (this.state === 'FLYING') {
+          ctx.fillStyle = '#f87858';
+          ctx.fillRect(
+            Math.round(this.x - this.radiusX),
+            Math.round(this.y - this.radiusY),
+            Math.round(this.radiusX * 2),
+            Math.round(this.radiusY * 2)
+          );
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(
+            Math.round(this.x - this.radiusX + 2),
+            Math.round(this.y - 1),
+            Math.max(2, Math.round(this.radiusX * 2 - 4)),
+            2
+          );
+        } else if (this.state === 'SHATTERED') {
+          ctx.fillStyle = '#f87858';
+          const spread = Math.round(this.shatterTimer * 28);
+          ctx.fillRect(Math.round(this.x - spread), Math.round(this.y - spread), 3, 3);
+          ctx.fillRect(Math.round(this.x + spread), Math.round(this.y - spread), 3, 3);
+          ctx.fillRect(Math.round(this.x - spread), Math.round(this.y + spread), 3, 3);
+          ctx.fillRect(Math.round(this.x + spread), Math.round(this.y + spread), 3, 3);
         }
 
-        // Si está en modo escapar (vuelo en línea recta hacia arriba)
-        if (this.escaped) {
-          this.vy = -3.8;
-          this.y += this.vy;
-          if (this.y < -40) {
-            this.visible = false;
-          }
-          return;
-        }
-
-        // Movimiento normal y rebote en los bordes de la pantalla
-        this.x += this.vx;
-        this.y += this.vy;
-
-        // Rebote en paredes laterales
-        if (this.x < 30) {
-          this.x = 30;
-          this.vx = Math.abs(this.vx);
-        } else if (this.x > VIRTUAL_WIDTH - 30) {
-          this.x = VIRTUAL_WIDTH - 30;
-          this.vx = -Math.abs(this.vx);
-        }
-
-        // Rebote en el techo y límite del pasto
-        if (this.y < 30) {
-          this.y = 30;
-          this.vy = Math.abs(this.vy);
-        } else if (this.y > 210) {
-          this.y = 210;
-          this.vy = -Math.abs(this.vy);
-        }
-
-        // Cambio de dirección errático ocasional
-        if (Math.random() < 0.015) {
-          this.vy = (Math.random() - 0.5) * 4;
+        if (this.scorePopupTimer > 0 && this.scorePopup > 0) {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '8px "Press Start 2P", monospace';
+          ctx.fillText(String(this.scorePopup), Math.round(this.x - 12), Math.round(this.y - 6));
         }
       }
     }
 
-    class Dog {
-      constructor() {
+    class DogEntity {
+      constructor(atlas, sound) {
+        this.atlas = atlas;
+        this.sound = sound;
         this.reset();
       }
 
       reset() {
         this.x = 20;
-        this.y = 228;
-        this.action = 'walk'; // walk, sniff, jump, caught, laugh
-        this.visible = false;
+        this.y = 148;
+        this.vy = 0;
+        this.mode = 'HIDDEN'; // 'INTRO_WALK', 'INTRO_ALERT', 'INTRO_JUMP', 'CELEBRATE', 'LAUGH', 'HIDDEN'
+        this.timer = 0;
         this.animTimer = 0;
-        this.stateTimer = 0;
-        this.targetY = 228;
-        this.duckCount = 1;
+        this.animFrame = 0;
+        this.caughtCount = 1;
+        this.inForeground = true; // True during walk, false once jumped behind grass
       }
 
-      startIntro() {
+      startRoundIntro() {
         this.reset();
-        this.visible = true;
-        this.action = 'walk';
-        sound.playRoundIntro();
+        this.mode = 'INTRO_WALK';
+        this.x = 18;
+        this.y = 148;
+        this.inForeground = true;
       }
 
-      celebrate(duckCount) {
-        this.visible = true;
-        this.duckCount = duckCount;
-        this.action = 'caught';
-        this.x = VIRTUAL_WIDTH / 2;
-        this.y = 250;
-        this.targetY = 205;
-        this.stateTimer = 1600;
-        sound.playDuckCaught();
+      startCatchCelebration(ducksCaught, catchX) {
+        this.reset();
+        this.mode = 'CELEBRATE';
+        this.caughtCount = Math.max(1, Math.min(2, ducksCaught));
+        this.x = Math.max(36, Math.min(180, catchX - 18));
+        this.y = 166;
+        this.inForeground = false;
+        this.sound.playDuckCaughtJingle();
       }
 
-      laugh() {
-        this.visible = true;
-        this.action = 'laugh';
-        this.x = VIRTUAL_WIDTH / 2;
-        this.y = 250;
-        this.targetY = 205;
-        this.stateTimer = 1800;
-        sound.playDogLaugh();
+      startLaugh() {
+        this.reset();
+        this.mode = 'LAUGH';
+        this.x = 112;
+        this.y = 166;
+        this.inForeground = false;
+        this.sound.playDogLaugh();
       }
 
       update(dt) {
-        if (!this.visible) return;
+        if (this.mode === 'HIDDEN') return false;
+
+        this.timer += dt;
         this.animTimer += dt;
 
-        if (this.action === 'walk') {
-          this.x += 1.2;
-          if (this.x >= 140) {
-            this.action = 'sniff';
-            this.stateTimer = 700;
+        if (this.mode === 'INTRO_WALK') {
+          this.x += 38 * dt;
+          if (this.animTimer >= 0.14) {
+            this.animTimer = 0;
+            this.animFrame = (this.animFrame + 1) % 2;
           }
-        } else if (this.action === 'sniff') {
-          this.stateTimer -= dt;
-          if (this.stateTimer <= 0) {
-            this.action = 'jump';
-            this.stateTimer = 800;
+          if (this.timer >= 1.65) {
+            this.mode = 'INTRO_ALERT';
+            this.timer = 0;
+            this.sound.playBark();
           }
-        } else if (this.action === 'jump') {
-          this.x += 1.4;
-          this.y -= 1.8;
-          this.stateTimer -= dt;
-          if (this.stateTimer <= 0) {
-            this.visible = false;
-            // Termina la intro y comienza la bandada
-            startNextDuckFlight();
+        } else if (this.mode === 'INTRO_ALERT') {
+          if (this.timer >= 0.45) {
+            this.mode = 'INTRO_JUMP';
+            this.timer = 0;
+            this.vy = -135;
           }
-        } else if (this.action === 'caught' || this.action === 'laugh') {
-          // Asomarse hacia arriba
-          if (this.y > this.targetY) {
-            this.y -= 1.8;
+        } else if (this.mode === 'INTRO_JUMP') {
+          this.x += 26 * dt;
+          this.y += this.vy * dt;
+          this.vy += 320 * dt;
+          if (this.vy > 0) {
+            this.inForeground = false; // Falls behind tall grass layer!
           }
-          this.stateTimer -= dt;
-          if (this.stateTimer <= 0) {
-            // Regresar hacia abajo
-            this.y += 2.0;
-            if (this.y >= 260) {
-              this.visible = false;
-              checkRoundAdvancement();
+          if (this.y >= 172) {
+            this.mode = 'HIDDEN';
+            return true; // Intro finished
+          }
+        } else if (this.mode === 'CELEBRATE') {
+          if (this.timer < 0.35) {
+            this.y = Math.max(122, this.y - 125 * dt);
+          } else if (this.timer > 1.15) {
+            this.y += 125 * dt;
+            if (this.y >= 170) {
+              this.mode = 'HIDDEN';
+              return true;
+            }
+          }
+        } else if (this.mode === 'LAUGH') {
+          if (this.animTimer >= 0.10) {
+            this.animTimer = 0;
+            this.animFrame = (this.animFrame + 1) % 2;
+          }
+          if (this.timer < 0.35) {
+            this.y = Math.max(118, this.y - 135 * dt);
+          } else if (this.timer > 1.45) {
+            this.y += 135 * dt;
+            if (this.y >= 170) {
+              this.mode = 'HIDDEN';
+              return true;
             }
           }
         }
-      }
-    }
-
-    dog = new Dog();
-
-    // =========================================================================
-    // DISPARO Y DETECCIÓN DE COLISIONES
-    // =========================================================================
-    function shoot(clientX, clientY) {
-      if (gameState !== STATE.FLYING) return;
-
-      // Iniciar contexto de audio en el primer clic de usuario
-      sound.init();
-
-      if (bullets <= 0) {
-        sound.playEmptyClick();
-        return;
+        return false;
       }
 
-      // Consumir bala y sonido
-      bullets--;
-      updateBulletsHUD();
-      sound.playGunshot();
+      render(ctx) {
+        if (this.mode === 'HIDDEN') return;
 
-      // Efecto de destello óptico Zapper
-      gameWrapper.classList.add('zapper-flash');
-      setTimeout(() => gameWrapper.classList.remove('zapper-flash'), 70);
-
-      // Coordenadas en espacio del canvas virtual
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      const shootX = (clientX - rect.left) * scaleX;
-      const shootY = (clientY - rect.top) * scaleY;
-
-      // Radio de impacto del Zapper
-      const HIT_RADIUS = 28;
-
-      let hitAny = false;
-      ducks.forEach((duck, idx) => {
-        if (!duck.isShot && !duck.escaped && duck.visible) {
-          const dx = duck.x - shootX;
-          const dy = duck.y - shootY;
-          const distance = Math.hypot(dx, dy);
-
-          if (distance <= HIT_RADIUS) {
-            // ¡Pato cazado!
-            hitAny = true;
-            duck.isShot = true;
-            duck.shotPauseTimer = 350; // Pausa dramática NES antes de caer
-            sound.playDuckHit();
-
-            // Puntuación
-            score += duck.type.points;
-            roundHits++;
-            updateScoreHUD();
-
-            // Actualizar marcador de patos
-            const targetIndex = duckRoundProgress - ducks.length + idx;
-            if (roundDuckStatuses[targetIndex] !== undefined) {
-              roundDuckStatuses[targetIndex] = 'hit';
-              updateDuckMarkersHUD();
-            }
-          }
+        let sprite = null;
+        if (this.mode === 'INTRO_WALK') {
+          sprite = this.atlas.sprites[`dog_sniff_${this.animFrame}`];
+        } else if (this.mode === 'INTRO_ALERT') {
+          sprite = this.atlas.sprites.dog_alert;
+        } else if (this.mode === 'INTRO_JUMP') {
+          sprite = this.atlas.sprites.dog_jump;
+        } else if (this.mode === 'CELEBRATE') {
+          sprite = this.caughtCount === 2 ? this.atlas.sprites.dog_hold_2 : this.atlas.sprites.dog_hold_1;
+        } else if (this.mode === 'LAUGH') {
+          sprite = this.atlas.sprites[`dog_laugh_${this.animFrame}`];
         }
-      });
 
-      // Si nos quedamos sin balas y quedan patos vivos, activan escape
-      if (bullets === 0 && !allDucksDead()) {
-        triggerFlyAway();
-      }
-    }
-
-    function allDucksDead() {
-      return ducks.every(d => d.isShot);
-    }
-
-    function triggerFlyAway() {
-      if (gameState !== STATE.FLYING) return;
-      gameState = STATE.FLY_AWAY;
-      sound.playTone(300, 'sawtooth', 0.25, 0.15);
-
-      ducks.forEach((duck, idx) => {
-        if (!duck.isShot) {
-          duck.escaped = true;
-          const targetIndex = duckRoundProgress - ducks.length + idx;
-          if (roundDuckStatuses[targetIndex] === 'pending') {
-            roundDuckStatuses[targetIndex] = 'miss';
-          }
+        if (sprite) {
+          ctx.drawImage(sprite, Math.round(this.x), Math.round(this.y));
         }
-      });
-      updateDuckMarkersHUD();
-
-      showAnnouncement('FLY AWAY', 1200);
-    }
-
-    // =========================================================================
-    // PROGRESIÓN DE RONDAS Y BANDADAS
-    // =========================================================================
-    function startNewGame(mode) {
-      sound.init();
-      gameMode = mode;
-      round = 1;
-      score = 0;
-      updateScoreHUD();
-      hudRound.textContent = round;
-      
-      startScreen.classList.add('hidden');
-      gameOverScreen.classList.add('hidden');
-
-      initRound();
-    }
-
-    function initRound() {
-      roundHits = 0;
-      duckRoundProgress = 0;
-      hudRound.textContent = round;
-      roundDuckStatuses = new Array(ducksInRound).fill('pending');
-      updateDuckMarkersHUD();
-
-      gameState = STATE.INTRO_DOG;
-      showAnnouncement(`ROUND ${round}`, 1500, () => {
-        dog.startIntro();
-      });
-    }
-
-    function startNextDuckFlight() {
-      if (duckRoundProgress >= ducksInRound) {
-        // Fin de la ronda: verificar si alcanzó la cuota mínima de 6 patos
-        endRoundReview();
-        return;
-      }
-
-      gameState = STATE.FLYING;
-      bullets = 3;
-      flightTime = 0;
-      updateBulletsHUD();
-
-      // Cantidad de patos en esta bandada (1 en modo A, 2 en modo B)
-      const count = (gameMode === 'A') ? 1 : 2;
-      ducks = [];
-
-      // Multiplicador de velocidad que incrementa con cada ronda
-      const speedBoost = 1.0 + (round - 1) * 0.15;
-
-      for (let i = 0; i < count; i++) {
-        duckRoundProgress++;
-        // Selección de color/tipo de pato aleatorio ponderado por ronda
-        const randType = DUCK_TYPES[Math.floor(Math.random() * DUCK_TYPES.length)];
-        ducks.push(new Duck(randType, speedBoost));
       }
     }
 
-    function checkRoundAdvancement() {
-      if (duckRoundProgress >= ducksInRound) {
-        endRoundReview();
-      } else {
-        setTimeout(startNextDuckFlight, 400);
+    class InputManager {
+      constructor(canvas, eventBus) {
+        this.canvas = canvas;
+        this.eventBus = eventBus;
+        this.keys = {};
+        this.touchDpad = { up: false, down: false, left: false, right: false };
+        this.setupListeners();
       }
-    }
 
-    function endRoundReview() {
-      gameState = STATE.ROUND_RESULTS;
+      setupListeners() {
+        // Pointer down on NES Canvas -> Zapper Trigger
+        this.canvas.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          const rect = this.canvas.getBoundingClientRect();
+          const normX = (e.clientX - rect.left) / rect.width;
+          const normY = (e.clientY - rect.top) / rect.height;
+          const nesX = Math.max(0, Math.min(LOGICAL_WIDTH, normX * LOGICAL_WIDTH));
+          const nesY = Math.max(0, Math.min(LOGICAL_HEIGHT, normY * LOGICAL_HEIGHT));
 
-      // Mínimo 6 patos cazados para avanzar de ronda
-      const passed = roundHits >= 6;
-
-      if (passed) {
-        showAnnouncement(`¡PASASTE LA RONDA!`, 2000, () => {
-          round++;
-          initRound();
+          this.eventBus.emit('ZAPPER_TRIGGER', { x: nesX, y: nesY, offscreen: false });
         });
-      } else {
-        // Game Over
-        gameState = STATE.GAME_OVER;
-        sound.playGameOver();
 
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem('duckhunt_highscore', highScore);
-        }
-
-        finalRound.textContent = round;
-        finalHits.textContent = `${roundHits} / 10`;
-        finalScore.textContent = score;
-        finalHighScore.textContent = highScore;
-
-        setTimeout(() => {
-          gameOverScreen.classList.remove('hidden');
-        }, 1200);
-      }
-    }
-
-    function showAnnouncement(text, duration = 1500, callback) {
-      announcementText.textContent = text;
-      announcementBanner.classList.remove('hidden');
-      announcementBanner.classList.add('flex');
-
-      setTimeout(() => {
-        announcementBanner.classList.add('hidden');
-        announcementBanner.classList.remove('flex');
-        if (callback) callback();
-      }, duration);
-    }
-
-    // =========================================================================
-    // ACTUALIZACIÓN DE INTERFAZ (HUD)
-    // =========================================================================
-    function updateBulletsHUD() {
-      bulletsContainer.innerHTML = '';
-      for (let i = 0; i < 3; i++) {
-        const bullet = document.createElement('span');
-        bullet.className = 'bullet-icon transition-opacity duration-150';
-        bullet.textContent = '❚';
-        if (i >= bullets) {
-          bullet.style.opacity = '0.15';
-        }
-        bulletsContainer.appendChild(bullet);
-      }
-    }
-
-    function updateDuckMarkersHUD() {
-      duckMarkers.innerHTML = '';
-      roundDuckStatuses.forEach(st => {
-        const d = document.createElement('span');
-        d.className = 'inline-block w-2.5 h-2.5 rounded-sm';
-        if (st === 'hit') {
-          d.className += ' bg-[#e52521] shadow-[0_0_4px_#f00]'; // Rojo cazado
-        } else if (st === 'miss') {
-          d.className += ' bg-gray-600'; // Fallado
-        } else {
-          d.className += ' bg-white blink'; // Pendiente
-        }
-        duckMarkers.appendChild(d);
-      });
-    }
-
-    function updateScoreHUD() {
-      hudScore.textContent = score.toString().padStart(6, '0');
-    }
-
-    // =========================================================================
-    // EVENTOS Y CONTROLES (RATÓN Y PANTALLAS TÁCTILES)
-    // =========================================================================
-    gameWrapper.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      shoot(e.clientX, e.clientY);
-    });
-
-    document.getElementById('btnModeA').addEventListener('click', (e) => {
-      e.stopPropagation();
-      startNewGame('A');
-    });
-
-    document.getElementById('btnModeB').addEventListener('click', (e) => {
-      e.stopPropagation();
-      startNewGame('B');
-    });
-
-    document.getElementById('btnRestart').addEventListener('click', (e) => {
-      e.stopPropagation();
-      startNewGame(gameMode);
-    });
-
-    // Control de Sonido ON/OFF
-    const soundToggleBtn = document.getElementById('soundToggleBtn');
-    soundToggleBtn.addEventListener('click', () => {
-      sound.init();
-      sound.enabled = !sound.enabled;
-      soundToggleBtn.textContent = sound.enabled ? 'SONIDO: ON' : 'SONIDO: OFF';
-      soundToggleBtn.style.color = sound.enabled ? '#00e800' : '#e52521';
-    });
-
-    // Control de Scanlines CRT
-    const crtToggleBtn = document.getElementById('crtToggleBtn');
-    let crtActive = true;
-    crtToggleBtn.addEventListener('click', () => {
-      crtActive = !crtActive;
-      gameWrapper.classList.toggle('crt', crtActive);
-      crtToggleBtn.textContent = crtActive ? 'CRT: ON' : 'CRT: OFF';
-      crtToggleBtn.style.color = crtActive ? '#63adff' : '#888';
-    });
-
-    // =========================================================================
-    // BUCLE PRINCIPAL DE JUEGO (60 FPS)
-    // =========================================================================
-    function gameLoop(timestamp) {
-      if (!lastTime) lastTime = timestamp;
-      const dt = Math.min(timestamp - lastTime, 100);
-      lastTime = timestamp;
-
-      // Color del cielo (cambia a rosa/naranja cuando los patos escapan)
-      const currentSky = (gameState === STATE.FLY_AWAY) ? COLORS.skyFlyAway : COLORS.skyDay;
-
-      // 1. Dibujar fondo escénico
-      drawScenery(currentSky);
-
-      // 2. Actualizar y dibujar perro si está activo
-      dog.update(dt);
-      if (dog.visible && dog.action !== 'jump') {
-        drawDogSprite(dog);
-      }
-
-      // 3. Lógica de vuelo de patos
-      if (gameState === STATE.FLYING || gameState === STATE.FLY_AWAY) {
-        flightTime += dt;
-
-        // Si se acaba el tiempo de vuelo, escapan
-        if (flightTime >= FLIGHT_DURATION && gameState === STATE.FLYING) {
-          triggerFlyAway();
-        }
-
-        let allHidden = true;
-        let deadCount = 0;
-
-        ducks.forEach(duck => {
-          duck.update(dt);
-          if (duck.visible) {
-            allHidden = false;
-            drawDuckSprite(duck);
-          }
-          if (duck.isShot) {
-            deadCount++;
+        // Keyboard support for Menu & Player 2 Duck Control
+        window.addEventListener('keydown', (e) => {
+          this.keys[e.code] = true;
+          if (e.code === 'Select' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+            this.eventBus.emit('BTN_SELECT');
+          } else if (e.code === 'Enter' || e.code === 'Space') {
+            this.eventBus.emit('BTN_START');
           }
         });
 
-        // Si todos los patos ya salieron o cayeron completamente
-        if (allHidden) {
-          if (deadCount > 0) {
-            // Perro celebra sosteniendo los patos
-            gameState = STATE.DOG_CELEBRATE;
-            dog.celebrate(deadCount);
+        window.addEventListener('keyup', (e) => {
+          this.keys[e.code] = false;
+        });
+
+        // On-screen touch D-Pad for Player 2
+        document.querySelectorAll('.p2-dpad').forEach(btn => {
+          const dir = btn.getAttribute('data-dir');
+          const activate = (e) => { e.preventDefault(); this.touchDpad[dir] = true; };
+          const deactivate = (e) => { e.preventDefault(); this.touchDpad[dir] = false; };
+          btn.addEventListener('pointerdown', activate);
+          btn.addEventListener('pointerup', deactivate);
+          btn.addEventListener('pointerleave', deactivate);
+        });
+      }
+
+      getPlayer2Vector() {
+        let vx = 0;
+        let vy = 0;
+
+        if (this.keys['ArrowLeft'] || this.keys['KeyA'] || this.touchDpad.left) vx -= 1;
+        if (this.keys['ArrowRight'] || this.keys['KeyD'] || this.touchDpad.right) vx += 1;
+        if (this.keys['ArrowUp'] || this.keys['KeyW'] || this.touchDpad.up) vy -= 1;
+        if (this.keys['ArrowDown'] || this.keys['KeyS'] || this.touchDpad.down) vy += 1;
+
+        // Gamepad API polling for asymmetric multiplayer
+        if (navigator.getGamepads) {
+          const pads = navigator.getGamepads();
+          const pad = pads[0] || pads[1];
+          if (pad) {
+            if (Math.abs(pad.axes[0]) > 0.25) vx = pad.axes[0];
+            if (Math.abs(pad.axes[1]) > 0.25) vy = pad.axes[1];
+          }
+        }
+
+        const mag = Math.hypot(vx, vy);
+        if (mag > 0) {
+          return { x: vx / mag, y: vy / mag };
+        }
+        return { x: 0, y: 0 };
+      }
+    }
+
+    class GameEngine {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.ctx.imageSmoothingEnabled = false;
+
+        this.eventBus = new EventBus();
+        this.sound = new SoundSynthesizer();
+        this.atlas = new SpriteAtlas();
+        this.scoreManager = new ScoreManager();
+        this.input = new InputManager(canvas, this.eventBus);
+
+        this.state = FSM_STATES.BOOT_PRELOAD;
+        this.stateTimer = 0;
+        this.selectedMode = GAME_MODES.GAME_A;
+        this.paused = false;
+
+        // Entity Pool (Zero GC inside loop)
+        this.ducks = [
+          new DuckEntity(this.atlas, this.sound),
+          new DuckEntity(this.atlas, this.sound)
+        ];
+        this.clays = [
+          new ClayEntity(this.sound),
+          new ClayEntity(this.sound)
+        ];
+        this.dog = new DogEntity(this.atlas, this.sound);
+
+        // Wave & Zapper State
+        this.bulletsRemaining = 3;
+        this.crtZapperEmulation = false; // False = Direct Pointer, True = CRT Black/White Strobe
+        this.crtSequenceFrame = 0; // 0: normal, 1: black frame (16.6ms), 2: white hitbox frame (33.3ms), 3: miss extra black frame
+        this.pendingShotCoords = { x: 0, y: 0 };
+        this.pendingShotHit = false;
+        this.flashTimer = 0;
+        this.perfectBonusAwarded = 0;
+
+        this.bindEvents();
+        this.transitionTo(FSM_STATES.TITLE_MENU);
+      }
+
+      bindEvents() {
+        this.eventBus.on('BTN_SELECT', () => {
+          if (this.state === FSM_STATES.TITLE_MENU) {
+            this.selectedMode = (this.selectedMode + 1) % 3;
+            this.sound.playMenuBeep();
+          }
+        });
+
+        this.eventBus.on('BTN_START', () => {
+          this.sound.init();
+          if (this.state === FSM_STATES.TITLE_MENU || this.state === FSM_STATES.GAME_OVER) {
+            this.startNewGame();
           } else {
-            // Perro se burla
-            gameState = STATE.DOG_LAUGH;
-            dog.laugh();
+            this.paused = !this.paused;
+            this.sound.playMenuBeep();
+          }
+        });
+
+        this.eventBus.on('ZAPPER_TRIGGER', ({ x, y, offscreen }) => {
+          this.sound.init();
+
+          // Title Screen Zapper Behavior (Authentic NES Manual section 4)
+          if (this.state === FSM_STATES.TITLE_MENU) {
+            if (offscreen) {
+              this.selectedMode = (this.selectedMode + 1) % 3;
+              this.sound.playMenuBeep();
+              return;
+            }
+            // Check if player clicked directly on one of the 3 mode lines
+            if (y >= 118 && y <= 132) {
+              this.selectedMode = GAME_MODES.GAME_A;
+              this.startNewGame();
+            } else if (y >= 134 && y <= 148) {
+              this.selectedMode = GAME_MODES.GAME_B;
+              this.startNewGame();
+            } else if (y >= 150 && y <= 166) {
+              this.selectedMode = GAME_MODES.GAME_C;
+              this.startNewGame();
+            } else {
+              this.startNewGame();
+            }
+            return;
+          }
+
+          if (this.state === FSM_STATES.GAME_OVER) {
+            this.transitionTo(FSM_STATES.TITLE_MENU);
+            return;
+          }
+
+          if (this.paused) return;
+
+          // Active Hunt Shooting Logic
+          if (this.state === FSM_STATES.ACTIVE_HUNT && this.bulletsRemaining > 0 && this.crtSequenceFrame === 0) {
+            this.bulletsRemaining--;
+            this.sound.playGunshot();
+
+            if (this.crtZapperEmulation) {
+              // Start 60Hz CRT Lightgun Strobe Emulation (Frame 1: Black, Frame 2: White Hitboxes)
+              this.crtSequenceFrame = 1;
+              this.pendingShotCoords.x = x;
+              this.pendingShotCoords.y = y;
+              document.getElementById('tel-zapper').textContent = 'FRAME 1: PANTALLA NEGRA (16.6ms)';
+            } else {
+              // Modern Direct Raycast Mode with subtle visual muzzle flash
+              this.flashTimer = 0.03;
+              this.evaluateShotIntersection(x, y);
+            }
+          }
+        });
+      }
+
+      transitionTo(nextState) {
+        this.state = nextState;
+        this.stateTimer = 0;
+        const badge = document.getElementById('telemetry-fsm');
+        if (badge) badge.textContent = nextState;
+        this.updateTelemetryUI();
+      }
+
+      startNewGame(startRound = 1) {
+        this.paused = false;
+        this.scoreManager.resetForNewGame();
+        this.scoreManager.round = startRound;
+        this.startRound();
+      }
+
+      startRound() {
+        this.scoreManager.resetRoundTargets();
+        this.ducks.forEach(d => d.active = false);
+        this.clays.forEach(c => c.active = false);
+        this.transitionTo(FSM_STATES.ROUND_INTRO);
+
+        if (this.selectedMode === GAME_MODES.GAME_C) {
+          this.sound.playRoundIntroJingle();
+          this.dog.mode = 'HIDDEN';
+        } else {
+          // Only play full dog walk intro on Round 1, faster intro on subsequent rounds
+          this.dog.startRoundIntro();
+          this.sound.playRoundIntroJingle();
+        }
+      }
+
+      spawnNextWave() {
+        if (this.scoreManager.targetsSpawnedInRound >= 10) {
+          this.transitionTo(FSM_STATES.ROUND_EVALUATION);
+          return;
+        }
+
+        this.bulletsRemaining = 3;
+        const r = this.scoreManager.round;
+
+        if (this.selectedMode === GAME_MODES.GAME_A) {
+          const idx = this.scoreManager.targetsSpawnedInRound;
+          this.scoreManager.targetsSpawnedInRound += 1;
+          this.ducks[0].spawn(idx, r);
+          this.ducks[1].active = false;
+        } else if (this.selectedMode === GAME_MODES.GAME_B) {
+          const idx1 = this.scoreManager.targetsSpawnedInRound;
+          const idx2 = idx1 + 1;
+          this.scoreManager.targetsSpawnedInRound += 2;
+          this.ducks[0].spawn(idx1, r);
+          this.ducks[1].spawn(idx2, r);
+        } else if (this.selectedMode === GAME_MODES.GAME_C) {
+          const idx1 = this.scoreManager.targetsSpawnedInRound;
+          const idx2 = idx1 + 1;
+          this.scoreManager.targetsSpawnedInRound += 2;
+          this.sound.playClayLaunchBeeps();
+          this.clays[0].spawn(idx1, r, 0);
+          this.clays[1].spawn(idx2, r, 1);
+        }
+
+        this.transitionTo(FSM_STATES.ACTIVE_HUNT);
+      }
+
+      evaluateShotIntersection(x, y) {
+        const r = this.scoreManager.round;
+        const hitboxArea = ScoreManager.computeHitboxArea(r);
+        let hitAny = false;
+
+        if (this.selectedMode === GAME_MODES.GAME_C) {
+          for (let i = 0; i < this.clays.length; i++) {
+            const clay = this.clays[i];
+            if (clay.checkHit(x, y)) {
+              const pts = this.scoreManager.registerTargetHit(clay.index, 'clay', this.selectedMode);
+              clay.scorePopup = pts;
+              clay.scorePopupTimer = 0.7;
+              hitAny = true;
+              break; // 1 shot breaks 1 clay
+            }
+          }
+        } else {
+          for (let i = 0; i < this.ducks.length; i++) {
+            const duck = this.ducks[i];
+            if (duck.checkHit(x, y, hitboxArea)) {
+              const pts = this.scoreManager.registerTargetHit(duck.index, duck.colorType, this.selectedMode);
+              duck.scorePopup = pts;
+              duck.scorePopupTimer = 0.8;
+              hitAny = true;
+              break;
+            }
+          }
+        }
+
+        const zapEl = document.getElementById('tel-zapper');
+        if (zapEl) {
+          zapEl.textContent = hitAny
+            ? (this.crtZapperEmulation ? 'IMPACTO (33.3ms PHOTODIODE)' : 'IMPACTO REGISTRADO')
+            : (this.crtZapperEmulation ? 'FALLO (66.6ms 2-BLACK FRAMES)' : 'FALLO (MISS)');
+          zapEl.className = hitAny ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
+        }
+        return hitAny;
+      }
+
+      update(dt) {
+        if (this.paused) return;
+
+        if (this.flashTimer > 0) {
+          this.flashTimer -= dt;
+        }
+
+        // Process CRT Zapper Strobe State Machine (Frame 1 -> Frame 2 -> Frame 3)
+        if (this.crtSequenceFrame > 0) {
+          if (this.crtSequenceFrame === 1) {
+            this.crtSequenceFrame = 2;
+            document.getElementById('tel-zapper').textContent = 'FRAME 2: HITBOX BLANCO (33.3ms)';
+            return; // Freeze world during strobe
+          } else if (this.crtSequenceFrame === 2) {
+            const hit = this.evaluateShotIntersection(this.pendingShotCoords.x, this.pendingShotCoords.y);
+            if (hit) {
+              this.crtSequenceFrame = 0; // Resolved in 33.3ms!
+            } else {
+              this.crtSequenceFrame = 3; // Miss prolongs 1 additional black frame (66.6ms total)
+            }
+            return;
+          } else if (this.crtSequenceFrame === 3) {
+            this.crtSequenceFrame = 0;
+            return;
+          }
+        }
+
+        this.stateTimer += dt;
+
+        switch (this.state) {
+          case FSM_STATES.ROUND_INTRO: {
+            if (this.selectedMode === GAME_MODES.GAME_C) {
+              if (this.stateTimer >= 1.8) {
+                this.transitionTo(FSM_STATES.WAVE_SPAWN);
+              }
+            } else {
+              const introDone = this.dog.update(dt);
+              if (introDone) {
+                this.transitionTo(FSM_STATES.WAVE_SPAWN);
+              }
+            }
+            break;
+          }
+
+          case FSM_STATES.WAVE_SPAWN: {
+            if (this.stateTimer >= 0.45) {
+              this.spawnNextWave();
+            }
+            break;
+          }
+
+          case FSM_STATES.ACTIVE_HUNT: {
+            const p2Vec = this.input.getPlayer2Vector();
+            const canP2Control = this.selectedMode === GAME_MODES.GAME_A && this.bulletsRemaining > 0;
+
+            if (this.selectedMode === GAME_MODES.GAME_C) {
+              this.clays.forEach(c => c.update(dt));
+              const activeClays = this.clays.filter(c => c.active);
+              const anyFlying = activeClays.some(c => c.state === 'FLYING');
+
+              if (this.bulletsRemaining === 0 && anyFlying) {
+                activeClays.forEach(c => {
+                  if (c.state === 'FLYING') c.state = 'MISSED';
+                });
+              }
+
+              const allDone = activeClays.every(c => c.state === 'DONE');
+              if (allDone) {
+                activeClays.forEach(c => {
+                  if (this.scoreManager.targetResults[c.index] === 0) {
+                    this.scoreManager.registerTargetMiss(c.index);
+                  }
+                });
+                this.transitionTo(FSM_STATES.WAVE_SPAWN);
+              }
+            } else {
+              // Game A & Game B Duck Hunting
+              const activeDucks = this.ducks.filter(d => d.active);
+              activeDucks.forEach(d => d.update(dt, p2Vec, canP2Control));
+
+              const anyFlying = activeDucks.some(d => d.state === 'FLYING');
+              const anyEscaping = activeDucks.some(d => d.state === 'ESCAPING');
+
+              // Out of bullets while ducks are still flying -> Trigger Fly Away!
+              if (this.bulletsRemaining === 0 && anyFlying) {
+                activeDucks.forEach(d => {
+                  if (d.state === 'FLYING') d.triggerFlyAway();
+                });
+              }
+
+              if (anyEscaping) {
+                this.transitionTo(FSM_STATES.FLY_AWAY);
+                break;
+              }
+
+              const allDone = activeDucks.every(d => d.state === 'DONE');
+              if (allDone) {
+                const caughtCount = activeDucks.filter(d => this.scoreManager.targetResults[d.index] === 1).length;
+                const lastX = activeDucks[0] ? activeDucks[0].x : 128;
+                this.dog.startCatchCelebration(caughtCount, lastX);
+                this.transitionTo(FSM_STATES.TARGET_RESOLUTION);
+              }
+            }
+            break;
+          }
+
+          case FSM_STATES.TARGET_RESOLUTION: {
+            const dogDone = this.dog.update(dt);
+            if (dogDone) {
+              this.transitionTo(FSM_STATES.WAVE_SPAWN);
+            }
+            break;
+          }
+
+          case FSM_STATES.FLY_AWAY: {
+            const activeDucks = this.ducks.filter(d => d.active);
+            activeDucks.forEach(d => d.update(dt, { x: 0, y: 0 }, false));
+
+            const allOffscreen = activeDucks.every(d => d.state === 'DONE');
+            if (allOffscreen && this.dog.mode === 'HIDDEN') {
+              activeDucks.forEach(d => {
+                if (this.scoreManager.targetResults[d.index] === 0) {
+                  this.scoreManager.registerTargetMiss(d.index);
+                }
+              });
+              const caughtAny = activeDucks.some(d => this.scoreManager.targetResults[d.index] === 1);
+              if (caughtAny) {
+                this.dog.startCatchCelebration(1, activeDucks[0].x);
+              } else {
+                this.dog.startLaugh();
+              }
+            } else if (allOffscreen && this.dog.mode !== 'HIDDEN') {
+              const dogFinished = this.dog.update(dt);
+              if (dogFinished) {
+                this.transitionTo(FSM_STATES.WAVE_SPAWN);
+              }
+            }
+            break;
+          }
+
+          case FSM_STATES.ROUND_EVALUATION: {
+            if (this.stateTimer < 0.1 && this.stateTimer + dt >= 0.1) {
+              const hits = this.scoreManager.getHitsCount();
+              const passReq = this.scoreManager.getPassLineRequirement(this.scoreManager.round);
+              if (hits >= passReq) {
+                this.sound.playRoundClearJingle();
+                if (hits === 10) {
+                  this.perfectBonusAwarded = this.scoreManager.getPerfectBonusValue(this.scoreManager.round);
+                  this.scoreManager.score = Math.min(999999, this.scoreManager.score + this.perfectBonusAwarded);
+                  this.scoreManager.saveTopScores(this.selectedMode);
+                } else {
+                  this.perfectBonusAwarded = 0;
+                }
+              }
+            }
+
+            if (this.stateTimer >= 2.2) {
+              const hits = this.scoreManager.getHitsCount();
+              const passReq = this.scoreManager.getPassLineRequirement(this.scoreManager.round);
+              if (hits >= passReq) {
+                if (this.perfectBonusAwarded > 0) {
+                  this.sound.playPerfectJingle();
+                }
+                this.transitionTo(FSM_STATES.NEXT_ROUND_TRANSITION);
+              } else {
+                this.sound.playGameOverJingle();
+                this.transitionTo(FSM_STATES.GAME_OVER);
+              }
+            }
+            break;
+          }
+
+          case FSM_STATES.NEXT_ROUND_TRANSITION: {
+            const waitDuration = this.perfectBonusAwarded > 0 ? 2.2 : 1.0;
+            if (this.stateTimer >= waitDuration) {
+              // Authentic 8-bit Round Counter Overflow: Round 99 -> Round 0 (Kill Screen)!
+              if (this.scoreManager.round >= 99) {
+                this.scoreManager.round = 0;
+              } else if (this.scoreManager.round === 0) {
+                this.scoreManager.round = 1;
+              } else {
+                this.scoreManager.round += 1;
+              }
+              this.startRound();
+            }
+            break;
           }
         }
       }
 
-      // 4. Dibujar perro si está en el aire (saltando hacia el pasto)
-      if (dog.visible && dog.action === 'jump') {
-        drawDogSprite(dog);
+      updateTelemetryUI() {
+        const r = this.scoreManager.round;
+        const speed = ScoreManager.computeBaseSpeed(r);
+        const flight = ScoreManager.computeFlightDuration(r);
+        const hb = ScoreManager.computeHitboxArea(r);
+        const pass = this.scoreManager.getPassLineRequirement(r);
+
+        document.getElementById('tel-round').textContent = r === 0 ? 'R = 0 (KILL SCREEN)' : `R = ${r}`;
+        document.getElementById('tel-speed').textContent = `${speed.toFixed(1)} px/s`;
+        document.getElementById('tel-flight').textContent = `${flight.toFixed(2)} s`;
+        const side = Math.round(Math.sqrt(hb));
+        document.getElementById('tel-hitbox').textContent = `${hb} px² (~${side}×${side})`;
+        document.getElementById('tel-passline').textContent = `${pass} / 10 Aciertos`;
       }
 
-      // 5. Dibujar pasto delantero (oclusión auténtica en capas)
-      drawForegroundGrass();
+      render() {
+        const ctx = this.ctx;
 
-      requestAnimationFrame(gameLoop);
+        // Layer 7 Override: CRT Lightgun Emulation Strobe (Frame 1 & 3: Black, Frame 2: White Hitboxes)
+        if (this.crtSequenceFrame === 1 || this.crtSequenceFrame === 3) {
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+          return;
+        } else if (this.crtSequenceFrame === 2) {
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+          ctx.fillStyle = '#ffffff';
+
+          const hbArea = ScoreManager.computeHitboxArea(this.scoreManager.round);
+          if (this.selectedMode === GAME_MODES.GAME_C) {
+            this.clays.forEach(c => {
+              if (c.active && c.state === 'FLYING') {
+                const rect = c.getHitboxRect();
+                ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+              }
+            });
+          } else {
+            this.ducks.forEach(d => {
+              if (d.active && (d.state === 'FLYING' || d.state === 'ESCAPING')) {
+                const rect = d.getHitboxRect(hbArea);
+                ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+              }
+            });
+          }
+          return;
+        }
+
+        if (this.state === FSM_STATES.TITLE_MENU) {
+          this.renderTitleScreen(ctx);
+          return;
+        }
+
+        // LAYER 0: Sky Background (#64b0ff Normal, #fca044 Fly Away Alert)
+        const isFlyAwayAlert = this.state === FSM_STATES.FLY_AWAY && this.selectedMode !== GAME_MODES.GAME_B;
+        ctx.fillStyle = isFlyAwayAlert ? '#fca044' : '#64b0ff';
+        ctx.fillRect(0, 0, LOGICAL_WIDTH, GRASS_LINE_Y + 14);
+
+        if (this.selectedMode === GAME_MODES.GAME_C) {
+          // Layer 1 & 2 for Game C (Clay Shooting Perspectives & Distant Hills)
+          this.renderClayScenery(ctx);
+          // Layer 3: Target Entities (Clay Pigeons)
+          this.clays.forEach(c => c.render(ctx));
+        } else {
+          // LAYER 1 & 2: Midground Environmental Scenery (NES Tree on Left, Bush on Right)
+          this.renderDuckHuntSceneryBack(ctx);
+
+          // LAYER 3: Target Entities (Ducks flying or falling)
+          this.ducks.forEach(d => d.render(ctx));
+
+          // LAYER 4: Hunting Dog (Behind Grass - Celebrate or Laugh)
+          if (!this.dog.inForeground) {
+            this.dog.render(ctx);
+          }
+
+          // LAYER 5: Foreground Vegetal Layer (Tall Grass hiding spawn & dog body)
+          this.renderForegroundGrass(ctx);
+
+          // Hunting Dog (In Foreground during Round Intro Walk)
+          if (this.dog.inForeground) {
+            this.dog.render(ctx);
+          }
+        }
+
+        // LAYER 6: HUD & Scoreboards
+        this.renderHUD(ctx);
+
+        // LAYER 7: Modern Muzzle Flash Strobe (Subtle when in Direct Pointer mode)
+        if (this.flashTimer > 0) {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+          ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+        }
+      }
+
+      renderTitleScreen(ctx) {
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+
+        // Title Logo DUCK HUNT
+        ctx.fillStyle = '#3cbcfc';
+        ctx.font = '20px "Press Start 2P", monospace';
+        ctx.fillText('DUCK', 34, 48);
+        ctx.fillText('HUNT', 88, 76);
+
+        // Decorative orange underline
+        ctx.fillStyle = '#fc9838';
+        ctx.fillRect(32, 84, 192, 4);
+
+        // Mode options
+        ctx.font = '8px "Press Start 2P", monospace';
+        ctx.fillStyle = '#fca044';
+        ctx.fillText('GAME A   1 DUCK', 56, 126);
+        ctx.fillText('GAME B   2 DUCKS', 56, 142);
+        ctx.fillText('GAME C   CLAY SHOOTING', 56, 158);
+
+        // Selection cursor arrow
+        const cursorY = 126 + this.selectedMode * 16;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('►', 38, cursorY);
+
+        // Top Score display
+        const topScore = String(this.scoreManager.topScores[this.selectedMode]).padStart(6, '0');
+        ctx.fillStyle = '#70c010';
+        ctx.fillText(`TOP SCORE = ${topScore}`, 52, 188);
+
+        // Copyright footer
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('©1984 NINTENDO CO.,LTD.', 36, 208);
+      }
+
+      renderDuckHuntSceneryBack(ctx) {
+        // Left Tree Trunk
+        ctx.fillStyle = '#884400';
+        ctx.fillRect(30, 82, 12, 88);
+        ctx.fillRect(22, 102, 10, 6);
+        ctx.fillRect(40, 94, 12, 6);
+
+        // Left Tree Foliage Clusters (NES 3-tone green)
+        const clusters = [
+          { x: 12, y: 78, w: 24, h: 16 },
+          { x: 26, y: 54, w: 28, h: 20 },
+          { x: 38, y: 74, w: 26, h: 16 },
+          { x: 16, y: 36, w: 32, h: 18 }
+        ];
+        clusters.forEach(c => {
+          ctx.fillStyle = '#005000';
+          ctx.fillRect(c.x, c.y, c.w, c.h);
+          ctx.fillStyle = '#70c010';
+          ctx.fillRect(c.x + 2, c.y + 2, c.w - 4, c.h - 6);
+          ctx.fillStyle = '#b8f818';
+          ctx.fillRect(c.x + 4, c.y + 2, c.w - 10, 4);
+        });
+
+        // Right Bush
+        ctx.fillStyle = '#005000';
+        ctx.fillRect(194, 132, 36, 36);
+        ctx.fillStyle = '#70c010';
+        ctx.fillRect(196, 134, 32, 28);
+        ctx.fillStyle = '#b8f818';
+        ctx.fillRect(200, 136, 20, 6);
+      }
+
+      renderForegroundGrass(ctx) {
+        // Soil dirt base
+        ctx.fillStyle = '#b84e00';
+        ctx.fillRect(0, GRASS_LINE_Y, LOGICAL_WIDTH, 14);
+
+        // Main lime-green grass body
+        ctx.fillStyle = '#90d800';
+        ctx.fillRect(0, 153, LOGICAL_WIDTH, 20);
+
+        // Authentic repeating 16px NES grass blade pattern with white tips & dark-green shadow stalks
+        for (let x = 0; x < LOGICAL_WIDTH; x += 16) {
+          // Left blade cluster with white highlight tip
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x + 1, 144, 1, 3);
+          ctx.fillRect(x + 2, 146, 1, 3);
+          ctx.fillStyle = '#90d800';
+          ctx.fillRect(x + 1, 147, 3, 7);
+
+          // Center-left blade leaning right
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x + 6, 146, 2, 3);
+          ctx.fillStyle = '#90d800';
+          ctx.fillRect(x + 5, 149, 3, 5);
+
+          // Center-right tall blade
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x + 10, 145, 1, 3);
+          ctx.fillStyle = '#90d800';
+          ctx.fillRect(x + 10, 148, 3, 6);
+
+          // Right angled blade
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x + 14, 147, 1, 3);
+          ctx.fillStyle = '#90d800';
+          ctx.fillRect(x + 13, 150, 3, 4);
+
+          // Dark green shadow stalks cutting through the lime grass (just like the reference image)
+          ctx.fillStyle = '#005800';
+          ctx.fillRect(x + 3, 151, 2, 9);
+          ctx.fillRect(x + 4, 156, 2, 7);
+          ctx.fillRect(x + 8, 149, 2, 8);
+          ctx.fillRect(x + 9, 155, 2, 9);
+          ctx.fillRect(x + 13, 152, 2, 10);
+        }
+      }
+
+      renderClayScenery(ctx) {
+        // Distant mountains
+        ctx.fillStyle = '#005000';
+        ctx.beginPath();
+        ctx.moveTo(0, 115);
+        ctx.lineTo(55, 78);
+        ctx.lineTo(115, 112);
+        ctx.lineTo(185, 72);
+        ctx.lineTo(256, 115);
+        ctx.closePath();
+        ctx.fill();
+
+        // Perspective field
+        ctx.fillStyle = '#b8f818';
+        ctx.fillRect(0, 115, LOGICAL_WIDTH, 69);
+        ctx.fillStyle = '#70c010';
+        ctx.fillRect(0, 142, LOGICAL_WIDTH, 42);
+
+        // Pine trees on sides
+        for (let i = 0; i < 5; i++) {
+          ctx.fillStyle = '#005000';
+          ctx.fillRect(10 + i * 14, 118 + (i % 2) * 6, 8, 14);
+          ctx.fillRect(184 + i * 14, 118 + (i % 2) * 6, 8, 14);
+        }
+      }
+
+      renderHUD(ctx) {
+        // Bottom HUD Black Panel
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 184, LOGICAL_WIDTH, 40);
+
+        ctx.font = '8px "Press Start 2P", monospace';
+
+        // 1. Round Indicator (R=X)
+        ctx.fillStyle = '#70c010';
+        ctx.fillText(`R=${this.scoreManager.round}`, 18, 194);
+
+        // 2. SHOT Box (Bullets Remaining)
+        ctx.strokeStyle = '#70c010';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(16, 198, 38, 22);
+        ctx.fillStyle = '#3cbcfc';
+        ctx.fillText('SHOT', 19, 217);
+
+        for (let i = 0; i < this.bulletsRemaining; i++) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(21 + i * 10, 201, 4, 6);
+          ctx.fillStyle = '#fca044';
+          ctx.fillRect(21 + i * 10, 200, 4, 2);
+        }
+
+        // 3. HIT Meter Box (10 Duck Icons + Pass Line)
+        ctx.strokeStyle = '#70c010';
+        ctx.strokeRect(60, 198, 122, 22);
+        ctx.fillStyle = '#70c010';
+        ctx.fillText('HIT', 64, 209);
+
+        const passReq = this.scoreManager.getPassLineRequirement(this.scoreManager.round);
+        for (let i = 0; i < 10; i++) {
+          const ix = 92 + i * 8;
+          const status = this.scoreManager.targetResults[i];
+          if (status === 1) {
+            ctx.fillStyle = '#d82800'; // Red for hit
+          } else {
+            ctx.fillStyle = '#ffffff'; // White for pending/miss
+          }
+          ctx.fillRect(ix, 201, 6, 6);
+
+          // Pass Line blue vertical markers underneath required hits
+          if (i < passReq) {
+            ctx.fillStyle = '#3cbcfc';
+            ctx.fillRect(ix + 1, 211, 4, 5);
+          }
+        }
+
+        // 4. SCORE Box
+        ctx.strokeStyle = '#70c010';
+        ctx.strokeRect(188, 198, 56, 22);
+        ctx.fillStyle = '#ffffff';
+        const scoreStr = String(this.scoreManager.score).padStart(6, '0');
+        ctx.fillText(scoreStr, 192, 208);
+        ctx.fillStyle = '#70c010';
+        ctx.fillText('SCORE', 196, 217);
+
+        // Center Status Banners (ROUND X, FLY AWAY, PERFECT!!, GAME OVER, PAUSE)
+        if (this.state === FSM_STATES.ROUND_INTRO) {
+          this.drawBanner(ctx, `ROUND ${this.scoreManager.round}`, 90, 70, 76, 24);
+        } else if (this.state === FSM_STATES.FLY_AWAY) {
+          this.drawBanner(ctx, 'FLY AWAY', 84, 60, 88, 20);
+        } else if (this.state === FSM_STATES.NEXT_ROUND_TRANSITION && this.perfectBonusAwarded > 0) {
+          this.drawBanner(ctx, `PERFECT!! ${this.perfectBonusAwarded}`, 56, 64, 144, 24);
+        } else if (this.state === FSM_STATES.GAME_OVER) {
+          this.drawBanner(ctx, 'GAME OVER', 80, 72, 96, 24);
+        } else if (this.paused) {
+          this.drawBanner(ctx, 'PAUSE', 96, 80, 64, 20);
+        }
+      }
+
+      drawBanner(ctx, text, x, y, w, h) {
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(x, y, w, h);
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '8px "Press Start 2P", monospace';
+        const textWidth = text.length * 8;
+        const tx = x + Math.max(4, Math.floor((w - textWidth) / 2));
+        const ty = y + Math.floor(h / 2) + 3;
+        ctx.fillText(text, tx, ty);
+      }
     }
 
-    // Inicializar HUD al cargar
-    updateBulletsHUD();
-    updateScoreHUD();
+    window.onload = function () {
+      const canvas = document.getElementById('nes-canvas');
+      const engine = new GameEngine(canvas);
 
-    window.onload = function() {
+      // UI Dashboard Button Bindings
+      document.getElementById('btn-select').addEventListener('click', () => {
+        engine.eventBus.emit('BTN_SELECT');
+      });
+
+      document.getElementById('btn-start').addEventListener('click', () => {
+        engine.eventBus.emit('BTN_START');
+      });
+
+      document.getElementById('btn-offscreen-shot').addEventListener('click', () => {
+        engine.eventBus.emit('ZAPPER_TRIGGER', { x: -10, y: -10, offscreen: true });
+      });
+
+      document.getElementById('btn-reset').addEventListener('click', () => {
+        engine.transitionTo(FSM_STATES.TITLE_MENU);
+      });
+
+      // Zapper Mode Toggle (Direct Pointer vs. CRT Strobe Emulation)
+      const btnZapper = document.getElementById('btn-zapper-mode');
+      const zapperLabel = document.getElementById('zapper-mode-label');
+      btnZapper.addEventListener('click', () => {
+        engine.crtZapperEmulation = !engine.crtZapperEmulation;
+        zapperLabel.textContent = engine.crtZapperEmulation
+          ? 'Zapper: Emulación CRT (Flash)'
+          : 'Zapper: Puntero Directo';
+        btnZapper.className = engine.crtZapperEmulation
+          ? 'arcade-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-500 hover:bg-purple-400 text-slate-950 flex items-center gap-1.5'
+          : 'arcade-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-600 hover:bg-amber-500 text-slate-950 flex items-center gap-1.5';
+      });
+
+      // CRT Scanlines Toggle
+      const crtWrapper = document.getElementById('crt-wrapper');
+      const btnCrt = document.getElementById('btn-crt-toggle');
+      let scanlinesOn = true;
+      btnCrt.addEventListener('click', () => {
+        scanlinesOn = !scanlinesOn;
+        crtWrapper.classList.toggle('crt-scanlines', scanlinesOn);
+        btnCrt.textContent = `CRT Scanlines: ${scanlinesOn ? 'ON' : 'OFF'}`;
+      });
+
+      // Audio Toggle
+      const btnAudio = document.getElementById('btn-audio-toggle');
+      btnAudio.addEventListener('click', () => {
+        engine.sound.enabled = !engine.sound.enabled;
+        btnAudio.textContent = `Audio RP2A03: ${engine.sound.enabled ? 'ON' : 'MUTE'}`;
+        btnAudio.className = engine.sound.enabled
+          ? 'arcade-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-700 hover:bg-emerald-600 text-white'
+          : 'arcade-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-800 hover:bg-rose-700 text-white';
+      });
+
+      // Round Laboratory Warp Buttons
+      document.querySelectorAll('.round-jump-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetRound = parseInt(btn.getAttribute('data-round'), 10);
+          engine.sound.init();
+          engine.startNewGame(targetRound);
+        });
+      });
+
+      let lastTime = performance.now();
+      let accumulator = 0;
+
+      function gameLoop(currentTime) {
+        let frameTime = (currentTime - lastTime) / 1000;
+        lastTime = currentTime;
+        if (frameTime > 0.25) frameTime = 0.25; // Prevent spiral of death on tab switch
+
+        accumulator += frameTime;
+        while (accumulator >= FIXED_DT) {
+          engine.update(FIXED_DT);
+          accumulator -= FIXED_DT;
+        }
+
+        engine.render();
+        requestAnimationFrame(gameLoop);
+      }
+
       requestAnimationFrame(gameLoop);
     };
   </script>
