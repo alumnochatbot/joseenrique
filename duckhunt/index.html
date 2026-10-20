@@ -682,22 +682,22 @@
         ];
 
         const duckHitMatrix = [
-          "..WW........WW..",
-          ".WWWW..HH..WWWW.",
-          ".WWWW.HHHH.WWWW.",
-          "..BBBWHWEWHWBBB.",
-          "..BBBBWEHEWBBBB.",
-          "...BBBHOOOOBBB..",
-          "...BBBBHOOOBBB..",
-          "..BBBBBBBBBBBBB.",
-          "..BBBBWWWWBBBBB.",
-          "...BBBWWWWBBBB..",
-          "....BBBBBBBB....",
-          "...OO......OO...",
-          "..OO........OO..",
-          "................",
-          "................",
-          "................"
+          ".K..WW........WW..K.",
+          "...WWWW..HH..WWWW...",
+          "..WWWW.HHHHHH.WWWW..",
+          "...BBBWHWEWHWBBBB...",
+          ".K.BBBBWEHEWBBBBB.K.",
+          "....BBBHOOOOBBB.....",
+          "....BBBBHOOOBBB.....",
+          "...BBBBBBBBBBBBBB...",
+          "...BBBBWWWWBBBBBB...",
+          "....BBBWWWWBBBBB....",
+          ".....BBBBBBBBBB.....",
+          ".K..OO........OO..K.",
+          "...OO..........OO...",
+          "....................",
+          "....................",
+          "...................."
         ];
 
         const duckFallMatrix = [
@@ -720,7 +720,7 @@
         ];
 
         ['black', 'blue', 'red'].forEach(color => {
-          const pal = duckPalettes[color];
+          const pal = { ...duckPalettes[color], 'K': '#000000' };
           const h0 = this.createCanvasFromMatrix(duckFlyHoriz0, pal, 2);
           const h1 = this.createCanvasFromMatrix(duckFlyHoriz1, pal, 2);
           const d0 = this.createCanvasFromMatrix(duckFlyDiag0, pal, 2);
@@ -746,72 +746,108 @@
 
         const dogPalette = {
           'B': '#d84c0c', // Authentic NES vibrant orange-brown coat
+          'S': '#982c00', // Darker brown shading / back leg tone
           'L': '#fca044', // Light tan fur / ear & paw highlights
-          'K': '#000000', // Black ears, nose, whisker dots & paw outlines
-          'W': '#ffffff', // White muzzle & eye sclera
-          'R': '#d82800', // Red mouth / duck body accent
+          'K': '#000000', // Black ears, collar, nose, whisker dots & outlines
+          'W': '#ffffff', // White muzzle, sclera & caught duck wing highlight
+          'R': '#d82800', // Red mouth / tongue / duck accent
           'G': '#008844', // Caught duck green head
-          'Y': '#fc9838'  // Caught duck orange beak
+          'Y': '#fc9838'  // Caught duck orange beak & feet
         };
 
-        // 1:1 Native NES resolution matrices (scale = 1) matching the iconic NES sprites
+        // Side-profile walking & sniffing pose Frame 1 (matching middle-right panel style)
         const dogSniff0 = [
-          "............................................",
-          "............................................",
-          "..........................KKKKKK............",
-          "........................KKKKKKKKKK..........",
-          "....BBBB..............KKKKBBBBBBKKKK........",
-          "..BBBBBBBB..........KKKKBBBBBBBBBBKKKK......",
-          "...BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBLLKKK....",
-          ".....BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBLLLLKKKK.",
-          ".....BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBLLLLLLKKK",
-          "......BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBWWWW..",
-          ".......BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.......",
-          "........BBBBBBBBBBBBBBBBBBBBBBBBBBBB........",
-          "........BBBBBBBB............BBBBBBBB........",
-          "........BBBBBBBB............BBBBBBBB........",
-          "........BBBBBBBB............BBBBBBBB........",
-          "........WWWWWWWW............WWWWWWWW........"
+          "....................................................",
+          "....................................................",
+          "..............................KKKKK.................",
+          "............................KKBBBBKK................",
+          "...........................KBBBBBBBBK...............",
+          "..........................KBBBBBBBBBBK..............",
+          "....KKK...................KBBBBBBKKKKK..............",
+          "..KKBBBK.................KBBBBBBKKKKKKK.............",
+          ".KBBBBBBK........KKKKKKKKBBBBBBBKKKKBBWK............",
+          ".KBBBBBBBK...KKKKBBBBBBBBBBBBBBBKKKKBWWK............",
+          "..KBBBBBBBKKKBBBBBBBBBBBBBBBBBBKBBBBWWWWKKKKKK......",
+          "...KBBBBBBBBBBBBBBBBBBBBBBBBBBKBBBBWWWWWWWWWKKK.....",
+          "....KBBBBBBBBBBBBBBBBBBBBBBBBBKBBBBWWWWKWKWWWWKK....",
+          "....KBBBBBBBBBBBBBBBBBBBBBBBBKKBBBBWWWWWWWWWWWWK....",
+          "....KBBBBBBBBBBBBBBBBBBBBBBBBBKKBBBBWWWWKWKWWWKK....",
+          "....KBBBBBBBBBBBBBBBBBBBBBBBBBBKKBBBBWWWWWWWWKK.....",
+          ".....KBBBBBBBBBBBBBBBBBBBBBBBBBBKKBBBBKKKKKKK.......",
+          ".....KBBBBBBBSSSSSSSSBBBBBBBBBBBBKKBBBKRRK..........",
+          "......KBBBBBBSSSSSSSSBBBBBBBBBBBBBKKKKKRRK..........",
+          "......KBBBBBBBSSSSSSSSBBBBBBBBBBBLLKKKKKK...........",
+          "......KBBBBBBBBBBBBBBBBBBBBBBBBLLLLL................",
+          "......KBBBBBBB..KBBBBBB....KBBBBBBB.................",
+          ".....KBBBBBBB...KBBBBBB.....KBBBBBBK................",
+          ".....KBBBBBB....KBBBBBB......KBBBBBBK...............",
+          "....KBBBBBB.....KBBBBBB.......KBBBBBBK..............",
+          "....KBBBBBBK....KBBBBBBK.......KBBBBBBKK............",
+          "....KKKKKKKK....KKKKKKKK........KKKKKKKK............"
         ];
 
+        // Side-profile walking & sniffing pose Frame 2 (legs alternate, head bobs)
         const dogSniff1 = [
-          "............................................",
-          "............................................",
-          "............................KKKKKK..........",
-          "..........................KKKKKKKKKK........",
-          "......BBBB..............KKKKBBBBBBKKKK......",
-          "....BBBBBBBB..........KKKKBBBBBBBBBBKKKK....",
-          "....BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBLLKKK....",
-          ".....BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBLLLLKKKK.",
-          ".....BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBLLLLLLKKK",
-          "......BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBWWWW..",
-          ".......BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.......",
-          "........BBBBBBBBBBBBBBBBBBBBBBBBBBBB........",
-          ".......BBBBBBBB..............BBBBBBBB.......",
-          "......BBBBBBBB................BBBBBBBB......",
-          "......WWWWWWWW................WWWWWWWW......",
-          "............................................"
+          "....................................................",
+          "....................................................",
+          "...............................KKKKK................",
+          ".............................KKBBBBKK...............",
+          "............................KBBBBBBBBK..............",
+          "......KKK..................KBBBBBBBBBBK.............",
+          "....KKBBBK.................KBBBBBBKKKKK.............",
+          "...KBBBBBBK.......KKKKKKKK.KBBBBBBKKKKKKK...........",
+          "...KBBBBBBBK..KKKKBBBBBBBBBBBBBBBBKKKKBBWK..........",
+          "....KBBBBBBBKKBBBBBBBBBBBBBBBBBBBKBBBBWWK...........",
+          ".....KBBBBBBBBBBBBBBBBBBBBBBBBBBKBBBBWWWWKKKKKK.....",
+          ".....KBBBBBBBBBBBBBBBBBBBBBBBBBKBBBBWWWWWWWWWKKK....",
+          ".....KBBBBBBBBBBBBBBBBBBBBBBBBKKBBBBWWWWKWKWWWWKK...",
+          ".....KBBBBBBBBBBBBBBBBBBBBBBBBBKKBBBBWWWWWWWWWWWWK..",
+          ".....KBBBBBBBBBBBBBBBBBBBBBBBBBBKKBBBBWWWWKWKWWWKK..",
+          "......KBBBBBBBBBBBBBBBBBBBBBBBBBBKKBBBBWWWWWWWWKK...",
+          "......KBBBBBBBSSSSSSSSBBBBBBBBBBBBKKBBBBKKKKKKK.....",
+          ".......KBBBBBBSSSSSSSSBBBBBBBBBBBBBKKBBBKRRK........",
+          ".......KBBBBBBBSSSSSSSSBBBBBBBBBBBLLKKKKKRRK........",
+          ".......KBBBBBBBBBBBBBBBBBBBBBBBBLLLLL.KKKKK.........",
+          "........KBBBBBBB......KBBBBBBBBBB...................",
+          ".........KBBBBBBB.....KBBBBBKBBBBK..................",
+          "..........KBBBBBBB...KBBBBBB.KBBBBK.................",
+          "...........KBBBBBBK..KBBBBBB..KBBBBK................",
+          "...........KBBBBBBK.KBBBBBBK..KBBBBBK...............",
+          "...........KKKKKKKK.KKKKKKKK..KKKKKKK..............."
         ];
 
+        // Exact reproduction of the middle-right panel: Dog Alert with raised ears, collar & wide snout
         const dogAlert = [
-          "..........................KKKK..KKKK........",
-          ".........................KKKKKKKKKKKK.......",
-          ".........................KKBBBBBBBBKK.......",
-          ".......................KKKKBBWWBBWWKKKK.....",
-          ".......................KKKKBBWKBBWKKKKK.....",
-          ".......................KKKKBBBBBBBBLLKKK....",
-          "....BBBB.................BBBBBBBBBBLLLLKK...",
-          "..BBBBBBBB.............BBBBBBBBBBBBLLLL.....",
-          "...BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.........",
-          ".....BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.........",
-          "......BBBBBBBBBBBBBBBBBBBBBBBBBBBB..........",
-          "........BBBBBBBBBBBBBBBBBBBBBBBB............",
-          "........BBBBBBBB........BBBBBBBB............",
-          "........BBBBBBBB........BBBBBBBB............",
-          "........BBBBBBBB........BBBBBBBB............",
-          "........WWWWWWWW........WWWWWWWW............"
+          "............................KKKK....KKKK............",
+          "...........................KBBBBK..KBBBBK...........",
+          "..........................KBBBBBBKKBBBBBBK..........",
+          "..........................KBBBBBBKKBBBBBBK..........",
+          "..........................KBBBBKBBBBKBBBBK..........",
+          "...........................KBBKBBBBBBKBBK...........",
+          "............................KKBBBBBBBBKK............",
+          "............................KBBBBWWBBWWK............",
+          "...........................KBBBBBWWBBWWK............",
+          "...........................KBBBBBWKBBWKK............",
+          "....KKK...................KBBBBBBWWWWWWKKKKKK.......",
+          "..KKBBBK..........KKKKKKKKKBBBBBBWWWWWWWWWWKKK......",
+          ".KBBBBBBK.....KKKKBBBBBBBBKBBBBBBWWWWKWKWWWWKKK.....",
+          ".KBBBBBBBK..KKBBBBBBBBBBBBKKBBBBBWWWWWWWWWWWWWKK....",
+          "..KBBBBBBBKKBBBBBBBBBBBBBBBKKBBBBWWWWKWKWKWWWWK.....",
+          "...KBBBBBBBBBBBBBBBBBBBBBBBBKKBBBBWWWWWWWWWWWKK.....",
+          "....KBBBBBBBBBBBBBBBBBBBBBBBBKKBBBBKKKKKKKKKK.......",
+          "....KBBBBBBBBBBBBBBBBBBBBBBBBBKKBBBKRRRRK...........",
+          ".....KBBBBBBBSSSSSSSSBBBBBBBBBBKKKKKRRRRK...........",
+          ".....KBBBBBBBSSSSSSSSBBBBBBBBBBBLLLLKKKK............",
+          "......KBBBBBBSSSSSSSSBBBBBBBBBBLLLLLL...............",
+          "......KBBBBBBBBBBBBBBBBBBBBBBBLLLLKBBKK.............",
+          "......KBBBBBBB..KBBBBBB....KBBBBBB.KBBBKK...........",
+          ".....KBBBBBBB...KBBBBBB.....KBBBBBK.KBBBBK..........",
+          ".....KBBBBBB....KBBBBBB.....KBBBBBK..KKKK...........",
+          "....KBBBBBBK....KBBBBBBK....KBBBBBBK................",
+          "....KKKKKKKK....KKKKKKKK....KKKKKKKK................"
         ];
 
+        // Parabolic jump sprite as dog leaps into the tall grass
         const dogJump = [
           "..........................KKKKKKKK..........",
           "........................KKKKBBBBKKKK........",
@@ -832,12 +868,14 @@
           "...KKKKKKKKKKBBBBBBKKKKKKKKKKKK.",
           "..KKKKKKKKKKBBBBBBBBKKKKKKKKKKK.",
           "..KKKKKKK..BBBBBBBBBB....KKKKKK.",
-          "..KKKKKK..BBWWWWBWWWWBB....KKK..",
-          "..KKKKKK..BBWWKKBWWKKBB.........",
-          "...KKKK...BBWWKKBWWKKBB.........",
-          "....KK....BBWWWWBWWWWBB.........",
-          "..........BBBWWKKKWWBBB.........",
-          "........WWWWWWKKKKKWWWWWW.......",
+          "..KKKKKK..KKKKKK..KKKKKK...KKK..",
+          "..KKKKKK.KWWWWWK..KWWWWWK.......",
+          "...KKKK..KWKKWWK..KWWKKWK.......",
+          "....KK...KWKKWWK..KWWKKWK.......",
+          ".........KWWWWWK..KWWWWWK.......",
+          "..........KKKKKK..KKKKKK........",
+          "............BBBKKKKBBB..........",
+          "........WWWWWWKKKKWWWWWW........",
           ".......WWWWWWWWKKKKWWWWWWW......",
           ".......WWWKWWWKWWWWKWWWKWW......",
           "......WWWWWWWWWWWWWWWWWWWWW.....",
@@ -860,8 +898,6 @@
           ".......BBBBBBBBBBBBBBBBBBBBBBBBB",
           ".......BBBBBBBBBBBBBBBBBBBBBBBBB",
           "........BBBBBBBBBBBBBBBBBBBBBBB.",
-          "........BBBBBBBBBBBBBBBBBBBBBBB.",
-          ".........BBBBBBBBBBBBBBBBBBBBB..",
           ".........BBBBBBBBBBBBBBBBBBBBB.."
         ];
 
@@ -873,11 +909,14 @@
           "...KKKKKKKKKKBBBBBBKKKKKKKKKKKK.",
           "..KKKKKKKKKKBBBBBBBBKKKKKKKKKKK.",
           "..KKKKKKK..BBBBBBBBBB....KKKKKK.",
-          "..KKKKKK..BBWWWWBWWWWBB....KKK..",
-          "..KKKKKK..BBKKKKBKKKKBB.........",
-          "...KKKK...BBWWWWBWWWWBB.........",
-          "....KK....BBBWWKKKWWBBB.........",
-          "........WWWWWWKKKKKWWWWWW.......",
+          "..KKKKKK..KKKKKK..KKKKKK...KKK..",
+          "..KKKKKK.KWWWWWK..KWWWWWK.......",
+          "...KKKK..KWKKWWK..KWWKKWK.......",
+          "....KK...KWKKWWK..KWWKKWK.......",
+          ".........KWWWWWK..KWWWWWK.......",
+          "..........KKKKKK..KKKKKK........",
+          "............BBBKKKKBBB..........",
+          "........WWWWWWKKKKWWWWWW........",
           ".......WWWWWWWWKKKKWWWWWWW......",
           ".......WWWKWWWKWWWWKWWWKWW......",
           "......WWWWWWWWWWWWWWWWWWWWW.....",
@@ -899,72 +938,87 @@
           ".......BBBBBBBBBBBBBBBBBBBBBBBBB",
           ".......BBBBBBBBBBBBBBBBBBBBBBBBB",
           ".......BBBBBBBBBBBBBBBBBBBBBBBBB",
-          "........BBBBBBBBBBBBBBBBBBBBBBB.",
-          "........BBBBBBBBBBBBBBBBBBBBBBB.",
-          ".........BBBBBBBBBBBBBBBBBBBBB..",
-          ".........BBBBBBBBBBBBBBBBBBBBB.."
+          "........BBBBBBBBBBBBBBBBBBBBBBB."
         ];
 
+        // Authentic NES dog holding 1 duck with 2 clearly separated, bordered cartoon eyes
         const dogHold1 = [
-          "......KKKKK.........KKKK........",
-          "....KKKKKKKK.......KKKKKKKKKKK..",
-          "...KKKKKKKKKKBBBBBBKKKKKKKKKKKK.",
-          "..KKKKKKKKKKBBBBBBBBKKKKKKKKKKK.",
-          "..KKKKKKK..BBBBBBBBBB....KKKKKK.",
-          "..KKKKKK..BBWWWWBWWWWBB....KKK..",
-          "..KKKKKK..BBWWKKBWWKKBB....GGGG.",
-          "...KKKK...BBWWKKBWWKKBB...GGGGGG",
-          "....KK....BBWWWWBWWWWBB...GGWWYY",
-          "..........BBBWWKKKWWBBB....RRRR.",
-          "........WWWWWWKKKKKWWWWWW.RRRRRR",
-          ".......WWWWWWWWKKKKWWWWWWWRRRRRR",
-          ".......WWWKWWWKWWWWKWWWKWWWRRRR.",
-          "......WWWWWWWWWWWWWWWWWWWWWWWWW.",
-          "....BBWWWWKWKWKKKKKKWKWKWWWWBBBB",
-          "...BBBBWWWWWWKKKKKKKKWWWWWWBBBBB",
-          "..BBBBBBWWWWWWKKKKKKKWWWWBBBBBBB",
-          "..BBBBBBBKKWWWWWWWWWWWWBBBBBBBBB",
-          "..BBBBBBBBBKKKKKKKKKKKKBBBBBBBBB",
-          "...BBBBBBBBBBBBBBBBBBBBBBBBBBBB.",
-          "....BBBBBBBBBBBBBBBBBBBBBBBBBB..",
-          "......BBBBBBBBBBBBBBBBBBBBBB....",
-          ".......BBBBBBBBBBBBBBBBBBBB.....",
-          ".......BBBBBBBBBBBBBBBBBBBB.....",
-          ".......BBBBBBBBBBBBBBBBBBBB.....",
-          ".......BBBBBBBBBBBBBBBBBBBB.....",
-          "........BBBBBBBBBBBBBBBBBB......",
-          "........BBBBBBBBBBBBBBBBBB......"
+          "...................................GGGGG....",
+          "..................................GGGGGGG...",
+          "......KKKKK.........KKKK..........GGGGGGYYYY",
+          "....KKKKKKKK.......KKKKKKKKKK....GGGGGGYYYYY",
+          "...KKKKKKKKKKBBBBBBKKKKKKKKKKK..GGGGGGGYYYYY",
+          "..KKKKKKKKKKBBBBBBBBKKKKKKKKKKK.GGGGGGWW....",
+          "..KKKKKKK..BBBBBBBBBB....KKKKKK.WWWWWW......",
+          "..KKKKKK..KKKKKK..KKKKKK...KKK.KKKKKKKK.....",
+          "..KKKKKK.KWWWWWK..KWWWWWK...KK.KKBBBBKKK....",
+          "...KKKK..KWKKWWK..KWWKKWK...KKBBBBWWKKKK....",
+          "....KK...KWKKWWK..KWWKKWK....KKBBBWWKKKK....",
+          ".........KWWWWWK..KWWWWWK.....KKBBBBKKKK....",
+          "..........KKKKKK..KKKKKK......KKKBBKKKK.....",
+          "............BBBKKKKBBB.........KKKKKKKK.....",
+          "........WWWWWWKKKKWWWWWW........KKWWKKK.....",
+          ".......WWWWWWWWWWWWWWWWWW.......KKWWKK......",
+          ".......WWWKWWWKWWWWKWWWKW........YYYY.......",
+          "......WWWWWWWWWWWWWWWWWWWW.......YYYY.......",
+          "....BBWWWWKWKWKKKKKKWKWKWWWWBB..............",
+          "...BBBBWWWWWWKKKKKKKKWWWWWWBBBB.............",
+          "..BBBBBBWWWWWWKKRRKKWWWWWWBBBBBB............",
+          "..BBBBBBBKKWWWWKKKKWWWWKBBKBBKBB............",
+          ".BBBBBBBBBBKKWWWWWWWWKBBBBKBBBBB............",
+          ".BBBBBBBBBBBBKKKKKKKKBBKBBKBBBBB............",
+          ".BBBBBBBBBBBKKKKKKKKKBBBBKBBBBBB............",
+          ".BBBBBBBBBBKBBBBBBBBBBKKBBBBBBBB............",
+          "..BBBBBBBBBBKKKKKKKKBBBBBBKBBBBB............",
+          "...BBBBBBBBBBBBBBBBKBBBBBKBBBBBB............",
+          ".....BBBBBBBBBBBBBKBKBBBKBBBBBBB............",
+          ".......BBBBBBBBBKBKBBBBKBBBBBBBB............",
+          ".......BBBBBBBBBBKBBBBKBBBBBBBBB............",
+          ".......BBBBBBBBBBBBKKBBBBBBBBBBB............",
+          ".......BBBBBBBBBBBBBBBBBBBBBBBBB............",
+          ".......BBBBBBBBBBBBBBBBBBBBBBBBB............",
+          "........BBBBBBBBBBBBBBBBBBBBBBB.............",
+          ".........BBBBBBBBBBBBBBBBBBBBB.............."
         ];
 
+        // Authentic NES dog holding 2 ducks with arms spread and 2 clearly separated, bordered cartoon eyes
         const dogHold2 = [
-          "........KKKKK.........KKKK..........",
-          "......KKKKKKKK.......KKKKKKKKKKK....",
-          ".....KKKKKKKKKKBBBBBBKKKKKKKKKKKK...",
-          "....KKKKKKKKKKBBBBBBBBKKKKKKKKKKK...",
-          "....KKKKKKK..BBBBBBBBBB....KKKKKK...",
-          ".GGGGKKKKK..BBWWWWBWWWWBB....KKK....",
-          "GGGGGGKKKK..BBWWKKBWWKKBB....GGGG...",
-          "YYWWGGKKK...BBWWKKBWWKKBB...GGGGGG..",
-          ".RRRR.KK....BBWWWWBWWWWBB...GGWWYY..",
-          "RRRRRR......BBBWWKKKWWBBB....RRRR...",
-          "RRRRRR....WWWWWWKKKKKWWWWWW.RRRRRR..",
-          ".RRRR....WWWWWWWWKKKKWWWWWWWRRRRRR..",
-          ".WWWWW...WWWKWWWKWWWWKWWWKWWWRRRR...",
-          "BBBBWWW.WWWWWWWWWWWWWWWWWWWWWWWWW...",
-          "BBBBBWWWWWWWKWKWKKKKKKWKWKWWWWBBBB..",
-          "BBBBBBWWWWWWWWKKKKKKKKWWWWWWBBBBBB..",
-          ".BBBBBBBWWWWWWKKKKKKKWWWWBBBBBBBB...",
-          "..BBBBBBBKKWWWWWWWWWWWWBBBBBBBBB....",
-          "...BBBBBBBBKKKKKKKKKKKKBBBBBBBB.....",
-          "....BBBBBBBBBBBBBBBBBBBBBBBBBB......",
-          "......BBBBBBBBBBBBBBBBBBBBBB........",
-          "........BBBBBBBBBBBBBBBBBBBB........",
-          ".........BBBBBBBBBBBBBBBBBB.........",
-          ".........BBBBBBBBBBBBBBBBBB.........",
-          ".........BBBBBBBBBBBBBBBBBB.........",
-          ".........BBBBBBBBBBBBBBBBBB.........",
-          "..........BBBBBBBBBBBBBBBB..........",
-          "..........BBBBBBBBBBBBBBBB.........."
+          "....GGGGG..........................................GGGGG....",
+          "...GGGGGGG........................................GGGGGGG...",
+          "YYYYGGGGGG..........KKKKK.........KKKK............GGGGGGYYYY",
+          "YYYYYGGGGGG........KKKKKKKK.......KKKKKKKKKK.....GGGGGGYYYYY",
+          "YYYYYGGGGGGG......KKKKKKKKKKBBBBBBKKKKKKKKKKK...GGGGGGGYYYYY",
+          "....WWGGGGGG.....KKKKKKKKKKBBBBBBBBKKKKKKKKKKK..GGGGGGWW....",
+          "......WWWWWW.....KKKKKKK..BBBBBBBBBB....KKKKKK..WWWWWW......",
+          ".....KKKKKKKK...KKKKKK..KKKKKK..KKKKKK...KKKK..KKKKKKKK.....",
+          "....KKKBBBBKK..KKKKKKK.KWWWWWK..KWWWWWK...KKKK.KKBBBBKKK....",
+          "....KKKKWWBBBBKK.KKKK..KWKKWWK..KWWKKWK...KKBBBBWWKKKKKK....",
+          "....KKKKWWBBBKK...KK...KWKKWWK..KWWKKWK....KKBBBWWKKKKKK....",
+          "....KKKKBBBBKK.........KWWWWWK..KWWWWWK.....KKBBBBKKKKKK....",
+          ".....KKKKBBKKK..........KKKKKK..KKKKKK......KKKBBKKKKKK.....",
+          ".....KKKKKKKK.............BBBKKKKBBB.........KKKKKKKK.......",
+          ".....KKKWWKK.........WWWWWWKKKKWWWWWW.........KKWWKKK.......",
+          "......KKWWKK........WWWWWWWWWWWWWWWWWW........KKWWKK........",
+          ".......YYYY.........WWWKWWWKWWWWKWWWKW.........YYYY.........",
+          ".......YYYY........WWWWWWWWWWWWWWWWWWWW........YYYY.........",
+          ".................BBWWWWKWKWKKKKKKWKWKWWWWBB.................",
+          "................BBBBWWWWWWKKKKKKKKWWWWWWBBBB................",
+          "...............BBBBBBWWWWWWKKRRKKWWWWWWBBBBBB...............",
+          "...............BBBBBBBKKWWWWKKKKWWWWKBBKBBKBB...............",
+          "..............BBBBBBBBBBKKWWWWWWWWKBBBBKBBBBB...............",
+          "..............BBBBBBBBBBBBKKKKKKKKBBKBBKBBBBB...............",
+          "..............BBBBBBBBBBBKKKKKKKKKBBBBKBBBBBB...............",
+          "..............BBBBBBBBBBKBBBBBBBBBBKKBBBBBBBB...............",
+          "...............BBBBBBBBBBKKKKKKKKBBBBBBKBBBBB...............",
+          "................BBBBBBBBBBBBBBBBKBBBBBKBBBBBB...............",
+          "..................BBBBBBBBBBBBBKBKBBBKBBBBBBB...............",
+          "....................BBBBBBBBBKBKBBBBKBBBBBBBB...............",
+          "....................BBBBBBBBBBKBBBBKBBBBBBBBB...............",
+          "....................BBBBBBBBBBBBKKBBBBBBBBBBB...............",
+          "....................BBBBBBBBBBBBBBBBBBBBBBBBB...............",
+          "....................BBBBBBBBBBBBBBBBBBBBBBBBB...............",
+          ".....................BBBBBBBBBBBBBBBBBBBBBBB................",
+          "......................BBBBBBBBBBBBBBBBBBBBB................."
         ];
 
         this.sprites.dog_sniff_0 = this.createCanvasFromMatrix(dogSniff0, dogPalette, 1);
@@ -1517,7 +1571,8 @@
         this.reset();
         this.mode = 'CELEBRATE';
         this.caughtCount = Math.max(1, Math.min(2, ducksCaught));
-        this.x = Math.max(36, Math.min(180, catchX - 18));
+        const spriteWidth = this.caughtCount === 2 ? 60 : 44;
+        this.x = Math.max(10, Math.min(LOGICAL_WIDTH - spriteWidth - 10, catchX - Math.round(spriteWidth / 2)));
         this.y = 166;
         this.inForeground = false;
         this.sound.playDuckCaughtJingle();
@@ -1568,9 +1623,9 @@
           }
         } else if (this.mode === 'CELEBRATE') {
           if (this.timer < 0.35) {
-            this.y = Math.max(122, this.y - 125 * dt);
-          } else if (this.timer > 1.15) {
-            this.y += 125 * dt;
+            this.y = Math.max(116, this.y - 135 * dt);
+          } else if (this.timer > 1.25) {
+            this.y += 135 * dt;
             if (this.y >= 170) {
               this.mode = 'HIDDEN';
               return true;
@@ -2146,10 +2201,18 @@
           return;
         }
 
-        // LAYER 0: Sky Background (#64b0ff Normal, #fca044 Fly Away Alert)
+        // LAYER 0: Sky Background (#1084f8 Sky Blue Normal, #fca044 Fly Away Alert)
         const isFlyAwayAlert = this.state === FSM_STATES.FLY_AWAY && this.selectedMode !== GAME_MODES.GAME_B;
-        ctx.fillStyle = isFlyAwayAlert ? '#fca044' : '#64b0ff';
+        ctx.fillStyle = isFlyAwayAlert ? '#fca044' : '#1084f8';
         ctx.fillRect(0, 0, LOGICAL_WIDTH, GRASS_LINE_Y + 14);
+
+        if (!isFlyAwayAlert) {
+          // 4 Clouds matching the reference image positions and pixel-art shapes
+          this.renderClouds(ctx);
+
+          // Ocean with horizon haze, layered blue water, and pixelated white foam waves
+          this.renderOcean(ctx);
+        }
 
         if (this.selectedMode === GAME_MODES.GAME_C) {
           // Layer 1 & 2 for Game C (Clay Shooting Perspectives & Distant Hills)
@@ -2223,81 +2286,262 @@
         ctx.fillText('©1984 NINTENDO CO.,LTD.', 36, 208);
       }
 
+      renderClouds(ctx) {
+        // Cloud 1: Upper-middle-left cloud (large fluffy cluster)
+        this.drawCloud(ctx, 145, 12, 1.05);
+
+        // Cloud 2: Middle-left cloud (beside the tree upper foliage)
+        this.drawCloud(ctx, 12, 38, 0.95);
+
+        // Cloud 3: Upper-right cloud (near top-right corner)
+        this.drawCloud(ctx, 192, 42, 1.15);
+
+        // Cloud 4: Far-left small puffy cloud (high above tree)
+        this.drawCloud(ctx, 36, 6, 0.65);
+      }
+
+      drawCloud(ctx, x, y, scale = 1) {
+        ctx.save();
+        ctx.translate(Math.round(x), Math.round(y));
+        ctx.scale(scale, scale);
+
+        // Cloud Base Shadow (Grey #c8d4e4 / #b0c4de)
+        ctx.fillStyle = '#c0d0e0';
+        ctx.beginPath();
+        // Bottom flat base with rounded lobes
+        ctx.roundRect(0, 16, 56, 12, [0, 0, 8, 8]);
+        ctx.fill();
+
+        // Main White Body (#ffffff)
+        ctx.fillStyle = '#ffffff';
+        // Lower body
+        ctx.beginPath();
+        ctx.roundRect(2, 11, 52, 12, [4, 4, 0, 0]);
+        ctx.fill();
+
+        // Left puff
+        ctx.beginPath();
+        ctx.arc(14, 13, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Center tall puff
+        ctx.beginPath();
+        ctx.arc(28, 9, 13, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Right puff
+        ctx.beginPath();
+        ctx.arc(42, 14, 9, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Additional subtle pixel highlights and bottom stepped shadow
+        ctx.fillStyle = '#b0c0d8';
+        ctx.fillRect(8, 25, 40, 2);
+        ctx.fillRect(14, 27, 28, 1);
+
+        ctx.restore();
+      }
+
+      renderOcean(ctx) {
+        // 1. Soft Horizon Haze Bar (Light Cyan / Sky haze from Y = 88 to 104)
+        ctx.fillStyle = '#8ce0ff';
+        ctx.fillRect(0, 90, LOGICAL_WIDTH, 14);
+
+        // 2. Horizon Line Boundary
+        ctx.fillStyle = '#1050b8';
+        ctx.fillRect(0, 104, LOGICAL_WIDTH, 2);
+
+        // 3. Main Ocean Deep Blue Body (From Y = 104 to Y = 144)
+        ctx.fillStyle = '#0850c0';
+        ctx.fillRect(0, 106, LOGICAL_WIDTH, 38);
+
+        // 4. Subtle depth gradient bands (darker deep blue towards foreground)
+        ctx.fillStyle = '#0840a8';
+        ctx.fillRect(0, 122, LOGICAL_WIDTH, 22);
+
+        // 5. Pixelated Ocean Waves & White Foam Caps (#ffffff, #70b8ff, and #003080)
+        // Distant subtle wave ripples (Y = 107 to 116)
+        ctx.fillStyle = '#78c8ff';
+        for (let x = 0; x < LOGICAL_WIDTH; x += 16) {
+          ctx.fillRect(x + ((x * 3) % 7), 108, 6, 1);
+          ctx.fillRect(x + ((x * 5) % 9), 112, 8, 1);
+          ctx.fillRect(x + ((x * 2) % 5), 115, 10, 1);
+        }
+
+        // Mid-distance wave crests with white foam highlights (Y = 117 to 128)
+        for (let x = 0; x < LOGICAL_WIDTH; x += 22) {
+          const shift = (x * 7) % 11;
+          // Wave shadow underneath
+          ctx.fillStyle = '#002870';
+          ctx.fillRect(x + shift, 120, 14, 2);
+          ctx.fillRect(x + ((x * 3) % 9), 125, 16, 2);
+
+          // White crest highlight
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x + shift + 2, 119, 10, 1);
+          ctx.fillRect(x + shift + 4, 118, 6, 1);
+          ctx.fillRect(x + ((x * 3) % 9) + 2, 124, 12, 1);
+        }
+
+        // Foreground ocean waves with thick white foam swells (Y = 129 to 143)
+        for (let x = 0; x < LOGICAL_WIDTH; x += 28) {
+          const shift = (x * 5) % 13;
+          // Deep blue trough
+          ctx.fillStyle = '#002060';
+          ctx.fillRect(x + shift, 133, 20, 3);
+          ctx.fillRect(x + shift + 4, 138, 18, 3);
+
+          // Light cyan sea foam base
+          ctx.fillStyle = '#78d0ff';
+          ctx.fillRect(x + shift + 1, 131, 18, 2);
+          ctx.fillRect(x + shift + 5, 136, 16, 2);
+
+          // Crisp white sea spray and breaker foam (matching image)
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x + shift + 3, 130, 14, 2);
+          ctx.fillRect(x + shift + 6, 129, 8, 1);
+          ctx.fillRect(x + shift + 6, 135, 13, 2);
+          ctx.fillRect(x + shift + 8, 134, 7, 1);
+        }
+      }
+
       renderDuckHuntSceneryBack(ctx) {
-        // Left Tree Trunk
-        ctx.fillStyle = '#884400';
-        ctx.fillRect(30, 82, 12, 88);
-        ctx.fillRect(22, 102, 10, 6);
-        ctx.fillRect(40, 94, 12, 6);
+        // Authentic NES Left Tree Trunk & Angled Branches (matching reference image)
+        ctx.fillStyle = '#503000'; // Dark bark base
+        ctx.fillRect(25, 36, 9, 114);
 
-        // Left Tree Foliage Clusters (NES 3-tone green)
-        const clusters = [
-          { x: 12, y: 78, w: 24, h: 16 },
-          { x: 26, y: 54, w: 28, h: 20 },
-          { x: 38, y: 74, w: 26, h: 16 },
-          { x: 16, y: 36, w: 32, h: 18 }
-        ];
-        clusters.forEach(c => {
-          ctx.fillStyle = '#005000';
-          ctx.fillRect(c.x, c.y, c.w, c.h);
-          ctx.fillStyle = '#70c010';
-          ctx.fillRect(c.x + 2, c.y + 2, c.w - 4, c.h - 6);
-          ctx.fillStyle = '#b8f818';
-          ctx.fillRect(c.x + 4, c.y + 2, c.w - 10, 4);
-        });
+        // Trunk bark texture highlights
+        ctx.fillStyle = '#884c00';
+        ctx.fillRect(27, 42, 3, 102);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(29, 55, 1, 85);
 
-        // Right Bush
-        ctx.fillStyle = '#005000';
-        ctx.fillRect(194, 132, 36, 36);
-        ctx.fillStyle = '#70c010';
-        ctx.fillRect(196, 134, 32, 28);
-        ctx.fillStyle = '#b8f818';
-        ctx.fillRect(200, 136, 20, 6);
+        // Left branch to middle-left foliage cluster
+        for (let i = 0; i < 10; i++) {
+          ctx.fillStyle = '#503000';
+          ctx.fillRect(25 - i, 78 - Math.floor(i * 0.7), 4, 3);
+        }
+
+        // Upper-right branch
+        for (let i = 0; i < 10; i++) {
+          ctx.fillStyle = '#503000';
+          ctx.fillRect(32 + i, 60 - Math.floor(i * 0.8), 4, 3);
+        }
+
+        // Lower-right branch (forking out to the lower-right leaf cluster)
+        for (let i = 0; i < 14; i++) {
+          ctx.fillStyle = '#503000';
+          ctx.fillRect(33 + i, 96 - Math.floor(i * 0.8), 4, 3);
+          ctx.fillStyle = '#884c00';
+          ctx.fillRect(33 + i, 95 - Math.floor(i * 0.8), 2, 1);
+        }
+
+        // Helper for rounded NES foliage clusters with scalloped dark bottom & lime top
+        const drawFoliageCluster = (cx, cy, rx, ry) => {
+          // Outer black/dark-green silhouette
+          ctx.fillStyle = '#003800';
+          ctx.fillRect(cx - rx + 2, cy - ry, (rx - 2) * 2, ry * 2);
+          ctx.fillRect(cx - rx, cy - ry + 2, rx * 2, (ry - 2) * 2);
+
+          // Mid-tone green body
+          ctx.fillStyle = '#58a800';
+          ctx.fillRect(cx - rx + 2, cy - ry + 1, (rx - 2) * 2, ry * 2 - 4);
+          ctx.fillRect(cx - rx + 1, cy - ry + 3, (rx - 1) * 2, ry * 2 - 7);
+
+          // Bright lime-green upper crown (like the reference image)
+          ctx.fillStyle = '#90d800';
+          ctx.fillRect(cx - rx + 3, cy - ry + 1, (rx - 3) * 2, ry + 1);
+          ctx.fillRect(cx - rx + 2, cy - ry + 3, (rx - 2) * 2, ry - 1);
+
+          // Scalloped dark-green/black bottom leaf shadow dots
+          ctx.fillStyle = '#002800';
+          for (let sx = cx - rx + 2; sx < cx + rx - 2; sx += 4) {
+            ctx.fillRect(sx, cy + ry - 3, 2, 2);
+          }
+        };
+
+        // 4 distinct rounded foliage clusters matching the reference screenshot
+        drawFoliageCluster(24, 24, 14, 11); // Top crown
+        drawFoliageCluster(44, 43, 13, 10); // Upper-right cluster
+        drawFoliageCluster(13, 63, 13, 10); // Middle-left cluster
+        drawFoliageCluster(50, 76, 15, 11); // Lower-right cluster
+
+        // Right Bush (dark evergreen rounded bush sitting on the right grass line)
+        ctx.fillStyle = '#003800';
+        ctx.fillRect(198, 120, 32, 26);
+        ctx.fillRect(202, 114, 24, 6);
+        ctx.fillStyle = '#386800';
+        ctx.fillRect(200, 122, 28, 20);
+        ctx.fillRect(204, 116, 20, 6);
+        ctx.fillStyle = '#58a800';
+        ctx.fillRect(204, 118, 16, 8);
+        ctx.fillRect(202, 124, 20, 10);
       }
 
       renderForegroundGrass(ctx) {
-        // Soil dirt base
-        ctx.fillStyle = '#b84e00';
-        ctx.fillRect(0, GRASS_LINE_Y, LOGICAL_WIDTH, 14);
+        // 1. Brown Dirt / Soil Track at the bottom (Y = 160 to 184) matching reference image
+        ctx.fillStyle = '#785818';
+        ctx.fillRect(0, 160, LOGICAL_WIDTH, 24);
 
-        // Main lime-green grass body
+        // Dirt texture pebbles & horizontal shadow lines
+        for (let x = 0; x < LOGICAL_WIDTH; x += 32) {
+          ctx.fillStyle = '#503800';
+          ctx.fillRect(x + 4, 166, 8, 2);
+          ctx.fillRect(x + 18, 171, 6, 2);
+          ctx.fillRect(x + 10, 176, 10, 2);
+          ctx.fillRect(x + 24, 165, 4, 1);
+          ctx.fillStyle = '#906820';
+          ctx.fillRect(x + 2, 163, 12, 1);
+          ctx.fillRect(x + 16, 169, 8, 1);
+        }
+
+        // 2. Main Lime-Green Grass Strip (Y = 142 to 160)
         ctx.fillStyle = '#90d800';
-        ctx.fillRect(0, 153, LOGICAL_WIDTH, 20);
+        ctx.fillRect(0, 143, LOGICAL_WIDTH, 17);
 
-        // Authentic repeating 16px NES grass blade pattern with white tips & dark-green shadow stalks
+        // 3. Repeating 16px NES Grass Blades, White Tips, Dark Stalks & Jagged Black Soil Border
         for (let x = 0; x < LOGICAL_WIDTH; x += 16) {
-          // Left blade cluster with white highlight tip
+          // Blade 1 (left-leaning) with crisp white tip
           ctx.fillStyle = '#ffffff';
-          ctx.fillRect(x + 1, 144, 1, 3);
-          ctx.fillRect(x + 2, 146, 1, 3);
+          ctx.fillRect(x + 1, 136, 1, 3);
+          ctx.fillRect(x + 2, 138, 1, 3);
           ctx.fillStyle = '#90d800';
-          ctx.fillRect(x + 1, 147, 3, 7);
+          ctx.fillRect(x + 1, 139, 3, 6);
 
-          // Center-left blade leaning right
+          // Blade 2 (center-left)
           ctx.fillStyle = '#ffffff';
-          ctx.fillRect(x + 6, 146, 2, 3);
+          ctx.fillRect(x + 5, 138, 2, 3);
           ctx.fillStyle = '#90d800';
-          ctx.fillRect(x + 5, 149, 3, 5);
+          ctx.fillRect(x + 5, 141, 3, 5);
 
-          // Center-right tall blade
+          // Blade 3 (center-right tall)
           ctx.fillStyle = '#ffffff';
-          ctx.fillRect(x + 10, 145, 1, 3);
+          ctx.fillRect(x + 10, 137, 1, 3);
           ctx.fillStyle = '#90d800';
-          ctx.fillRect(x + 10, 148, 3, 6);
+          ctx.fillRect(x + 10, 140, 3, 5);
 
-          // Right angled blade
+          // Blade 4 (right)
           ctx.fillStyle = '#ffffff';
-          ctx.fillRect(x + 14, 147, 1, 3);
+          ctx.fillRect(x + 14, 139, 1, 3);
           ctx.fillStyle = '#90d800';
-          ctx.fillRect(x + 13, 150, 3, 4);
+          ctx.fillRect(x + 13, 141, 3, 4);
 
-          // Dark green shadow stalks cutting through the lime grass (just like the reference image)
-          ctx.fillStyle = '#005800';
-          ctx.fillRect(x + 3, 151, 2, 9);
-          ctx.fillRect(x + 4, 156, 2, 7);
-          ctx.fillRect(x + 8, 149, 2, 8);
-          ctx.fillRect(x + 9, 155, 2, 9);
-          ctx.fillRect(x + 13, 152, 2, 10);
+          // Dark-green blade shadows inside the grass
+          ctx.fillStyle = '#005000';
+          ctx.fillRect(x + 3, 144, 2, 9);
+          ctx.fillRect(x + 4, 148, 2, 7);
+          ctx.fillRect(x + 8, 142, 2, 8);
+          ctx.fillRect(x + 9, 147, 2, 9);
+          ctx.fillRect(x + 13, 145, 2, 9);
+
+          // Jagged black serrated lower border where grass meets brown dirt
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(x, 159, 3, 2);
+          ctx.fillRect(x + 3, 160, 2, 2);
+          ctx.fillRect(x + 5, 158, 3, 2);
+          ctx.fillRect(x + 8, 160, 3, 2);
+          ctx.fillRect(x + 11, 159, 2, 2);
+          ctx.fillRect(x + 13, 160, 3, 2);
         }
       }
 
@@ -2351,8 +2595,7 @@
           ctx.fillStyle = '#fca044';
           ctx.fillRect(21 + i * 10, 200, 4, 2);
         }
-
-        // 3. HIT Meter Box (10 Duck Icons + Pass Line)
+        // 3. HIT Meter Box (10 Authentic Duck Silhouette Icons + Pass Line)
         ctx.strokeStyle = '#70c010';
         ctx.strokeRect(60, 198, 122, 22);
         ctx.fillStyle = '#70c010';
@@ -2362,12 +2605,13 @@
         for (let i = 0; i < 10; i++) {
           const ix = 92 + i * 8;
           const status = this.scoreManager.targetResults[i];
-          if (status === 1) {
-            ctx.fillStyle = '#d82800'; // Red for hit
-          } else {
-            ctx.fillStyle = '#ffffff'; // White for pending/miss
-          }
-          ctx.fillRect(ix, 201, 6, 6);
+          ctx.fillStyle = status === 1 ? '#d82800' : '#ffffff';
+
+          // Tiny 7x6 pixel duck icon matching the reference HUD
+          ctx.fillRect(ix + 3, 201, 2, 2); // Head
+          ctx.fillRect(ix + 5, 202, 1, 1); // Beak
+          ctx.fillRect(ix + 1, 203, 4, 2); // Body
+          ctx.fillRect(ix, 204, 5, 2);     // Tail & belly
 
           // Pass Line blue vertical markers underneath required hits
           if (i < passReq) {
