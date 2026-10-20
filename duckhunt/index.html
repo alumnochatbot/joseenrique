@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Duck Hunt - Clásico NES</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Press Start 2P para estilo retro NES -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'Press Start 2P', monospace;
+    }
+    
+    body {
+      background-color: #111418;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+
+    /* Efecto CRT Scanlines opcional */
+    .crt::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 40;
+      pointer-events: none;
+      opacity: 0.75;
+    }
+
+    /* Muzzle Flash Efecto NES Zapper */
+    .zapper-flash {
+      animation: flash-anim 0.07s ease-out;
+    }
+    @keyframes flash-anim {
+      0% { filter: invert(1) brightness(2); }
+      100% { filter: invert(0) brightness(1); }
+    }
+
+    /* Custom Crosshair Cursor */
+    .game-cursor {
+      cursor: crosshair;
+    }
+
+    /* Botones arcade */
+    .nes-btn {
+      position: relative;
+      background: #e52521;
+      color: #fff;
+      box-shadow: inset -4px -4px 0px 0px #8b0000, inset 4px 4px 0px 0px #ff7b78;
+      transition: transform 0.08s, filter 0.08s;
+    }
+    .nes-btn:hover {
+      filter: brightness(1.1);
+    }
+    .nes-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: inset -2px -2px 0px 0px #8b0000, inset 2px 2px 0px 0px #ff7b78;
+    }
+    .nes-btn-blue {
+      background: #0070ec;
+      box-shadow: inset -4px -4px 0px 0px #00367a, inset 4px 4px 0px 0px #70b3ff;
+    }
+    .nes-btn-green {
+      background: #00a800;
+      box-shadow: inset -4px -4px 0px 0px #005000, inset 4px 4px 0px 0px #6ef56e;
+    }
+
+    /* Parpadeo de textos */
+    @keyframes blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+    .blink {
+      animation: blink 0.9s infinite;
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-2 sm:p-4 text-white">
+
+  <!-- Marco Arcade NES -->
+  <div class="relative w-full max-w-[800px] flex flex-col items-center">
+    
+    <!-- Barra superior retro con controles rápidos -->
+    <header class="w-full flex justify-between items-center bg-[#212121] px-4 py-2 border-4 border-[#3c3c3c] rounded-t-lg text-[10px] sm:text-xs">
+      <div class="flex items-center space-x-2 text-[#fc9838]">
+        <span>NES</span>
+        <span class="text-white text-[9px] hidden sm:inline">DUCK HUNT 1984</span>
+      </div>
+      <div class="flex items-center space-x-3">
+        <button id="soundToggleBtn" class="text-[10px] bg-[#333] hover:bg-[#444] px-2 py-1 rounded border border-gray-600 active:scale-95 text-[#00e800]">
+          SONIDO: ON
+        </button>
+        <button id="crtToggleBtn" class="text-[10px] bg-[#333] hover:bg-[#444] px-2 py-1 rounded border border-gray-600 active:scale-95 text-[#63adff]">
+          CRT: ON
+        </button>
+      </div>
+    </header>
+
+    <!-- Contenedor del Juego -->
+    <div id="gameWrapper" class="relative w-full aspect-[4/3] bg-black border-4 border-[#3c3c3c] overflow-hidden crt game-cursor shadow-2xl">
+      <!-- Canvas Principal -->
+      <canvas id="gameCanvas" class="w-full h-full block image-render-pixelated"></canvas>
+
+      <!-- Pantalla de Inicio / Menú Principal -->
+      <div id="startScreen" class="absolute inset-0 bg-[#000000dd] z-30 flex flex-col items-center justify-center p-4 text-center">
+        <h1 class="text-2xl sm:text-4xl text-[#fc9838] tracking-widest mb-2 drop-shadow-[0_4px_0_#983800]">
+          DUCK HUNT
+        </h1>
+        <p class="text-[10px] sm:text-xs text-[#00e800] mb-6 tracking-wide">
+          1984 NINTENDO CO., LTD.
+        </p>
+
+        <div class="flex flex-col gap-3 w-64 max-w-full mb-6">
+          <button id="btnModeA" class="nes-btn py-3 px-4 text-xs font-bold rounded">
+            JUEGO A (1 PATO)
+          </button>
+          <button id="btnModeB" class="nes-btn nes-btn-blue py-3 px-4 text-xs font-bold rounded">
+            JUEGO B (2 PATOS)
+          </button>
+        </div>
+
+        <div class="text-[9px] sm:text-[10px] text-gray-300 space-y-1 bg-black/60 p-3 rounded border border-gray-700 max-w-sm">
+          <p class="text-[#fce4a0]">🎯 CÓMO JUGAR:</p>
+          <p>• Haz clic o toca en pantalla para disparar el Zapper.</p>
+          <p>• Tienes 3 cartuchos por bandada.</p>
+          <p>• ¡Caza mínimo 6 patos para pasar de ronda!</p>
+        </div>
+
+        <p class="text-[9px] text-[#e52521] mt-5 blink">
+          HAZ CLIC EN UN MODO PARA COMENZAR
+        </p>
+      </div>
+
+      <!-- Pantalla de Game Over Overlay -->
+      <div id="gameOverScreen" class="absolute inset-0 bg-[#000000cc] z-30 hidden flex-col items-center justify-center p-4 text-center">
+        <h2 class="text-2xl sm:text-3xl text-[#e52521] mb-4 drop-shadow-[0_4px_0_#600]">
+          GAME OVER
+        </h2>
+        <div class="bg-[#181818] p-4 rounded-lg border-2 border-[#555] mb-5 w-72 text-left space-y-2 text-[10px] sm:text-xs">
+          <p class="text-gray-400">RONDA ALCANZADA: <span id="finalRound" class="text-white">1</span></p>
+          <p class="text-gray-400">PATOS CAZADOS: <span id="finalHits" class="text-[#00e800]">0</span></p>
+          <p class="text-gray-400">PUNTUACIÓN FINAL: <span id="finalScore" class="text-[#fc9838]">0</span></p>
+          <p class="text-gray-400">RÉCORD: <span id="finalHighScore" class="text-[#63adff]">0</span></p>
+        </div>
+        <button id="btnRestart" class="nes-btn nes-btn-green py-3 px-6 text-xs font-bold rounded">
+          JUGAR DE NUEVO
+        </button>
+      </div>
+
+      <!-- Mensaje Flotante de Anuncio (ej: FLY AWAY / ROUND X) -->
+      <div id="announcementBanner" class="absolute inset-0 pointer-events-none z-20 hidden items-center justify-center">
+        <div id="announcementText" class="bg-black/90 text-white border-2 border-white px-6 py-3 text-xs sm:text-sm font-bold tracking-widest text-center shadow-lg">
+          ROUND 1
+        </div>
+      </div>
+    </div>
+
+    <!-- HUD Inferior Auténtico Estilo NES -->
+    <footer class="w-full bg-black border-4 border-t-0 border-[#3c3c3c] rounded-b-lg p-2 sm:p-3 flex justify-between items-center text-[9px] sm:text-xs">
+      
+      <!-- Balas Restantes -->
+      <div class="flex items-center space-x-2">
+        <div class="flex flex-col text-[#00e800]">
+          <span>BALAS</span>
+          <div id="bulletsContainer" class="flex space-x-1 mt-1 text-[#fc9838]">
+            <span class="bullet-icon">❚</span>
+            <span class="bullet-icon">❚</span>
+            <span class="bullet-icon">❚</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Indicadores de Patos de la Ronda (10 patos) -->
+      <div class="flex flex-col items-center">
+        <span class="text-[#00e800] text-[8px] sm:text-[10px] mb-1">PATOS (OBJETIVO: 6)</span>
+        <div id="duckMarkers" class="flex space-x-1 sm:space-x-1.5 bg-[#1a1a1a] p-1 rounded border border-gray-700">
+          <!-- 10 Marcadores de patos generados dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Puntuación y Ronda -->
+      <div class="text-right">
+        <div class="text-[#63adff]">RONDA <span id="hudRound" class="text-white">1</span></div>
+        <div class="text-[#fc9838] mt-1 font-bold">PTS <span id="hudScore" class="text-white">000000</span></div>
+      </div>
+    </footer>
+
+    <!-- Controles táctiles / Guía rápida en móviles -->
+    <div class="w-full text-center text-gray-400 text-[9px] sm:text-[10px] mt-2">
+      Dispara a los patos antes de que escapen. ¡No dejes que el perro se burle de ti!
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // MOTOR DE AUDIO RETRO 8-BITS (Web Audio API nativa sin dependencias)
+    // =========================================================================
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playTone(freq, type = 'square', duration = 0.1, gainVal = 0.15, pitchDecay = false) {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          
+          if (pitchDecay) {
+            osc.frequency.exponentialRampToValueAtTime(Math.max(10, freq * 0.1), this.ctx.currentTime + duration);
+          }
+
+          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // Disparo de escopeta Zapper
+      playGunshot() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          // Generador de ruido blanco para la explosión del disparo
+          const bufferSize = this.ctx.sampleRate * 0.15;
+          const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buffer;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(1200, this.ctx.currentTime);
+          filter.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.15);
+
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          noise.start();
+        } catch (e) {}
+      }
+
+      // Clic de recámara vacía sin balas
+      playEmptyClick() {
+        this.playTone(800, 'triangle', 0.04, 0.1, true);
+      }
+
+      // Aleteo de pato
+      playFlap() {
+        this.playTone(180, 'triangle', 0.06, 0.09, true);
+      }
+
+      // Graznido de pato
+      playQuack() {
+        if (!this.enabled || !this.ctx) return;
+        this.playTone(420, 'sawtooth', 0.08, 0.15);
+        setTimeout(() => this.playTone(330, 'sawtooth', 0.09, 0.15), 90);
+      }
+
+      // Pato impactado cayendo
+      playDuckHit() {
+        this.playTone(600, 'square', 0.12, 0.2, true);
+      }
+
+      // Pato tocando el suelo
+      playDuckThud() {
+        this.playTone(90, 'sine', 0.1, 0.25, true);
+      }
+
+      // Risa burlona del perro icónico
+      playDogLaugh() {
+        if (!this.enabled || !this.ctx) return;
+        const notes = [600, 750, 600, 750, 600, 750, 600, 750];
+        notes.forEach((freq, i) => {
+          setTimeout(() => {
+            this.playTone(freq, 'square', 0.07, 0.2);
+          }, i * 90);
+        });
+      }
+
+      // Fanfarria de inicio de ronda
+      playRoundIntro() {
+        if (!this.enabled || !this.ctx) return;
+        const melody = [
+          { f: 330, d: 0.1 },
+          { f: 392, d: 0.1 },
+          { f: 523, d: 0.12 },
+          { f: 659, d: 0.25 }
+        ];
+        let delay = 0;
+        melody.forEach(m => {
+          setTimeout(() => this.playTone(m.f, 'square', m.d, 0.18), delay);
+          delay += m.d * 1000 + 40;
+        });
+      }
+
+      // Éxito: perro mostrando el pato cazado
+      playDuckCaught() {
+        if (!this.enabled || !this.ctx) return;
+        const melody = [523, 659, 784, 1046];
+        melody.forEach((f, idx) => {
+          setTimeout(() => this.playTone(f, 'square', 0.08, 0.18), idx * 80);
+        });
+      }
+
+      // Game Over
+      playGameOver() {
+        if (!this.enabled || !this.ctx) return;
+        const tones = [440, 415, 392, 349, 293];
+        tones.forEach((freq, idx) => {
+          setTimeout(() => this.playTone(freq, 'triangle', 0.22, 0.2, true), idx * 180);
+        });
+      }
+    }
+
+    const sound = new SoundEngine();
+
+    // =========================================================================
+    // CONFIGURACIÓN Y ESTADO DEL JUEGO
+    // =========================================================================
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const gameWrapper = document.getElementById('gameWrapper');
+
+    // Canvas resolución nativa estilo retro 4:3 (escalado por CSS)
+    const VIRTUAL_WIDTH = 400;
+    const VIRTUAL_HEIGHT = 300;
+    canvas.width = VIRTUAL_WIDTH;
+    canvas.height = VIRTUAL_HEIGHT;
+
+    // Colores NES icónicos
+    const COLORS = {
+      skyDay: '#63adff',
+      skyFlyAway: '#f87858',
+      grassFront: '#00a800',
+      grassBack: '#006800',
+      dirt: '#804000',
+      treeTrunk: '#703400',
+      treeFoliage: '#008800',
+      cloud: '#ffffff'
+    };
+
+    // Tipos de pato con velocidades y colores
+    const DUCK_TYPES = [
+      { name: 'green', color: '#00a800', headColor: '#00e800', bodyColor: '#5c4033', points: 500, speedMultiplier: 1.0 },
+      { name: 'blue',  color: '#0070ec', headColor: '#63adff', bodyColor: '#4b382a', points: 1000, speedMultiplier: 1.3 },
+      { name: 'red',   color: '#e52521', headColor: '#fc9838', bodyColor: '#6b2010', points: 1500, speedMultiplier: 1.6 }
+    ];
+
+    // Estados generales del juego
+    const STATE = {
+      MENU: 'MENU',
+      INTRO_DOG: 'INTRO_DOG',
+      FLYING: 'FLYING',
+      FLY_AWAY: 'FLY_AWAY',
+      DOG_CELEBRATE: 'DOG_CELEBRATE',
+      DOG_LAUGH: 'DOG_LAUGH',
+      ROUND_RESULTS: 'ROUND_RESULTS',
+      GAME_OVER: 'GAME_OVER'
+    };
+
+    let gameState = STATE.MENU;
+    let gameMode = 'A'; // 'A' = 1 pato, 'B' = 2 patos
+    let round = 1;
+    let score = 0;
+    let highScore = parseInt(localStorage.getItem('duckhunt_highscore') || '0', 10);
+    let bullets = 3;
+    let ducksInRound = 10;
+    let duckRoundProgress = 0; // Cantidad de patos lanzados en la ronda
+    let roundHits = 0; // Patos cazados en esta ronda
+    let roundDuckStatuses = []; // Array de 10 estados: 'pending', 'hit', 'miss'
+    let flightTime = 0;
+    const FLIGHT_DURATION = 5000; // 5 segundos para disparar antes de que escapen
+    let ducks = [];
+    let dog = null;
+    let lastTime = 0;
+    let announcementTimer = 0;
+
+    // Elementos DOM
+    const startScreen = document.getElementById('startScreen');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const announcementBanner = document.getElementById('announcementBanner');
+    const announcementText = document.getElementById('announcementText');
+    const hudRound = document.getElementById('hudRound');
+    const hudScore = document.getElementById('hudScore');
+    const bulletsContainer = document.getElementById('bulletsContainer');
+    const duckMarkers = document.getElementById('duckMarkers');
+    const finalRound = document.getElementById('finalRound');
+    const finalHits = document.getElementById('finalHits');
+    const finalScore = document.getElementById('finalScore');
+    const finalHighScore = document.getElementById('finalHighScore');
+
+    // =========================================================================
+    // DIBUJO DE SPRITES PIXEL ART EN CANVAS
+    // =========================================================================
+
+    // Dibuja una nube clásica NES
+    function drawCloud(x, y, scale = 1) {
+      ctx.fillStyle = COLORS.cloud;
+      ctx.beginPath();
+      ctx.arc(x, y, 14 * scale, 0, Math.PI * 2);
+      ctx.arc(x + 16 * scale, y - 6 * scale, 18 * scale, 0, Math.PI * 2);
+      ctx.arc(x + 36 * scale, y, 14 * scale, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Dibuja el escenario icónico (árbol, arbusto, suelo de césped)
+    function drawScenery(skyColor) {
+      // 1. Cielo
+      ctx.fillStyle = skyColor;
+      ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+      // Nubes flotantes de fondo
+      drawCloud(60, 45, 1.1);
+      drawCloud(240, 60, 0.9);
+      drawCloud(340, 35, 0.7);
+
+      // 2. Tronco del árbol a la izquierda
+      ctx.fillStyle = COLORS.treeTrunk;
+      ctx.fillRect(40, 110, 24, 120);
+      ctx.fillRect(32, 130, 14, 10);
+      ctx.fillRect(58, 145, 12, 10);
+
+      // Follaje del árbol
+      ctx.fillStyle = COLORS.treeFoliage;
+      ctx.beginPath();
+      ctx.arc(52, 90, 42, 0, Math.PI * 2);
+      ctx.arc(30, 80, 28, 0, Math.PI * 2);
+      ctx.arc(75, 82, 32, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Sombra en follaje
+      ctx.fillStyle = '#005800';
+      ctx.beginPath();
+      ctx.arc(52, 98, 38, 0, Math.PI);
+      ctx.fill();
+
+      // 3. Arbusto verde a la derecha
+      ctx.fillStyle = '#007800';
+      ctx.beginPath();
+      ctx.arc(310, 215, 26, 0, Math.PI * 2);
+      ctx.arc(335, 208, 32, 0, Math.PI * 2);
+      ctx.arc(365, 218, 24, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 4. Capa de tierra base
+      ctx.fillStyle = COLORS.dirt;
+      ctx.fillRect(0, 240, VIRTUAL_WIDTH, 60);
+
+      // Capa de césped inferior
+      ctx.fillStyle = COLORS.grassFront;
+      ctx.fillRect(0, 228, VIRTUAL_WIDTH, 14);
+
+      // Detalle de briznas de césped pixeladas
+      ctx.fillStyle = '#6ef56e';
+      for (let x = 0; x < VIRTUAL_WIDTH; x += 12) {
+        ctx.fillRect(x, 227, 4, 3);
+        ctx.fillRect(x + 6, 229, 3, 3);
+      }
+    }
+
+    // Dibuja el césped frontal que cubre a los patos caídos y al perro
+    function drawForegroundGrass() {
+      ctx.fillStyle = COLORS.grassFront;
+      ctx.fillRect(0, 230, VIRTUAL_WIDTH, 12);
+      
+      ctx.fillStyle = '#00d000';
+      for (let i = 0; i < VIRTUAL_WIDTH; i += 8) {
+        ctx.fillRect(i + 2, 226, 4, 4);
+      }
+    }
+
+    // Render del Pato Clásico
+    function drawDuckSprite(duck) {
+      ctx.save();
+      ctx.translate(duck.x, duck.y);
+
+      // Orientación según la dirección del vuelo
+      if (duck.vx < 0 && !duck.isFalling) {
+        ctx.scale(-1, 1);
+      }
+
+      const type = duck.type;
+
+      if (duck.isShot && !duck.isFalling) {
+        // Pato en shock tras ser disparado
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-12, -10, 24, 20);
+        ctx.fillStyle = '#e52521';
+        ctx.fillRect(-8, -6, 16, 12);
+        ctx.fillStyle = '#fc9838';
+        ctx.fillRect(8, -4, 8, 8); // Pico
+        ctx.restore();
+        return;
+      }
+
+      if (duck.isFalling) {
+        // Pato cayendo en picado
+        ctx.rotate(Math.PI / 2);
+        ctx.fillStyle = type.bodyColor;
+        ctx.fillRect(-14, -8, 28, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-6, -4, 12, 8);
+        ctx.fillStyle = type.headColor;
+        ctx.fillRect(-16, -6, 8, 12);
+        ctx.fillStyle = '#fc9838';
+        ctx.fillRect(-22, -2, 6, 6);
+        ctx.restore();
+        return;
+      }
+
+      // Animación de alas (Flap cycle: 0 = alas arriba, 1 = planeando, 2 = alas abajo)
+      const frame = Math.floor(duck.animTimer / 80) % 3;
+
+      // Cuerpo
+      ctx.fillStyle = type.bodyColor;
+      ctx.fillRect(-12, -6, 22, 14);
+
+      // Vientre / pecho blanco/gris
+      ctx.fillStyle = '#e8d8b8';
+      ctx.fillRect(-6, 0, 14, 8);
+
+      // Cabeza
+      ctx.fillStyle = type.headColor;
+      ctx.fillRect(8, -12, 12, 12);
+
+      // Ojo
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(14, -10, 4, 4);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(16, -9, 2, 2);
+
+      // Pico naranja
+      ctx.fillStyle = '#fc9838';
+      ctx.fillRect(20, -7, 8, 5);
+
+      // Alas según frame
+      ctx.fillStyle = type.color;
+      if (frame === 0) {
+        // Alas arriba
+        ctx.beginPath();
+        ctx.moveTo(-6, -6);
+        ctx.lineTo(-2, -22);
+        ctx.lineTo(8, -6);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, -18, 5, 8);
+      } else if (frame === 1) {
+        // Alas al medio (planeando horizontal)
+        ctx.fillRect(-10, -3, 18, 5);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-4, -2, 8, 3);
+      } else {
+        // Alas abajo
+        ctx.beginPath();
+        ctx.moveTo(-6, 4);
+        ctx.lineTo(0, 18);
+        ctx.lineTo(8, 4);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(1, 8, 5, 6);
+      }
+
+      ctx.restore();
+    }
+
+    // Render del Perro (Caminando, Saltando, Celebrando o Riendo)
+    function drawDogSprite(dog) {
+      if (!dog.visible) return;
+      ctx.save();
+      ctx.translate(dog.x, dog.y);
+
+      const dColor = '#8c501e'; // Marrón pelaje
+      const bellyColor = '#d9a066'; // Color beige hocico/barriga
+      const black = '#000000';
+      const white = '#ffffff';
+
+      if (dog.action === 'walk') {
+        // Caminando en el pasto
+        ctx.fillStyle = dColor;
+        ctx.fillRect(-18, -26, 36, 24); // Cuerpo
+        ctx.fillStyle = bellyColor;
+        ctx.fillRect(-4, -14, 18, 12);
+
+        // Cabeza
+        ctx.fillStyle = dColor;
+        ctx.fillRect(12, -34, 16, 18);
+        // Oreja larga
+        ctx.fillStyle = '#5c3210';
+        ctx.fillRect(8, -32, 6, 18);
+        // Hocico
+        ctx.fillStyle = bellyColor;
+        ctx.fillRect(24, -26, 10, 10);
+        ctx.fillStyle = black;
+        ctx.fillRect(32, -26, 4, 4); // Nariz
+        // Ojo
+        ctx.fillStyle = black;
+        ctx.fillRect(20, -31, 3, 3);
+
+        // Patitas animadas
+        ctx.fillStyle = dColor;
+        const step = Math.floor(dog.animTimer / 100) % 2;
+        if (step === 0) {
+          ctx.fillRect(-14, -2, 7, 12);
+          ctx.fillRect(8, -2, 7, 12);
+        } else {
+          ctx.fillRect(-8, -2, 7, 12);
+          ctx.fillRect(14, -2, 7, 12);
+        }
+      } else if (dog.action === 'sniff') {
+        // Husmeando el suelo
+        ctx.fillStyle = dColor;
+        ctx.fillRect(-18, -22, 36, 22);
+        ctx.fillStyle = bellyColor;
+        ctx.fillRect(-2, -10, 16, 10);
+        // Cabeza baja
+        ctx.fillStyle = dColor;
+        ctx.fillRect(14, -18, 16, 16);
+        ctx.fillStyle = '#5c3210';
+        ctx.fillRect(10, -18, 6, 16);
+        ctx.fillStyle = bellyColor;
+        ctx.fillRect(26, -10, 10, 8);
+        ctx.fillStyle = black;
+        ctx.fillRect(34, -10, 4, 4);
+      } else if (dog.action === 'jump') {
+        // Perro saltando hacia el arbusto
+        ctx.fillStyle = dColor;
+        ctx.fillRect(-16, -30, 32, 26);
+        ctx.fillStyle = bellyColor;
+        ctx.fillRect(-4, -18, 16, 14);
+        // Cabeza alegre mirando arriba
+        ctx.fillStyle = dColor;
+        ctx.fillRect(10, -42, 18, 18);
+        ctx.fillStyle = '#5c3210';
+        ctx.fillRect(4, -40, 8, 16);
+        ctx.fillStyle = bellyColor;
+        ctx.fillRect(22, -36, 10, 10);
+        ctx.fillStyle = black;
+        ctx.fillRect(30, -36, 4, 4);
+      } else if (dog.action === 'caught') {
+        // Perro asomándose detrás del pasto con 1 o 2 patos cazados
+        // Cabeza y cuerpo
+        ctx.fillStyle = dColor;
+        ctx.fillRect(-20, -42, 40, 44);
+        ctx.fillStyle = bellyColor;
+        ctx.fillRect(-12, -26, 24, 28);
+        // Orejas
+        ctx.fillStyle = '#5c3210';
+        ctx.fillRect(-26, -42, 8, 22);
+        ctx.fillRect(18, -42, 8, 22);
+        // Hocico sonriente
+        ctx.fillStyle = bellyColor;
+        ctx.fillRect(-10, -28, 20, 16);
+        ctx.fillStyle = black;
+        ctx.fillRect(-4, -28, 8, 6); // Nariz
+        // Ojos felices cerrados ^ ^
+        ctx.fillStyle = black;
+        ctx.fillRect(-14, -36, 6, 3);
+        ctx.fillRect(8, -36, 6, 3);
+
+        // Pato(s) sostenido(s) en mano
+        ctx.fillStyle = '#00a800';
+        ctx.fillRect(14, -50, 18, 14);
+        ctx.fillStyle = '#fc9838';
+        ctx.fillRect(28, -46, 6, 5); // Pico de pato
+        if (dog.duckCount === 2) {
+          ctx.fillStyle = '#0070ec';
+          ctx.fillRect(-32, -50, 18, 14);
+          ctx.fillStyle = '#fc9838';
+          ctx.fillRect(-36, -46, 6, 5);
+        }
+      } else if (dog.action === 'laugh') {
+        // El icónico perro burlón riéndose con la pata en el hocico
+        const laughFrame = Math.floor(dog.animTimer / 120) % 2;
+        const offsetY = laughFrame === 0 ? 0 : -4;
+
+        ctx.fillStyle = dColor;
+        ctx.fillRect(-20, -42 + offsetY, 40, 44);
+        ctx.fillStyle = bellyColor;
+        ctx.fillRect(-12, -24 + offsetY, 24, 26);
+        // Orejas
+        ctx.fillStyle = '#5c3210';
+        ctx.fillRect(-26, -42 + offsetY, 8, 22);
+        ctx.fillRect(18, -42 + offsetY, 8, 22);
+        // Ojos burlones abiertos
+        ctx.fillStyle = white;
+        ctx.fillRect(-14, -36 + offsetY, 8, 8);
+        ctx.fillRect(6, -36 + offsetY, 8, 8);
+        ctx.fillStyle = black;
+        ctx.fillRect(-10, -34 + offsetY, 4, 4);
+        ctx.fillRect(10, -34 + offsetY, 4, 4);
+
+        // Pata cubriendo la boca para reírse
+        ctx.fillStyle = bellyColor;
+        ctx.fillRect(-6, -26 + offsetY, 16, 12);
+        ctx.fillStyle = black;
+        ctx.fillRect(2, -26 + offsetY, 4, 4);
+      }
+
+      ctx.restore();
+    }
+
+    // =========================================================================
+    // LÓGICA DE PATOS Y PERRO
+    // =========================================================================
+    class Duck {
+      constructor(type, speedBoost) {
+        this.type = type;
+        // Inician saliendo desde la parte inferior del pasto
+        this.x = 80 + Math.random() * (VIRTUAL_WIDTH - 160);
+        this.y = 220;
+        
+        const baseSpeed = 2.2 * type.speedMultiplier * speedBoost;
+        const angle = -Math.PI / 4 + (Math.random() * -Math.PI / 2); // Vuelo ascendente aleatorio
+        this.vx = Math.cos(angle) * baseSpeed;
+        this.vy = Math.sin(angle) * baseSpeed;
+
+        this.animTimer = 0;
+        this.isShot = false;
+        this.isFalling = false;
+        this.escaped = false;
+        this.visible = true;
+        this.shotPauseTimer = 0;
+        this.fallSpeed = 0;
+        this.quackTimer = Math.random() * 800 + 400;
+      }
+
+      update(dt) {
+        if (!this.visible) return;
+
+        this.animTimer += dt;
+        this.quackTimer -= dt;
+
+        // Sonido ocasional de aleteo y graznido
+        if (!this.isShot && this.quackTimer <= 0) {
+          sound.playQuack();
+          this.quackTimer = 1800 + Math.random() * 1500;
+        }
+
+        // Si ha sido disparado pero aún en pausa dramática antes de caer
+        if (this.isShot && !this.isFalling) {
+          this.shotPauseTimer -= dt;
+          if (this.shotPauseTimer <= 0) {
+            this.isFalling = true;
+            this.fallSpeed = 4.0;
+          }
+          return;
+        }
+
+        // Si está cayendo hacia el pasto
+        if (this.isFalling) {
+          this.y += this.fallSpeed;
+          if (this.y >= 235) {
+            this.visible = false;
+            sound.playDuckThud();
+          }
+          return;
+        }
+
+        // Si está en modo escapar (vuelo en línea recta hacia arriba)
+        if (this.escaped) {
+          this.vy = -3.8;
+          this.y += this.vy;
+          if (this.y < -40) {
+            this.visible = false;
+          }
+          return;
+        }
+
+        // Movimiento normal y rebote en los bordes de la pantalla
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Rebote en paredes laterales
+        if (this.x < 30) {
+          this.x = 30;
+          this.vx = Math.abs(this.vx);
+        } else if (this.x > VIRTUAL_WIDTH - 30) {
+          this.x = VIRTUAL_WIDTH - 30;
+          this.vx = -Math.abs(this.vx);
+        }
+
+        // Rebote en el techo y límite del pasto
+        if (this.y < 30) {
+          this.y = 30;
+          this.vy = Math.abs(this.vy);
+        } else if (this.y > 210) {
+          this.y = 210;
+          this.vy = -Math.abs(this.vy);
+        }
+
+        // Cambio de dirección errático ocasional
+        if (Math.random() < 0.015) {
+          this.vy = (Math.random() - 0.5) * 4;
+        }
+      }
+    }
+
+    class Dog {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = 20;
+        this.y = 228;
+        this.action = 'walk'; // walk, sniff, jump, caught, laugh
+        this.visible = false;
+        this.animTimer = 0;
+        this.stateTimer = 0;
+        this.targetY = 228;
+        this.duckCount = 1;
+      }
+
+      startIntro() {
+        this.reset();
+        this.visible = true;
+        this.action = 'walk';
+        sound.playRoundIntro();
+      }
+
+      celebrate(duckCount) {
+        this.visible = true;
+        this.duckCount = duckCount;
+        this.action = 'caught';
+        this.x = VIRTUAL_WIDTH / 2;
+        this.y = 250;
+        this.targetY = 205;
+        this.stateTimer = 1600;
+        sound.playDuckCaught();
+      }
+
+      laugh() {
+        this.visible = true;
+        this.action = 'laugh';
+        this.x = VIRTUAL_WIDTH / 2;
+        this.y = 250;
+        this.targetY = 205;
+        this.stateTimer = 1800;
+        sound.playDogLaugh();
+      }
+
+      update(dt) {
+        if (!this.visible) return;
+        this.animTimer += dt;
+
+        if (this.action === 'walk') {
+          this.x += 1.2;
+          if (this.x >= 140) {
+            this.action = 'sniff';
+            this.stateTimer = 700;
+          }
+        } else if (this.action === 'sniff') {
+          this.stateTimer -= dt;
+          if (this.stateTimer <= 0) {
+            this.action = 'jump';
+            this.stateTimer = 800;
+          }
+        } else if (this.action === 'jump') {
+          this.x += 1.4;
+          this.y -= 1.8;
+          this.stateTimer -= dt;
+          if (this.stateTimer <= 0) {
+            this.visible = false;
+            // Termina la intro y comienza la bandada
+            startNextDuckFlight();
+          }
+        } else if (this.action === 'caught' || this.action === 'laugh') {
+          // Asomarse hacia arriba
+          if (this.y > this.targetY) {
+            this.y -= 1.8;
+          }
+          this.stateTimer -= dt;
+          if (this.stateTimer <= 0) {
+            // Regresar hacia abajo
+            this.y += 2.0;
+            if (this.y >= 260) {
+              this.visible = false;
+              checkRoundAdvancement();
+            }
+          }
+        }
+      }
+    }
+
+    dog = new Dog();
+
+    // =========================================================================
+    // DISPARO Y DETECCIÓN DE COLISIONES
+    // =========================================================================
+    function shoot(clientX, clientY) {
+      if (gameState !== STATE.FLYING) return;
+
+      // Iniciar contexto de audio en el primer clic de usuario
+      sound.init();
+
+      if (bullets <= 0) {
+        sound.playEmptyClick();
+        return;
+      }
+
+      // Consumir bala y sonido
+      bullets--;
+      updateBulletsHUD();
+      sound.playGunshot();
+
+      // Efecto de destello óptico Zapper
+      gameWrapper.classList.add('zapper-flash');
+      setTimeout(() => gameWrapper.classList.remove('zapper-flash'), 70);
+
+      // Coordenadas en espacio del canvas virtual
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const shootX = (clientX - rect.left) * scaleX;
+      const shootY = (clientY - rect.top) * scaleY;
+
+      // Radio de impacto del Zapper
+      const HIT_RADIUS = 28;
+
+      let hitAny = false;
+      ducks.forEach((duck, idx) => {
+        if (!duck.isShot && !duck.escaped && duck.visible) {
+          const dx = duck.x - shootX;
+          const dy = duck.y - shootY;
+          const distance = Math.hypot(dx, dy);
+
+          if (distance <= HIT_RADIUS) {
+            // ¡Pato cazado!
+            hitAny = true;
+            duck.isShot = true;
+            duck.shotPauseTimer = 350; // Pausa dramática NES antes de caer
+            sound.playDuckHit();
+
+            // Puntuación
+            score += duck.type.points;
+            roundHits++;
+            updateScoreHUD();
+
+            // Actualizar marcador de patos
+            const targetIndex = duckRoundProgress - ducks.length + idx;
+            if (roundDuckStatuses[targetIndex] !== undefined) {
+              roundDuckStatuses[targetIndex] = 'hit';
+              updateDuckMarkersHUD();
+            }
+          }
+        }
+      });
+
+      // Si nos quedamos sin balas y quedan patos vivos, activan escape
+      if (bullets === 0 && !allDucksDead()) {
+        triggerFlyAway();
+      }
+    }
+
+    function allDucksDead() {
+      return ducks.every(d => d.isShot);
+    }
+
+    function triggerFlyAway() {
+      if (gameState !== STATE.FLYING) return;
+      gameState = STATE.FLY_AWAY;
+      sound.playTone(300, 'sawtooth', 0.25, 0.15);
+
+      ducks.forEach((duck, idx) => {
+        if (!duck.isShot) {
+          duck.escaped = true;
+          const targetIndex = duckRoundProgress - ducks.length + idx;
+          if (roundDuckStatuses[targetIndex] === 'pending') {
+            roundDuckStatuses[targetIndex] = 'miss';
+          }
+        }
+      });
+      updateDuckMarkersHUD();
+
+      showAnnouncement('FLY AWAY', 1200);
+    }
+
+    // =========================================================================
+    // PROGRESIÓN DE RONDAS Y BANDADAS
+    // =========================================================================
+    function startNewGame(mode) {
+      sound.init();
+      gameMode = mode;
+      round = 1;
+      score = 0;
+      updateScoreHUD();
+      hudRound.textContent = round;
+      
+      startScreen.classList.add('hidden');
+      gameOverScreen.classList.add('hidden');
+
+      initRound();
+    }
+
+    function initRound() {
+      roundHits = 0;
+      duckRoundProgress = 0;
+      hudRound.textContent = round;
+      roundDuckStatuses = new Array(ducksInRound).fill('pending');
+      updateDuckMarkersHUD();
+
+      gameState = STATE.INTRO_DOG;
+      showAnnouncement(`ROUND ${round}`, 1500, () => {
+        dog.startIntro();
+      });
+    }
+
+    function startNextDuckFlight() {
+      if (duckRoundProgress >= ducksInRound) {
+        // Fin de la ronda: verificar si alcanzó la cuota mínima de 6 patos
+        endRoundReview();
+        return;
+      }
+
+      gameState = STATE.FLYING;
+      bullets = 3;
+      flightTime = 0;
+      updateBulletsHUD();
+
+      // Cantidad de patos en esta bandada (1 en modo A, 2 en modo B)
+      const count = (gameMode === 'A') ? 1 : 2;
+      ducks = [];
+
+      // Multiplicador de velocidad que incrementa con cada ronda
+      const speedBoost = 1.0 + (round - 1) * 0.15;
+
+      for (let i = 0; i < count; i++) {
+        duckRoundProgress++;
+        // Selección de color/tipo de pato aleatorio ponderado por ronda
+        const randType = DUCK_TYPES[Math.floor(Math.random() * DUCK_TYPES.length)];
+        ducks.push(new Duck(randType, speedBoost));
+      }
+    }
+
+    function checkRoundAdvancement() {
+      if (duckRoundProgress >= ducksInRound) {
+        endRoundReview();
+      } else {
+        setTimeout(startNextDuckFlight, 400);
+      }
+    }
+
+    function endRoundReview() {
+      gameState = STATE.ROUND_RESULTS;
+
+      // Mínimo 6 patos cazados para avanzar de ronda
+      const passed = roundHits >= 6;
+
+      if (passed) {
+        showAnnouncement(`¡PASASTE LA RONDA!`, 2000, () => {
+          round++;
+          initRound();
+        });
+      } else {
+        // Game Over
+        gameState = STATE.GAME_OVER;
+        sound.playGameOver();
+
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem('duckhunt_highscore', highScore);
+        }
+
+        finalRound.textContent = round;
+        finalHits.textContent = `${roundHits} / 10`;
+        finalScore.textContent = score;
+        finalHighScore.textContent = highScore;
+
+        setTimeout(() => {
+          gameOverScreen.classList.remove('hidden');
+        }, 1200);
+      }
+    }
+
+    function showAnnouncement(text, duration = 1500, callback) {
+      announcementText.textContent = text;
+      announcementBanner.classList.remove('hidden');
+      announcementBanner.classList.add('flex');
+
+      setTimeout(() => {
+        announcementBanner.classList.add('hidden');
+        announcementBanner.classList.remove('flex');
+        if (callback) callback();
+      }, duration);
+    }
+
+    // =========================================================================
+    // ACTUALIZACIÓN DE INTERFAZ (HUD)
+    // =========================================================================
+    function updateBulletsHUD() {
+      bulletsContainer.innerHTML = '';
+      for (let i = 0; i < 3; i++) {
+        const bullet = document.createElement('span');
+        bullet.className = 'bullet-icon transition-opacity duration-150';
+        bullet.textContent = '❚';
+        if (i >= bullets) {
+          bullet.style.opacity = '0.15';
+        }
+        bulletsContainer.appendChild(bullet);
+      }
+    }
+
+    function updateDuckMarkersHUD() {
+      duckMarkers.innerHTML = '';
+      roundDuckStatuses.forEach(st => {
+        const d = document.createElement('span');
+        d.className = 'inline-block w-2.5 h-2.5 rounded-sm';
+        if (st === 'hit') {
+          d.className += ' bg-[#e52521] shadow-[0_0_4px_#f00]'; // Rojo cazado
+        } else if (st === 'miss') {
+          d.className += ' bg-gray-600'; // Fallado
+        } else {
+          d.className += ' bg-white blink'; // Pendiente
+        }
+        duckMarkers.appendChild(d);
+      });
+    }
+
+    function updateScoreHUD() {
+      hudScore.textContent = score.toString().padStart(6, '0');
+    }
+
+    // =========================================================================
+    // EVENTOS Y CONTROLES (RATÓN Y PANTALLAS TÁCTILES)
+    // =========================================================================
+    gameWrapper.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      shoot(e.clientX, e.clientY);
+    });
+
+    document.getElementById('btnModeA').addEventListener('click', (e) => {
+      e.stopPropagation();
+      startNewGame('A');
+    });
+
+    document.getElementById('btnModeB').addEventListener('click', (e) => {
+      e.stopPropagation();
+      startNewGame('B');
+    });
+
+    document.getElementById('btnRestart').addEventListener('click', (e) => {
+      e.stopPropagation();
+      startNewGame(gameMode);
+    });
+
+    // Control de Sonido ON/OFF
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    soundToggleBtn.addEventListener('click', () => {
+      sound.init();
+      sound.enabled = !sound.enabled;
+      soundToggleBtn.textContent = sound.enabled ? 'SONIDO: ON' : 'SONIDO: OFF';
+      soundToggleBtn.style.color = sound.enabled ? '#00e800' : '#e52521';
+    });
+
+    // Control de Scanlines CRT
+    const crtToggleBtn = document.getElementById('crtToggleBtn');
+    let crtActive = true;
+    crtToggleBtn.addEventListener('click', () => {
+      crtActive = !crtActive;
+      gameWrapper.classList.toggle('crt', crtActive);
+      crtToggleBtn.textContent = crtActive ? 'CRT: ON' : 'CRT: OFF';
+      crtToggleBtn.style.color = crtActive ? '#63adff' : '#888';
+    });
+
+    // =========================================================================
+    // BUCLE PRINCIPAL DE JUEGO (60 FPS)
+    // =========================================================================
+    function gameLoop(timestamp) {
+      if (!lastTime) lastTime = timestamp;
+      const dt = Math.min(timestamp - lastTime, 100);
+      lastTime = timestamp;
+
+      // Color del cielo (cambia a rosa/naranja cuando los patos escapan)
+      const currentSky = (gameState === STATE.FLY_AWAY) ? COLORS.skyFlyAway : COLORS.skyDay;
+
+      // 1. Dibujar fondo escénico
+      drawScenery(currentSky);
+
+      // 2. Actualizar y dibujar perro si está activo
+      dog.update(dt);
+      if (dog.visible && dog.action !== 'jump') {
+        drawDogSprite(dog);
+      }
+
+      // 3. Lógica de vuelo de patos
+      if (gameState === STATE.FLYING || gameState === STATE.FLY_AWAY) {
+        flightTime += dt;
+
+        // Si se acaba el tiempo de vuelo, escapan
+        if (flightTime >= FLIGHT_DURATION && gameState === STATE.FLYING) {
+          triggerFlyAway();
+        }
+
+        let allHidden = true;
+        let deadCount = 0;
+
+        ducks.forEach(duck => {
+          duck.update(dt);
+          if (duck.visible) {
+            allHidden = false;
+            drawDuckSprite(duck);
+          }
+          if (duck.isShot) {
+            deadCount++;
+          }
+        });
+
+        // Si todos los patos ya salieron o cayeron completamente
+        if (allHidden) {
+          if (deadCount > 0) {
+            // Perro celebra sosteniendo los patos
+            gameState = STATE.DOG_CELEBRATE;
+            dog.celebrate(deadCount);
+          } else {
+            // Perro se burla
+            gameState = STATE.DOG_LAUGH;
+            dog.laugh();
+          }
+        }
+      }
+
+      // 4. Dibujar perro si está en el aire (saltando hacia el pasto)
+      if (dog.visible && dog.action === 'jump') {
+        drawDogSprite(dog);
+      }
+
+      // 5. Dibujar pasto delantero (oclusión auténtica en capas)
+      drawForegroundGrass();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Inicializar HUD al cargar
+    updateBulletsHUD();
+    updateScoreHUD();
+
+    window.onload = function() {
+      requestAnimationFrame(gameLoop);
+    };
+  </script>
+</body>
+</html>
