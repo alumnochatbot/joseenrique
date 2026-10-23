@@ -1,0 +1,2934 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bomberman Engine Pro // Arquitectura ECS</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --panel-bg: #111827;
+            --accent-cyan: #06b6d4;
+            --accent-amber: #f59e0b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: #f3f4f6;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Contenedor responsivo del Canvas manteniendo proporción 15:13 */
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 720px;
+            aspect-ratio: 15 / 13;
+            margin: 0 auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 0 2px rgba(255, 255, 255, 0.08);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background: #141c2b;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: crisp-edges;
+        }
+
+        /* Botones estilo Arcade Moderno */
+        .btn-arcade {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+        }
+        .btn-arcade:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        /* Controles táctiles */
+        .touch-btn {
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-slate-950 text-slate-100">
+
+    <!-- BARRA SUPERIOR: CABECERA Y CONTROLES DE MOTOR -->
+    <header class="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
+            <!-- Logo y Estado -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/20 border border-orange-400/30">
+                    <i class="fa-solid fa-bomb text-white text-lg animate-pulse"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-extrabold text-base sm:text-lg tracking-tight text-white">BOMBERMAN <span class="text-cyan-400 font-mono text-xs px-1.5 py-0.5 bg-cyan-950/80 border border-cyan-700/50 rounded">ECS ENGINE</span></h1>
+                    </div>
+                    <p class="text-[11px] text-slate-400 hidden sm:block">Simulación Determinista 60Hz • Corner Sliding • IA con Matriz de Peligro D(c,r)</p>
+                </div>
+            </div>
+
+            <!-- Selector de Modo y Herramientas de Ingeniería -->
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Selector de Modo de Juego -->
+                <div class="flex items-center bg-slate-800/90 p-1 rounded-lg border border-slate-700 text-xs">
+                    <button id="mode-1p" onclick="GameApp.setGameMode('1P')" class="px-2.5 py-1.5 rounded-md font-semibold bg-cyan-600 text-white transition">
+                        <i class="fa-solid fa-user mr-1"></i>1J vs IA
+                    </button>
+                    <button id="mode-2p" onclick="GameApp.setGameMode('2P')" class="px-2.5 py-1.5 rounded-md font-semibold text-slate-300 hover:text-white transition">
+                        <i class="fa-solid fa-user-group mr-1"></i>2J Local
+                    </button>
+                    <button id="mode-ai" onclick="GameApp.setGameMode('AI')" class="px-2.5 py-1.5 rounded-md font-semibold text-slate-300 hover:text-white transition">
+                        <i class="fa-solid fa-robot mr-1"></i>4 Bots
+                    </button>
+                </div>
+
+                <!-- Botón Telemetría / Matriz D -->
+                <button id="btn-debug" onclick="GameApp.toggleDebug()" class="btn-arcade px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-mono flex items-center gap-1.5 text-slate-300" title="Ver Matriz de Peligro D(c,r), cajas AABB y rutas A*">
+                    <i class="fa-solid fa-microchip text-cyan-400"></i>
+                    <span class="hidden md:inline">Matriz D / Debug:</span>
+                    <span id="debug-status" class="text-rose-400 font-bold">OFF</span>
+                </button>
+
+                <!-- Botón Audio -->
+                <button id="btn-audio" onclick="GameApp.toggleAudio()" class="btn-arcade px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs flex items-center gap-1.5 text-emerald-400" title="Activar/Silenciar Sintetizador Web Audio">
+                    <i id="audio-icon" class="fa-solid fa-volume-high"></i>
+                </button>
+
+                <!-- Reiniciar Partida -->
+                <button onclick="GameApp.resetMatch()" class="btn-arcade px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-bold text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Reiniciar</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-2 sm:px-6 py-3 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+
+        <!-- COLUMNA IZQUIERDA: TARJETAS DE JUGADORES Y ESTADÍSTICAS (3 cols en LG) -->
+        <section class="lg:col-span-3 grid grid-cols-2 lg:grid-cols-1 gap-2.5 order-2 lg:order-1">
+            <div class="col-span-2 lg:col-span-1 flex items-center justify-between px-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-users-viewfinder text-cyan-400"></i> Contendientes
+                </span>
+                <span id="round-badge" class="text-xs font-mono bg-slate-800 px-2 py-0.5 rounded border border-slate-700 text-amber-400">Ronda 1</span>
+            </div>
+
+            <!-- Contenedor dinámico para las 4 tarjetas de jugador -->
+            <div id="players-hud" class="col-span-2 lg:col-span-1 grid grid-cols-2 lg:grid-cols-1 gap-2.5">
+                <!-- Generado dinámicamente por JS -->
+            </div>
+        </section>
+
+        <!-- COLUMNA CENTRAL: LIENZO DEL JUEGO Y CONTROLES MÓVILES (6 cols en LG) -->
+        <section class="lg:col-span-6 flex flex-col items-center order-1 lg:order-2 w-full">
+            <!-- Barra de Estado de la Partida sobre el Canvas -->
+            <div class="w-full max-w-[720px] mb-2 flex items-center justify-between bg-slate-900/90 border border-slate-800 px-3.5 py-2 rounded-xl">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span id="match-status-text" class="text-xs sm:text-sm font-semibold text-slate-200">En Combate</span>
+                </div>
+
+                <!-- Reloj de Partida -->
+                <div class="flex items-center gap-2 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800">
+                    <i class="fa-regular fa-clock text-amber-400 text-xs"></i>
+                    <span id="match-timer" class="mono font-bold text-sm sm:text-base text-white">02:30</span>
+                </div>
+
+                <!-- Indicador de Bloques Blandos Restantes -->
+                <div class="flex items-center gap-3 text-xs mono text-slate-400">
+                    <span title="Bloques Destructibles Restantes"><i class="fa-solid fa-cubes text-amber-500 mr-1"></i><span id="soft-blocks-count">0</span></span>
+                    <span title="Frecuencia del Bucle Fijo"><i class="fa-solid fa-gauge-high text-cyan-400 mr-1"></i><span id="fps-counter">60</span> Hz</span>
+                </div>
+            </div>
+
+            <!-- Lienzo de Renderizado (15x13 celdas * 48px = 720x624 interno) -->
+            <div class="canvas-wrapper">
+                <canvas id="game-canvas" width="720" height="624"></canvas>
+
+                <!-- MODAL SUPERPUESTO DE FIN DE RONDA / DERROTA / VICTORIA -->
+                <div id="overlay-modal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20 transition-all duration-300">
+                    <span id="modal-badge" class="px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest mb-3 border font-bold">ESTADO DE COMBATE</span>
+                    <div id="modal-icon" class="w-16 h-16 rounded-2xl flex items-center justify-center mb-3 text-3xl shadow-xl transition-transform duration-300">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h2 id="modal-title" class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">¡VICTORIA!</h2>
+                    <p id="modal-subtitle" class="text-xs sm:text-sm text-slate-300 max-w-md mb-6 leading-relaxed">El Jugador 1 domina la cuadrícula.</p>
+                    <div id="modal-buttons" class="flex flex-wrap items-center justify-center gap-3">
+                        <button onclick="GameApp.nextRound()" class="btn-arcade px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm flex items-center gap-2 shadow-lg">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Siguiente Ronda</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DOCK DE INVENTARIO Y ACTIVACIÓN MANUAL DE POWER-UPS (JUGADOR 1) -->
+            <div class="w-full max-w-[720px] mt-2.5 bg-slate-900/95 border border-slate-800 rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 shadow-lg">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-briefcase"></i> Inventario P1:
+                    </span>
+                    <span class="text-[10px] text-slate-400 hidden sm:inline">(Recoge y activa con las teclas)</span>
+                </div>
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <button onclick="GameApp.triggerManualPowerUp(0, 'FIRE')" id="inv-fire" class="px-2 py-1 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono flex items-center gap-1 transition hover:border-orange-500" title="Activar Fuego con [1] o [Q]">
+                        <span>🔥</span>
+                        <span class="text-[10px] text-slate-400 hidden sm:inline font-bold">Q/1</span>
+                        <span id="count-fire" class="text-orange-400 font-bold ml-0.5">x0</span>
+                    </button>
+                    <button onclick="GameApp.triggerManualPowerUp(0, 'BOMB')" id="inv-bomb" class="px-2 py-1 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono flex items-center gap-1 transition hover:border-cyan-500" title="Activar Bomba con [2] o [E]">
+                        <span>💣</span>
+                        <span class="text-[10px] text-slate-400 hidden sm:inline font-bold">E/2</span>
+                        <span id="count-bomb" class="text-cyan-400 font-bold ml-0.5">x0</span>
+                    </button>
+                    <button onclick="GameApp.triggerManualPowerUp(0, 'SPEED')" id="inv-speed" class="px-2 py-1 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono flex items-center gap-1 transition hover:border-emerald-500" title="Activar Turbo con [3] o [R]">
+                        <span>⚡</span>
+                        <span class="text-[10px] text-slate-400 hidden sm:inline font-bold">R/3</span>
+                        <span id="count-speed" class="text-emerald-400 font-bold ml-0.5">x0</span>
+                    </button>
+                    <button onclick="GameApp.triggerManualPowerUp(0, 'KICK')" id="inv-kick" class="px-2 py-1 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono flex items-center gap-1 transition hover:border-purple-500" title="Activar Patada con [4] o [F]">
+                        <span>🥾</span>
+                        <span class="text-[10px] text-slate-400 hidden sm:inline font-bold">F/4</span>
+                        <span id="count-kick" class="text-purple-400 font-bold ml-0.5">x0</span>
+                    </button>
+                    <button onclick="GameApp.triggerManualPowerUp(0, 'AUTO')" class="btn-arcade px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 text-xs font-bold flex items-center gap-1" title="Activar primer power-up disponible con [E]">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>USAR [E]</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CONTROLES TÁCTILES PARA MÓVILES Y TABLETS -->
+            <div class="w-full max-w-[720px] mt-3 lg:hidden bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+                <!-- Cruceta Direccional (D-Pad) -->
+                <div class="grid grid-cols-3 gap-1.5 w-36 h-36">
+                    <div></div>
+                    <button data-dir="UP" class="touch-btn btn-arcade bg-slate-800 active:bg-cyan-600 rounded-lg border border-slate-700 flex items-center justify-center text-lg text-white">
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
+                    <div></div>
+                    <button data-dir="LEFT" class="touch-btn btn-arcade bg-slate-800 active:bg-cyan-600 rounded-lg border border-slate-700 flex items-center justify-center text-lg text-white">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div class="bg-slate-950 rounded-lg border border-slate-800 flex items-center justify-center text-[10px] font-mono text-slate-500">P1</div>
+                    <button data-dir="RIGHT" class="touch-btn btn-arcade bg-slate-800 active:bg-cyan-600 rounded-lg border border-slate-700 flex items-center justify-center text-lg text-white">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <div></div>
+                    <button data-dir="DOWN" class="touch-btn btn-arcade bg-slate-800 active:bg-cyan-600 rounded-lg border border-slate-700 flex items-center justify-center text-lg text-white">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div></div>
+                </div>
+
+                <!-- Botones de Acción: Activar Power-Up y Plantar Bomba -->
+                <div class="flex items-center gap-2 pr-1">
+                    <button id="touch-powerup" class="touch-btn btn-arcade w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-600 active:from-amber-600 active:to-yellow-700 border-2 border-yellow-300/40 shadow-xl flex flex-col items-center justify-center text-slate-950 font-bold">
+                        <i class="fa-solid fa-bolt text-xl mb-0.5"></i>
+                        <span class="text-[9px] font-extrabold tracking-wider">ACTIVAR</span>
+                        <span class="text-[8px] opacity-80">[E]</span>
+                    </button>
+                    <button id="touch-bomb" class="touch-btn btn-arcade w-20 h-20 rounded-2xl bg-gradient-to-br from-rose-500 to-orange-600 active:from-rose-600 active:to-orange-700 border-2 border-rose-300/40 shadow-xl flex flex-col items-center justify-center text-white">
+                        <i class="fa-solid fa-bomb text-xl mb-0.5"></i>
+                        <span class="text-[9px] font-extrabold tracking-wider">BOMBA</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- COLUMNA DERECHA: TELEMETRÍA ECS, LEYENDA DE POWER-UPS Y CONTROLES (3 cols en LG) -->
+        <section class="lg:col-span-3 flex flex-col gap-3 order-3 w-full">
+            <!-- Panel de Telemetría de Ingeniería -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+                <div class="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-800">
+                    <span class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-wave-square"></i> Telemetría del Motor
+                    </span>
+                    <span class="text-[10px] mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60">FIXED 16.6ms</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs mono">
+                    <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800/80">
+                        <div class="text-[10px] text-slate-400">Tick Actual</div>
+                        <div id="stat-tick" class="text-sm font-bold text-white">0</div>
+                    </div>
+                    <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800/80">
+                        <div class="text-[10px] text-slate-400">Entidades ECS</div>
+                        <div id="stat-entities" class="text-sm font-bold text-cyan-400">0</div>
+                    </div>
+                    <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800/80">
+                        <div class="text-[10px] text-slate-400">Celdas Peligro D</div>
+                        <div id="stat-danger" class="text-sm font-bold text-rose-400">0</div>
+                    </div>
+                    <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800/80">
+                        <div class="text-[10px] text-slate-400">Bombas Activas</div>
+                        <div id="stat-bombs" class="text-sm font-bold text-amber-400">0</div>
+                    </div>
+                </div>
+                <p class="mt-2.5 text-[11px] text-slate-400 leading-relaxed">
+                    Activa <strong class="text-slate-200">Matriz D / Debug</strong> arriba para visualizar en tiempo real los tiempos de impacto $\mathcal{D}(c,r)$, cajas AABB ($0.7S$) y vectores de búsqueda $A^*$ de los bots.
+                </p>
+            </div>
+
+            <!-- Leyenda de Potenciadores (Power-Ups) -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5 mb-2.5 pb-2 border-b border-slate-800">
+                    <i class="fa-solid fa-bolt"></i> Sistema de Power-Ups con Inventario
+                </h3>
+                <div class="space-y-2 text-xs">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-7 h-7 rounded-lg bg-orange-500/20 border border-orange-500/50 flex items-center justify-center text-orange-400 font-bold">🔥</span>
+                        <div>
+                            <div class="font-semibold text-slate-200">Fire Up (<kbd class="px-1 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[10px]">1</kbd> o <kbd class="px-1 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[10px]">Q</kbd>)</div>
+                            <div class="text-[11px] text-slate-400">Almacena en inventario y expande el fuego al activarlo.</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-7 h-7 rounded-lg bg-cyan-500/20 border border-cyan-500/50 flex items-center justify-center text-cyan-400 font-bold">💣</span>
+                        <div>
+                            <div class="font-semibold text-slate-200">Bomb Up (<kbd class="px-1 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[10px]">2</kbd> o <kbd class="px-1 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[10px]">E</kbd>)</div>
+                            <div class="text-[11px] text-slate-400">Incrementa la capacidad de detonaciones simultáneas.</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-emerald-400 font-bold">⚡</span>
+                        <div>
+                            <div class="font-semibold text-slate-200">Speed Up / Nitro (<kbd class="px-1 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[10px]">3</kbd> o <kbd class="px-1 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[10px]">R</kbd>)</div>
+                            <div class="text-[11px] text-slate-400">Activa aceleración permanente y turbo temporal.</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-7 h-7 rounded-lg bg-purple-500/20 border border-purple-500/50 flex items-center justify-center text-purple-400 font-bold">🥾</span>
+                        <div>
+                            <div class="font-semibold text-slate-200">Patada / Kick (<kbd class="px-1 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[10px]">4</kbd> o <kbd class="px-1 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[10px]">F</kbd>)</div>
+                            <div class="text-[11px] text-slate-400">Activa la habilidad de patear y empujar bombas.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mapa de Controles -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5 mb-2.5 pb-2 border-b border-slate-800">
+                    <i class="fa-solid fa-keyboard text-cyan-400"></i> Controles de Entrada
+                </h3>
+                <div class="space-y-2.5 text-xs">
+                    <div class="bg-slate-950/70 p-2 rounded-lg border border-slate-800/80">
+                        <div class="font-bold text-cyan-400 mb-1">Jugador 1 (Blanco/Cian)</div>
+                        <div class="flex justify-between text-slate-300">
+                            <span>Mover:</span>
+                            <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[11px]">W A S D</kbd>
+                        </div>
+                        <div class="flex justify-between text-slate-300 mt-1">
+                            <span>Plantar Bomba:</span>
+                            <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[11px]">ESPACIO</kbd>
+                        </div>
+                        <div class="flex justify-between text-amber-300 mt-1">
+                            <span>Activar Power-Up:</span>
+                            <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[11px]">E / Q / 1-4</kbd>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/70 p-2 rounded-lg border border-slate-800/80">
+                        <div class="font-bold text-rose-400 mb-1">Jugador 2 (En Modo 2J Local)</div>
+                        <div class="flex justify-between text-slate-300">
+                            <span>Mover:</span>
+                            <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[11px]">FLECHAS ↑↓←→</kbd>
+                        </div>
+                        <div class="flex justify-between text-slate-300 mt-1">
+                            <span>Plantar Bomba:</span>
+                            <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[11px]">ENTER / SHIFT</kbd>
+                        </div>
+                        <div class="flex justify-between text-amber-300 mt-1">
+                            <span>Activar Power-Up:</span>
+                            <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono text-[11px]">M / 0 / CTRL</kbd>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- SCRIPT INTEGRAL DEL MOTOR BOMBERMAN (ARQUITECTURA ECS + IA + AUDIO) -->
+    <script>
+        /**
+         * ============================================================================
+         * 1. SINTETIZADOR MODULAR DE AUDIO (Web Audio API - Cero archivos externos)
+         * ============================================================================
+         */
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playBombPlant() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(260, now);
+                osc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
+
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            }
+
+            playKick() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.exponentialRampToValueAtTime(420, now + 0.09);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.09);
+            }
+
+            playExplosion() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                // Generador de ruido blanco filtrado para impacto de onda expansiva
+                const bufferSize = this.ctx.sampleRate * 0.45;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.14));
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(950, now);
+                filter.frequency.exponentialRampToValueAtTime(85, now + 0.42);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.38, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.44);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start(now);
+            }
+
+            playPowerUp() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const freqs = [440, 554.37, 659.25, 880];
+                freqs.forEach((f, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(f, now + idx * 0.045);
+
+                    gain.gain.setValueAtTime(0.14, now + idx * 0.045);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.045 + 0.12);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.045);
+                    osc.stop(now + idx * 0.045 + 0.12);
+                });
+            }
+
+            playActivatePowerUp() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                // Acorde arpegiado brillante y ascendente para activación manual
+                const freqs = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+                freqs.forEach((f, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, now + idx * 0.035);
+
+                    gain.gain.setValueAtTime(0.2, now + idx * 0.035);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.035 + 0.18);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.035);
+                    osc.stop(now + idx * 0.035 + 0.18);
+                });
+            }
+
+            playDeath() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(380, now);
+                osc.frequency.linearRampToValueAtTime(90, now + 0.35);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.36);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.36);
+            }
+
+            playVictory() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.5];
+                notes.forEach((n, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(n, now + i * 0.09);
+                    gain.gain.setValueAtTime(0.12, now + i * 0.09);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.09 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.09);
+                    osc.stop(now + i * 0.09 + 0.25);
+                });
+            }
+
+            playDefeat() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                // Cadencia musical descendente y luctuosa en escala menor
+                const notes = [349.23, 311.13, 277.18, 233.08]; // F4 -> Eb4 -> Db4 -> Bb3
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.16);
+                    osc.frequency.exponentialRampToValueAtTime(freq * 0.88, now + idx * 0.16 + 0.22);
+
+                    gain.gain.setValueAtTime(0.18, now + idx * 0.16);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.16 + 0.32);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.16);
+                    osc.stop(now + idx * 0.16 + 0.32);
+                });
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 2. CONSTANTES MATEMÁTICAS Y DEFINICIONES DE LA CUADRÍCULA (Sección 3 Spec)
+         * ============================================================================
+         */
+        const COLS = 15;             // W = 15 columnas
+        const ROWS = 13;             // H = 13 filas
+        const TILE_SIZE = 48;        // S = 48 píxeles por celda
+        const FIXED_DT = 1 / 60;     // Paso fijo de simulación a 60 Hz
+
+        const TILE = {
+            EMPTY: 0,
+            WALL_PERIMETER: 1,
+            PILLAR_FIXED: 2,
+            SOFT_BLOCK: 3
+        };
+
+        const POWERUP_TYPE = {
+            FIRE: 'FIRE',
+            BOMB: 'BOMB',
+            SPEED: 'SPEED',
+            KICK: 'KICK'
+        };
+
+        const DIRS = [
+            { dx: 0, dy: -1, name: 'UP' },
+            { dx: 0, dy: 1,  name: 'DOWN' },
+            { dx: -1, dy: 0, name: 'LEFT' },
+            { dx: 1, dy: 0,  name: 'RIGHT' }
+        ];
+
+        /**
+         * ============================================================================
+         * 3. MOTOR PRINCIPAL DE JUEGO (Arquitectura ECS & Determinismo)
+         * ============================================================================
+         */
+        class BombermanEngine {
+            constructor() {
+                this.canvas = document.getElementById('game-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.sound = new SoundEngine();
+
+                this.gameMode = '1P'; // '1P', '2P', 'AI'
+                this.debugMode = false;
+                this.roundNumber = 1;
+                this.scores = [0, 0, 0, 0];
+
+                // Estado de entradas de teclado y táctil
+                this.keys = {};
+                this.keyJustPressed = {};
+                this.touchDir = { dx: 0, dy: 0 };
+                this.touchBombTriggered = false;
+                this.touchBombHolding = false;
+                this.touchPowerUpTriggered = false;
+
+                this.bindInputEvents();
+                this.initMatch(true);
+                this.startLoop();
+            }
+
+            bindInputEvents() {
+                window.addEventListener('keydown', (e) => {
+                    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', ' '].includes(e.key)) {
+                        e.preventDefault();
+                    }
+                    if (!this.keys[e.code]) {
+                        this.keyJustPressed[e.code] = true;
+                    }
+                    this.keys[e.code] = true;
+                });
+
+                window.addEventListener('keyup', (e) => {
+                    this.keys[e.code] = false;
+                    this.keyJustPressed[e.code] = false;
+                });
+
+                // Eventos táctiles para D-Pad móvil
+                const dirButtons = document.querySelectorAll('[data-dir]');
+                dirButtons.forEach(btn => {
+                    const dir = btn.getAttribute('data-dir');
+                    const activate = (e) => {
+                        e.preventDefault();
+                        if (dir === 'UP') this.touchDir = { dx: 0, dy: -1 };
+                        if (dir === 'DOWN') this.touchDir = { dx: 0, dy: 1 };
+                        if (dir === 'LEFT') this.touchDir = { dx: -1, dy: 0 };
+                        if (dir === 'RIGHT') this.touchDir = { dx: 1, dy: 0 };
+                    };
+                    const deactivate = (e) => {
+                        e.preventDefault();
+                        this.touchDir = { dx: 0, dy: 0 };
+                    };
+                    btn.addEventListener('touchstart', activate, { passive: false });
+                    btn.addEventListener('touchend', deactivate, { passive: false });
+                    btn.addEventListener('mousedown', activate);
+                    btn.addEventListener('mouseup', deactivate);
+                    btn.addEventListener('mouseleave', deactivate);
+                });
+
+                const bombBtn = document.getElementById('touch-bomb');
+                if (bombBtn) {
+                    const startBomb = (e) => {
+                        e.preventDefault();
+                        this.touchBombTriggered = true;
+                        this.touchBombHolding = true;
+                    };
+                    const stopBomb = (e) => {
+                        e.preventDefault();
+                        this.touchBombHolding = false;
+                    };
+                    bombBtn.addEventListener('touchstart', startBomb, { passive: false });
+                    bombBtn.addEventListener('touchend', stopBomb, { passive: false });
+                    bombBtn.addEventListener('mousedown', startBomb);
+                    bombBtn.addEventListener('mouseup', stopBomb);
+                    bombBtn.addEventListener('mouseleave', stopBomb);
+                }
+
+                // Botón táctil para activar power-up en móviles
+                const powerUpBtn = document.getElementById('touch-powerup');
+                if (powerUpBtn) {
+                    const triggerPowerUp = (e) => {
+                        e.preventDefault();
+                        this.touchPowerUpTriggered = true;
+                    };
+                    powerUpBtn.addEventListener('touchstart', triggerPowerUp, { passive: false });
+                    powerUpBtn.addEventListener('mousedown', triggerPowerUp);
+                }
+            }
+
+            /**
+             * Inicializa la cuadrícula 15x13, bloques blandos (densidad ~0.65),
+             * zonas seguras de spawn en las 4 esquinas y las entidades de jugadores/bots.
+             */
+            initMatch(resetScores = false) {
+                if (resetScores) {
+                    this.roundNumber = 1;
+                    this.scores = [0, 0, 0, 0];
+                }
+
+                this.tickCount = 0;
+                this.matchTimeRemaining = 150; // 2:30 minutos
+                this.matchOver = false;
+                this.screenShake = 0;
+
+                // Matrices del mundo
+                this.grid = Array.from({ length: ROWS }, () => Array(COLS).fill(TILE.EMPTY));
+                this.dangerMatrix = Array.from({ length: ROWS }, () => Array(COLS).fill(Infinity));
+
+                // Colecciones de Entidades ECS
+                this.players = [];
+                this.bombs = [];
+                this.explosions = [];
+                this.powerups = [];
+                this.particles = [];
+                this.blockAnimations = [];
+                this.floatingTexts = [];
+
+                // Zonas seguras de Spawn (Las 4 esquinas y sus 2 celdas adyacentes)
+                const safeZones = new Set([
+                    '1,1', '2,1', '1,2',
+                    `${COLS - 2},1`, `${COLS - 3},1`, `${COLS - 2},2`,
+                    `1,${ROWS - 2}`, `2,${ROWS - 2}`, `1,${ROWS - 3}`,
+                    `${COLS - 2},${ROWS - 2}`, `${COLS - 3},${ROWS - 2}`, `${COLS - 2},${ROWS - 3}`
+                ]);
+
+                // Construcción de la geometría del mapa (Sección 3.2)
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        if (r === 0 || r === ROWS - 1 || c === 0 || c === COLS - 1) {
+                            this.grid[r][c] = TILE.WALL_PERIMETER;
+                        } else if (r % 2 === 0 && c % 2 === 0) {
+                            this.grid[r][c] = TILE.PILLAR_FIXED;
+                        } else if (!safeZones.has(`${c},${r}`) && Math.random() < 0.65) {
+                            this.grid[r][c] = TILE.SOFT_BLOCK;
+                        }
+                    }
+                }
+
+                // Configuración de los 4 contendientes en las esquinas con Inventario
+                const configs = [
+                    { id: 0, name: 'Jugador 1', color: '#22d3ee', accent: '#ffffff', c: 1, r: 1, isBot: this.gameMode === 'AI' },
+                    { id: 1, name: this.gameMode === '2P' ? 'Jugador 2' : 'Bot Pyro', color: '#f43f5e', accent: '#fda4af', c: COLS - 2, r: 1, isBot: this.gameMode !== '2P' },
+                    { id: 2, name: 'Bot Vector', color: '#10b981', accent: '#6ee7b7', c: 1, r: ROWS - 2, isBot: true },
+                    { id: 3, name: 'Bot Nexus', color: '#f59e0b', accent: '#fde68a', c: COLS - 2, r: ROWS - 2, isBot: true }
+                ];
+
+                configs.forEach(cfg => {
+                    this.players.push({
+                        id: cfg.id,
+                        name: cfg.name,
+                        color: cfg.color,
+                        accent: cfg.accent,
+                        isBot: cfg.isBot,
+                        alive: true,
+                        // PositionComponent
+                        x: cfg.c * TILE_SIZE + TILE_SIZE / 2,
+                        y: cfg.r * TILE_SIZE + TILE_SIZE / 2,
+                        c: cfg.c,
+                        r: cfg.r,
+                        // Velocity & Direction
+                        vx: 0,
+                        vy: 0,
+                        facing: 'DOWN',
+                        walkCycle: 0,
+                        // PlayerStatsComponent: sin cooldown ni restricción de cantidad para jugadores humanos
+                        maxBombs: cfg.isBot ? 2 : 99,
+                        activeBombs: 0,
+                        fireRange: 2,
+                        speed: 155,       // Píxeles/segundo iniciales
+                        canKick: false,
+                        turboTimer: 0,    // Temporizador de sprint nitro
+                        // Inventario de Power-Ups para activación con teclas
+                        inventory: {
+                            FIRE: 0,
+                            BOMB: 0,
+                            SPEED: 0,
+                            KICK: 0
+                        },
+                        // Estado de IA (HFSM)
+                        aiState: cfg.isBot ? 'PATROL' : 'HUMAN',
+                        aiPath: [],
+                        aiTargetCell: null,
+                        aiRecalcTimer: 0
+                    });
+                });
+
+                document.getElementById('overlay-modal').classList.add('hidden');
+                document.getElementById('round-badge').textContent = `Ronda ${this.roundNumber}`;
+                document.getElementById('match-status-text').textContent = 'En Combate';
+                this.renderPlayersHUD();
+                this.updateInventoryUI();
+            }
+
+            bindInputEvents() {
+                window.addEventListener('keydown', (e) => {
+                    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', ' '].includes(e.key)) {
+                        e.preventDefault();
+                    }
+                    this.keys[e.code] = true;
+                });
+
+                window.addEventListener('keyup', (e) => {
+                    this.keys[e.code] = false;
+                });
+
+                // Eventos táctiles para D-Pad móvil
+                const dirButtons = document.querySelectorAll('[data-dir]');
+                dirButtons.forEach(btn => {
+                    const dir = btn.getAttribute('data-dir');
+                    const activate = (e) => {
+                        e.preventDefault();
+                        if (dir === 'UP') this.touchDir = { dx: 0, dy: -1 };
+                        if (dir === 'DOWN') this.touchDir = { dx: 0, dy: 1 };
+                        if (dir === 'LEFT') this.touchDir = { dx: -1, dy: 0 };
+                        if (dir === 'RIGHT') this.touchDir = { dx: 1, dy: 0 };
+                    };
+                    const deactivate = (e) => {
+                        e.preventDefault();
+                        this.touchDir = { dx: 0, dy: 0 };
+                    };
+                    btn.addEventListener('touchstart', activate, { passive: false });
+                    btn.addEventListener('touchend', deactivate, { passive: false });
+                    btn.addEventListener('mousedown', activate);
+                    btn.addEventListener('mouseup', deactivate);
+                    btn.addEventListener('mouseleave', deactivate);
+                });
+
+                const bombBtn = document.getElementById('touch-bomb');
+                if (bombBtn) {
+                    const startBomb = (e) => {
+                        e.preventDefault();
+                        this.touchBombTriggered = true;
+                        this.touchBombHolding = true;
+                    };
+                    const stopBomb = (e) => {
+                        e.preventDefault();
+                        this.touchBombHolding = false;
+                    };
+                    bombBtn.addEventListener('touchstart', startBomb, { passive: false });
+                    bombBtn.addEventListener('touchend', stopBomb, { passive: false });
+                    bombBtn.addEventListener('mousedown', startBomb);
+                    bombBtn.addEventListener('mouseup', stopBomb);
+                    bombBtn.addEventListener('mouseleave', stopBomb);
+                }
+            }
+
+            /**
+             * Inicializa la cuadrícula 15x13, bloques blandos (densidad ~0.65),
+             * zonas seguras de spawn en las 4 esquinas y las entidades de jugadores/bots.
+             */
+            initMatch(resetScores = false) {
+                if (resetScores) {
+                    this.roundNumber = 1;
+                    this.scores = [0, 0, 0, 0];
+                }
+
+                this.tickCount = 0;
+                this.matchTimeRemaining = 150; // 2:30 minutos
+                this.matchOver = false;
+                this.screenShake = 0;
+
+                // Matrices del mundo
+                this.grid = Array.from({ length: ROWS }, () => Array(COLS).fill(TILE.EMPTY));
+                this.dangerMatrix = Array.from({ length: ROWS }, () => Array(COLS).fill(Infinity));
+
+                // Colecciones de Entidades ECS
+                this.players = [];
+                this.bombs = [];
+                this.explosions = [];
+                this.powerups = [];
+                this.particles = [];
+                this.blockAnimations = [];
+
+                // Zonas seguras de Spawn (Las 4 esquinas y sus 2 celdas adyacentes)
+                const safeZones = new Set([
+                    '1,1', '2,1', '1,2',
+                    `${COLS - 2},1`, `${COLS - 3},1`, `${COLS - 2},2`,
+                    `1,${ROWS - 2}`, `2,${ROWS - 2}`, `1,${ROWS - 3}`,
+                    `${COLS - 2},${ROWS - 2}`, `${COLS - 3},${ROWS - 2}`, `${COLS - 2},${ROWS - 3}`
+                ]);
+
+                // Construcción de la geometría del mapa (Sección 3.2)
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        if (r === 0 || r === ROWS - 1 || c === 0 || c === COLS - 1) {
+                            this.grid[r][c] = TILE.WALL_PERIMETER;
+                        } else if (r % 2 === 0 && c % 2 === 0) {
+                            this.grid[r][c] = TILE.PILLAR_FIXED;
+                        } else if (!safeZones.has(`${c},${r}`) && Math.random() < 0.65) {
+                            this.grid[r][c] = TILE.SOFT_BLOCK;
+                        }
+                    }
+                }
+
+                // Configuración de los 4 contendientes en las esquinas
+                const configs = [
+                    { id: 0, name: 'Jugador 1', color: '#22d3ee', accent: '#ffffff', c: 1, r: 1, isBot: this.gameMode === 'AI' },
+                    { id: 1, name: this.gameMode === '2P' ? 'Jugador 2' : 'Bot Pyro', color: '#f43f5e', accent: '#fda4af', c: COLS - 2, r: 1, isBot: this.gameMode !== '2P' },
+                    { id: 2, name: 'Bot Vector', color: '#10b981', accent: '#6ee7b7', c: 1, r: ROWS - 2, isBot: true },
+                    { id: 3, name: 'Bot Nexus', color: '#f59e0b', accent: '#fde68a', c: COLS - 2, r: ROWS - 2, isBot: true }
+                ];
+
+                configs.forEach(cfg => {
+                    this.players.push({
+                        id: cfg.id,
+                        name: cfg.name,
+                        color: cfg.color,
+                        accent: cfg.accent,
+                        isBot: cfg.isBot,
+                        alive: true,
+                        // PositionComponent
+                        x: cfg.c * TILE_SIZE + TILE_SIZE / 2,
+                        y: cfg.r * TILE_SIZE + TILE_SIZE / 2,
+                        c: cfg.c,
+                        r: cfg.r,
+                        // Velocity & Direction
+                        vx: 0,
+                        vy: 0,
+                        facing: 'DOWN',
+                        walkCycle: 0,
+                        // PlayerStatsComponent: sin cooldown ni restricción de cantidad para jugadores humanos
+                        maxBombs: cfg.isBot ? 2 : 99,
+                        activeBombs: 0,
+                        fireRange: 2,
+                        speed: 155,       // Píxeles/segundo iniciales
+                        canKick: false,
+                        // Estado de IA (HFSM)
+                        aiState: cfg.isBot ? 'PATROL' : 'HUMAN',
+                        aiPath: [],
+                        aiTargetCell: null,
+                        aiRecalcTimer: 0
+                    });
+                });
+
+                document.getElementById('overlay-modal').classList.add('hidden');
+                document.getElementById('round-badge').textContent = `Ronda ${this.roundNumber}`;
+                document.getElementById('match-status-text').textContent = 'En Combate';
+                this.renderPlayersHUD();
+            }
+
+            /**
+             * Coordenadas continuas (x, y) a coordenadas discretas de celda (c, r)
+             */
+            toCell(x, y) {
+                return {
+                    c: Math.floor(x / TILE_SIZE),
+                    r: Math.floor(y / TILE_SIZE)
+                };
+            }
+
+            /**
+             * Coordenadas de centro de celda (x_c, y_c)
+             */
+            cellCenter(c, r) {
+                return {
+                    x: c * TILE_SIZE + TILE_SIZE / 2,
+                    y: r * TILE_SIZE + TILE_SIZE / 2
+                };
+            }
+
+            /**
+             * ============================================================================
+             * 4. MATRIZ DE PELIGRO DINÁMICA D(c, r) (Sección 6.1 Spec)
+             * ============================================================================
+             * Calcula para cada celda el tiempo restante exacto hasta que una explosión
+             * o bomba en cadena impacte dicha coordenada.
+             */
+            updateDangerMatrix() {
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        this.dangerMatrix[r][c] = Infinity;
+                    }
+                }
+
+                // 1. Celdas con fuego activo tienen peligro inmediato D(c,r) = 0
+                for (const exp of this.explosions) {
+                    this.dangerMatrix[exp.r][exp.c] = 0;
+                }
+
+                // 2. Resolver tiempos efectivos de detonación en cadena entre bombas
+                const effectiveFuse = new Map();
+                for (const b of this.bombs) {
+                    effectiveFuse.set(b, b.fuse);
+                }
+
+                // Propagación iterativa de tiempos de mecha si una bomba alcanza a otra
+                let changed = true;
+                while (changed) {
+                    changed = false;
+                    for (const b of this.bombs) {
+                        const myTime = effectiveFuse.get(b);
+                        for (const d of DIRS) {
+                            for (let k = 1; k <= b.range; k++) {
+                                const nc = b.c + d.dx * k;
+                                const nr = b.r + d.dy * k;
+                                if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) break;
+                                const tile = this.grid[nr][nc];
+                                if (tile === TILE.WALL_PERIMETER || tile === TILE.PILLAR_FIXED || tile === TILE.SOFT_BLOCK) break;
+
+                                const otherBomb = this.bombs.find(ob => ob.c === nc && ob.r === nr);
+                                if (otherBomb) {
+                                    if (myTime < effectiveFuse.get(otherBomb)) {
+                                        effectiveFuse.set(otherBomb, myTime);
+                                        changed = true;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 3. Proyectar rayos de peligro sobre la matriz D(c,r)
+                for (const b of this.bombs) {
+                    const fuseTime = effectiveFuse.get(b);
+                    this.dangerMatrix[b.r][b.c] = Math.min(this.dangerMatrix[b.r][b.c], fuseTime);
+
+                    for (const d of DIRS) {
+                        for (let k = 1; k <= b.range; k++) {
+                            const nc = b.c + d.dx * k;
+                            const nr = b.r + d.dy * k;
+                            if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) break;
+                            const tile = this.grid[nr][nc];
+                            if (tile === TILE.WALL_PERIMETER || tile === TILE.PILLAR_FIXED) break;
+
+                            this.dangerMatrix[nr][nc] = Math.min(this.dangerMatrix[nr][nc], fuseTime);
+                            if (tile === TILE.SOFT_BLOCK) break;
+                        }
+                    }
+                }
+            }
+
+            /**
+             * ============================================================================
+             * 5. INTELIGENCIA ARTIFICIAL COMPETITIVA: SUPERVIVENCIA, CAZA Y NAVEGACIÓN
+             * ============================================================================
+             */
+            updateBotAI(bot, dt) {
+                const cell = this.toCell(bot.x, bot.y);
+                bot.c = cell.c;
+                bot.r = cell.r;
+
+                bot.aiRecalcTimer -= dt;
+                const currentDanger = this.dangerMatrix[bot.r][bot.c];
+
+                // PRIORIDAD ABSOLUTA 1: SUPERVIVENCIA / EVADIR
+                // Si la celda actual está bajo amenaza de explosión
+                if (currentDanger < Infinity) {
+                    bot.aiState = 'EVADE';
+
+                    // Validar si la ruta actual sigue siendo segura
+                    let pathStillSafe = bot.aiPath && bot.aiPath.length > 0;
+                    if (pathStillSafe) {
+                        let simTime = 0;
+                        for (const step of bot.aiPath) {
+                            simTime += TILE_SIZE / bot.speed;
+                            if (this.dangerMatrix[step.r][step.c] <= simTime + 0.3) {
+                                pathStillSafe = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Si no hay ruta o la actual quedó comprometida, recalcular inmediatamente
+                    if (!pathStillSafe || bot.aiRecalcTimer <= 0) {
+                        bot.aiRecalcTimer = 0.2;
+                        const safePath = this.findNearestSafeTilePath(bot);
+                        if (safePath && safePath.length > 0) {
+                            bot.aiPath = safePath;
+                            bot.aiTargetCell = safePath[0];
+                        }
+                    }
+                    this.followAIPath(bot);
+                    return;
+                }
+
+                // Si ya estamos a salvo y veníamos huyendo, limpiar estado de evasión
+                if (bot.aiState === 'EVADE' && currentDanger === Infinity) {
+                    bot.aiState = 'PATROL';
+                    bot.aiPath = [];
+                    bot.aiTargetCell = null;
+                    bot.aiRecalcTimer = 0;
+                }
+
+                // Re-evaluación táctica periódica cuando no hay peligro inminente
+                if (bot.aiRecalcTimer <= 0 || !bot.aiPath || bot.aiPath.length === 0) {
+                    bot.aiRecalcTimer = 0.22;
+
+                    // PRIORIDAD 2: Recolectar Power-Up cercano accesible y 100% seguro
+                    const powerupPath = this.findSafePowerUpPath(bot);
+                    if (powerupPath && powerupPath.length > 0) {
+                        bot.aiState = 'POWERUP';
+                        bot.aiPath = powerupPath;
+                        bot.aiTargetCell = powerupPath[0];
+                        this.followAIPath(bot);
+                        return;
+                    }
+
+                    // Si el bot tiene power-ups en inventario, los activa tácticamente
+                    if (bot.inventory.FIRE > 0) this.activatePowerUp(bot, POWERUP_TYPE.FIRE);
+                    if (bot.inventory.BOMB > 0) this.activatePowerUp(bot, POWERUP_TYPE.BOMB);
+                    if (bot.inventory.SPEED > 0) this.activatePowerUp(bot, POWERUP_TYPE.SPEED);
+                    if (bot.inventory.KICK > 0) this.activatePowerUp(bot, POWERUP_TYPE.KICK);
+
+                    // PRIORIDAD 3: Atacar rival o demoler bloques SOLO si la ruta de escape está garantizada
+                    if (bot.activeBombs < bot.maxBombs && this.isGoodBombSpot(bot.c, bot.r, bot)) {
+                        const escapePlan = this.canSurviveOwnBomb(bot, bot.c, bot.r, bot.fireRange);
+                        if (escapePlan && escapePlan.length > 0) {
+                            // Centrar exactamente en la celda antes de plantar para asegurar la física de escape
+                            const center = this.cellCenter(bot.c, bot.r);
+                            bot.x = center.x;
+                            bot.y = center.y;
+
+                            this.plantBomb(bot);
+                            bot.aiState = 'EVADE';
+                            bot.aiPath = escapePlan;
+                            bot.aiTargetCell = escapePlan[0];
+                            bot.aiRecalcTimer = 0.4;
+                            this.followAIPath(bot);
+                            return;
+                        }
+                    }
+
+                    // PRIORIDAD 4: Búsqueda agresiva de rivales (Humanos y Bots) o bloques para abrir camino
+                    const huntPath = this.findHuntOrBreakPath(bot);
+                    if (huntPath && huntPath.length > 0) {
+                        bot.aiState = 'ATTACK';
+                        bot.aiPath = huntPath;
+                        bot.aiTargetCell = huntPath[0];
+                    } else {
+                        bot.aiState = 'PATROL';
+                        bot.aiPath = [];
+                        bot.aiTargetCell = null;
+                    }
+                }
+
+                this.followAIPath(bot);
+            }
+
+            isCellWalkableForBot(c, r, bot, ignoreBombAtStart = false) {
+                if (c <= 0 || c >= COLS - 1 || r <= 0 || r >= ROWS - 1) return false;
+                if (this.grid[r][c] !== TILE.EMPTY) return false;
+                const hasBomb = this.bombs.some(b => b.c === c && b.r === r);
+                if (hasBomb && !(ignoreBombAtStart && c === bot.c && r === bot.r)) return false;
+                return true;
+            }
+
+            /**
+             * Calcula la ruta más corta hacia una celda con peligro cero D(c,r) = Infinity,
+             * verificando que no quede atrapado por bombas con fusible corto en el trayecto.
+             */
+            findNearestSafeTilePath(bot) {
+                const queue = [{ c: bot.c, r: bot.r, path: [], time: 0 }];
+                const visited = new Set([`${bot.c},${bot.r}`]);
+                let bestFallback = null;
+                let maxSafeTime = -1;
+
+                while (queue.length > 0) {
+                    const curr = queue.shift();
+
+                    if (curr.path.length > 0 && this.dangerMatrix[curr.r][curr.c] === Infinity) {
+                        return curr.path;
+                    }
+
+                    if (curr.path.length > 0 && this.dangerMatrix[curr.r][curr.c] > maxSafeTime) {
+                        maxSafeTime = this.dangerMatrix[curr.r][curr.c];
+                        bestFallback = curr.path;
+                    }
+
+                    if (curr.time > 2.8) continue;
+
+                    for (const d of DIRS) {
+                        const nc = curr.c + d.dx;
+                        const nr = curr.r + d.dy;
+                        const key = `${nc},${nr}`;
+                        if (visited.has(key)) continue;
+
+                        if (!this.isCellWalkableForBot(nc, nr, bot, curr.path.length === 0)) continue;
+
+                        const stepTime = TILE_SIZE / bot.speed;
+                        const arrivalTime = curr.time + stepTime;
+
+                        // No entrar en una celda que vaya a explotar antes o mientras llegamos
+                        if (this.dangerMatrix[nr][nc] <= arrivalTime + 0.35) continue;
+
+                        visited.add(key);
+                        queue.push({
+                            c: nc,
+                            r: nr,
+                            path: [...curr.path, { c: nc, r: nr }],
+                            time: arrivalTime
+                        });
+                    }
+                }
+                return bestFallback;
+            }
+
+            /**
+             * Simula la huella de explosión de la bomba proyectada en (bc, br)
+             * y devuelve la RUTA EXACTA de escape hacia una casilla fuera del radio de fuego.
+             * Si no existe escape 100% seguro y alcanzable a tiempo, devuelve null.
+             */
+            canSurviveOwnBomb(bot, bc, br, range) {
+                const threatened = new Set([`${bc},${br}`]);
+                for (const d of DIRS) {
+                    for (let k = 1; k <= range; k++) {
+                        const nc = bc + d.dx * k;
+                        const nr = br + d.dy * k;
+                        if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) break;
+                        const tile = this.grid[nr][nc];
+                        if (tile === TILE.WALL_PERIMETER || tile === TILE.PILLAR_FIXED) break;
+                        threatened.add(`${nc},${nr}`);
+                        if (tile === TILE.SOFT_BLOCK) break;
+                    }
+                }
+
+                const queue = [{ c: bc, r: br, path: [], time: 0 }];
+                const visited = new Set([`${bc},${br}`]);
+
+                while (queue.length > 0) {
+                    const curr = queue.shift();
+                    const key = `${curr.c},${curr.r}`;
+
+                    // Se alcanza una casilla fuera de la onda expansiva y libre de otras bombas
+                    if (curr.path.length > 0 && !threatened.has(key) && this.dangerMatrix[curr.r][curr.c] === Infinity) {
+                        return curr.path;
+                    }
+
+                    if (curr.time > 2.2) continue; // Margen de seguridad amplio frente al fusible de 3.0s
+
+                    for (const d of DIRS) {
+                        const nc = curr.c + d.dx;
+                        const nr = curr.r + d.dy;
+                        const nKey = `${nc},${nr}`;
+                        if (visited.has(nKey)) continue;
+
+                        if (nc <= 0 || nc >= COLS - 1 || nr <= 0 || nr >= ROWS - 1) continue;
+                        if (this.grid[nr][nc] !== TILE.EMPTY) continue;
+                        if (this.bombs.some(b => b.c === nc && b.r === nr)) continue;
+
+                        const stepTime = TILE_SIZE / bot.speed;
+                        const arrivalTime = curr.time + stepTime;
+
+                        if (this.dangerMatrix[nr][nc] <= arrivalTime + 0.4) continue;
+
+                        visited.add(nKey);
+                        queue.push({
+                            c: nc,
+                            r: nr,
+                            path: [...curr.path, { c: nc, r: nr }],
+                            time: arrivalTime
+                        });
+                    }
+                }
+                return null;
+            }
+
+            findSafePowerUpPath(bot) {
+                if (this.powerups.length === 0) return null;
+                const queue = [{ c: bot.c, r: bot.r, path: [], dist: 0 }];
+                const visited = new Set([`${bot.c},${bot.r}`]);
+
+                while (queue.length > 0) {
+                    const curr = queue.shift();
+                    if (curr.dist > 0 && this.powerups.some(p => p.c === curr.c && p.r === curr.r)) {
+                        return curr.path;
+                    }
+                    if (curr.dist >= 8) continue;
+
+                    for (const d of DIRS) {
+                        const nc = curr.c + d.dx;
+                        const nr = curr.r + d.dy;
+                        const key = `${nc},${nr}`;
+                        if (visited.has(key)) continue;
+                        if (!this.isCellWalkableForBot(nc, nr, bot, false)) continue;
+                        if (this.dangerMatrix[nr][nc] < Infinity) continue;
+
+                        visited.add(key);
+                        queue.push({ c: nc, r: nr, path: [...curr.path, { c: nc, r: nr }], dist: curr.dist + 1 });
+                    }
+                }
+                return null;
+            }
+
+            isAdjacentToSoftBlock(c, r) {
+                for (const d of DIRS) {
+                    const nc = c + d.dx;
+                    const nr = r + d.dy;
+                    if (nc > 0 && nc < COLS - 1 && nr > 0 && nr < ROWS - 1) {
+                        if (this.grid[nr][nc] === TILE.SOFT_BLOCK) return true;
+                    }
+                }
+                return false;
+            }
+
+            isGoodBombSpot(c, r, bot) {
+                if (this.bombs.some(b => b.c === c && b.r === r)) return false;
+
+                // Bloque destructible adyacente
+                if (this.isAdjacentToSoftBlock(c, r)) return true;
+
+                // O enemigo alineado en el rayo cardinal directo
+                for (const p of this.players) {
+                    if (p.id !== bot.id && p.alive) {
+                        if (p.c === c && Math.abs(p.r - r) <= bot.fireRange) {
+                            let blocked = false;
+                            const step = Math.sign(p.r - r);
+                            for (let currR = r + step; currR !== p.r; currR += step) {
+                                if (this.grid[currR][c] !== TILE.EMPTY) { blocked = true; break; }
+                            }
+                            if (!blocked) return true;
+                        }
+                        if (p.r === r && Math.abs(p.c - c) <= bot.fireRange) {
+                            let blocked = false;
+                            const step = Math.sign(p.c - c);
+                            for (let currC = c + step; currC !== p.c; currC += step) {
+                                if (this.grid[r][currC] !== TILE.EMPTY) { blocked = true; break; }
+                            }
+                            if (!blocked) return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            /**
+             * Algoritmo de caza y demolición: localiza al rival más cercano o el bloque
+             * blando óptimo que desbloquea el avance hacia los demás jugadores.
+             */
+            findHuntOrBreakPath(bot) {
+                const rivals = this.players.filter(p => p.id !== bot.id && p.alive);
+                if (rivals.length === 0) return null;
+
+                // Ordenar rivales por proximidad
+                rivals.sort((a, b) => (Math.abs(a.c - bot.c) + Math.abs(a.r - bot.r)) - (Math.abs(b.c - bot.c) + Math.abs(b.r - bot.r)));
+                const targetRival = rivals[0];
+
+                const queue = [{ c: bot.c, r: bot.r, path: [], dist: 0 }];
+                const visited = new Set([`${bot.c},${bot.r}`]);
+                let bestBlockPath = null;
+                let minBlockDist = Infinity;
+
+                while (queue.length > 0) {
+                    const curr = queue.shift();
+
+                    // Si alcanzamos línea de tiro directa contra el objetivo
+                    const distToRival = Math.abs(curr.c - targetRival.c) + Math.abs(curr.r - targetRival.r);
+                    if (curr.dist > 0 && distToRival <= bot.fireRange && (curr.c === targetRival.c || curr.r === targetRival.r)) {
+                        return curr.path;
+                    }
+
+                    // Registrar camino adyacente a un bloque blando para abrir camino
+                    if (curr.dist > 0 && this.isAdjacentToSoftBlock(curr.c, curr.r)) {
+                        if (curr.dist < minBlockDist) {
+                            minBlockDist = curr.dist;
+                            bestBlockPath = curr.path;
+                        }
+                    }
+
+                    if (curr.dist >= 12) continue;
+
+                    const dirs = [...DIRS].sort(() => Math.random() - 0.5);
+                    for (const d of dirs) {
+                        const nc = curr.c + d.dx;
+                        const nr = curr.r + d.dy;
+                        const key = `${nc},${nr}`;
+                        if (visited.has(key)) continue;
+
+                        if (nc <= 0 || nc >= COLS - 1 || nr <= 0 || nr >= ROWS - 1) continue;
+                        if (this.grid[nr][nc] !== TILE.EMPTY) continue;
+                        if (this.bombs.some(b => b.c === nc && b.r === nr)) continue;
+                        if (this.dangerMatrix[nr][nc] < Infinity) continue;
+
+                        visited.add(key);
+                        queue.push({
+                            c: nc,
+                            r: nr,
+                            path: [...curr.path, { c: nc, r: nr }],
+                            dist: curr.dist + 1
+                        });
+                    }
+                }
+                return bestBlockPath;
+            }
+
+            /**
+             * Control cinemático de alta precisión para bots con autocorrección
+             * y alineación ortogonal de ejes, eliminando enganches contra esquinas o pilares.
+             */
+            followAIPath(bot) {
+                if (!bot.aiPath || bot.aiPath.length === 0) {
+                    const center = this.cellCenter(bot.c, bot.r);
+                    const dx = center.x - bot.x;
+                    const dy = center.y - bot.y;
+                    bot.vx = Math.abs(dx) > 1.5 ? Math.sign(dx) : 0;
+                    bot.vy = Math.abs(dy) > 1.5 ? Math.sign(dy) : 0;
+                    if (bot.vx === 0) bot.x = center.x;
+                    if (bot.vy === 0) bot.y = center.y;
+                    return;
+                }
+
+                const target = bot.aiPath[0];
+                const targetCenter = this.cellCenter(target.c, target.r);
+                const currCenter = this.cellCenter(bot.c, bot.r);
+
+                // Comprobar si ya se llegó al nodo intermedio
+                const distToTarget = Math.hypot(targetCenter.x - bot.x, targetCenter.y - bot.y);
+                if (distToTarget < 5) {
+                    bot.x = targetCenter.x;
+                    bot.y = targetCenter.y;
+                    bot.c = target.c;
+                    bot.r = target.r;
+                    bot.aiPath.shift();
+                    bot.aiTargetCell = bot.aiPath[0] || null;
+                    if (bot.aiPath.length === 0) {
+                        bot.vx = 0;
+                        bot.vy = 0;
+                        return;
+                    }
+                }
+
+                const nextTarget = bot.aiPath[0];
+                const nextCenter = this.cellCenter(nextTarget.c, nextTarget.r);
+
+                const diffC = nextTarget.c - bot.c;
+                const diffR = nextTarget.r - bot.r;
+
+                if (diffC !== 0) {
+                    // Si se desplaza en X, asegurar alineación perfecta en Y
+                    const alignY = currCenter.y - bot.y;
+                    if (Math.abs(alignY) > 2) {
+                        bot.vx = 0;
+                        bot.vy = Math.sign(alignY);
+                    } else {
+                        bot.y = currCenter.y;
+                        bot.vx = Math.sign(nextCenter.x - bot.x);
+                        bot.vy = 0;
+                    }
+                } else if (diffR !== 0) {
+                    // Si se desplaza en Y, asegurar alineación perfecta en X
+                    const alignX = currCenter.x - bot.x;
+                    if (Math.abs(alignX) > 2) {
+                        bot.vx = Math.sign(alignX);
+                        bot.vy = 0;
+                    } else {
+                        bot.x = currCenter.x;
+                        bot.vx = 0;
+                        bot.vy = Math.sign(nextCenter.y - bot.y);
+                    }
+                } else {
+                    const dx = nextCenter.x - bot.x;
+                    const dy = nextCenter.y - bot.y;
+                    bot.vx = Math.abs(dx) > 2 ? Math.sign(dx) : 0;
+                    bot.vy = Math.abs(dy) > 2 ? Math.sign(dy) : 0;
+                }
+            }
+
+            /**
+             * ============================================================================
+             * 6. SISTEMA DE ENTRADA, MOVIMIENTO Y CORNER SLIDING (Sección 5.1 y 5.2 Spec)
+             * ============================================================================
+             */
+            processHumanInput(player) {
+                let dx = 0;
+                let dy = 0;
+                let plant = false;
+
+                if (player.id === 0) {
+                    if (this.keys['KeyW'] || (this.gameMode === '1P' && this.keys['ArrowUp'])) dy = -1;
+                    else if (this.keys['KeyS'] || (this.gameMode === '1P' && this.keys['ArrowDown'])) dy = 1;
+                    if (this.keys['KeyA'] || (this.gameMode === '1P' && this.keys['ArrowLeft'])) dx = -1;
+                    else if (this.keys['KeyD'] || (this.gameMode === '1P' && this.keys['ArrowRight'])) dx = 1;
+
+                    if (this.touchDir.dx !== 0 || this.touchDir.dy !== 0) {
+                        dx = this.touchDir.dx;
+                        dy = this.touchDir.dy;
+                    }
+
+                    plant = Boolean(this.keys['Space']) || this.touchBombTriggered || this.touchBombHolding;
+                    this.touchBombTriggered = false;
+
+                    // TECLAS DE ACTIVACIÓN DE POWER-UPS (JUGADOR 1)
+                    if (this.keyJustPressed['Digit1'] || this.keyJustPressed['KeyQ']) {
+                        this.activatePowerUp(player, POWERUP_TYPE.FIRE);
+                        this.keyJustPressed['Digit1'] = false;
+                        this.keyJustPressed['KeyQ'] = false;
+                    } else if (this.keyJustPressed['Digit2'] || (this.keyJustPressed['KeyE'] && player.inventory.BOMB > 0)) {
+                        this.activatePowerUp(player, POWERUP_TYPE.BOMB);
+                        this.keyJustPressed['Digit2'] = false;
+                        this.keyJustPressed['KeyE'] = false;
+                    } else if (this.keyJustPressed['Digit3'] || this.keyJustPressed['KeyR']) {
+                        this.activatePowerUp(player, POWERUP_TYPE.SPEED);
+                        this.keyJustPressed['Digit3'] = false;
+                        this.keyJustPressed['KeyR'] = false;
+                    } else if (this.keyJustPressed['Digit4'] || this.keyJustPressed['KeyF']) {
+                        this.activatePowerUp(player, POWERUP_TYPE.KICK);
+                        this.keyJustPressed['Digit4'] = false;
+                        this.keyJustPressed['KeyF'] = false;
+                    } else if (this.keyJustPressed['KeyE'] || this.touchPowerUpTriggered) {
+                        this.activateNextPowerUp(player);
+                        this.keyJustPressed['KeyE'] = false;
+                        this.touchPowerUpTriggered = false;
+                    }
+                } else if (player.id === 1 && this.gameMode === '2P') {
+                    if (this.keys['ArrowUp']) dy = -1;
+                    else if (this.keys['ArrowDown']) dy = 1;
+                    if (this.keys['ArrowLeft']) dx = -1;
+                    else if (this.keys['ArrowRight']) dx = 1;
+
+                    plant = Boolean(this.keys['Enter'] || this.keys['ShiftRight'] || this.keys['ShiftLeft']);
+
+                    // TECLAS DE ACTIVACIÓN DE POWER-UPS (JUGADOR 2)
+                    if (this.keyJustPressed['KeyM'] || this.keyJustPressed['Numpad0'] || this.keyJustPressed['ControlRight']) {
+                        this.activateNextPowerUp(player);
+                        this.keyJustPressed['KeyM'] = false;
+                        this.keyJustPressed['Numpad0'] = false;
+                        this.keyJustPressed['ControlRight'] = false;
+                    }
+                }
+
+                player.vx = dx;
+                player.vy = dy;
+
+                // Despliegue continuo sin retraso ni bloqueo de tecla
+                if (plant) {
+                    this.plantBomb(player);
+                }
+            }
+
+            /**
+             * Activa un Power-Up específico almacenado en el inventario del jugador
+             */
+            activatePowerUp(player, type) {
+                if (!player.alive) return;
+                if (!player.inventory[type] || player.inventory[type] <= 0) {
+                    // Si no tiene ese ítem específico, mostrar advertencia visual sutil
+                    if (!player.isBot) {
+                        this.addFloatingText(player.x, player.y - 20, `¡Sin ${type}!`, '#f87171');
+                    }
+                    return;
+                }
+
+                // Consumir 1 unidad del inventario
+                player.inventory[type]--;
+
+                let label = '';
+                let color = '#fbbf24';
+
+                if (type === POWERUP_TYPE.FIRE) {
+                    player.fireRange = Math.min(8, player.fireRange + 1);
+                    label = `🔥 +1 FUEGO (R: ${player.fireRange})`;
+                    color = '#f97316';
+                } else if (type === POWERUP_TYPE.BOMB) {
+                    player.maxBombs = Math.min(8, player.maxBombs + 1);
+                    label = `💣 +1 BOMBA`;
+                    color = '#22d3ee';
+                } else if (type === POWERUP_TYPE.SPEED) {
+                    player.speed = Math.min(270, player.speed + 25);
+                    player.turboTimer = 6.0; // 6 segundos de efecto turbo con estela
+                    label = `⚡ NITRO ACTIVADO (6s)`;
+                    color = '#10b981';
+                } else if (type === POWERUP_TYPE.KICK) {
+                    player.canKick = true;
+                    label = `🥾 PATADA ACTIVADA`;
+                    color = '#c084fc';
+
+                    // Empujar cualquier bomba cercana inmediatamente si está a rango de patada
+                    for (const b of this.bombs) {
+                        if (Math.abs(b.c - player.c) + Math.abs(b.r - player.r) === 1 && b.vx === 0 && b.vy === 0) {
+                            b.vx = Math.sign(b.c - player.c) * 280;
+                            b.vy = Math.sign(b.r - player.r) * 280;
+                            this.sound.playKick();
+                        }
+                    }
+                }
+
+                // Sonido de activación épica
+                this.sound.playActivatePowerUp();
+
+                // Texto flotante de combate
+                this.addFloatingText(player.x, player.y - 18, label, color);
+
+                // Anillo de partículas de activación
+                for (let i = 0; i < 18; i++) {
+                    const angle = (i / 18) * Math.PI * 2;
+                    const spd = 70 + Math.random() * 50;
+                    this.particles.push({
+                        x: player.x,
+                        y: player.y,
+                        vx: Math.cos(angle) * spd,
+                        vy: Math.sin(angle) * spd,
+                        life: 0.35,
+                        maxLife: 0.35,
+                        color,
+                        size: 3.5
+                    });
+                }
+
+                this.renderPlayersHUD();
+                this.updateInventoryUI();
+            }
+
+            /**
+             * Activa el primer Power-Up disponible en el inventario
+             */
+            activateNextPowerUp(player) {
+                const priorityOrder = [POWERUP_TYPE.SPEED, POWERUP_TYPE.FIRE, POWERUP_TYPE.BOMB, POWERUP_TYPE.KICK];
+                for (const type of priorityOrder) {
+                    if (player.inventory[type] > 0) {
+                        this.activatePowerUp(player, type);
+                        return;
+                    }
+                }
+                if (!player.isBot) {
+                    this.addFloatingText(player.x, player.y - 20, '¡Inventario Vacío!', '#94a3b8');
+                }
+            }
+
+            addFloatingText(x, y, text, color) {
+                this.floatingTexts.push({
+                    x,
+                    y,
+                    text,
+                    color,
+                    life: 1.0,
+                    maxLife: 1.0
+                });
+            }
+
+            /**
+             * Método para disparar la activación manual desde los botones de la interfaz
+             */
+            triggerManualPowerUp(playerId, type) {
+                const p = this.players.find(pl => pl.id === playerId);
+                if (!p || !p.alive) return;
+                if (type === 'AUTO') {
+                    this.activateNextPowerUp(p);
+                } else {
+                    this.activatePowerUp(p, type);
+                }
+            }
+
+            /**
+             * Aplica velocidad, resuelve colisiones AABB con relación w_box = 0.7 * S,
+             * gestiona patada de bombas (Kick) y aplica asistencia de giro en esquinas (Corner Sliding).
+             */
+            movePlayerWithCornerSlide(p, dt) {
+                if (p.vx === 0 && p.vy === 0) {
+                    const center = this.cellCenter(p.c, p.r);
+                    if (Math.abs(p.x - center.x) < 2) p.x = center.x;
+                    if (Math.abs(p.y - center.y) < 2) p.y = center.y;
+                    return;
+                }
+
+                if (p.vx < 0) p.facing = 'LEFT';
+                else if (p.vx > 0) p.facing = 'RIGHT';
+                else if (p.vy < 0) p.facing = 'UP';
+                else if (p.vy > 0) p.facing = 'DOWN';
+
+                p.walkCycle += dt * 12;
+
+                // Efecto de estela de partículas cuando tiene turbo activo
+                if (p.turboTimer > 0) {
+                    p.turboTimer -= dt;
+                    if (Math.random() < 0.4) {
+                        this.particles.push({
+                            x: p.x + (Math.random() - 0.5) * 12,
+                            y: p.y + 10,
+                            vx: -p.vx * 20,
+                            vy: -p.vy * 20,
+                            life: 0.25,
+                            maxLife: 0.25,
+                            color: '#10b981',
+                            size: 3
+                        });
+                    }
+                }
+
+                // Normalizar diagonal si aplica
+                let mag = Math.hypot(p.vx, p.vy);
+                const ux = p.vx / mag;
+                const uy = p.vy / mag;
+
+                const stepX = ux * p.speed * dt;
+                const stepY = uy * p.speed * dt;
+
+                // Intentar movimiento en X
+                if (stepX !== 0) {
+                    if (!this.checkCollisionAABB(p.x + stepX, p.y, p)) {
+                        p.x += stepX;
+                    } else if (p.vy === 0) {
+                        // ALGORITMO CORNER SLIDING (Sección 5.2 Spec)
+                        const currentCell = this.toCell(p.x, p.y);
+                        const center = this.cellCenter(currentCell.c, currentCell.r);
+                        const diffY = center.y - p.y;
+                        const epsilon = 0.42 * TILE_SIZE;
+                        if (Math.abs(diffY) > 1 && Math.abs(diffY) <= epsilon) {
+                            const targetCol = currentCell.c + Math.sign(stepX);
+                            if (this.isTilePassable(targetCol, currentCell.r, p)) {
+                                const slideStep = Math.sign(diffY) * Math.min(Math.abs(diffY), p.speed * dt);
+                                if (!this.checkCollisionAABB(p.x, p.y + slideStep, p)) {
+                                    p.y += slideStep;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Intentar movimiento en Y
+                if (stepY !== 0) {
+                    if (!this.checkCollisionAABB(p.x, p.y + stepY, p)) {
+                        p.y += stepY;
+                    } else if (p.vx === 0) {
+                        // ALGORITMO CORNER SLIDING EN EJE VERTICAL
+                        const currentCell = this.toCell(p.x, p.y);
+                        const center = this.cellCenter(currentCell.c, currentCell.r);
+                        const diffX = center.x - p.x;
+                        const epsilon = 0.42 * TILE_SIZE;
+                        if (Math.abs(diffX) > 1 && Math.abs(diffX) <= epsilon) {
+                            const targetRow = currentCell.r + Math.sign(stepY);
+                            if (this.isTilePassable(currentCell.c, targetRow, p)) {
+                                const slideStep = Math.sign(diffX) * Math.min(Math.abs(diffX), p.speed * dt);
+                                if (!this.checkCollisionAABB(p.x + slideStep, p.y, p)) {
+                                    p.x += slideStep;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                const updatedCell = this.toCell(p.x, p.y);
+                p.c = updatedCell.c;
+                p.r = updatedCell.r;
+            }
+
+            isTilePassable(c, r, player) {
+                if (c < 0 || c >= COLS || r < 0 || r >= ROWS) return false;
+                if (this.grid[r][c] !== TILE.EMPTY) return false;
+                const bomb = this.bombs.find(b => b.c === c && b.r === r);
+                if (bomb && !bomb.graceOwners.has(player.id)) return false;
+                return true;
+            }
+
+            /**
+             * Detección de colisión AABB (w_box = 0.7 * S) y activación de Kick en bombas
+             */
+            checkCollisionAABB(nx, ny, player) {
+                const halfBox = (TILE_SIZE * 0.68) / 2;
+                const minC = Math.floor((nx - halfBox) / TILE_SIZE);
+                const maxC = Math.floor((nx + halfBox - 0.001) / TILE_SIZE);
+                const minR = Math.floor((ny - halfBox) / TILE_SIZE);
+                const maxR = Math.floor((ny + halfBox - 0.001) / TILE_SIZE);
+
+                for (let r = minR; r <= maxR; r++) {
+                    for (let c = minC; c <= maxC; c++) {
+                        if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return true;
+                        if (this.grid[r][c] !== TILE.EMPTY) return true;
+
+                        // Verificar colisión contra bombas activas
+                        const bomb = this.bombs.find(b => b.c === c && b.r === r);
+                        if (bomb && !bomb.graceOwners.has(player.id)) {
+                            // Si el jugador tiene el Power-Up KICK, patea la bomba en la dirección de marcha
+                            if (player.canKick && bomb.vx === 0 && bomb.vy === 0) {
+                                const kdx = Math.sign(nx - player.x);
+                                const kdy = Math.sign(ny - player.y);
+                                if (kdx !== 0 || kdy !== 0) {
+                                    bomb.vx = kdx * 280;
+                                    bomb.vy = kdy * 280;
+                                    this.sound.playKick();
+                                }
+                            }
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            /**
+             * ============================================================================
+             * 7. GESTIÓN DE BOMBAS Y RAYCAST DE EXPLOSIONES EN CADENA (Sección 5.3 Spec)
+             * ============================================================================
+             */
+            plantBomb(player) {
+                if (!player.alive) return;
+                // Sin cooldown para jugadores humanos (los bots conservan tope táctico para no autodestruirse)
+                if (player.isBot && player.activeBombs >= player.maxBombs) return;
+                const cell = this.toCell(player.x, player.y);
+
+                // No duplicar bombas en la misma celda
+                if (this.bombs.some(b => b.c === cell.c && b.r === cell.r)) return;
+                if (this.grid[cell.r][cell.c] !== TILE.EMPTY) return;
+
+                player.activeBombs++;
+
+                // Identificar todos los jugadores cuyo AABB solapa actualmente esta celda para darles permiso de salida
+                const graceOwners = new Set();
+                const halfBox = (TILE_SIZE * 0.68) / 2;
+                for (const p of this.players) {
+                    if (!p.alive) continue;
+                    const pMinC = Math.floor((p.x - halfBox) / TILE_SIZE);
+                    const pMaxC = Math.floor((p.x + halfBox - 0.001) / TILE_SIZE);
+                    const pMinR = Math.floor((p.y - halfBox) / TILE_SIZE);
+                    const pMaxR = Math.floor((p.y + halfBox - 0.001) / TILE_SIZE);
+                    if (cell.c >= pMinC && cell.c <= pMaxC && cell.r >= pMinR && cell.r <= pMaxR) {
+                        graceOwners.add(p.id);
+                    }
+                }
+
+                const center = this.cellCenter(cell.c, cell.r);
+                this.bombs.push({
+                    ownerId: player.id,
+                    c: cell.c,
+                    r: cell.r,
+                    x: center.x,
+                    y: center.y,
+                    vx: 0,
+                    vy: 0,
+                    range: player.fireRange,
+                    fuse: 3.0, // T_fuse = 3.0 segundos
+                    graceOwners
+                });
+
+                this.sound.playBombPlant();
+                this.renderPlayersHUD();
+            }
+
+            /**
+             * Actualiza temporizadores de bombas, deslizamiento de bombas pateadas
+             * y resuelve detonaciones en cadena mediante una cola iterativa (Test #1 Spec).
+             */
+            updateBombs(dt) {
+                const halfBox = (TILE_SIZE * 0.68) / 2;
+                const detonationQueue = [];
+
+                for (const bomb of this.bombs) {
+                    // Actualizar lista de jugadores que ya salieron de la huella de la bomba
+                    for (const pid of Array.from(bomb.graceOwners)) {
+                        const p = this.players.find(pl => pl.id === pid);
+                        if (!p || !p.alive) {
+                            bomb.graceOwners.delete(pid);
+                            continue;
+                        }
+                        const pMinC = Math.floor((p.x - halfBox) / TILE_SIZE);
+                        const pMaxC = Math.floor((p.x + halfBox - 0.001) / TILE_SIZE);
+                        const pMinR = Math.floor((p.y - halfBox) / TILE_SIZE);
+                        const pMaxR = Math.floor((p.y + halfBox - 0.001) / TILE_SIZE);
+                        if (bomb.c < pMinC || bomb.c > pMaxC || bomb.r < pMinR || bomb.r > pMaxR) {
+                            bomb.graceOwners.delete(pid);
+                        }
+                    }
+
+                    // Física de bomba pateada (Kick)
+                    if (bomb.vx !== 0 || bomb.vy !== 0) {
+                        const nx = bomb.x + bomb.vx * dt;
+                        const ny = bomb.y + bomb.vy * dt;
+                        const dirX = Math.sign(bomb.vx);
+                        const dirY = Math.sign(bomb.vy);
+                        const leadX = nx + dirX * (TILE_SIZE * 0.45);
+                        const leadY = ny + dirY * (TILE_SIZE * 0.45);
+                        const nextCell = this.toCell(leadX, leadY);
+
+                        const hitWall = nextCell.c <= 0 || nextCell.c >= COLS - 1 ||
+                                        nextCell.r <= 0 || nextCell.r >= ROWS - 1 ||
+                                        this.grid[nextCell.r][nextCell.c] !== TILE.EMPTY;
+
+                        const hitOtherBomb = this.bombs.some(ob => ob !== bomb && ob.c === nextCell.c && ob.r === nextCell.r);
+                        const hitPlayer = this.players.some(p => p.alive && p.c === nextCell.c && p.r === nextCell.r);
+
+                        if (hitWall || hitOtherBomb || hitPlayer) {
+                            // Alinear al centro de su celda actual y detener
+                            const center = this.cellCenter(bomb.c, bomb.r);
+                            bomb.x = center.x;
+                            bomb.y = center.y;
+                            bomb.vx = 0;
+                            bomb.vy = 0;
+                        } else {
+                            bomb.x = nx;
+                            bomb.y = ny;
+                            const newCell = this.toCell(bomb.x, bomb.y);
+                            bomb.c = newCell.c;
+                            bomb.r = newCell.r;
+                        }
+                    }
+
+                    bomb.fuse -= dt;
+                    if (bomb.fuse <= 0) {
+                        detonationQueue.push(bomb);
+                    }
+                }
+
+                // Procesar detonaciones en cascada sin recursión (evita Stack Overflow)
+                if (detonationQueue.length > 0) {
+                    this.processDetonationQueue(detonationQueue);
+                }
+            }
+
+            processDetonationQueue(queue) {
+                const explodedSet = new Set();
+                let playedSound = false;
+
+                while (queue.length > 0) {
+                    const bomb = queue.shift();
+                    if (explodedSet.has(bomb)) continue;
+                    explodedSet.add(bomb);
+
+                    // Devolver bomba a la reserva del propietario
+                    const owner = this.players.find(p => p.id === bomb.ownerId);
+                    if (owner) {
+                        owner.activeBombs = Math.max(0, owner.activeBombs - 1);
+                    }
+
+                    if (!playedSound) {
+                        this.sound.playExplosion();
+                        this.screenShake = 0.25;
+                        playedSound = true;
+                    }
+
+                    // Crear explosión central
+                    this.spawnExplosionTile(bomb.c, bomb.r, 'CENTER');
+
+                    // Raycast en las 4 direcciones cardinales
+                    for (const d of DIRS) {
+                        for (let k = 1; k <= bomb.range; k++) {
+                            const nc = bomb.c + d.dx * k;
+                            const nr = bomb.r + d.dy * k;
+
+                            if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) break;
+                            const tile = this.grid[nr][nc];
+
+                            // 1. Pared Indestructible: interrumpir propagación inmediatamente
+                            if (tile === TILE.WALL_PERIMETER || tile === TILE.PILLAR_FIXED) {
+                                break;
+                            }
+
+                            // 2. Otra Bomba Activa: detonación en cadena instantánea
+                            const otherBomb = this.bombs.find(b => !explodedSet.has(b) && b.c === nc && b.r === nr);
+                            if (otherBomb) {
+                                queue.push(otherBomb);
+                                break;
+                            }
+
+                            // 3. Bloque Destructible (Soft Block): destruir, evaluar botín y detener el haz
+                            if (tile === TILE.SOFT_BLOCK) {
+                                this.destroySoftBlock(nc, nr);
+                                this.spawnExplosionTile(nc, nr, k === bomb.range ? 'END' : 'ARM', d.name);
+                                break;
+                            }
+
+                            // Si había un power-up expuesto al fuego, se incinera
+                            this.powerups = this.powerups.filter(pu => !(pu.c === nc && pu.r === nr));
+
+                            // 4. Celda Transitable: instanciar llama y continuar rayo
+                            this.spawnExplosionTile(nc, nr, k === bomb.range ? 'END' : 'ARM', d.name);
+                        }
+                    }
+                }
+
+                // Filtrar bombas detonadas
+                this.bombs = this.bombs.filter(b => !explodedSet.has(b));
+                this.renderPlayersHUD();
+            }
+
+            spawnExplosionTile(c, r, part, dir = 'NONE') {
+                const existing = this.explosions.find(e => e.c === c && e.r === r);
+                if (existing) {
+                    existing.decay = 0.48;
+                    if (part === 'CENTER') existing.part = 'CENTER';
+                } else {
+                    this.explosions.push({
+                        c,
+                        r,
+                        part,
+                        dir,
+                        decay: 0.48,
+                        maxDecay: 0.48
+                    });
+                }
+
+                // Partículas de chispas
+                const center = this.cellCenter(c, r);
+                for (let i = 0; i < 6; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const spd = 40 + Math.random() * 110;
+                    this.particles.push({
+                        x: center.x,
+                        y: center.y,
+                        vx: Math.cos(angle) * spd,
+                        vy: Math.sin(angle) * spd,
+                        life: 0.25 + Math.random() * 0.25,
+                        maxLife: 0.5,
+                        color: Math.random() > 0.4 ? '#fbbf24' : '#f97316',
+                        size: 2.5 + Math.random() * 3
+                    });
+                }
+            }
+
+            destroySoftBlock(c, r) {
+                this.grid[r][c] = TILE.EMPTY;
+                this.blockAnimations.push({ c, r, timer: 0.35, maxTimer: 0.35 });
+
+                // Tabla de probabilidad de botín ~38% al destruir bloque blando
+                if (Math.random() < 0.38) {
+                    const roll = Math.random();
+                    let type = POWERUP_TYPE.FIRE;
+                    if (roll < 0.32) type = POWERUP_TYPE.BOMB;
+                    else if (roll < 0.64) type = POWERUP_TYPE.FIRE;
+                    else if (roll < 0.86) type = POWERUP_TYPE.SPEED;
+                    else type = POWERUP_TYPE.KICK;
+
+                    this.powerups.push({ c, r, type, bobPhase: Math.random() * Math.PI * 2 });
+                }
+            }
+
+            /**
+             * ============================================================================
+             * 8. SISTEMA DE DAÑO Y RECOLECCIÓN DE POWER-UPS (Hazard & PowerUp Systems)
+             * ============================================================================
+             */
+            updateHazardsAndPowerUps(dt) {
+                // Actualizar decaimiento de explosiones
+                for (const exp of this.explosions) {
+                    exp.decay -= dt;
+                }
+                this.explosions = this.explosions.filter(e => e.decay > 0);
+
+                // Actualizar animaciones de bloques desintegrándose
+                for (const anim of this.blockAnimations) {
+                    anim.timer -= dt;
+                }
+                this.blockAnimations = this.blockAnimations.filter(a => a.timer > 0);
+
+                // Evaluar jugadores contra celdas de fuego y potenciadores
+                for (const p of this.players) {
+                    if (!p.alive) continue;
+
+                    // Recolección de Power-Up hacia el Inventario del jugador
+                    const puIndex = this.powerups.findIndex(pu => pu.c === p.c && pu.r === p.r);
+                    if (puIndex !== -1) {
+                        const pu = this.powerups[puIndex];
+                        p.inventory[pu.type] = (p.inventory[pu.type] || 0) + 1;
+                        this.powerups.splice(puIndex, 1);
+                        this.sound.playPowerUp();
+
+                        // Notificación flotante de ítem recogido
+                        const icon = pu.type === 'FIRE' ? '🔥' : pu.type === 'BOMB' ? '💣' : pu.type === 'SPEED' ? '⚡' : '🥾';
+                        this.addFloatingText(p.x, p.y - 18, `+1 ${icon} (Pulsa tecla)`, '#38bdf8');
+
+                        this.renderPlayersHUD();
+                        this.updateInventoryUI();
+                    }
+
+                    // Daño por Explosión con verificación espacial continua AABB
+                    const hitByFire = this.explosions.some(e => {
+                        if (e.decay <= 0.06) return false;
+                        const expCenterX = e.c * TILE_SIZE + TILE_SIZE / 2;
+                        const expCenterY = e.r * TILE_SIZE + TILE_SIZE / 2;
+                        return Math.abs(p.x - expCenterX) < TILE_SIZE * 0.42 &&
+                               Math.abs(p.y - expCenterY) < TILE_SIZE * 0.42;
+                    });
+                    if (hitByFire) {
+                        this.eliminatePlayer(p);
+                    }
+                }
+
+                // Comprobar condición de victoria de la ronda
+                if (!this.matchOver) {
+                    const alivePlayers = this.players.filter(p => p.alive);
+                    if (alivePlayers.length <= 1) {
+                        this.finishRound(alivePlayers[0] || null);
+                    }
+                }
+            }
+
+            applyPowerUp(player, type) {
+                if (type === POWERUP_TYPE.FIRE) {
+                    player.fireRange = Math.min(8, player.fireRange + 1);
+                } else if (type === POWERUP_TYPE.BOMB) {
+                    player.maxBombs = Math.min(6, player.maxBombs + 1);
+                } else if (type === POWERUP_TYPE.SPEED) {
+                    player.speed = Math.min(245, player.speed + 22);
+                } else if (type === POWERUP_TYPE.KICK) {
+                    player.canKick = true;
+                }
+            }
+
+            eliminatePlayer(player) {
+                player.alive = false;
+                player.aiState = 'ELIMINATED';
+                this.sound.playDeath();
+
+                for (let i = 0; i < 22; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const spd = 50 + Math.random() * 140;
+                    this.particles.push({
+                        x: player.x,
+                        y: player.y,
+                        vx: Math.cos(angle) * spd,
+                        vy: Math.sin(angle) * spd,
+                        life: 0.4 + Math.random() * 0.4,
+                        maxLife: 0.8,
+                        color: player.color,
+                        size: 3.5 + Math.random() * 3.5
+                    });
+                }
+                this.renderPlayersHUD();
+
+                // Si el jugador humano (Jugador 1) es alcanzado en modo 1P o 2P
+                if (!player.isBot && (this.gameMode === '1P' || (this.gameMode === '2P' && !this.players[0].alive && !this.players[1].alive))) {
+                    this.matchOver = true;
+                    document.getElementById('match-status-text').textContent = 'Señal Perdida';
+                    this.sound.playDefeat();
+
+                    setTimeout(() => {
+                        this.showResultModal({
+                            theme: 'DEFEAT',
+                            badge: 'TRAJE TÉRMICO COLAPSADO',
+                            badgeClass: 'bg-rose-950/80 text-rose-400 border-rose-800/80',
+                            iconClass: 'bg-rose-500/20 border border-rose-500/40 text-rose-400 shadow-rose-950/70',
+                            iconHtml: '<i class="fa-solid fa-skull-crossbones animate-pulse"></i>',
+                            title: '¡CAÍSTE EN COMBATE!',
+                            titleClass: 'text-rose-400',
+                            subtitle: 'Una detonación enemiga superó tus escudos térmicos y te hizo cenizas. La cuadrícula no perdona un solo descuido.',
+                            buttons: `
+                                <button onclick="GameApp.retryRound()" class="btn-arcade px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-orange-600 hover:from-rose-400 hover:to-orange-500 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-rose-950/50">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    <span>Reintentar Ronda</span>
+                                </button>
+                                <button onclick="GameApp.resetMatch()" class="btn-arcade px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs sm:text-sm flex items-center gap-2 border border-slate-700">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                    <span>Reiniciar Todo</span>
+                                </button>
+                            `
+                        });
+                    }, 650);
+                }
+            }
+
+            finishRound(winner) {
+                if (this.matchOver) return;
+                this.matchOver = true;
+
+                const userIsWinner = winner && !winner.isBot && winner.id === 0;
+
+                if (userIsWinner) {
+                    this.scores[winner.id]++;
+                    this.sound.playVictory();
+                    document.getElementById('match-status-text').textContent = 'Victoria Confirmada';
+                    setTimeout(() => {
+                        this.showResultModal({
+                            theme: 'VICTORY',
+                            badge: 'SECTOR ASEGURADO',
+                            badgeClass: 'bg-cyan-950/80 text-cyan-400 border-cyan-800/80',
+                            iconClass: 'bg-amber-500/20 border border-amber-400/50 text-amber-400 shadow-amber-950/70',
+                            iconHtml: '<i class="fa-solid fa-trophy"></i>',
+                            title: '¡VICTORIA APLASTANTE!',
+                            titleClass: 'text-amber-400',
+                            subtitle: `Has eliminado a todos los contrincantes y dominado la cuadrícula. Marcador global actualizado.`,
+                            buttons: `
+                                <button onclick="GameApp.nextRound()" class="btn-arcade px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm flex items-center gap-2 shadow-lg shadow-cyan-950/50">
+                                    <i class="fa-solid fa-forward-step"></i>
+                                    <span>Siguiente Ronda</span>
+                                </button>
+                                <button onclick="GameApp.resetMatch()" class="btn-arcade px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm flex items-center gap-2 border border-slate-700">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                    <span>Nueva Partida</span>
+                                </button>
+                            `
+                        });
+                    }, 600);
+                } else if (!winner) {
+                    document.getElementById('match-status-text').textContent = 'Aniquilación Mutua';
+                    setTimeout(() => {
+                        this.showResultModal({
+                            theme: 'DRAW',
+                            badge: 'EMPATE TÉCNICO',
+                            badgeClass: 'bg-slate-800 text-slate-300 border-slate-700',
+                            iconClass: 'bg-slate-800/80 border border-slate-600 text-slate-300',
+                            iconHtml: '<i class="fa-solid fa-scale-balanced"></i>',
+                            title: '¡DOBLE ANIQUILACIÓN!',
+                            titleClass: 'text-slate-200',
+                            subtitle: 'Todos los contendientes activos fueron alcanzados de forma simultánea en la detonación final.',
+                            buttons: `
+                                <button onclick="GameApp.retryRound()" class="btn-arcade px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm flex items-center gap-2 shadow-lg">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    <span>Repetir Ronda</span>
+                                </button>
+                            `
+                        });
+                    }, 600);
+                } else {
+                    // Ganó un Bot
+                    this.scores[winner.id]++;
+                    this.sound.playDefeat();
+                    document.getElementById('match-status-text').textContent = 'Sector Conquistado por IA';
+                    setTimeout(() => {
+                        this.showResultModal({
+                            theme: 'DEFEAT',
+                            badge: 'MISIÓN COMPROMETIDA',
+                            badgeClass: 'bg-rose-950/80 text-rose-400 border-rose-800/80',
+                            iconClass: 'bg-rose-500/20 border border-rose-500/40 text-rose-400 shadow-rose-950/70',
+                            iconHtml: '<i class="fa-solid fa-skull-crossbones"></i>',
+                            title: `¡${winner.name.toUpperCase()} DOMINÓ EL TERRENO!`,
+                            titleClass: 'text-rose-400',
+                            subtitle: `La inteligencia enemiga sobrevivió a las detonaciones y aseguró la cuadrícula.`,
+                            buttons: `
+                                <button onclick="GameApp.retryRound()" class="btn-arcade px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-orange-600 hover:from-rose-400 hover:to-orange-500 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-rose-950/50">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    <span>Reintentar Ronda</span>
+                                </button>
+                                <button onclick="GameApp.resetMatch()" class="btn-arcade px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs sm:text-sm flex items-center gap-2 border border-slate-700">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                    <span>Reiniciar Todo</span>
+                                </button>
+                            `
+                        });
+                    }, 600);
+                }
+
+                this.renderPlayersHUD();
+            }
+
+            showResultModal(config) {
+                const modal = document.getElementById('overlay-modal');
+                const badge = document.getElementById('modal-badge');
+                const icon = document.getElementById('modal-icon');
+                const title = document.getElementById('modal-title');
+                const subtitle = document.getElementById('modal-subtitle');
+                const buttons = document.getElementById('modal-buttons');
+
+                badge.className = `px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest mb-3 border font-bold ${config.badgeClass}`;
+                badge.textContent = config.badge;
+
+                icon.className = `w-16 h-16 rounded-2xl flex items-center justify-center mb-3 text-3xl shadow-xl transition-transform duration-300 ${config.iconClass}`;
+                icon.innerHTML = config.iconHtml;
+
+                title.className = `text-2xl sm:text-3xl font-extrabold tracking-tight mb-2 ${config.titleClass}`;
+                title.textContent = config.title;
+
+                subtitle.innerHTML = config.subtitle;
+                buttons.innerHTML = config.buttons;
+
+                modal.classList.remove('hidden');
+            }
+
+            retryRound() {
+                this.initMatch(false);
+            }
+
+            /**
+             * ============================================================================
+             * 9. BUCLE DE SIMULACIÓN A PASO FIJO (60 Hz Fixed Timestep Game Loop)
+             * ============================================================================
+             */
+            startLoop() {
+                let lastTime = performance.now();
+                let accumulator = 0;
+                let frameCounter = 0;
+                let fpsTimer = performance.now();
+
+                const loop = (now) => {
+                    const frameDelta = Math.min(0.1, (now - lastTime) / 1000);
+                    lastTime = now;
+                    accumulator += frameDelta;
+
+                    while (accumulator >= FIXED_DT) {
+                        this.fixedUpdate(FIXED_DT);
+                        accumulator -= FIXED_DT;
+                    }
+
+                    this.render();
+
+                    frameCounter++;
+                    if (now - fpsTimer >= 1000) {
+                        document.getElementById('fps-counter').textContent = frameCounter;
+                        frameCounter = 0;
+                        fpsTimer = now;
+                    }
+
+                    requestAnimationFrame(loop);
+                };
+
+                requestAnimationFrame(loop);
+            }
+
+            fixedUpdate(dt) {
+                if (!this.matchOver) {
+                    this.tickCount++;
+                    this.matchTimeRemaining = Math.max(0, this.matchTimeRemaining - dt);
+                    if (this.matchTimeRemaining <= 0) {
+                        const alive = this.players.filter(p => p.alive);
+                        this.finishRound(alive.length === 1 ? alive[0] : null);
+                    }
+                }
+
+                if (this.screenShake > 0) {
+                    this.screenShake = Math.max(0, this.screenShake - dt);
+                }
+
+                // 1. Actualizar Matriz de Peligro D(c,r)
+                this.updateDangerMatrix();
+
+                // 2. Procesar Entradas y Movimiento de Jugadores/Bots
+                for (const p of this.players) {
+                    if (!p.alive || this.matchOver) continue;
+                    if (p.isBot) {
+                        this.updateBotAI(p, dt);
+                    } else {
+                        this.processHumanInput(p);
+                    }
+                    this.movePlayerWithCornerSlide(p, dt);
+                }
+
+                // 3. Actualizar Bombas y Explosiones en Cadena
+                this.updateBombs(dt);
+
+                // 4. Evaluar Daño y Power-Ups
+                this.updateHazardsAndPowerUps(dt);
+
+                // 5. Actualizar Partículas y Animaciones
+                for (const pt of this.particles) {
+                    pt.x += pt.vx * dt;
+                    pt.y += pt.vy * dt;
+                    pt.life -= dt;
+                }
+                this.particles = this.particles.filter(pt => pt.life > 0);
+
+                // Actualizar textos flotantes
+                for (const ft of this.floatingTexts) {
+                    ft.y -= dt * 26; // Desplazamiento suave hacia arriba
+                    ft.life -= dt;
+                }
+                this.floatingTexts = this.floatingTexts.filter(ft => ft.life > 0);
+
+                for (const pu of this.powerups) {
+                    pu.bobPhase += dt * 5;
+                }
+
+                // Actualizar Telemetría cada 6 ticks (~10 veces por segundo)
+                if (this.tickCount % 6 === 0) {
+                    this.updateTelemetryUI();
+                }
+            }
+
+            /**
+             * ============================================================================
+             * 10. PIPELINE DE RENDERIZADO POR CAPAS CON Y-SORTING (Sección 8.1 Spec)
+             * ============================================================================
+             */
+            render() {
+                const ctx = this.ctx;
+                ctx.save();
+
+                // Efecto de sacudida de cámara en detonaciones
+                if (this.screenShake > 0) {
+                    const intensity = this.screenShake * 14;
+                    ctx.translate((Math.random() - 0.5) * intensity, (Math.random() - 0.5) * intensity);
+                }
+
+                // CAPA 0: Suelo transitable con patrón de tablero táctico
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const x = c * TILE_SIZE;
+                        const y = r * TILE_SIZE;
+                        ctx.fillStyle = (r + c) % 2 === 0 ? '#131c2e' : '#162033';
+                        ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+
+                        // Sutil borde de rejilla
+                        ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+                        ctx.strokeRect(x, y, TILE_SIZE, TILE_SIZE);
+                    }
+                }
+
+                // CAPA DE INGENIERÍA / DEBUG: Matriz de Peligro D(c,r)
+                if (this.debugMode) {
+                    this.renderDangerMatrixOverlay(ctx);
+                }
+
+                // CAPA 1: Objetos Bajos (Power-Ups y Bombas en el suelo)
+                for (const pu of this.powerups) {
+                    this.drawPowerUp(ctx, pu);
+                }
+
+                for (const bomb of this.bombs) {
+                    this.drawBomb(ctx, bomb);
+                }
+
+                // Animaciones de desintegración de bloques blandos
+                for (const anim of this.blockAnimations) {
+                    const x = anim.c * TILE_SIZE;
+                    const y = anim.r * TILE_SIZE;
+                    const alpha = anim.timer / anim.maxTimer;
+                    ctx.fillStyle = `rgba(251, 146, 60, ${alpha * 0.7})`;
+                    ctx.fillRect(x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+                }
+
+                // CAPA 2: Dinámicos e Indestructibles ordenados por coordenada Y (Y-Sorting)
+                const ySortedRenderables = [];
+
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const tile = this.grid[r][c];
+                        if (tile !== TILE.EMPTY) {
+                            ySortedRenderables.push({
+                                type: 'TILE',
+                                tile,
+                                c,
+                                r,
+                                sortY: r * TILE_SIZE + TILE_SIZE
+                            });
+                        }
+                    }
+                }
+
+                for (const p of this.players) {
+                    if (p.alive) {
+                        ySortedRenderables.push({
+                            type: 'PLAYER',
+                            player: p,
+                            sortY: p.y + TILE_SIZE * 0.35
+                        });
+                    }
+                }
+
+                ySortedRenderables.sort((a, b) => a.sortY - b.sortY);
+
+                for (const item of ySortedRenderables) {
+                    if (item.type === 'TILE') {
+                        this.drawBlockTile(ctx, item.c, item.r, item.tile);
+                    } else if (item.type === 'PLAYER') {
+                        this.drawPlayer(ctx, item.player);
+                    }
+                }
+
+                // CAPA 3: Celdas de Explosión y Partículas
+                for (const exp of this.explosions) {
+                    this.drawExplosion(ctx, exp);
+                }
+
+                for (const pt of this.particles) {
+                    ctx.fillStyle = pt.color;
+                    ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+                    ctx.beginPath();
+                    ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+
+                // CAPA 3.5: Textos Flotantes de Combate y Activación de Power-Ups
+                for (const ft of this.floatingTexts) {
+                    const alpha = Math.max(0, ft.life / ft.maxLife);
+                    ctx.globalAlpha = alpha;
+                    ctx.font = 'bold 12px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+
+                    // Sombra de fondo para legibilidad máxima
+                    ctx.fillStyle = 'rgba(0,0,0,0.85)';
+                    ctx.fillText(ft.text, ft.x + 1, ft.y + 1);
+
+                    ctx.fillStyle = ft.color;
+                    ctx.fillText(ft.text, ft.x, ft.y);
+                }
+                ctx.globalAlpha = 1;
+
+                // CAPA 4: Vectores de Ruta A* y Cajas de Colisión AABB (si modo Debug está activo)
+                if (this.debugMode) {
+                    this.renderDebugVectorsAndHitboxes(ctx);
+                }
+
+                ctx.restore();
+            }
+
+            drawBlockTile(ctx, c, r, tile) {
+                const x = c * TILE_SIZE;
+                const y = r * TILE_SIZE;
+
+                if (tile === TILE.WALL_PERIMETER || tile === TILE.PILLAR_FIXED) {
+                    // Muro sólido indestructible con bisel metálico
+                    ctx.fillStyle = tile === TILE.WALL_PERIMETER ? '#1e293b' : '#334155';
+                    ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+
+                    // Borde superior iluminado
+                    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+                    ctx.fillRect(x + 2, y + 2, TILE_SIZE - 4, 5);
+
+                    // Sombra inferior
+                    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+                    ctx.fillRect(x + 2, y + TILE_SIZE - 6, TILE_SIZE - 4, 6);
+
+                    // Remaches centrales para pilares interiores
+                    if (tile === TILE.PILLAR_FIXED) {
+                        ctx.strokeStyle = '#475569';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(x + 8, y + 8, TILE_SIZE - 16, TILE_SIZE - 16);
+                    }
+                } else if (tile === TILE.SOFT_BLOCK) {
+                    // Bloque destructible estilo contenedor industrial / ladrillo reforzado
+                    ctx.fillStyle = '#9a3412';
+                    ctx.fillRect(x + 2, y + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+
+                    ctx.fillStyle = '#c2410c';
+                    ctx.fillRect(x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 10);
+
+                    // Franjas de ladrillo/estructura
+                    ctx.fillStyle = '#7c2d12';
+                    ctx.fillRect(x + 4, y + 18, TILE_SIZE - 8, 3);
+                    ctx.fillRect(x + 4, y + 32, TILE_SIZE - 8, 3);
+                    ctx.fillRect(x + 22, y + 4, 3, 14);
+                    ctx.fillRect(x + 14, y + 21, 3, 11);
+                    ctx.fillRect(x + 30, y + 21, 3, 11);
+                }
+            }
+
+            drawPowerUp(ctx, pu) {
+                const center = this.cellCenter(pu.c, pu.r);
+                const bob = Math.sin(pu.bobPhase) * 3;
+                const x = center.x;
+                const y = center.y + bob;
+
+                let bg = '#f97316';
+                let icon = '🔥';
+                if (pu.type === POWERUP_TYPE.BOMB) { bg = '#06b6d4'; icon = '💣'; }
+                else if (pu.type === POWERUP_TYPE.SPEED) { bg = '#10b981'; icon = '⚡'; }
+                else if (pu.type === POWERUP_TYPE.KICK) { bg = '#a855f7'; icon = '🥾'; }
+
+                // Halo brillante
+                ctx.fillStyle = bg;
+                ctx.globalAlpha = 0.25;
+                ctx.beginPath();
+                ctx.arc(x, y, 18, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+
+                // Cápsula del Power-Up
+                ctx.fillStyle = '#0f172a';
+                ctx.strokeStyle = bg;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.roundRect(x - 14, y - 14, 28, 28, 7);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.font = '15px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(icon, x, y + 1);
+            }
+
+            drawBomb(ctx, bomb) {
+                const pulse = 1 + Math.sin(bomb.fuse * 14) * 0.09;
+                const radius = 15 * pulse;
+
+                // Sombra elíptica
+                ctx.fillStyle = 'rgba(0,0,0,0.45)';
+                ctx.beginPath();
+                ctx.ellipse(bomb.x, bomb.y + 13, 13, 5, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Cuerpo esférico de la bomba
+                const grad = ctx.createRadialGradient(bomb.x - 5, bomb.y - 5, 2, bomb.x, bomb.y, radius);
+                grad.addColorStop(0, '#64748b');
+                grad.addColorStop(0.6, '#1e293b');
+                grad.addColorStop(1, '#020617');
+
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(bomb.x, bomb.y, radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Parpadeo crítico cuando queda menos de 1 segundo
+                if (bomb.fuse < 1.0 && Math.floor(bomb.fuse * 12) % 2 === 0) {
+                    ctx.fillStyle = 'rgba(244, 63, 94, 0.45)';
+                    ctx.beginPath();
+                    ctx.arc(bomb.x, bomb.y, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Mecha y chispa activa
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(bomb.x + 4, bomb.y - radius + 2);
+                ctx.quadraticCurveTo(bomb.x + 12, bomb.y - radius - 7, bomb.x + 9, bomb.y - radius - 10);
+                ctx.stroke();
+
+                ctx.fillStyle = bomb.fuse % 0.2 < 0.1 ? '#fbbf24' : '#f43f5e';
+                ctx.beginPath();
+                ctx.arc(bomb.x + 9, bomb.y - radius - 10, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            drawPlayer(ctx, p) {
+                const isMoving = p.vx !== 0 || p.vy !== 0;
+                const bobY = isMoving ? Math.abs(Math.sin(p.walkCycle)) * -3.5 : 0;
+                const px = p.x;
+                const py = p.y + bobY;
+
+                // Sombra en el suelo
+                ctx.fillStyle = 'rgba(0,0,0,0.45)';
+                ctx.beginPath();
+                ctx.ellipse(p.x, p.y + 15, 13, 5.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Pies animados
+                const footOffset = isMoving ? Math.sin(p.walkCycle) * 4 : 0;
+                ctx.fillStyle = p.accent;
+                ctx.beginPath();
+                ctx.arc(px - 6, p.y + 12 + footOffset, 4, 0, Math.PI * 2);
+                ctx.arc(px + 6, p.y + 12 - footOffset, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Torso / Traje Bomberman
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.roundRect(px - 11, py - 4, 22, 16, 6);
+                ctx.fill();
+
+                // Casco icónico de Bomberman
+                ctx.fillStyle = '#f8fafc';
+                ctx.strokeStyle = p.color;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.roundRect(px - 13, py - 19, 26, 19, 8);
+                ctx.fill();
+                ctx.stroke();
+
+                // Visor oscuro y ojos direccionales
+                let eyeOffsetX = 0;
+                let eyeOffsetY = 0;
+                if (p.facing === 'LEFT') eyeOffsetX = -3;
+                if (p.facing === 'RIGHT') eyeOffsetX = 3;
+                if (p.facing === 'UP') eyeOffsetY = -2;
+                if (p.facing === 'DOWN') eyeOffsetY = 1;
+
+                if (p.facing !== 'UP') {
+                    ctx.fillStyle = '#0f172a';
+                    ctx.beginPath();
+                    ctx.roundRect(px - 9 + eyeOffsetX, py - 14 + eyeOffsetY, 18, 9, 4);
+                    ctx.fill();
+
+                    // Ojos brillantes del personaje
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(px - 5 + eyeOffsetX, py - 12 + eyeOffsetY, 2.5, 5);
+                    ctx.fillRect(px + 2.5 + eyeOffsetX, py - 12 + eyeOffsetY, 2.5, 5);
+                }
+
+                // Antena con esfera de energía
+                ctx.strokeStyle = p.color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(px, py - 19);
+                ctx.lineTo(px, py - 25);
+                ctx.stroke();
+
+                ctx.fillStyle = p.accent;
+                ctx.beginPath();
+                ctx.arc(px, py - 26, 3.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Aura de Nitro/Turbo si está activa la aceleración manual
+                if (p.turboTimer > 0) {
+                    ctx.strokeStyle = '#10b981';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(px, py - 3, 20 + Math.sin(this.tickCount * 0.3) * 3, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Etiqueta P1 / P2 / Bot
+                ctx.font = 'bold 9px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(`P${p.id + 1}`, px, py - 33);
+            }
+
+            drawExplosion(ctx, exp) {
+                const x = exp.c * TILE_SIZE;
+                const y = exp.r * TILE_SIZE;
+                const ratio = exp.decay / exp.maxDecay;
+
+                // Halo naranja exterior
+                ctx.fillStyle = `rgba(249, 115, 22, ${ratio * 0.9})`;
+                ctx.fillRect(x + 3, y + 3, TILE_SIZE - 6, TILE_SIZE - 6);
+
+                // Núcleo incandescente amarillo/blanco
+                const inset = 10 + (1 - ratio) * 6;
+                ctx.fillStyle = `rgba(254, 240, 138, ${ratio})`;
+                ctx.fillRect(x + inset, y + inset, TILE_SIZE - inset * 2, TILE_SIZE - inset * 2);
+            }
+
+            /**
+             * Renderiza el mapa de calor de la Matriz de Peligro D(c,r) sobre el suelo
+             */
+            renderDangerMatrixOverlay(ctx) {
+                ctx.font = 'bold 10px JetBrains Mono, monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const dVal = this.dangerMatrix[r][c];
+                        if (dVal < Infinity) {
+                            const x = c * TILE_SIZE;
+                            const y = r * TILE_SIZE;
+                            const urgency = Math.max(0.15, 1 - dVal / 3.0);
+                            ctx.fillStyle = `rgba(244, 63, 94, ${urgency * 0.48})`;
+                            ctx.fillRect(x + 1, y + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+
+                            ctx.fillStyle = '#fda4af';
+                            ctx.fillText(`${dVal.toFixed(1)}s`, x + TILE_SIZE / 2, y + TILE_SIZE / 2);
+                        }
+                    }
+                }
+            }
+
+            /**
+             * Renderiza las cajas AABB (0.7*S) y las rutas seguras A* de cada bot
+             */
+            renderDebugVectorsAndHitboxes(ctx) {
+                const boxSize = TILE_SIZE * 0.68;
+
+                for (const p of this.players) {
+                    if (!p.alive) continue;
+
+                    // Caja de colisión AABB
+                    ctx.strokeStyle = p.color;
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(p.x - boxSize / 2, p.y - boxSize / 2, boxSize, boxSize);
+
+                    // Ruta calculada por el algoritmo A* / BFS de los Bots
+                    if (p.isBot && p.aiPath && p.aiPath.length > 0) {
+                        ctx.strokeStyle = p.color;
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([4, 4]);
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        for (const node of p.aiPath) {
+                            const center = this.cellCenter(node.c, node.r);
+                            ctx.lineTo(center.x, center.y);
+                        }
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                }
+            }
+
+            /**
+             * ============================================================================
+             * 11. ACTUALIZACIÓN DE INTERFAZ Y TELEMETRÍA DOM
+             * ============================================================================
+             */
+            renderPlayersHUD() {
+                const container = document.getElementById('players-hud');
+                if (!container) return;
+
+                container.innerHTML = this.players.map(p => {
+                    const stateBadgeColor = !p.alive
+                        ? 'bg-rose-950 text-rose-400 border-rose-800'
+                        : p.aiState === 'EVADE'
+                            ? 'bg-amber-950 text-amber-400 border-amber-700'
+                            : p.aiState === 'ATTACK'
+                                ? 'bg-purple-950 text-purple-300 border-purple-700'
+                                : 'bg-slate-800 text-cyan-300 border-slate-700';
+
+                    return `
+                        <div class="p-2.5 rounded-xl border transition ${p.alive ? 'bg-slate-900/95 border-slate-800' : 'bg-slate-950/60 border-slate-900 opacity-55'}">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full" style="background:${p.color}"></span>
+                                    <span class="font-bold text-xs text-white truncate max-w-[95px]">${p.name}</span>
+                                </div>
+                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded border ${stateBadgeColor}">
+                                    ${p.aiState}
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] font-mono text-slate-300 bg-slate-950/80 px-2 py-1 rounded-lg border border-slate-800/80">
+                                <span title="Victorias"><i class="fa-solid fa-trophy text-amber-400 mr-1"></i>${this.scores[p.id]}</span>
+                                <span title="Capacidad de Bombas">💣${p.isBot ? p.maxBombs : '∞'}</span>
+                                <span title="Radio de Fuego">🔥${p.fireRange}</span>
+                                <span title="Patada Activa" class="${p.canKick ? 'opacity-100' : 'opacity-25'}">🥾</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            /**
+             * Actualiza visualmente los contadores de Power-Ups en la barra de inventario
+             */
+            updateInventoryUI() {
+                const p1 = this.players[0];
+                if (!p1) return;
+
+                const fireBtn = document.getElementById('inv-fire');
+                const bombBtn = document.getElementById('inv-bomb');
+                const speedBtn = document.getElementById('inv-speed');
+                const kickBtn = document.getElementById('inv-kick');
+
+                const cFire = document.getElementById('count-fire');
+                const cBomb = document.getElementById('count-bomb');
+                const cSpeed = document.getElementById('count-speed');
+                const cKick = document.getElementById('count-kick');
+
+                if (cFire) cFire.textContent = `x${p1.inventory.FIRE || 0}`;
+                if (cBomb) cBomb.textContent = `x${p1.inventory.BOMB || 0}`;
+                if (cSpeed) cSpeed.textContent = `x${p1.inventory.SPEED || 0}`;
+                if (cKick) cKick.textContent = `x${p1.inventory.KICK || 0}`;
+
+                // Resaltar botones que tengan al menos 1 carga lista para activar
+                const toggleReady = (btn, count, colorClass) => {
+                    if (!btn) return;
+                    if (count > 0) {
+                        btn.className = `px-2 py-1 rounded-lg bg-slate-900 ${colorClass} border text-xs font-mono flex items-center gap-1 transition shadow-sm`;
+                    } else {
+                        btn.className = 'px-2 py-1 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono flex items-center gap-1 transition opacity-60';
+                    }
+                };
+
+                toggleReady(fireBtn, p1.inventory.FIRE, 'border-orange-500/80 text-orange-300');
+                toggleReady(bombBtn, p1.inventory.BOMB, 'border-cyan-500/80 text-cyan-300');
+                toggleReady(speedBtn, p1.inventory.SPEED, 'border-emerald-500/80 text-emerald-300');
+                toggleReady(kickBtn, p1.inventory.KICK, 'border-purple-500/80 text-purple-300');
+            }
+
+            updateTelemetryUI() {
+                // Reloj MM:SS
+                const mins = Math.floor(this.matchTimeRemaining / 60);
+                const secs = Math.floor(this.matchTimeRemaining % 60);
+                document.getElementById('match-timer').textContent =
+                    `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+                // Contar bloques blandos y celdas en peligro
+                let softCount = 0;
+                let dangerCells = 0;
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        if (this.grid[r][c] === TILE.SOFT_BLOCK) softCount++;
+                        if (this.dangerMatrix[r][c] < Infinity) dangerCells++;
+                    }
+                }
+
+                const totalEntities = this.players.filter(p => p.alive).length +
+                                      this.bombs.length +
+                                      this.explosions.length +
+                                      this.powerups.length +
+                                      this.particles.length +
+                                      softCount;
+
+                document.getElementById('soft-blocks-count').textContent = softCount;
+                document.getElementById('stat-tick').textContent = this.tickCount;
+                document.getElementById('stat-entities').textContent = totalEntities;
+                document.getElementById('stat-danger').textContent = dangerCells;
+                document.getElementById('stat-bombs').textContent = this.bombs.length;
+
+                // Actualizar badges de estado de IA en vivo
+                this.renderPlayersHUD();
+            }
+
+            // Métodos públicos de control de UI
+            setGameMode(mode) {
+                this.gameMode = mode;
+                ['1p', '2p', 'ai'].forEach(m => {
+                    const btn = document.getElementById(`mode-${m}`);
+                    if (m.toUpperCase() === mode) {
+                        btn.className = 'px-2.5 py-1.5 rounded-md font-semibold bg-cyan-600 text-white transition';
+                    } else {
+                        btn.className = 'px-2.5 py-1.5 rounded-md font-semibold text-slate-300 hover:text-white transition';
+                    }
+                });
+                this.initMatch(true);
+            }
+
+            toggleDebug() {
+                this.debugMode = !this.debugMode;
+                const status = document.getElementById('debug-status');
+                status.textContent = this.debugMode ? 'ON' : 'OFF';
+                status.className = this.debugMode ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
+            }
+
+            toggleAudio() {
+                this.sound.enabled = !this.sound.enabled;
+                const btn = document.getElementById('btn-audio');
+                const icon = document.getElementById('audio-icon');
+                if (this.sound.enabled) {
+                    btn.className = 'btn-arcade px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs flex items-center gap-1.5 text-emerald-400';
+                    icon.className = 'fa-solid fa-volume-high';
+                } else {
+                    btn.className = 'btn-arcade px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs flex items-center gap-1.5 text-slate-500';
+                    icon.className = 'fa-solid fa-volume-xmark';
+                }
+            }
+
+            nextRound() {
+                this.roundNumber++;
+                this.initMatch(false);
+            }
+
+            resetMatch() {
+                this.initMatch(true);
+            }
+        }
+
+        // Inicializar la aplicación al cargar la ventana
+        let GameApp;
+        window.onload = function () {
+            GameApp = new BombermanEngine();
+        };
+    </script>
+</body>
+</html>
