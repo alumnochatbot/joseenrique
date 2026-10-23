@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <title>Dig Dug Arcade (1982) - Retro HTML5</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Retro Arcade Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Press Start 2P', monospace;
+      background-color: #08080f;
+      color: #ffffff;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    
+    /* CRT Scanline & Curved Screen Shader Overlay */
+    .crt-effect {
+      position: relative;
+      overflow: hidden;
+    }
+    .crt-effect::before {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), 
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      z-index: 20;
+      background-size: 100% 3px, 6px 100%;
+      pointer-events: none;
+    }
+    .crt-effect::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: radial-gradient(circle at center, transparent 65%, rgba(0, 0, 0, 0.6) 100%);
+      pointer-events: none;
+      z-index: 21;
+    }
+
+    /* Pixelated Canvas */
+    canvas {
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-crisp-edges;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* Glowing Arcade Button Effects */
+    .arcade-btn {
+      box-shadow: 0 5px 0 #991b1b, 0 10px 15px rgba(0, 0, 0, 0.5);
+      transition: all 0.08s ease;
+    }
+    .arcade-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 #991b1b, 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+    .d-btn {
+      box-shadow: 0 4px 0 #1e293b, 0 6px 10px rgba(0, 0, 0, 0.4);
+      transition: all 0.06s ease;
+    }
+    .d-btn:active, .d-btn.active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #1e293b;
+      background-color: #3b82f6 !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-2 sm:p-4 select-none">
+
+  <!-- TOP HEADER / ARCADE MARQUEE -->
+  <header class="w-full max-w-xl flex items-center justify-between text-xs sm:text-sm px-2 py-1 mb-1 border-b-2 border-red-600/40">
+    <div class="flex items-center gap-2">
+      <span class="text-red-500 font-bold tracking-widest text-sm sm:text-base animate-pulse">DIG DUG</span>
+      <span class="text-[9px] text-zinc-400 hidden sm:inline">1982 NAMCO</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="btn-sound" class="text-[10px] bg-zinc-800 hover:bg-zinc-700 px-2 py-1 rounded text-yellow-400 border border-zinc-600">
+        🔊 AUDIO: ON
+      </button>
+      <button id="btn-crt" class="text-[10px] bg-zinc-800 hover:bg-zinc-700 px-2 py-1 rounded text-cyan-400 border border-zinc-600">
+        📺 CRT: ON
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN ARCADE CABINET FRAME -->
+  <main class="w-full max-w-xl flex flex-col items-center">
+    
+    <!-- ARCADE SCOREBOARD (Retro HUD) -->
+    <div class="w-full bg-black border-t-2 border-x-2 border-zinc-700 rounded-t-lg px-3 py-2 flex justify-between text-[10px] sm:text-xs">
+      <div>
+        <p class="text-red-500">1UP</p>
+        <p id="hud-score" class="text-white mt-1">00</p>
+      </div>
+      <div class="text-center">
+        <p class="text-red-500">HIGH SCORE</p>
+        <p id="hud-high" class="text-white mt-1">20000</p>
+      </div>
+      <div class="text-right">
+        <p class="text-red-500">ROUND</p>
+        <p id="hud-round" class="text-yellow-400 mt-1">1</p>
+      </div>
+    </div>
+
+    <!-- CANVAS CONTAINER WITH OPTIONAL CRT EFFECT -->
+    <div id="screen-container" class="relative w-full aspect-[7/8] max-h-[68vh] bg-black border-2 border-zinc-700 shadow-2xl crt-effect flex items-center justify-center">
+      <canvas id="gameCanvas" width="336" height="384" class="w-full h-full block bg-black"></canvas>
+
+      <!-- START / TITLE SCREEN OVERLAY -->
+      <div id="overlay-start" class="absolute inset-0 bg-black/90 flex flex-col items-center justify-between p-4 text-center z-30">
+        <div class="my-auto space-y-4">
+          <h1 class="text-2xl sm:text-4xl text-yellow-400 tracking-wider drop-shadow-[0_4px_0_#b45309]">DIG DUG</h1>
+          <p class="text-[10px] sm:text-xs text-red-500 tracking-wide">NAMCO 1982 REMAKE</p>
+
+          <!-- CHARACTER POINTS CHART -->
+          <div class="bg-zinc-900/90 border border-zinc-700 p-3 rounded-lg text-left text-[9px] sm:text-[11px] space-y-2 max-w-xs mx-auto">
+            <div class="flex items-center justify-between">
+              <span class="text-red-400 flex items-center gap-2">
+                <span class="inline-block w-3 h-3 bg-red-600 rounded-full border border-yellow-300"></span> POOKA:
+              </span>
+              <span class="text-yellow-300">200-500 PTS</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-green-400 flex items-center gap-2">
+                <span class="inline-block w-3 h-3 bg-green-600 rounded"></span> FYGAR:
+              </span>
+              <span class="text-yellow-300">400-1000 PTS</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-stone-300 flex items-center gap-2">
+                <span class="inline-block w-3 h-3 bg-stone-500 rounded-full"></span> ROCA:
+              </span>
+              <span class="text-yellow-300">1000-7000 PTS</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-amber-400 flex items-center gap-2">
+                🥕 VEGETAL:
+              </span>
+              <span class="text-yellow-300">400-5000 PTS</span>
+            </div>
+          </div>
+
+          <p class="text-[9px] sm:text-[10px] text-zinc-400 max-w-sm leading-relaxed">
+            [WASD/Flechas] Moverse & Cavar<br>
+            [Espacio] Disparar Arpón & Inflar<br>
+            [P] Pausar
+          </p>
+
+          <button id="btn-play" class="arcade-btn px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs sm:text-sm font-bold tracking-widest uppercase cursor-pointer">
+            INSERTAR MONEDA / JUGAR
+          </button>
+        </div>
+        <p class="text-[8px] text-zinc-500">DESARROLLADO CON HTML5 CANVAS Y WEB AUDIO API</p>
+      </div>
+
+      <!-- PAUSE OVERLAY -->
+      <div id="overlay-pause" class="hidden absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-center z-30">
+        <h2 class="text-xl sm:text-2xl text-yellow-400 mb-4 animate-pulse">JUEGO EN PAUSA</h2>
+        <p class="text-[10px] text-zinc-300 mb-6">PULSA 'P' O CONTINUAR</p>
+        <button id="btn-resume" class="arcade-btn px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs">
+          CONTINUAR
+        </button>
+      </div>
+
+      <!-- GAME OVER OVERLAY -->
+      <div id="overlay-gameover" class="hidden absolute inset-0 bg-black/90 flex flex-col items-center justify-center text-center z-30">
+        <h2 class="text-2xl sm:text-3xl text-red-600 mb-2">GAME OVER</h2>
+        <p id="gameover-score" class="text-xs text-yellow-400 mb-6">PUNTUACIÓN FINAL: 00</p>
+        <button id="btn-restart" class="arcade-btn px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs tracking-wider">
+          JUGAR DE NUEVO
+        </button>
+      </div>
+    </div>
+
+    <!-- ARCADE BOTTOM STATUS BAR: LIVES & FRUIT DISPLAY -->
+    <div class="w-full bg-black border-b-2 border-x-2 border-zinc-700 rounded-b-lg px-3 py-2 flex justify-between items-center text-[10px]">
+      <div id="hud-lives" class="flex items-center gap-1.5">
+        <span class="text-zinc-400 mr-1">VIDAS:</span>
+        <!-- Lives icons dynamically added -->
+      </div>
+      <div id="hud-bonuses" class="flex items-center gap-2">
+        <span class="text-zinc-400">BONUS:</span>
+        <span id="bonus-symbol" class="text-sm">🥕</span>
+      </div>
+    </div>
+
+    <!-- TOUCH CONTROLS (OPTIMIZED FOR MOBILE / TABLETS) -->
+    <div class="w-full mt-2 sm:mt-4 p-2 bg-zinc-900/80 rounded-xl border border-zinc-800 flex justify-between items-center gap-4">
+      <!-- VIRTUAL D-PAD -->
+      <div class="grid grid-cols-3 grid-rows-3 gap-1.5 w-36 h-36 sm:w-40 sm:h-40">
+        <div></div>
+        <button id="dpad-up" class="d-btn bg-zinc-800 text-zinc-200 rounded-lg flex items-center justify-center font-bold text-lg select-none">▲</button>
+        <div></div>
+        <button id="dpad-left" class="d-btn bg-zinc-800 text-zinc-200 rounded-lg flex items-center justify-center font-bold text-lg select-none">◀</button>
+        <div class="bg-zinc-950 rounded-lg flex items-center justify-center border border-zinc-800">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-500/50"></span>
+        </div>
+        <button id="dpad-right" class="d-btn bg-zinc-800 text-zinc-200 rounded-lg flex items-center justify-center font-bold text-lg select-none">▶</button>
+        <div></div>
+        <button id="dpad-down" class="d-btn bg-zinc-800 text-zinc-200 rounded-lg flex items-center justify-center font-bold text-lg select-none">▼</button>
+        <div></div>
+      </div>
+
+      <!-- PUMP / HARPOON ACTION BUTTON -->
+      <div class="flex flex-col items-center justify-center gap-2 flex-1 pr-2">
+        <button id="btn-touch-pump" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs sm:text-sm flex flex-col items-center justify-center border-4 border-yellow-400 shadow-lg active:scale-95 transition-transform select-none">
+          <span class="text-xl sm:text-2xl mb-1">⚡</span>
+          <span>BOMBA</span>
+          <span class="text-[8px] text-yellow-200">ARPO / INFLAR</span>
+        </button>
+        <span class="text-[8px] text-zinc-400">ESPACIO O TOCAR</span>
+      </div>
+    </div>
+  </main>
+
+  <footer class="text-[8px] sm:text-[9px] text-zinc-500 mt-2 text-center">
+    Fiel al original de 1982 • Excava túneles, bombea enemigos y aplasta con rocas
+  </footer>
+
+  <!-- JAVASCRIPT GAME LOGIC -->
+  <script>
+  (function() {
+    'use strict';
+
+    /* ==========================================================================
+       1. WEB AUDIO API SYNTHESIZER (100% Procedural 8-Bit Audio)
+       ========================================================================== */
+    class RetroAudio {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+        this.walkNotes = [
+          261.63, 329.63, 392.00, 523.25, 493.88, 392.00, 329.63, 261.63,
+          293.66, 349.23, 440.00, 523.25, 440.00, 349.23, 293.66, 261.63
+        ];
+        this.walkStep = 0;
+        this.lastWalkTime = 0;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleMute() {
+        this.muted = !this.muted;
+        return !this.muted;
+      }
+
+      // Iconic Dig Dug walking melody note (only sounds while moving!)
+      playWalkStep() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        if (now - this.lastWalkTime < 0.12) return;
+        this.lastWalkTime = now;
+
+        const freq = this.walkNotes[this.walkStep % this.walkNotes.length];
+        this.walkStep++;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.11);
+      }
+
+      // Shoot Harpoon sound
+      playShoot() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.12);
+
+        gain.gain.setValueAtTime(0.09, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.12);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.13);
+      }
+
+      // Pump air sound (Puff)
+      playPump() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(550, now + 0.08);
+
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      }
+
+      // Enemy Pop Explosion
+      playPop() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        
+        // Low thump
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.3);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.31);
+
+        // Noise burst
+        const bufferSize = this.ctx.sampleRate * 0.25;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const noiseGain = this.ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.15, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        noise.connect(noiseGain);
+        noiseGain.connect(this.ctx.destination);
+        noise.start(now);
+      }
+
+      // Rock wobble warning
+      playRockWobble() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.linearRampToValueAtTime(160, now + 0.08);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.09);
+      }
+
+      // Rock falling/crashing
+      playRockCrash() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(80, now);
+        osc.frequency.exponentialRampToValueAtTime(20, now + 0.35);
+        gain.gain.setValueAtTime(0.28, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.36);
+      }
+
+      // Fygar Dragon Flame
+      playFlame() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const bufferSize = this.ctx.sampleRate * 0.4;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(600, now);
+        filter.Q.setValueAtTime(3.0, now);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(now);
+      }
+
+      // Player Death
+      playPlayerDeath() {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(500, now);
+        osc.frequency.linearRampToValueAtTime(100, now + 0.6);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.66);
+      }
+
+      // Bonus Fruit eaten
+      playBonus() {
+        if (this.muted || !this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, i) => {
+          const now = this.ctx.currentTime + (i * 0.07);
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.09);
+        });
+      }
+
+      // Round Clear Fanfare
+      playRoundClear() {
+        if (this.muted || !this.ctx) return;
+        const fanfare = [
+          { f: 392, d: 0.1 }, { f: 523.25, d: 0.1 }, { f: 659.25, d: 0.1 },
+          { f: 783.99, d: 0.25 }, { f: 659.25, d: 0.1 }, { f: 783.99, d: 0.4 }
+        ];
+        let offset = 0;
+        fanfare.forEach(item => {
+          const now = this.ctx.currentTime + offset;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(item.f, now);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + item.d);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + item.d + 0.02);
+          offset += item.d + 0.03;
+        });
+      }
+    }
+
+    const sound = new RetroAudio();
+
+    /* ==========================================================================
+       2. GRID CONSTANTS & CONFIGURATION
+       ========================================================================== */
+    const COLS = 28;             // 28 subgrid columns
+    const ROWS = 32;             // 32 subgrid rows
+    const CELL_SIZE = 12;        // 12px x 12px -> Canvas is 336 x 384
+    const CANVAS_WIDTH = COLS * CELL_SIZE;  // 336
+    const CANVAS_HEIGHT = ROWS * CELL_SIZE; // 384
+
+    const SKY_ROWS = 4;          // Rows 0..3 are surface/sky
+    const DIRT_START_ROW = SKY_ROWS; // Dirt starts at row 4
+
+    // Stratum layers (4 subterranean strata)
+    const STRATA_COLORS = [
+      { top: 4,  bottom: 10, bg: '#d77626', detail: '#b75c16' }, // Layer 1: Warm Orange
+      { top: 11, bottom: 17, bg: '#dca42b', detail: '#b98118' }, // Layer 2: Ochre Yellow
+      { top: 18, bottom: 24, bg: '#be4622', detail: '#9a3212' }, // Layer 3: Terracotta
+      { top: 25, bottom: 31, bg: '#7b2012', detail: '#5b1207' }  // Layer 4: Deep Crimson Brown
+    ];
+
+    const FRUITS = [
+      { name: 'Carrot', emoji: '🥕', pts: 400 },
+      { name: 'Turnip', emoji: '🥗', pts: 600 },
+      { name: 'Mushroom', emoji: '🍄', pts: 800 },
+      { name: 'Cucumber', emoji: '🥒', pts: 1000 },
+      { name: 'Eggplant', emoji: '🍆', pts: 2000 },
+      { name: 'Bell Pepper', emoji: '🫑', pts: 3000 },
+      { name: 'Tomato', emoji: '🍅', pts: 4000 },
+      { name: 'Pineapple', emoji: '🍍', pts: 5000 }
+    ];
+
+    /* ==========================================================================
+       3. GAME STATE MANAGEMENT
+       ========================================================================== */
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let gameState = 'START'; // 'START', 'PLAY', 'PAUSE', 'ROUND_CLEAR', 'GAMEOVER'
+    let score = 0;
+    let highScore = localStorage.getItem('digdug_high') ? parseInt(localStorage.getItem('digdug_high')) : 20000;
+    let round = 1;
+    let lives = 3;
+    let rocksDroppedThisRound = 0;
+    let bonusSpawned = false;
+    let bonusItem = null;
+
+    // Dirt matrix: 1 = solid dirt, 0 = carved air / tunnel
+    let dirt = [];
+
+    // Game Entities
+    let player = null;
+    let enemies = [];
+    let rocks = [];
+    let particles = [];
+    let popTexts = []; // Floating scores like "1000"
+
+    // Harpoon state
+    let harpoon = null;
+
+    // Keys state
+    const keys = {
+      up: false,
+      down: false,
+      left: false,
+      right: false,
+      pump: false
+    };
+
+    /* ==========================================================================
+       4. SPRITE & GRAPHICS RENDERING HELPERS
+       ========================================================================== */
+    // Helper to draw pixel squares
+    function drawPixel(c, x, y, size, color) {
+      c.fillStyle = color;
+      c.fillRect(x, y, size, size);
+    }
+
+    // Draw Dig Dug / Taizo Hori
+    function drawPlayer(c, p) {
+      const x = Math.round(p.x);
+      const y = Math.round(p.y);
+      const s = 1.3;
+
+      c.save();
+      c.translate(x + 10, y + 10);
+
+      // Facing orientation
+      let angle = 0;
+      let flipX = 1;
+      if (p.dir === 'left') flipX = -1;
+      else if (p.dir === 'up') angle = -Math.PI / 2;
+      else if (p.dir === 'down') angle = Math.PI / 2;
+
+      c.scale(flipX, 1);
+      c.rotate(angle);
+
+      if (p.isDying) {
+        // Crushed / death spinning animation
+        const frame = Math.floor(p.dieAnimTimer / 5) % 4;
+        c.rotate(frame * Math.PI / 2);
+        c.fillStyle = '#ffffff';
+        c.beginPath();
+        c.arc(0, 0, 7, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = '#2563eb';
+        c.fillRect(-6, -2, 12, 6);
+        c.restore();
+        return;
+      }
+
+      // Walk cycle wobble
+      const walkWobble = (p.isMoving && Math.floor(p.walkFrame / 4) % 2 === 0) ? 1 : -1;
+
+      // Body (Blue jumpsuit)
+      c.fillStyle = '#2563eb';
+      c.fillRect(-6, -4, 10, 8);
+
+      // White helmet
+      c.fillStyle = '#f8fafc';
+      c.beginPath();
+      c.arc(-1, -4, 6, 0, Math.PI * 2);
+      c.fill();
+
+      // Red visor / goggles
+      c.fillStyle = '#dc2626';
+      c.fillRect(1, -6, 4, 4);
+
+      // Red Gloves & Pump nozzle
+      c.fillStyle = '#ef4444';
+      c.fillRect(4, -1, 4, 4);
+
+      // White Boots with walk movement
+      c.fillStyle = '#ffffff';
+      c.fillRect(-6, 4 + walkWobble, 4, 3);
+      c.fillRect(-1, 4 - walkWobble, 4, 3);
+
+      c.restore();
+    }
+
+    // Draw Pooka (Red monster with yellow goggles)
+    function drawPooka(c, e) {
+      const x = Math.round(e.x);
+      const y = Math.round(e.y);
+      c.save();
+      c.translate(x + 10, y + 10);
+
+      // Scale for inflation stages (0 to 4)
+      const scale = 1 + (e.inflateStage * 0.35);
+      c.scale(scale * (e.facing === 'left' ? -1 : 1), scale);
+
+      if (e.isGhost) {
+        // Ghost Form: Translucent yellow floating goggles
+        c.fillStyle = 'rgba(251, 191, 36, 0.9)';
+        c.beginPath();
+        c.arc(-3, -1, 4, 0, Math.PI * 2);
+        c.arc(3, -1, 4, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = '#000';
+        c.fillRect(-2, -2, 2, 2);
+        c.fillRect(4, -2, 2, 2);
+        c.restore();
+        return;
+      }
+
+      // Red round body
+      c.fillStyle = '#dc2626';
+      c.beginPath();
+      c.arc(0, 0, 8, 0, Math.PI * 2);
+      c.fill();
+
+      // Yellow spectacles / goggles
+      c.fillStyle = '#facc15';
+      c.beginPath();
+      c.arc(2, -2, 4, 0, Math.PI * 2);
+      c.arc(-4, -2, 3.5, 0, Math.PI * 2);
+      c.fill();
+
+      // Black pupils
+      c.fillStyle = '#000000';
+      c.fillRect(3, -3, 2, 2);
+      c.fillRect(-3, -3, 2, 2);
+
+      // Yellow cute feet
+      c.fillStyle = '#facc15';
+      const footWobble = Math.floor(e.animFrame / 6) % 2 === 0 ? 1 : 0;
+      c.fillRect(-5, 6 - footWobble, 3, 3);
+      c.fillRect(1, 6 + footWobble, 3, 3);
+
+      c.restore();
+    }
+
+    // Draw Fygar (Green dragon)
+    function drawFygar(c, e) {
+      const x = Math.round(e.x);
+      const y = Math.round(e.y);
+      c.save();
+      c.translate(x + 10, y + 10);
+
+      const scale = 1 + (e.inflateStage * 0.35);
+      c.scale(scale * (e.facing === 'left' ? -1 : 1), scale);
+
+      if (e.isGhost) {
+        // Ghost mode: Eyes floating
+        c.fillStyle = 'rgba(74, 222, 128, 0.85)';
+        c.beginPath();
+        c.arc(-2, -1, 3.5, 0, Math.PI * 2);
+        c.arc(4, -1, 3.5, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = '#000';
+        c.fillRect(3, -2, 2, 2);
+        c.restore();
+        return;
+      }
+
+      // Warning flash right before breathing fire
+      if (e.isWarning) {
+        c.fillStyle = (Math.floor(Date.now() / 80) % 2 === 0) ? '#ffffff' : '#16a34a';
+      } else {
+        c.fillStyle = '#16a34a'; // Dragon Green
+      }
+
+      // Body
+      c.beginPath();
+      c.arc(0, 0, 8, 0, Math.PI * 2);
+      c.fill();
+
+      // Yellow dorsal crest / wings
+      c.fillStyle = '#facc15';
+      c.beginPath();
+      c.moveTo(-4, -8);
+      c.lineTo(-1, -12);
+      c.lineTo(2, -8);
+      c.fill();
+
+      // Snout
+      c.fillStyle = e.isWarning ? '#f87171' : '#22c55e';
+      c.fillRect(4, -3, 5, 6);
+
+      // Red eye
+      c.fillStyle = '#ef4444';
+      c.fillRect(3, -5, 2, 2);
+
+      // Tail
+      c.fillStyle = '#eab308';
+      c.fillRect(-8, 1, 3, 3);
+
+      c.restore();
+
+      // Draw Breath of Fire if actively firing!
+      if (e.isBreathingFire) {
+        c.save();
+        const fireDir = e.facing === 'left' ? -1 : 1;
+        const fireStartX = x + 10 + (fireDir * 10);
+        const fireY = y + 10;
+        const flameLength = e.fireProgress * 46; // reaches ~3 tiles
+
+        // Fiery blast gradient
+        const grad = c.createLinearGradient(fireStartX, fireY, fireStartX + (fireDir * flameLength), fireY);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.3, '#facc15');
+        grad.addColorStop(0.7, '#ea580c');
+        grad.addColorStop(1, 'rgba(220, 38, 38, 0)');
+
+        c.fillStyle = grad;
+        c.beginPath();
+        c.moveTo(fireStartX, fireY - 3);
+        c.lineTo(fireStartX + (fireDir * flameLength), fireY - 7 + Math.sin(Date.now() * 0.05) * 3);
+        c.lineTo(fireStartX + (fireDir * flameLength) + (fireDir * 6), fireY);
+        c.lineTo(fireStartX + (fireDir * flameLength), fireY + 7 - Math.sin(Date.now() * 0.05) * 3);
+        c.lineTo(fireStartX, fireY + 3);
+        c.closePath();
+        c.fill();
+
+        c.restore();
+      }
+    }
+
+    // Draw Boulder / Rock
+    function drawRock(c, r) {
+      c.save();
+      let rx = r.x;
+      let ry = r.y;
+
+      // Jitter while wobbling
+      if (r.state === 'WOBBLE') {
+        rx += Math.sin(r.wobbleTimer * 0.8) * 2;
+      }
+
+      // Rock body
+      c.fillStyle = '#a8a29e';
+      c.beginPath();
+      c.roundRect(rx + 1, ry + 1, 20, 20, 4);
+      c.fill();
+
+      // Shading / texture
+      c.fillStyle = '#78716c';
+      c.fillRect(rx + 3, ry + 12, 16, 7);
+      c.fillRect(rx + 12, ry + 3, 7, 10);
+
+      // Highlight
+      c.fillStyle = '#e7e5e4';
+      c.fillRect(rx + 3, ry + 3, 4, 4);
+
+      // Cracks
+      c.strokeStyle = '#44403c';
+      c.lineWidth = 1.5;
+      c.beginPath();
+      c.moveTo(rx + 6, ry + 6);
+      c.lineTo(rx + 10, ry + 11);
+      c.lineTo(rx + 14, ry + 9);
+      c.stroke();
+
+      c.restore();
+    }
+
+    // Draw Harpoon & Pump Cable
+    function drawHarpoon(c, h) {
+      if (!h || !h.active) return;
+      c.save();
+      c.lineWidth = 2.5;
+
+      // Segmented hose pattern (yellow & black stripes)
+      c.strokeStyle = '#facc15';
+      c.beginPath();
+      c.moveTo(h.startX, h.startY);
+      c.lineTo(h.currentX, h.currentY);
+      c.stroke();
+
+      // Sharp arrowhead tip
+      c.fillStyle = '#ef4444';
+      c.beginPath();
+      c.arc(h.currentX, h.currentY, 3.5, 0, Math.PI * 2);
+      c.fill();
+
+      c.restore();
+    }
+
+    /* ==========================================================================
+       5. INITIALIZATION & ROUND SETUP
+       ========================================================================== */
+    function initDirt() {
+      dirt = [];
+      for (let r = 0; r < ROWS; r++) {
+        dirt[r] = [];
+        for (let col = 0; col < COLS; col++) {
+          if (r < DIRT_START_ROW) {
+            dirt[r][col] = 0; // Sky is empty
+          } else {
+            dirt[r][col] = 1; // Solid dirt
+          }
+        }
+      }
+    }
+
+    // Carve a tunnel (set dirt cells to 0)
+    function carveTunnel(r1, c1, r2, c2) {
+      const minR = Math.min(r1, r2);
+      const maxR = Math.max(r1, r2);
+      const minC = Math.min(c1, c2);
+      const maxC = Math.max(c1, c2);
+
+      for (let r = minR; r <= maxR; r++) {
+        for (let c = minC; c <= maxC; c++) {
+          if (r >= DIRT_START_ROW && r < ROWS && c >= 0 && c < COLS) {
+            dirt[r][c] = 0;
+          }
+        }
+      }
+    }
+
+    // Carve radius around player to simulate smooth tunnel boring
+    function digHole(px, py) {
+      const centerCol = Math.floor((px + 10) / CELL_SIZE);
+      const centerRow = Math.floor((py + 10) / CELL_SIZE);
+      let cleared = 0;
+
+      for (let r = centerRow - 1; r <= centerRow + 1; r++) {
+        for (let c = centerCol - 1; c <= centerCol + 1; c++) {
+          if (r >= DIRT_START_ROW && r < ROWS && c >= 1 && c < COLS - 1) {
+            // Distance check to make round tunnels
+            const dc = (c * CELL_SIZE + CELL_SIZE / 2) - (px + 10);
+            const dr = (r * CELL_SIZE + CELL_SIZE / 2) - (py + 10);
+            if (Math.hypot(dc, dr) < 11) {
+              if (dirt[r][c] === 1) {
+                dirt[r][c] = 0;
+                cleared++;
+              }
+            }
+          }
+        }
+      }
+
+      if (cleared > 0) {
+        addScore(10 * cleared);
+      }
+    }
+
+    function setupRound(rnd) {
+      initDirt();
+      rocksDroppedThisRound = 0;
+      bonusSpawned = false;
+      bonusItem = null;
+      harpoon = null;
+      particles = [];
+      popTexts = [];
+
+      // Dig Dug starting shaft (vertical tunnel near top middle)
+      carveTunnel(DIRT_START_ROW, 13, 10, 14);
+
+      // Create Player
+      player = {
+        x: 13 * CELL_SIZE,
+        y: 6 * CELL_SIZE,
+        speed: 1.4,
+        dir: 'right',
+        walkFrame: 0,
+        isMoving: false,
+        isPumping: false,
+        isDying: false,
+        dieAnimTimer: 0
+      };
+
+      // Carve enemy caves & place enemies
+      enemies = [];
+      const numPookas = Math.min(2 + Math.floor(rnd * 0.8), 5);
+      const numFygars = Math.min(1 + Math.floor(rnd * 0.6), 4);
+
+      // Predefined cave locations
+      const caveLocs = [
+        { r1: 8,  c1: 3,  r2: 9,  c2: 8,  enemy: 'POOKA' },
+        { r1: 14, c1: 19, r2: 15, c2: 24, enemy: 'FYGAR' },
+        { r1: 22, c1: 4,  r2: 23, c2: 10, enemy: 'POOKA' },
+        { r1: 25, c1: 16, r2: 26, c2: 22, enemy: 'FYGAR' },
+        { r1: 18, c1: 12, r2: 19, c2: 17, enemy: 'POOKA' },
+        { r1: 11, c1: 11, r2: 12, c2: 16, enemy: 'POOKA' }
+      ];
+
+      let placedPookas = 0;
+      let placedFygars = 0;
+
+      for (let i = 0; i < caveLocs.length; i++) {
+        const cave = caveLocs[i];
+        if (placedPookas >= numPookas && placedFygars >= numFygars) break;
+
+        let type = cave.enemy;
+        if (type === 'POOKA' && placedPookas >= numPookas) type = 'FYGAR';
+        if (type === 'FYGAR' && placedFygars >= numFygars) type = 'POOKA';
+
+        if (type === 'POOKA' && placedPookas < numPookas) {
+          carveTunnel(cave.r1, cave.c1, cave.r2, cave.c2);
+          enemies.push(createEnemy('POOKA', cave.c1 * CELL_SIZE + 4, cave.r1 * CELL_SIZE));
+          placedPookas++;
+        } else if (type === 'FYGAR' && placedFygars < numFygars) {
+          carveTunnel(cave.r1, cave.c1, cave.r2, cave.c2);
+          enemies.push(createEnemy('FYGAR', cave.c1 * CELL_SIZE + 4, cave.r1 * CELL_SIZE));
+          placedFygars++;
+        }
+      }
+
+      // Setup Rocks (3 or 4 suspended in dirt)
+      rocks = [];
+      const rockSpots = [
+        { c: 5,  r: 6 },
+        { c: 21, r: 7 },
+        { c: 8,  r: 16 },
+        { c: 19, r: 21 }
+      ];
+
+      const rockCount = Math.min(3 + (rnd > 2 ? 1 : 0), rockSpots.length);
+      for (let i = 0; i < rockCount; i++) {
+        const spot = rockSpots[i];
+        rocks.push({
+          x: spot.c * CELL_SIZE,
+          y: spot.r * CELL_SIZE,
+          w: 22,
+          h: 22,
+          state: 'IDLE', // 'IDLE', 'WOBBLE', 'FALLING', 'CRUSHED'
+          wobbleTimer: 0,
+          vy: 0,
+          crushedCount: 0
+        });
+      }
+
+      updateHUD();
+    }
+
+    function createEnemy(type, x, y) {
+      return {
+        type: type, // 'POOKA' or 'FYGAR'
+        x: x,
+        y: y,
+        speed: 0.95 + (round * 0.08),
+        facing: Math.random() > 0.5 ? 'right' : 'left',
+        dirX: 1,
+        dirY: 0,
+        isGhost: false,
+        ghostTimer: 0,
+        ghostDuration: 0,
+        inflateStage: 0, // 0 to 4 (4 = POP!)
+        inflateDecayTimer: 0,
+        isWarning: false,
+        isBreathingFire: false,
+        fireTimer: Math.random() * 200 + 150,
+        fireProgress: 0,
+        animFrame: 0,
+        fleeing: false
+      };
+    }
+
+    /* ==========================================================================
+       6. GAME MECHANICS & UPDATES
+       ========================================================================== */
+    function checkDirtSolid(x, y) {
+      const col = Math.floor(x / CELL_SIZE);
+      const row = Math.floor(y / CELL_SIZE);
+      if (row < DIRT_START_ROW) return false;
+      if (row >= ROWS || col < 0 || col >= COLS) return true;
+      return dirt[row][col] === 1;
+    }
+
+    function checkCanMoveThrough(x, y) {
+      // Enemies in normal mode can only walk in carved tunnel space (0)
+      const col = Math.floor(x / CELL_SIZE);
+      const row = Math.floor(y / CELL_SIZE);
+      if (row < DIRT_START_ROW || row >= ROWS || col < 0 || col >= COLS) return false;
+      return dirt[row][col] === 0;
+    }
+
+    function addScore(pts, x, y) {
+      score += pts;
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('digdug_high', highScore);
+      }
+      if (x !== undefined && y !== undefined) {
+        popTexts.push({
+          text: pts.toString(),
+          x: x,
+          y: y,
+          timer: 45
+        });
+      }
+      updateHUD();
+    }
+
+    // Player Movement & Input handling
+    function updatePlayer() {
+      if (player.isDying) {
+        player.dieAnimTimer++;
+        if (player.dieAnimTimer > 60) {
+          lives--;
+          updateHUD();
+          if (lives <= 0) {
+            triggerGameOver();
+          } else {
+            // Respawn player
+            player.x = 13 * CELL_SIZE;
+            player.y = 6 * CELL_SIZE;
+            player.dir = 'right';
+            player.isDying = false;
+            player.dieAnimTimer = 0;
+            harpoon = null;
+          }
+        }
+        return;
+      }
+
+      // If harpoon is pumping an enemy, player cannot move
+      if (harpoon && harpoon.attachedEnemy) {
+        return;
+      }
+
+      let moveX = 0;
+      let moveY = 0;
+
+      if (keys.up)    { moveY = -1; player.dir = 'up'; }
+      else if (keys.down)  { moveY = 1;  player.dir = 'down'; }
+      else if (keys.left)  { moveX = -1; player.dir = 'left'; }
+      else if (keys.right) { moveX = 1;  player.dir = 'right'; }
+
+      player.isMoving = (moveX !== 0 || moveY !== 0);
+
+      if (player.isMoving) {
+        player.walkFrame++;
+        sound.playWalkStep();
+
+        // Calculate next position
+        const nextX = player.x + (moveX * player.speed);
+        const nextY = player.y + (moveY * player.speed);
+
+        // Keep inside screen boundaries
+        if (nextX >= 0 && nextX <= CANVAS_WIDTH - 20) {
+          player.x = nextX;
+        }
+        if (nextY >= CELL_SIZE && nextY <= CANVAS_HEIGHT - 22) {
+          player.y = nextY;
+        }
+
+        // Dig dirt as Dig Dug moves!
+        digHole(player.x, player.y);
+
+        // Cancel disconnected harpoon on walk
+        if (harpoon && !harpoon.attachedEnemy) {
+          harpoon = null;
+        }
+      }
+
+      // Check collision with Bonus Item
+      if (bonusItem && bonusItem.active) {
+        const dist = Math.hypot((player.x + 10) - bonusItem.x, (player.y + 10) - bonusItem.y);
+        if (dist < 14) {
+          bonusItem.active = false;
+          addScore(bonusItem.pts, bonusItem.x, bonusItem.y);
+          sound.playBonus();
+        }
+      }
+    }
+
+    // Harpoon Shooting & Pumping Logic
+    function fireOrPump() {
+      sound.init();
+
+      // If harpoon is already attached to an enemy, pump them!
+      if (harpoon && harpoon.attachedEnemy) {
+        const enemy = harpoon.attachedEnemy;
+        enemy.inflateStage++;
+        enemy.inflateDecayTimer = 0; // reset decay
+        sound.playPump();
+
+        // Stage 4: Pop explosion!
+        if (enemy.inflateStage >= 4) {
+          killEnemy(enemy, 'POP');
+          harpoon = null;
+        }
+        return;
+      }
+
+      // If no harpoon out, shoot one!
+      if (!harpoon && !player.isDying) {
+        sound.playShoot();
+        const startX = player.x + 10;
+        const startY = player.y + 10;
+
+        harpoon = {
+          active: true,
+          startX: startX,
+          startY: startY,
+          currentX: startX,
+          currentY: startY,
+          dir: player.dir,
+          range: 0,
+          maxRange: 56, // reaches ~4.5 tiles
+          speed: 6.5,
+          attachedEnemy: null
+        };
+      }
+    }
+
+    function updateHarpoon() {
+      if (!harpoon || !harpoon.active) return;
+
+      // If already latched to an enemy, follow the enemy's position
+      if (harpoon.attachedEnemy) {
+        harpoon.currentX = harpoon.attachedEnemy.x + 10;
+        harpoon.currentY = harpoon.attachedEnemy.y + 10;
+        return;
+      }
+
+      // Extend hose forward
+      harpoon.range += harpoon.speed;
+      let dx = 0, dy = 0;
+      if (harpoon.dir === 'right') dx = 1;
+      else if (harpoon.dir === 'left') dx = -1;
+      else if (harpoon.dir === 'up') dy = -1;
+      else if (harpoon.dir === 'down') dy = 1;
+
+      harpoon.currentX = harpoon.startX + (dx * harpoon.range);
+      harpoon.currentY = harpoon.startY + (dy * harpoon.range);
+
+      // Check collision with solid dirt (hose stops at dirt edge)
+      if (checkDirtSolid(harpoon.currentX, harpoon.currentY)) {
+        harpoon = null;
+        return;
+      }
+
+      // Check collision with enemies
+      for (let i = 0; i < enemies.length; i++) {
+        const e = enemies[i];
+        if (e.isGhost) continue; // Cannot latch onto ghost form!
+
+        const dist = Math.hypot(harpoon.currentX - (e.x + 10), harpoon.currentY - (e.y + 10));
+        if (dist < 13) {
+          // Latch on!
+          harpoon.attachedEnemy = e;
+          e.inflateStage = 1;
+          e.inflateDecayTimer = 0;
+          sound.playPump();
+          return;
+        }
+      }
+
+      // Max range reached without hitting anything
+      if (harpoon.range >= harpoon.maxRange) {
+        harpoon = null;
+      }
+    }
+
+    // Enemies behavior: patrol, ghost mode, Fygar fire, last enemy flee
+    function updateEnemies() {
+      const remainingEnemies = enemies.length;
+
+      enemies.forEach(e => {
+        e.animFrame++;
+
+        // If attached by harpoon, slowly deflate if not pumped
+        if (harpoon && harpoon.attachedEnemy === e) {
+          e.inflateDecayTimer++;
+          if (e.inflateDecayTimer > 35) { // ~0.6 sec without pump
+            e.inflateStage--;
+            e.inflateDecayTimer = 0;
+            if (e.inflateStage <= 0) {
+              e.inflateStage = 0;
+              harpoon = null; // Enemy broke free!
+            }
+          }
+          return; // Immobilized while being inflated
+        }
+
+        // Last enemy flee condition: heading for top-left exit (0, 3)
+        if (remainingEnemies === 1 && !e.fleeing) {
+          e.fleeing = true;
+          e.isGhost = true; // Turn into ghost to reach the surface
+        }
+
+        // Fleeing enemy escaping
+        if (e.fleeing) {
+          if (e.y > 3 * CELL_SIZE) {
+            e.y -= e.speed * 0.8;
+            e.x += (e.x > 8 ? -1 : 1) * 0.5;
+          } else {
+            // Reached surface! Walk off to the left
+            e.isGhost = false;
+            e.facing = 'left';
+            e.x -= e.speed * 1.2;
+            if (e.x < -20) {
+              // Escaped safely
+              enemies = enemies.filter(item => item !== e);
+              checkRoundCompletion();
+              return;
+            }
+          }
+        }
+
+        // Ghost Mode toggle (floating through dirt)
+        if (!e.fleeing) {
+          e.ghostTimer++;
+          if (!e.isGhost && e.ghostTimer > (350 + Math.random() * 200)) {
+            e.isGhost = true;
+            e.ghostDuration = 0;
+            e.ghostTimer = 0;
+          }
+
+          if (e.isGhost) {
+            e.ghostDuration++;
+            // Float directly toward player!
+            const dx = (player.x) - e.x;
+            const dy = (player.y) - e.y;
+            const angle = Math.atan2(dy, dx);
+            e.x += Math.cos(angle) * (e.speed * 0.55);
+            e.y += Math.sin(angle) * (e.speed * 0.55);
+            e.facing = dx >= 0 ? 'right' : 'left';
+
+            // Exit ghost mode if entered an open tunnel near player
+            const col = Math.floor((e.x + 10) / CELL_SIZE);
+            const row = Math.floor((e.y + 10) / CELL_SIZE);
+            if (row >= DIRT_START_ROW && row < ROWS && col >= 0 && col < COLS) {
+              if (dirt[row][col] === 0 && e.ghostDuration > 80) {
+                e.isGhost = false;
+                e.ghostTimer = 0;
+              }
+            }
+            // Max ghost duration fallback
+            if (e.ghostDuration > 300) {
+              e.isGhost = false;
+              e.ghostTimer = 0;
+            }
+          } else {
+            // Normal tunnel patrol movement
+            let nx = e.x + (e.dirX * e.speed);
+            let ny = e.y + (e.dirY * e.speed);
+
+            const testX = nx + (e.dirX > 0 ? 16 : 4);
+            const testY = ny + (e.dirY > 0 ? 16 : 4);
+
+            if (checkCanMoveThrough(testX, testY)) {
+              e.x = nx;
+              e.y = ny;
+            } else {
+              // Hit wall in tunnel: pick another valid open direction
+              const choices = [
+                { dx: 1, dy: 0, f: 'right' },
+                { dx: -1, dy: 0, f: 'left' },
+                { dx: 0, dy: 1, f: e.facing },
+                { dx: 0, dy: -1, f: e.facing }
+              ];
+              // Filter available paths
+              const valid = choices.filter(c => checkCanMoveThrough(e.x + 10 + (c.dx * 12), e.y + 10 + (c.dy * 12)));
+              if (valid.length > 0) {
+                const pick = valid[Math.floor(Math.random() * valid.length)];
+                e.dirX = pick.dx;
+                e.dirY = pick.dy;
+                e.facing = pick.f;
+              } else {
+                // Reverse
+                e.dirX = -e.dirX;
+                e.dirY = -e.dirY;
+                e.facing = e.dirX > 0 ? 'right' : 'left';
+              }
+            }
+          }
+        }
+
+        // Fygar Fire Breathing
+        if (e.type === 'FYGAR' && !e.isGhost && !e.fleeing) {
+          e.fireTimer--;
+          if (e.fireTimer <= 40 && e.fireTimer > 0) {
+            e.isWarning = true; // Flashes yellow warning
+          } else if (e.fireTimer <= 0 && !e.isBreathingFire) {
+            // Start fire blast!
+            e.isWarning = false;
+            e.isBreathingFire = true;
+            e.fireProgress = 0;
+            sound.playFlame();
+          }
+
+          if (e.isBreathingFire) {
+            e.fireProgress += 0.04;
+            // Check if Dig Dug is hit by the fire stream!
+            const fireDir = e.facing === 'left' ? -1 : 1;
+            const fireStartX = e.x + 10;
+            const fireEndX = fireStartX + (fireDir * (e.fireProgress * 46));
+            const minX = Math.min(fireStartX, fireEndX);
+            const maxX = Math.max(fireStartX, fireEndX);
+
+            if (player.y + 16 >= e.y && player.y <= e.y + 18) {
+              if (player.x + 14 >= minX && player.x + 4 <= maxX) {
+                killPlayer();
+              }
+            }
+
+            if (e.fireProgress >= 1.0) {
+              e.isBreathingFire = false;
+              e.fireTimer = Math.random() * 250 + 200;
+            }
+          }
+        }
+
+        // Check lethal collision with player
+        if (!player.isDying) {
+          const dist = Math.hypot((player.x + 10) - (e.x + 10), (player.y + 10) - (e.y + 10));
+          if (dist < 13) {
+            killPlayer();
+          }
+        }
+      });
+    }
+
+    function killEnemy(enemy, reason) {
+      sound.playPop();
+      spawnExplosion(enemy.x + 10, enemy.y + 10, enemy.type === 'POOKA' ? '#ef4444' : '#22c55e');
+
+      // Score depends on underground depth stratum
+      const row = Math.floor((enemy.y + 10) / CELL_SIZE);
+      let stratum = 0;
+      if (row >= 25) stratum = 3;
+      else if (row >= 18) stratum = 2;
+      else if (row >= 11) stratum = 1;
+
+      const pookaPts = [200, 300, 400, 500];
+      const fygarPts = [400, 600, 800, 1000];
+
+      let awarded = (enemy.type === 'POOKA') ? pookaPts[stratum] : fygarPts[stratum];
+      if (reason === 'ROCK') awarded = 1000; // Handled in multi-crush
+
+      addScore(awarded, enemy.x + 10, enemy.y + 10);
+      enemies = enemies.filter(e => e !== enemy);
+
+      checkRoundCompletion();
+    }
+
+    function killPlayer() {
+      if (player.isDying) return;
+      player.isDying = true;
+      player.dieAnimTimer = 0;
+      harpoon = null;
+      sound.playPlayerDeath();
+    }
+
+    // Rocks / Boulders Physics & Multi-crush
+    function updateRocks() {
+      rocks.forEach(rock => {
+        if (rock.state === 'IDLE') {
+          // Check if dirt directly underneath has been excavated
+          const bottomY = rock.y + rock.h + 2;
+          const col1 = Math.floor((rock.x + 4) / CELL_SIZE);
+          const col2 = Math.floor((rock.x + rock.w - 4) / CELL_SIZE);
+          const checkRow = Math.floor(bottomY / CELL_SIZE);
+
+          if (checkRow < ROWS) {
+            const emptyUnder = (dirt[checkRow][col1] === 0 && dirt[checkRow][col2] === 0);
+            if (emptyUnder) {
+              rock.state = 'WOBBLE';
+              rock.wobbleTimer = 0;
+              sound.playRockWobble();
+            }
+          }
+        } else if (rock.state === 'WOBBLE') {
+          rock.wobbleTimer++;
+          if (rock.wobbleTimer > 45) { // Wobble for ~0.7s then plunge!
+            rock.state = 'FALLING';
+            rock.vy = 2.5;
+            rock.crushedCount = 0;
+          }
+        } else if (rock.state === 'FALLING') {
+          rock.vy += 0.25; // Gravity
+          rock.y += rock.vy;
+
+          // Squash enemies in rock's path
+          enemies.forEach(e => {
+            const dist = Math.hypot((rock.x + 10) - (e.x + 10), (rock.y + 10) - (e.y + 10));
+            if (dist < 15) {
+              rock.crushedCount++;
+              killEnemy(e, 'ROCK');
+            }
+          });
+
+          // Squash Dig Dug if under falling rock
+          if (!player.isDying) {
+            const pDist = Math.hypot((rock.x + 10) - (player.x + 10), (rock.y + 10) - (player.y + 10));
+            if (pDist < 14) {
+              killPlayer();
+            }
+          }
+
+          // Check landing on solid ground or bottom of screen
+          const testRow = Math.floor((rock.y + rock.h + 2) / CELL_SIZE);
+          const c1 = Math.floor((rock.x + 4) / CELL_SIZE);
+          const c2 = Math.floor((rock.x + rock.w - 4) / CELL_SIZE);
+
+          let hitSolid = false;
+          if (testRow >= ROWS || (testRow >= DIRT_START_ROW && (dirt[testRow][c1] === 1 || dirt[testRow][c2] === 1))) {
+            hitSolid = true;
+          }
+
+          if (hitSolid) {
+            // Rock shatters on impact
+            rock.state = 'CRUSHED';
+            sound.playRockCrash();
+            spawnExplosion(rock.x + 10, rock.y + 10, '#a8a29e');
+
+            // Multi-crush bonus points
+            if (rock.crushedCount > 0) {
+              const bonuses = [0, 1000, 2500, 4000, 7000];
+              const bonus = bonuses[Math.min(rock.crushedCount, 4)];
+              addScore(bonus, rock.x + 10, rock.y);
+            }
+
+            rocksDroppedThisRound++;
+            // Check bonus fruit spawn (appears after 2 rocks drop)
+            if (rocksDroppedThisRound >= 2 && !bonusSpawned) {
+              spawnBonusFruit();
+            }
+          }
+        }
+      });
+
+      // Filter crushed rocks
+      rocks = rocks.filter(r => r.state !== 'CRUSHED');
+    }
+
+    function spawnBonusFruit() {
+      bonusSpawned = true;
+      const fruitIndex = Math.min(round - 1, FRUITS.length - 1);
+      const fruitData = FRUITS[fruitIndex];
+
+      bonusItem = {
+        x: 13 * CELL_SIZE + 4,
+        y: 6 * CELL_SIZE + 4,
+        emoji: fruitData.emoji,
+        pts: fruitData.pts,
+        active: true,
+        timer: 600 // stays for 10 seconds
+      };
+      sound.playBonus();
+    }
+
+    function checkRoundCompletion() {
+      if (enemies.length === 0 && gameState === 'PLAY') {
+        gameState = 'ROUND_CLEAR';
+        sound.playRoundClear();
+        setTimeout(() => {
+          round++;
+          setupRound(round);
+          gameState = 'PLAY';
+        }, 2200);
+      }
+    }
+
+    function triggerGameOver() {
+      gameState = 'GAMEOVER';
+      document.getElementById('gameover-score').innerText = `PUNTUACIÓN FINAL: ${score}`;
+      document.getElementById('overlay-gameover').classList.remove('hidden');
+    }
+
+    // Particle FX & Floating Texts
+    function spawnExplosion(x, y, color) {
+      for (let i = 0; i < 18; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const spd = Math.random() * 3.5 + 1;
+        particles.push({
+          x: x,
+          y: y,
+          vx: Math.cos(angle) * spd,
+          vy: Math.sin(angle) * spd,
+          life: 25,
+          color: color,
+          size: Math.random() * 3 + 2
+        });
+      }
+    }
+
+    function updateParticles() {
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+      });
+      particles = particles.filter(p => p.life > 0);
+
+      popTexts.forEach(pt => {
+        pt.y -= 0.5;
+        pt.timer--;
+      });
+      popTexts = popTexts.filter(pt => pt.timer > 0);
+    }
+
+    /* ==========================================================================
+       7. MAIN CANVAS RENDERING LOOP
+       ========================================================================== */
+    function render() {
+      // Clear Screen (Sky color)
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+      // 1. Draw Surface Sky & Top Green Grass Fringe
+      ctx.fillStyle = '#1e3a8a';
+      ctx.fillRect(0, 0, CANVAS_WIDTH, DIRT_START_ROW * CELL_SIZE);
+
+      // Green grass tufts at ground level
+      ctx.fillStyle = '#22c55e';
+      ctx.fillRect(0, (DIRT_START_ROW * CELL_SIZE) - 3, CANVAS_WIDTH, 4);
+
+      // 2. Draw Subterranean Strata Layers
+      STRATA_COLORS.forEach(stratum => {
+        const topY = stratum.top * CELL_SIZE;
+        const height = (stratum.bottom - stratum.top + 1) * CELL_SIZE;
+        ctx.fillStyle = stratum.bg;
+        ctx.fillRect(0, topY, CANVAS_WIDTH, height);
+
+        // Subtle dirt fleck texture
+        ctx.fillStyle = stratum.detail;
+        for (let r = stratum.top; r <= stratum.bottom; r++) {
+          if (r % 2 === 0) {
+            for (let c = 0; c < COLS; c += 3) {
+              ctx.fillRect((c * CELL_SIZE) + ((r % 4) * 2), r * CELL_SIZE + 4, 3, 2);
+            }
+          }
+        }
+      });
+
+      // 3. Draw Dug Tunnels (pitch black holes carved through strata)
+      ctx.fillStyle = '#000000';
+      for (let r = DIRT_START_ROW; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (dirt[r][c] === 0) {
+            ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+          }
+        }
+      }
+
+      // 4. Draw Bonus Fruit (if active)
+      if (bonusItem && bonusItem.active) {
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(bonusItem.emoji, bonusItem.x, bonusItem.y + 5);
+      }
+
+      // 5. Draw Boulders
+      rocks.forEach(r => drawRock(ctx, r));
+
+      // 6. Draw Harpoon Hose & Tip
+      drawHarpoon(ctx, harpoon);
+
+      // 7. Draw Enemies
+      enemies.forEach(e => {
+        if (e.type === 'POOKA') drawPooka(ctx, e);
+        else if (e.type === 'FYGAR') drawFygar(ctx, e);
+      });
+
+      // 8. Draw Player
+      if (player) {
+        drawPlayer(ctx, player);
+      }
+
+      // 9. Draw Particle Explosions
+      particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+      });
+
+      // 10. Draw Floating Pop-Up Scores
+      ctx.font = '8px "Press Start 2P", monospace';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      popTexts.forEach(pt => {
+        ctx.fillText(pt.text, pt.x, pt.y);
+      });
+
+      // Round clear text overlay
+      if (gameState === 'ROUND_CLEAR') {
+        ctx.fillStyle = '#facc15';
+        ctx.font = '12px "Press Start 2P", monospace';
+        ctx.fillText('¡RONDA COMPLETADA!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+      }
+    }
+
+    function gameLoop() {
+      if (gameState === 'PLAY') {
+        updatePlayer();
+        updateHarpoon();
+        updateEnemies();
+        updateRocks();
+        updateParticles();
+
+        if (bonusItem && bonusItem.active) {
+          bonusItem.timer--;
+          if (bonusItem.timer <= 0) bonusItem.active = false;
+        }
+      }
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    /* ==========================================================================
+       8. UI UPDATES & DOM EVENT BINDINGS
+       ========================================================================== */
+    function updateHUD() {
+      document.getElementById('hud-score').innerText = score.toString().padStart(2, '0');
+      document.getElementById('hud-high').innerText = highScore.toString().padStart(2, '0');
+      document.getElementById('hud-round').innerText = round;
+
+      // Update remaining lives display
+      const livesContainer = document.getElementById('hud-lives');
+      livesContainer.innerHTML = '<span class="text-zinc-400 mr-1">VIDAS:</span>';
+      for (let i = 0; i < lives; i++) {
+        const icon = document.createElement('span');
+        icon.className = 'inline-block w-3 h-3 bg-blue-500 rounded-sm border border-yellow-300';
+        livesContainer.appendChild(icon);
+      }
+
+      // Update bonus fruit icon
+      const fruitIndex = Math.min(round - 1, FRUITS.length - 1);
+      document.getElementById('bonus-symbol').innerText = FRUITS[fruitIndex].emoji;
+    }
+
+    // Keyboard Event Handlers
+    window.addEventListener('keydown', (e) => {
+      sound.init();
+
+      if (e.code === 'KeyP') {
+        togglePause();
+        return;
+      }
+
+      if (gameState !== 'PLAY') {
+        if (e.code === 'Space' && gameState === 'START') {
+          startGame();
+        }
+        return;
+      }
+
+      switch (e.code) {
+        case 'ArrowUp':
+        case 'KeyW':
+          keys.up = true;
+          break;
+        case 'ArrowDown':
+        case 'KeyS':
+          keys.down = true;
+          break;
+        case 'ArrowLeft':
+        case 'KeyA':
+          keys.left = true;
+          break;
+        case 'ArrowRight':
+        case 'KeyD':
+          keys.right = true;
+          break;
+        case 'Space':
+          fireOrPump();
+          e.preventDefault();
+          break;
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      switch (e.code) {
+        case 'ArrowUp':
+        case 'KeyW':
+          keys.up = false;
+          break;
+        case 'ArrowDown':
+        case 'KeyS':
+          keys.down = false;
+          break;
+        case 'ArrowLeft':
+        case 'KeyA':
+          keys.left = false;
+          break;
+        case 'ArrowRight':
+        case 'KeyD':
+          keys.right = false;
+          break;
+      }
+    });
+
+    function togglePause() {
+      if (gameState === 'PLAY') {
+        gameState = 'PAUSE';
+        document.getElementById('overlay-pause').classList.remove('hidden');
+      } else if (gameState === 'PAUSE') {
+        gameState = 'PLAY';
+        document.getElementById('overlay-pause').classList.add('hidden');
+      }
+    }
+
+    function startGame() {
+      sound.init();
+      score = 0;
+      round = 1;
+      lives = 3;
+      setupRound(round);
+      gameState = 'PLAY';
+      document.getElementById('overlay-start').classList.add('hidden');
+      document.getElementById('overlay-gameover').classList.add('hidden');
+      document.getElementById('overlay-pause').classList.add('hidden');
+    }
+
+    // Touch & Virtual D-Pad Binding Helpers
+    function bindTouchBtn(elementId, keyProp) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+
+      const activate = (e) => {
+        e.preventDefault();
+        sound.init();
+        keys[keyProp] = true;
+        el.classList.add('active');
+        if (navigator.vibrate) navigator.vibrate(12);
+      };
+
+      const deactivate = (e) => {
+        e.preventDefault();
+        keys[keyProp] = false;
+        el.classList.remove('active');
+      };
+
+      el.addEventListener('touchstart', activate, { passive: false });
+      el.addEventListener('touchend', deactivate, { passive: false });
+      el.addEventListener('mousedown', activate);
+      el.addEventListener('mouseup', deactivate);
+      el.addEventListener('mouseleave', deactivate);
+    }
+
+    bindTouchBtn('dpad-up', 'up');
+    bindTouchBtn('dpad-down', 'down');
+    bindTouchBtn('dpad-left', 'left');
+    bindTouchBtn('dpad-right', 'right');
+
+    // Virtual Pump Action Button
+    const pumpBtn = document.getElementById('btn-touch-pump');
+    const onPumpTap = (e) => {
+      e.preventDefault();
+      if (gameState === 'START') {
+        startGame();
+        return;
+      }
+      if (gameState === 'PLAY') {
+        fireOrPump();
+        if (navigator.vibrate) navigator.vibrate(20);
+      }
+    };
+    pumpBtn.addEventListener('touchstart', onPumpTap, { passive: false });
+    pumpBtn.addEventListener('click', onPumpTap);
+
+    // Audio & CRT Toggles
+    const soundBtn = document.getElementById('btn-sound');
+    soundBtn.addEventListener('click', () => {
+      sound.init();
+      const active = sound.toggleMute();
+      soundBtn.innerText = active ? '🔊 AUDIO: ON' : '🔇 AUDIO: MUTE';
+      soundBtn.classList.toggle('text-yellow-400', active);
+      soundBtn.classList.toggle('text-zinc-500', !active);
+    });
+
+    const crtBtn = document.getElementById('btn-crt');
+    const screenContainer = document.getElementById('screen-container');
+    let crtEnabled = true;
+    crtBtn.addEventListener('click', () => {
+      crtEnabled = !crtEnabled;
+      screenContainer.classList.toggle('crt-effect', crtEnabled);
+      crtBtn.innerText = crtEnabled ? '📺 CRT: ON' : '📺 CRT: OFF';
+    });
+
+    // UI Buttons
+    document.getElementById('btn-play').addEventListener('click', startGame);
+    document.getElementById('btn-resume').addEventListener('click', togglePause);
+    document.getElementById('btn-restart').addEventListener('click', startGame);
+
+    // Initial setup on window load
+    window.onload = function() {
+      setupRound(1);
+      gameLoop();
+    };
+
+  })();
+  </script>
+</body>
+</html>
