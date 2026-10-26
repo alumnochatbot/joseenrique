@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zuma Deluxe - Edición Templo Azteca</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --stone-dark: #1c222b;
+            --stone-mid: #323c4a;
+            --stone-light: #526073;
+            --gold-bright: #ffd700;
+            --gold-dark: #996515;
+        }
+
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at center, #1e242b 0%, #0b0e12 100%);
+            font-family: 'Inter', sans-serif;
+            color: #f3f4f6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .aztec-font {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Marco de piedra tallada estilo Zuma Deluxe */
+        .zuma-cabinet {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            background: #2b3038;
+            border: 8px solid #6e6556;
+            border-image: linear-gradient(180deg, #9e927d 0%, #5c5344 50%, #3b352b 100%) 1;
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.9),
+                inset 0 0 25px rgba(0, 0, 0, 0.85);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* Barra Superior Tallada (HUD Clásico) */
+        .stone-hud {
+            background: linear-gradient(180deg, #6c675d 0%, #44403a 48%, #2d2a26 100%);
+            border-bottom: 4px solid #1c1917;
+            box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.25), 0 4px 10px rgba(0,0,0,0.7);
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .hud-recess {
+            background: linear-gradient(180deg, #0b0e0b 0%, #192219 100%);
+            border: 2px solid #857d6f;
+            border-top-color: #26231e;
+            border-left-color: #26231e;
+            border-radius: 6px;
+            padding: 3px 10px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stage-pill {
+            background: linear-gradient(180deg, #a81c07 0%, #630d02 100%);
+            border: 2px solid #d4af37;
+            border-radius: 999px;
+            padding: 2px 14px;
+            color: #ffde59;
+            font-weight: 900;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 3px #000;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.3), 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .score-box {
+            background: #080808;
+            border: 2px solid #787062;
+            border-top-color: #24211d;
+            border-radius: 6px;
+            padding: 2px 16px;
+            min-width: 120px;
+            text-align: right;
+            color: #ffe642;
+            font-weight: 900;
+            font-size: 1.25rem;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(255, 230, 66, 0.45), 0 2px 2px #000;
+            box-shadow: inset 0 3px 8px rgba(0,0,0,0.95);
+        }
+
+        /* Barra ZUMA dorada */
+        .zuma-meter-outer {
+            position: relative;
+            width: 135px;
+            height: 22px;
+            background: #1a0805;
+            border: 2px solid #b59449;
+            border-radius: 999px;
+            overflow: hidden;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.95);
+        }
+
+        .zuma-meter-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #991b1b 0%, #ea580c 45%, #facc15 85%, #fef08a 100%);
+            transition: width 0.25s ease-out;
+            box-shadow: 0 0 12px #facc15;
+        }
+
+        .zuma-meter-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            color: #fff;
+            text-shadow: 0 1px 3px #000, 0 0 4px #000;
+            pointer-events: none;
+        }
+
+        /* Botones estilo piedra/oro */
+        .btn-aztec {
+            background: linear-gradient(180deg, #575247 0%, #36322b 55%, #24211c 100%);
+            border: 2px solid #9c8f79;
+            border-bottom-color: #29251f;
+            border-right-color: #29251f;
+            color: #ffd942;
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            padding: 5px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-shadow: 0 2px 2px rgba(0,0,0,0.95);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.25);
+            transition: all 0.12s ease;
+        }
+
+        .btn-aztec:hover {
+            filter: brightness(1.15);
+            transform: translateY(-1px);
+        }
+
+        .btn-aztec:active {
+            transform: translateY(1px);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            background: #1a2129;
+            overflow: hidden;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Modal Superpuesto */
+        .modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(8, 10, 14, 0.82);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            padding: 16px;
+        }
+
+        .stone-tablet {
+            background: radial-gradient(circle at top, #3d372e 0%, #211d18 100%);
+            border: 4px solid #c5a059;
+            border-radius: 14px;
+            padding: 24px 28px;
+            max-width: 460px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.95), inset 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        .frog-life-icon {
+            width: 22px;
+            height: 22px;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.9));
+            transition: transform 0.2s ease;
+        }
+
+        @media (max-width: 640px) {
+            .stone-hud {
+                padding: 4px 8px;
+                gap: 4px;
+            }
+            .score-box {
+                min-width: 85px;
+                font-size: 1rem;
+                padding: 1px 8px;
+            }
+            .zuma-meter-outer {
+                width: 95px;
+                height: 18px;
+            }
+            .stage-pill {
+                font-size: 0.72rem;
+                padding: 2px 8px;
+            }
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4">
+
+    <!-- Contenedor Principal del Gabinete Zuma -->
+    <div class="zuma-cabinet">
+        
+        <!-- Barra Superior de Piedra (Fiel a la captura de Zuma Deluxe) -->
+        <header class="stone-hud">
+            <!-- Vidas (Ranas Verdes) -->
+            <div class="hud-recess" id="livesContainer" title="Vidas restantes">
+                <!-- Generado dinámicamente con iconos SVG de rana esmeralda -->
+            </div>
+
+            <!-- Indicador de Nivel / Templo -->
+            <div class="stage-pill aztec-font" id="levelBadge">
+                JAG 1-1
+            </div>
+
+            <!-- Puntaje Central Amarillo -->
+            <div class="score-box" id="scoreDisplay">
+                0
+            </div>
+
+            <!-- Barra de Progreso ZUMA! -->
+            <div class="zuma-meter-outer" title="Llena la barra dorada para detener la entrada de esferas">
+                <div class="zuma-meter-fill" id="zumaMeterFill"></div>
+                <div class="zuma-meter-text aztec-font" id="zumaMeterLabel">ZUMA 0%</div>
+            </div>
+
+            <!-- Botón MENU Clásico -->
+            <button id="menuBtn" class="btn-aztec text-xs sm:text-sm tracking-wider">
+                MENU
+            </button>
+        </header>
+
+        <!-- Área de Juego Canvas -->
+        <div class="canvas-wrapper" id="canvasContainer">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+            <!-- Modal de Menú / Pausa / Victoria / Fin del Juego -->
+            <div id="overlayModal" class="modal-backdrop">
+                <div class="stone-tablet">
+                    <div class="inline-block px-3 py-1 mb-2 rounded-full bg-amber-900/60 border border-amber-400/50 text-amber-300 text-xs font-bold tracking-widest uppercase">
+                        Templo de Quetzalcóatl
+                    </div>
+                    <h1 id="modalTitle" class="aztec-font text-3xl sm:text-4xl font-black text-amber-400 drop-shadow-[0_3px_4px_rgba(0,0,0,0.9)] mb-2">
+                        ZUMA DELUXE
+                    </h1>
+                    <p id="modalSubtitle" class="text-sm text-stone-300 mb-5 leading-relaxed">
+                        Dispara esferas mágicas desde el ídolo de piedra para unir <strong>3 o más del mismo color</strong> antes de que lleguen al Cráneo Solar Dorado.
+                    </p>
+
+                    <!-- Selector de Espiral / Nivel -->
+                    <div class="mb-5 text-left bg-black/40 p-3 rounded-lg border border-stone-700">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-amber-300 mb-2">
+                            Selecciona Santuario / Espiral:
+                        </label>
+                        <div class="grid grid-cols-3 gap-2" id="trackSelector">
+                            <button data-track="0" class="track-btn py-2 px-2 rounded border border-amber-400 bg-amber-900/50 text-amber-200 text-xs font-bold transition">
+                                1. Espiral Clásica
+                            </button>
+                            <button data-track="1" class="track-btn py-2 px-2 rounded border border-stone-600 bg-stone-800/60 text-stone-300 text-xs font-bold transition">
+                                2. Doble Sol
+                            </button>
+                            <button data-track="2" class="track-btn py-2 px-2 rounded border border-stone-600 bg-stone-800/60 text-stone-300 text-xs font-bold transition">
+                                3. Serpiente
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Guía rápida de controles y poderes -->
+                    <div class="grid grid-cols-2 gap-2 text-left text-xs text-stone-300 mb-5 bg-stone-900/70 p-3 rounded-lg border border-stone-700/80">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-white">🖱️</span>
+                            <span><strong>Click / Toque:</strong> Disparar</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-amber-600 flex items-center justify-center font-bold text-white">⇄</span>
+                            <span><strong>Click Der. / Espacio:</strong> Cambiar</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center font-bold text-white">⚡</span>
+                            <span><strong>Láser:</strong> Mira de precisión</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-rose-600 flex items-center justify-center font-bold text-white">💣</span>
+                            <span><strong>Bomba / Retroceso:</strong> Poderes</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-center gap-3">
+                        <button id="startBtn" class="btn-aztec text-base px-7 py-3">
+                            ¡JUGAR AHORA!
+                        </button>
+                        <button id="resumeBtn" class="btn-aztec text-base px-6 py-3 hidden">
+                            CONTINUAR
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra Inferior de Controles Rápidos (Ideal para Móvil y Escritorio) -->
+        <footer class="stone-hud border-t-4 border-b-0 border-stone-950 text-xs">
+            <div class="flex items-center gap-2">
+                <button id="swapBallBtn" class="btn-aztec flex items-center gap-1.5 text-xs py-1.5 px-3">
+                    <span>🔄</span> CAMBIAR ESFERA (ESPACIO)
+                </button>
+                <button id="soundToggleBtn" class="btn-aztec py-1.5 px-3 text-xs" title="Activar/Desactivar efectos de sonido">
+                    🔊 SONIDO: ON
+                </button>
+            </div>
+
+            <div class="flex items-center gap-3 text-stone-300 font-semibold">
+                <span id="activePowerStatus" class="text-cyan-300 font-bold hidden animate-pulse">
+                    ✨ LÁSER ACTIVO
+                </span>
+                <span class="hidden sm:inline text-amber-200/80">
+                    Click Derecho o Espacio alterna la esfera de la rana
+                </span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        /********************************************************************
+         * 1. MOTOR DE AUDIO SINTETIZADO (Web Audio API - Sin archivos externos)
+         ********************************************************************/
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playShoot() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(520, now + 0.09);
+
+                gain.gain.setValueAtTime(0.28, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.11);
+            }
+
+            playSwap() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(480, now);
+                osc.frequency.exponentialRampToValueAtTime(320, now + 0.06);
+
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.065);
+            }
+
+            playClack() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.exponentialRampToValueAtTime(75, now + 0.045);
+
+                gain.gain.setValueAtTime(0.22, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            }
+
+            playMatch(comboLevel = 1) {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const baseFreq = 330 * Math.pow(1.12, Math.min(comboLevel, 8));
+                const notes = [baseFreq, baseFreq * 1.25, baseFreq * 1.5];
+
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.055);
+                    gain.gain.setValueAtTime(0.24, now + idx * 0.055);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.055 + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.055);
+                    osc.stop(now + idx * 0.055 + 0.26);
+                });
+            }
+
+            playBomb() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const bufferSize = this.ctx.sampleRate * 0.35;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.1));
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(420, now);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start(now);
+            }
+
+            playZumaChant() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const chord = [261.63, 329.63, 392.00, 523.25];
+                chord.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.04);
+                    gain.gain.setValueAtTime(0.12, now + i * 0.04);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + i * 0.04);
+                    osc.stop(now + 0.66);
+                });
+            }
+
+            playCoin() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                [987.77, 1318.51].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+                    gain.gain.setValueAtTime(0.22, now + idx * 0.07);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.07);
+                    osc.stop(now + idx * 0.07 + 0.26);
+                });
+            }
+        }
+
+        const sfx = new SoundEngine();
+
+        /********************************************************************
+         * 2. CONFIGURACIÓN DE COLORES, CONSTANTES Y CAMINOS (TRACKS)
+         ********************************************************************/
+        const W = 800;
+        const H = 600;
+        const BALL_RADIUS = 16;
+        const BALL_DIAMETER = BALL_RADIUS * 2;
+
+        const MARBLE_PALETTE = [
+            { id: 'red',    main: '#ef233c', light: '#ff8fa3', dark: '#640d14', glow: '#ff4d6d', symbol: '☀' },
+            { id: 'blue',   main: '#0077b6', light: '#90e0ef', dark: '#03045e', glow: '#00b4d8', symbol: '♒' },
+            { id: 'green',  main: '#2dc653', light: '#b7efc5', dark: '#10451d', glow: '#4ad66d', symbol: '❖' },
+            { id: 'yellow', main: '#ffbe0b', light: '#fff3b0', dark: '#7f4f24', glow: '#ffda3d', symbol: '▲' },
+            { id: 'purple', main: '#9d4edd', light: '#e0aaff', dark: '#3c096c', glow: '#c77dff', symbol: '◈' },
+            { id: 'silver', main: '#ced4da', light: '#ffffff', dark: '#495057', glow: '#f8f9fa', symbol: '✦' }
+        ];
+
+        const POWERUPS = ['NONE', 'BOMB', 'LASER', 'REVERSE', 'SLOW'];
+
+        /**
+         * Genera una tabla de búsqueda por longitud de arco (Arc-Length LUT)
+         * para que las esferas mantengan una separación exacta de 32px en curvas cerradas o abiertas.
+         */
+        function buildArcLengthTable(rawPoints) {
+            const lut = [];
+            let totalLen = 0;
+            lut.push({ x: rawPoints[0].x, y: rawPoints[0].y, angle: 0, dist: 0 });
+
+            for (let i = 1; i < rawPoints.length; i++) {
+                const dx = rawPoints[i].x - rawPoints[i - 1].x;
+                const dy = rawPoints[i].y - rawPoints[i - 1].y;
+                const segLen = Math.hypot(dx, dy);
+                if (segLen > 0.0001) {
+                    totalLen += segLen;
+                    const angle = Math.atan2(dy, dx);
+                    lut.push({
+                        x: rawPoints[i].x,
+                        y: rawPoints[i].y,
+                        angle,
+                        dist: totalLen
+                    });
+                }
+            }
+            if (lut.length > 1) lut[0].angle = lut[1].angle;
+
+            // Remuestrear cada 1 píxel para acceso O(1) ultra rápido
+            const uniform = [];
+            const maxDist = Math.floor(totalLen);
+            let cursor = 0;
+
+            for (let d = 0; d <= maxDist; d++) {
+                while (cursor < lut.length - 2 && lut[cursor + 1].dist < d) {
+                    cursor++;
+                }
+                const a = lut[cursor];
+                const b = lut[cursor + 1];
+                const span = b.dist - a.dist || 1;
+                const t = Math.max(0, Math.min(1, (d - a.dist) / span));
+                uniform.push({
+                    x: a.x + (b.x - a.x) * t,
+                    y: a.y + (b.y - a.y) * t,
+                    angle: a.angle
+                });
+            }
+
+            return {
+                samples: uniform,
+                totalLength: uniform.length - 1
+            };
+        }
+
+        /**
+         * Diseños de los 3 santuarios inspirados en Zuma Deluxe (incluyendo la espiral elíptica con soles dorados)
+         */
+        function createTrackGeometry(trackIndex) {
+            const raw = [];
+            const cx = W / 2;
+            const cy = H / 2 + 6;
+
+            if (trackIndex === 0) {
+                // SANTUARIO 1: Espiral Clásica Zuma Deluxe (Fiel a la imagen de referencia)
+                // Entra por arriba a la izquierda y da 2.75 vueltas elípticas hasta el Sol Dorado derecho
+                const totalSteps = 1600;
+                for (let i = 0; i <= totalSteps; i++) {
+                    const u = i / totalSteps;
+                    // Ángulo desde -0.68*PI dando casi 2.85 vueltas en sentido horario
+                    const theta = -2.25 + u * (Math.PI * 2 * 2.62);
+                    const rx = 368 - u * 212;
+                    const ry = 262 - u * 168;
+                    const x = cx + Math.cos(theta) * rx;
+                    const y = cy + Math.sin(theta) * ry;
+                    raw.push({ x, y });
+                }
+                return {
+                    name: 'JAG 1',
+                    frogPos: { x: cx - 6, y: cy + 4 },
+                    decorSkulls: [{ x: cx - 154, y: cy + 4 }], // Segundo sol decorativo izquierdo como en la foto
+                    lut: buildArcLengthTable(raw)
+                };
+            } else if (trackIndex === 1) {
+                // SANTUARIO 2: Templo del Doble Sol (Espiral exterior amplia que serpentea al altar izquierdo)
+                const totalSteps = 1500;
+                for (let i = 0; i <= totalSteps; i++) {
+                    const u = i / totalSteps;
+                    const theta = Math.PI * 1.05 + u * (Math.PI * 2 * 2.35);
+                    const wave = Math.sin(u * Math.PI * 8) * 8 * (1 - u * 0.5);
+                    const rx = (355 - u * 205) + wave;
+                    const ry = (252 - u * 155) + wave;
+                    const x = cx + Math.cos(theta) * rx;
+                    const y = cy + Math.sin(theta) * ry;
+                    raw.push({ x, y });
+                }
+                return {
+                    name: 'SOL 2',
+                    frogPos: { x: cx, y: cy },
+                    decorSkulls: [{ x: cx + 152, y: cy }],
+                    lut: buildArcLengthTable(raw)
+                };
+            } else {
+                // SANTUARIO 3: Espiral de Quetzalcóatl (Órbita mística de alta velocidad)
+                const totalSteps = 1500;
+                for (let i = 0; i <= totalSteps; i++) {
+                    const u = i / totalSteps;
+                    const theta = -Math.PI * 0.5 + u * (Math.PI * 2 * 2.5);
+                    const rx = 360 - u * 215;
+                    const ry = 256 - u * 162;
+                    const x = cx + Math.cos(theta) * rx;
+                    const y = cy - Math.sin(theta) * ry; // Sentido inverso
+                    raw.push({ x, y });
+                }
+                return {
+                    name: 'QZL 3',
+                    frogPos: { x: cx, y: cy },
+                    decorSkulls: [],
+                    lut: buildArcLengthTable(raw)
+                };
+            }
+        }
+
+        /********************************************************************
+         * 3. PRE-RENDERIZADO DEL TABLERO DE PIEDRA TALLADA (60 FPS FLUIDOS)
+         ********************************************************************/
+        const bgCanvas = document.createElement('canvas');
+        bgCanvas.width = W;
+        bgCanvas.height = H;
+        const bgCtx = bgCanvas.getContext('2d');
+
+        function renderStoneBackground(trackData) {
+            bgCtx.clearRect(0, 0, W, H);
+
+            // 1. Base de piedra azul-grisácea oscura (exacta a la captura de Zuma Deluxe)
+            const baseGrad = bgCtx.createRadialGradient(W / 2, H / 2, 40, W / 2, H / 2, 520);
+            baseGrad.addColorStop(0, '#445263');
+            baseGrad.addColorStop(0.55, '#2b3542');
+            baseGrad.addColorStop(1, '#181e26');
+            bgCtx.fillStyle = baseGrad;
+            bgCtx.fillRect(0, 0, W, H);
+
+            // 2. Textura granulada de piedra tallada y relieves aztecas
+            for (let i = 0; i < 4200; i++) {
+                const px = Math.random() * W;
+                const py = Math.random() * H;
+                const sz = Math.random() * 2.4 + 0.5;
+                bgCtx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.08)';
+                bgCtx.fillRect(px, py, sz, sz);
+            }
+
+            // Líneas concéntricas talladas en la roca
+            bgCtx.strokeStyle = 'rgba(15, 20, 28, 0.35)';
+            bgCtx.lineWidth = 2;
+            for (let r = 90; r < 460; r += 46) {
+                bgCtx.beginPath();
+                bgCtx.ellipse(W / 2, H / 2, r * 1.25, r * 0.9, 0, 0, Math.PI * 2);
+                bgCtx.stroke();
+            }
+
+            const samples = trackData.lut.samples;
+
+            // 3. Borde exterior biselado del canal por donde ruedan las esferas
+            bgCtx.lineCap = 'round';
+            bgCtx.lineJoin = 'round';
+
+            // Sombra exterior del surco
+            bgCtx.beginPath();
+            for (let i = 0; i < samples.length; i += 3) {
+                if (i === 0) bgCtx.moveTo(samples[i].x, samples[i].y);
+                else bgCtx.lineTo(samples[i].x, samples[i].y);
+            }
+            bgCtx.strokeStyle = '#11161d';
+            bgCtx.lineWidth = BALL_DIAMETER + 14;
+            bgCtx.stroke();
+
+            // Reborde de piedra iluminada
+            bgCtx.strokeStyle = '#536275';
+            bgCtx.lineWidth = BALL_DIAMETER + 9;
+            bgCtx.stroke();
+
+            // Canal interior oscuro hundido
+            bgCtx.strokeStyle = '#1b222c';
+            bgCtx.lineWidth = BALL_DIAMETER + 2;
+            bgCtx.stroke();
+
+            // Surco central guía con muescas mayas
+            bgCtx.strokeStyle = '#12171e';
+            bgCtx.lineWidth = 10;
+            bgCtx.stroke();
+
+            // Muescas transversales a lo largo del camino
+            bgCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            bgCtx.lineWidth = 2;
+            for (let d = 20; d < samples.length - 30; d += 26) {
+                const pt = samples[d];
+                const nx = -Math.sin(pt.angle) * 13;
+                const ny = Math.cos(pt.angle) * 13;
+                bgCtx.beginPath();
+                bgCtx.moveTo(pt.x - nx, pt.y - ny);
+                bgCtx.lineTo(pt.x + nx, pt.y + ny);
+                bgCtx.stroke();
+            }
+
+            // 4. Pedestal circular de piedra central para la Rana Ídolo
+            const fx = trackData.frogPos.x;
+            const fy = trackData.frogPos.y;
+
+            const pedGrad = bgCtx.createRadialGradient(fx, fy, 12, fx, fy, 74);
+            pedGrad.addColorStop(0, '#1e252e');
+            pedGrad.addColorStop(0.72, '#3d4957');
+            pedGrad.addColorStop(0.88, '#667587');
+            pedGrad.addColorStop(1, '#141920');
+
+            bgCtx.fillStyle = pedGrad;
+            bgCtx.beginPath();
+            bgCtx.arc(fx, fy, 74, 0, Math.PI * 2);
+            bgCtx.fill();
+
+            // Anillo tallado del pedestal central
+            bgCtx.strokeStyle = '#1b2028';
+            bgCtx.lineWidth = 4;
+            bgCtx.beginPath();
+            bgCtx.arc(fx, fy, 64, 0, Math.PI * 2);
+            bgCtx.stroke();
+
+            // Sol decorativo secundario (como el sol izquierdo en la captura de Zuma Deluxe)
+            if (trackData.decorSkulls) {
+                trackData.decorSkulls.forEach(sk => {
+                    drawSunSkull(bgCtx, sk.x, sk.y, 0, true);
+                });
+            }
+        }
+
+        /**
+         * Dibuja el icónico Sol Dorado / Cráneo Azteca al final de la espiral
+         */
+        function drawSunSkull(ctx, x, y, dangerOpen = 0, isStaticDecor = false) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Rayos del Sol Dorado (8 puntas triangulares como en la imagen)
+            const rays = 8;
+            for (let i = 0; i < rays; i++) {
+                ctx.save();
+                ctx.rotate((i * Math.PI * 2) / rays);
+                ctx.beginPath();
+                ctx.moveTo(-12, -26);
+                ctx.lineTo(0, -48 - dangerOpen * 5);
+                ctx.lineTo(12, -26);
+                ctx.closePath();
+                const rayGrad = ctx.createLinearGradient(0, -26, 0, -48);
+                rayGrad.addColorStop(0, '#a17c1b');
+                rayGrad.addColorStop(1, dangerOpen > 0.3 ? '#ff4d00' : '#ffd700');
+                ctx.fillStyle = rayGrad;
+                ctx.fill();
+                ctx.strokeStyle = '#3d2c05';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Disco exterior de oro viejo
+            const discGrad = ctx.createRadialGradient(-6, -6, 5, 0, 0, 32);
+            discGrad.addColorStop(0, '#ffe169');
+            discGrad.addColorStop(0.65, '#b8860b');
+            discGrad.addColorStop(1, '#593e04');
+            ctx.fillStyle = discGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, 31, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#2b1d02';
+            ctx.stroke();
+
+            // Pozo abismal negro donde caen las esferas
+            ctx.fillStyle = dangerOpen > 0.2 ? `rgba(${Math.floor(120 * dangerOpen)}, 0, 0, 0.95)` : '#060709';
+            ctx.beginPath();
+            ctx.arc(0, 0, 19 + dangerOpen * 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Mandíbulas doradas talladas
+            const jawOffset = dangerOpen * 6;
+            ctx.fillStyle = '#d4af37';
+            ctx.strokeStyle = '#3b2b06';
+            ctx.lineWidth = 1.5;
+
+            // Dientes superiores
+            for (let t = -10; t <= 10; t += 7) {
+                ctx.fillRect(t - 2.5, -15 - jawOffset, 5, 7);
+                ctx.strokeRect(t - 2.5, -15 - jawOffset, 5, 7);
+            }
+            // Dientes inferiores
+            for (let t = -10; t <= 10; t += 7) {
+                ctx.fillRect(t - 2.5, 8 + jawOffset, 5, 7);
+                ctx.strokeRect(t - 2.5, 8 + jawOffset, 5, 7);
+            }
+
+            ctx.restore();
+        }
+
+        /********************************************************************
+         * 4. ESTADO PRINCIPAL DEL JUEGO Y LÓGICA DE CADENA ZUMA
+         ********************************************************************/
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let currentTrackIndex = 0;
+        let track = createTrackGeometry(currentTrackIndex);
+        renderStoneBackground(track);
+
+        let gameState = 'MENU'; // 'MENU', 'PLAYING', 'PAUSED', 'LEVEL_CLEAR', 'LOST_LIFE', 'GAMEOVER'
+        let score = 0;
+        let lives = 3;
+        let level = 1;
+        let zumaProgress = 0;
+        let zumaModeTriggered = false;
+        let comboCounter = 0;
+
+        // Arreglos de entidades del juego
+        let marbles = [];       // Esferas en el camino ordenadas de atrás (menor dist) hacia adelante (mayor dist)
+        let bullets = [];       // Esferas disparadas por la rana
+        let particles = [];     // Chispas luminosas (idénticas a las de la foto cuando explotan esferas)
+        let floatingTexts = []; // Textos flotantes "+230", "COMBO x3!"
+        let bonusCoin = null;   // Moneda dorada giratoria en las esquinas
+
+        // Estado del Ídolo de la Rana
+        const frog = {
+            x: track.frogPos.x,
+            y: track.frogPos.y,
+            angle: 0,
+            currentColor: 0,
+            nextColor: 1,
+            recoil: 0,
+            shootCooldown: 0
+        };
+
+        // Temporizadores de poderes activos
+        const activeTimers = {
+            laser: 0,
+            slow: 0,
+            reverse: 0
+        };
+
+        let spawnedCount = 0;
+        let totalMarblesForLevel = 55;
+        let colorCountForLevel = 4;
+
+        /**
+         * Actualiza los íconos de rana esmeralda en la esquina superior izquierda del HUD
+         */
+        function updateLivesHUD() {
+            const container = document.getElementById('livesContainer');
+            container.innerHTML = '';
+            for (let i = 0; i < Math.max(0, lives); i++) {
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('viewBox', '0 0 24 24');
+                svg.setAttribute('class', 'frog-life-icon');
+                svg.innerHTML = `
+                    <circle cx="7" cy="7" r="3.5" fill="#2dc653" stroke="#0b3b17" stroke-width="1.5"/>
+                    <circle cx="17" cy="7" r="3.5" fill="#2dc653" stroke="#0b3b17" stroke-width="1.5"/>
+                    <ellipse cx="12" cy="13" rx="8" ry="6.5" fill="#2dc653" stroke="#0b3b17" stroke-width="1.5"/>
+                    <circle cx="7" cy="6.5" r="1.3" fill="#ffbe0b"/>
+                    <circle cx="17" cy="6.5" r="1.3" fill="#ffbe0b"/>
+                    <path d="M7 15 Q12 18 17 15" stroke="#0b3b17" stroke-width="1.6" fill="none"/>
+                `;
+                container.appendChild(svg);
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('scoreDisplay').textContent = score.toLocaleString('es-ES');
+            document.getElementById('levelBadge').textContent = `${track.name}-${level}`;
+            const pct = Math.min(100, Math.floor(zumaProgress));
+            document.getElementById('zumaMeterFill').style.width = `${pct}%`;
+            document.getElementById('zumaMeterLabel').textContent = zumaModeTriggered ? '¡ZUMA!' : `ZUMA ${pct}%`;
+
+            const powerBadge = document.getElementById('activePowerStatus');
+            if (activeTimers.laser > 0) {
+                powerBadge.textContent = `✨ MIRA LÁSER (${Math.ceil(activeTimers.laser)}s)`;
+                powerBadge.classList.remove('hidden');
+            } else if (activeTimers.slow > 0) {
+                powerBadge.textContent = `❄️ LENTITUD (${Math.ceil(activeTimers.slow)}s)`;
+                powerBadge.classList.remove('hidden');
+            } else if (activeTimers.reverse > 0) {
+                powerBadge.textContent = `⏪ RETROCESO ACTIVO`;
+                powerBadge.classList.remove('hidden');
+            } else {
+                powerBadge.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Obtiene los colores actualmente presentes en la pista para que la rana no dé colores inútiles
+         */
+        function getAvailableColorsInChain() {
+            if (marbles.length === 0) {
+                return Array.from({ length: colorCountForLevel }, (_, i) => i);
+            }
+            const present = new Set();
+            for (const m of marbles) present.add(m.color);
+            return Array.from(present);
+        }
+
+        function pickFrogColor() {
+            const avail = getAvailableColorsInChain();
+            return avail[Math.floor(Math.random() * avail.length)];
+        }
+
+        function ensureValidFrogColors() {
+            if (marbles.length === 0) return;
+            const avail = getAvailableColorsInChain();
+            if (!avail.includes(frog.currentColor)) {
+                frog.currentColor = avail[Math.floor(Math.random() * avail.length)];
+            }
+            if (!avail.includes(frog.nextColor)) {
+                frog.nextColor = avail[Math.floor(Math.random() * avail.length)];
+            }
+        }
+
+        /**
+         * Crea una nueva esfera para la cadena, favoreciendo pequeños grupos de 1-3 del mismo color
+         * como en el algoritmo original de Zuma Deluxe.
+         */
+        function createChainMarble(dist) {
+            let color = Math.floor(Math.random() * colorCountForLevel);
+            if (marbles.length > 0 && Math.random() < 0.42) {
+                color = marbles[0].color;
+            }
+            let power = 'NONE';
+            if (Math.random() < 0.085) {
+                const pList = ['BOMB', 'LASER', 'REVERSE', 'SLOW'];
+                power = pList[Math.floor(Math.random() * pList.length)];
+            }
+            return {
+                dist,
+                color,
+                power,
+                vy: 0,
+                backVel: 0,
+                rollPhase: Math.random() * Math.PI * 2
+            };
+        }
+
+        function initLevel(resetScoreAndLives = false) {
+            if (resetScoreAndLives) {
+                score = 0;
+                lives = 3;
+                level = 1;
+            }
+            track = createTrackGeometry(currentTrackIndex);
+            renderStoneBackground(track);
+
+            frog.x = track.frogPos.x;
+            frog.y = track.frogPos.y;
+            frog.recoil = 0;
+
+            colorCountForLevel = Math.min(6, 4 + Math.floor((level - 1) / 2));
+            totalMarblesForLevel = 48 + level * 10;
+            spawnedCount = 0;
+            zumaProgress = 0;
+            zumaModeTriggered = false;
+            comboCounter = 0;
+
+            activeTimers.laser = 0;
+            activeTimers.slow = 0;
+            activeTimers.reverse = 0;
+
+            marbles = [];
+            bullets = [];
+            particles = [];
+            floatingTexts = [];
+            bonusCoin = null;
+
+            // Generar hilera inicial de 24 esferas que entran rápido como al inicio de Zuma
+            const initialCount = 24;
+            for (let i = 0; i < initialCount; i++) {
+                const d = (i + 1) * BALL_DIAMETER;
+                const m = createChainMarble(d);
+                marbles.push(m);
+                spawnedCount++;
+            }
+
+            frog.currentColor = pickFrogColor();
+            frog.nextColor = pickFrogColor();
+
+            updateLivesHUD();
+            updateHUD();
+        }
+
+        /********************************************************************
+         * 5. DISPARO, INTERCAMBIO Y COLISIONES EN LA CADENA
+         ********************************************************************/
+        function shootMarble() {
+            if (gameState !== 'PLAYING' || frog.shootCooldown > 0) return;
+
+            const speed = activeTimers.laser > 0 ? 18.5 : 14.5;
+            const muzzleDist = 34;
+            const bx = frog.x + Math.cos(frog.angle) * muzzleDist;
+            const by = frog.y + Math.sin(frog.angle) * muzzleDist;
+
+            bullets.push({
+                x: bx,
+                y: by,
+                vx: Math.cos(frog.angle) * speed,
+                vy: Math.sin(frog.angle) * speed,
+                color: frog.currentColor
+            });
+
+            frog.recoil = 10;
+            frog.shootCooldown = 0.14;
+            frog.currentColor = frog.nextColor;
+            frog.nextColor = pickFrogColor();
+
+            sfx.playShoot();
+        }
+
+        function swapFrogMarbles() {
+            if (gameState !== 'PLAYING') return;
+            const tmp = frog.currentColor;
+            frog.currentColor = frog.nextColor;
+            frog.nextColor = tmp;
+            sfx.playSwap();
+        }
+
+        /**
+         * Crea chispas brillantes idénticas a la explosión luminosa de la derecha de la captura
+         */
+        function spawnExplosionSparkles(x, y, colorObj, count = 22) {
+            for (let i = 0; i < count; i++) {
+                const ang = Math.random() * Math.PI * 2;
+                const spd = Math.random() * 5.2 + 1.2;
+                particles.push({
+                    x,
+                    y,
+                    vx: Math.cos(ang) * spd,
+                    vy: Math.sin(ang) * spd,
+                    radius: Math.random() * 7 + 4,
+                    color: Math.random() < 0.45 ? '#ffffff' : colorObj.glow,
+                    alpha: 1,
+                    decay: Math.random() * 0.03 + 0.022
+                });
+            }
+        }
+
+        function addFloatingScore(x, y, text, color = '#60a5fa') {
+            floatingTexts.push({
+                x,
+                y,
+                text,
+                color,
+                alpha: 1,
+                vy: -1.4
+            });
+        }
+
+        /**
+         * Evalúa si desde el índice `insertIdx` hay 3 o más esferas contiguas del mismo color
+         */
+        function evaluateMatchAt(insertIdx, isChainReaction = false) {
+            if (insertIdx < 0 || insertIdx >= marbles.length) return false;
+
+            const targetColor = marbles[insertIdx].color;
+            let start = insertIdx;
+            let end = insertIdx;
+
+            // Buscar hacia atrás siempre que estén físicamente pegadas (sin brecha > 36px)
+            while (
+                start > 0 &&
+                marbles[start - 1].color === targetColor &&
+                Math.abs(marbles[start].dist - marbles[start - 1].dist) <= BALL_DIAMETER + 5
+            ) {
+                start--;
+            }
+
+            // Buscar hacia adelante siempre que estén físicamente pegadas
+            while (
+                end < marbles.length - 1 &&
+                marbles[end + 1].color === targetColor &&
+                Math.abs(marbles[end + 1].dist - marbles[end].dist) <= BALL_DIAMETER + 5
+            ) {
+                end++;
+            }
+
+            const matchCount = end - start + 1;
+            if (matchCount < 3) {
+                if (!isChainReaction) comboCounter = 0;
+                return false;
+            }
+
+            comboCounter++;
+            sfx.playMatch(comboCounter);
+
+            // Centro del grupo eliminado para mostrar el texto "+230" como en la foto
+            const midMarble = marbles[Math.floor((start + end) / 2)];
+            const midPos = getTrackPoint(midMarble.dist);
+
+            // Verificar poderes especiales dentro del grupo eliminado
+            let bombCenterDist = null;
+            for (let i = start; i <= end; i++) {
+                const m = marbles[i];
+                const pt = getTrackPoint(m.dist);
+                spawnExplosionSparkles(pt.x, pt.y, MARBLE_PALETTE[m.color], 20);
+
+                if (m.power === 'BOMB') {
+                    bombCenterDist = m.dist;
+                } else if (m.power === 'LASER') {
+                    activeTimers.laser = 12;
+                    addFloatingScore(pt.x, pt.y - 18, '¡LÁSER ACTIVO!', '#22d3ee');
+                } else if (m.power === 'REVERSE') {
+                    activeTimers.reverse = 4.5;
+                    addFloatingScore(pt.x, pt.y - 18, '¡RETROCESO!', '#f472b6');
+                } else if (m.power === 'SLOW') {
+                    activeTimers.slow = 10;
+                    addFloatingScore(pt.x, pt.y - 18, '¡LENTITUD!', '#a78bfa');
+                }
+            }
+
+            // Eliminar el segmento coincidente
+            marbles.splice(start, matchCount);
+
+            // Si había una bomba, explota un radio adicional alrededor
+            if (bombCenterDist !== null) {
+                sfx.playBomb();
+                for (let i = marbles.length - 1; i >= 0; i--) {
+                    if (Math.abs(marbles[i].dist - bombCenterDist) <= BALL_DIAMETER * 3.2) {
+                        const bPt = getTrackPoint(marbles[i].dist);
+                        spawnExplosionSparkles(bPt.x, bPt.y, MARBLE_PALETTE[marbles[i].color], 24);
+                        marbles.splice(i, 1);
+                    }
+                }
+            }
+
+            // Calcular puntaje estilo Zuma Deluxe (+100, +230, etc.)
+            const gained = matchCount * 40 + (comboCounter > 1 ? comboCounter * 75 : 0);
+            score += gained;
+
+            const label = comboCounter > 1 ? `+${gained} (COMBO x${comboCounter})` : `+${gained}`;
+            addFloatingScore(midPos.x, midPos.y, label, comboCounter > 1 ? '#fde047' : '#38bdf8');
+
+            // Llenar la barra dorada ZUMA
+            if (!zumaModeTriggered) {
+                zumaProgress = Math.min(100, zumaProgress + matchCount * 4.2 + comboCounter * 2.5);
+                if (zumaProgress >= 100) {
+                    zumaModeTriggered = true;
+                    activeTimers.reverse = 2.8;
+                    sfx.playZumaChant();
+                    addFloatingScore(W / 2, H / 2 - 90, '¡ZUMA!', '#ffd700');
+                }
+            }
+
+            ensureValidFrogColors();
+            updateHUD();
+            return true;
+        }
+
+        function getTrackPoint(dist) {
+            const idx = Math.max(0, Math.min(track.lut.totalLength, Math.round(dist)));
+            return track.lut.samples[idx];
+        }
+
+        /********************************************************************
+         * 6. BUCLE DE ACTUALIZACIÓN FÍSICA (60 FPS)
+         ********************************************************************/
+        function updateGame(dt) {
+            if (gameState !== 'PLAYING') return;
+
+            // Reducir temporizadores de poderes
+            if (frog.shootCooldown > 0) frog.shootCooldown = Math.max(0, frog.shootCooldown - dt);
+            if (frog.recoil > 0) frog.recoil = Math.max(0, frog.recoil - dt * 45);
+
+            let hudNeedsRefresh = false;
+            if (activeTimers.laser > 0) {
+                activeTimers.laser = Math.max(0, activeTimers.laser - dt);
+                hudNeedsRefresh = true;
+            }
+            if (activeTimers.slow > 0) {
+                activeTimers.slow = Math.max(0, activeTimers.slow - dt);
+                hudNeedsRefresh = true;
+            }
+            if (activeTimers.reverse > 0) {
+                activeTimers.reverse = Math.max(0, activeTimers.reverse - dt);
+                hudNeedsRefresh = true;
+            }
+            if (hudNeedsRefresh) updateHUD();
+
+            // Aparición de la moneda dorada giratoria en las esquinas (como en la foto)
+            if (!bonusCoin && Math.random() < 0.0025) {
+                const spots = [
+                    { x: 64, y: H - 56 },
+                    { x: W - 64, y: H - 56 },
+                    { x: 64, y: 68 },
+                    { x: W - 64, y: 68 }
+                ];
+                const chosen = spots[Math.floor(Math.random() * spots.length)];
+                bonusCoin = { x: chosen.x, y: chosen.y, life: 11, phase: 0 };
+            }
+            if (bonusCoin) {
+                bonusCoin.life -= dt;
+                bonusCoin.phase += dt * 7;
+                if (bonusCoin.life <= 0) bonusCoin = null;
+            }
+
+            // 1. Generar nuevas esferas al inicio de la espiral mientras no se haya llenado la barra ZUMA
+            if (!zumaModeTriggered && spawnedCount < totalMarblesForLevel) {
+                if (marbles.length === 0 || marbles[0].dist >= BALL_DIAMETER) {
+                    const newDist = marbles.length === 0 ? 2 : marbles[0].dist - BALL_DIAMETER;
+                    marbles.unshift(createChainMarble(Math.max(0, newDist)));
+                    spawnedCount++;
+                }
+            }
+
+            // 2. Calcular velocidad de empuje de la hilera principal
+            let pushSpeed = (28 + level * 4.5) * dt;
+            // Al principio del nivel entran rápido en los primeros 320px
+            if (marbles.length > 0 && marbles[marbles.length - 1].dist < 380 && !zumaModeTriggered) {
+                pushSpeed = 165 * dt;
+            }
+            if (activeTimers.slow > 0) pushSpeed *= 0.38;
+            if (activeTimers.reverse > 0) pushSpeed = -110 * dt;
+
+            if (marbles.length > 0) {
+                // La primera esfera (cola) es empujada o retrocede
+                if (activeTimers.reverse > 0) {
+                    for (let i = 0; i < marbles.length; i++) {
+                        marbles[i].dist = Math.max(8, marbles[i].dist + pushSpeed);
+                    }
+                } else {
+                    marbles[0].dist += pushSpeed;
+                    marbles[0].rollPhase += pushSpeed * 0.08;
+                }
+
+                // Propagar el empuje hacia adelante cuando las esferas se tocan y gestionar atracción magnética en brechas
+                for (let i = 1; i < marbles.length; i++) {
+                    const prev = marbles[i - 1];
+                    const curr = marbles[i];
+                    const minAllowedDist = prev.dist + BALL_DIAMETER;
+
+                    if (curr.dist < minAllowedDist) {
+                        // La esfera trasera empuja a la delantera
+                        curr.dist = minAllowedDist;
+                        curr.rollPhase += pushSpeed * 0.08;
+                        curr.backVel = 0;
+                    } else if (curr.dist > minAllowedDist + 1.5) {
+                        // Hay una brecha entre el segmento trasero (prev) y el delantero (curr)
+                        if (prev.color === curr.color) {
+                            // ¡ATRACCIÓN MAGNÉTICA ZUMA! Los extremos del mismo color se atraen hacia atrás
+                            curr.backVel = Math.min(340, (curr.backVel || 60) + 420 * dt);
+                            const pullStep = curr.backVel * dt;
+
+                            // Mover hacia atrás todo el sub-segmento conectado desde `i` en adelante
+                            let segEnd = i;
+                            while (
+                                segEnd < marbles.length - 1 &&
+                                marbles[segEnd + 1].dist - marbles[segEnd].dist <= BALL_DIAMETER + 2.5
+                            ) {
+                                segEnd++;
+                            }
+                            for (let k = i; k <= segEnd; k++) {
+                                marbles[k].dist -= pullStep;
+                            }
+
+                            // ¿Chocaron y cerraron la brecha?
+                            if (marbles[i].dist <= minAllowedDist + 1.5) {
+                                const fixDelta = minAllowedDist - marbles[i].dist;
+                                for (let k = i; k <= segEnd; k++) {
+                                    marbles[k].dist += fixDelta;
+                                    marbles[k].backVel = 0;
+                                }
+                                sfx.playClack();
+                                evaluateMatchAt(i, true);
+                                break;
+                            }
+                        } else {
+                            curr.backVel = 0;
+                        }
+                    }
+                }
+            }
+
+            // 3. Actualizar proyectiles disparados desde la rana
+            for (let bIdx = bullets.length - 1; bIdx >= 0; bIdx--) {
+                const b = bullets[bIdx];
+                b.x += b.vx;
+                b.y += b.vy;
+
+                // ¿Salieron de los límites de la pantalla?
+                if (b.x < -30 || b.x > W + 30 || b.y < -30 || b.y > H + 30) {
+                    bullets.splice(bIdx, 1);
+                    comboCounter = 0;
+                    continue;
+                }
+
+                // ¿Golpeó la moneda dorada de bonificación?
+                if (bonusCoin && Math.hypot(b.x - bonusCoin.x, b.y - bonusCoin.y) <= BALL_RADIUS + 18) {
+                    sfx.playCoin();
+                    score += 500;
+                    zumaProgress = Math.min(100, zumaProgress + 15);
+                    addFloatingScore(bonusCoin.x, bonusCoin.y, '+500 MONEDA DORADA', '#ffd700');
+                    spawnExplosionSparkles(bonusCoin.x, bonusCoin.y, MARBLE_PALETTE[3], 26);
+                    bonusCoin = null;
+                    bullets.splice(bIdx, 1);
+                    updateHUD();
+                    continue;
+                }
+
+                // ¿Colisionó con alguna esfera en la espiral?
+                let hitIndex = -1;
+                let minDistSq = (BALL_DIAMETER - 3) * (BALL_DIAMETER - 3);
+
+                for (let i = 0; i < marbles.length; i++) {
+                    const pt = getTrackPoint(marbles[i].dist);
+                    const dx = b.x - pt.x;
+                    const dy = b.y - pt.y;
+                    const dSq = dx * dx + dy * dy;
+                    if (dSq <= minDistSq) {
+                        minDistSq = dSq;
+                        hitIndex = i;
+                    }
+                }
+
+                if (hitIndex !== -1) {
+                    const targetMarble = marbles[hitIndex];
+                    const pt = getTrackPoint(targetMarble.dist);
+                    // Producto punto con la tangente del camino para saber si se inserta delante o detrás
+                    const tx = Math.cos(pt.angle);
+                    const ty = Math.sin(pt.angle);
+                    const dot = (b.x - pt.x) * tx + (b.y - pt.y) * ty;
+
+                    let insertIdx = dot >= 0 ? hitIndex + 1 : hitIndex;
+                    let insertDist = dot >= 0
+                        ? targetMarble.dist + BALL_DIAMETER
+                        : Math.max(4, targetMarble.dist);
+
+                    // Empujar hacia adelante las esferas posteriores si se inserta detrás
+                    const newMarble = {
+                        dist: insertDist,
+                        color: b.color,
+                        power: 'NONE',
+                        backVel: 0,
+                        rollPhase: 0
+                    };
+
+                    marbles.splice(insertIdx, 0, newMarble);
+
+                    // Acomodar las distancias contiguas hacia adelante tras la inserción
+                    for (let k = insertIdx + 1; k < marbles.length; k++) {
+                        if (marbles[k].dist < marbles[k - 1].dist + BALL_DIAMETER) {
+                            marbles[k].dist = marbles[k - 1].dist + BALL_DIAMETER;
+                        }
+                    }
+
+                    sfx.playClack();
+                    bullets.splice(bIdx, 1);
+
+                    // Verificar si se formó un grupo de 3 o más del mismo color
+                    evaluateMatchAt(insertIdx, false);
+                }
+            }
+
+            // 4. Actualizar partículas luminosas y textos flotantes
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= p.decay;
+                if (p.alpha <= 0) particles.splice(i, 1);
+            }
+
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                const ft = floatingTexts[i];
+                ft.y += ft.vy;
+                ft.alpha -= 0.018;
+                if (ft.alpha <= 0) floatingTexts.splice(i, 1);
+            }
+
+            // 5. Verificar condición de Victoria (Pista vacía tras llenar barra ZUMA o agotar esferas)
+            if (marbles.length === 0 && (zumaModeTriggered || spawnedCount >= totalMarblesForLevel)) {
+                gameState = 'LEVEL_CLEAR';
+                sfx.playZumaChant();
+                showModal(
+                    `¡TEMPLO ${level} SUPERADO!`,
+                    `Has purificado la espiral de piedra con ${score.toLocaleString('es-ES')} puntos. Prepárate para el siguiente desafío.`,
+                    'SIGUIENTE NIVEL',
+                    false
+                );
+                return;
+            }
+
+            // 6. Verificar si la esfera delantera cayó en el Cráneo Solar Dorado
+            if (marbles.length > 0 && marbles[marbles.length - 1].dist >= track.lut.totalLength - 14) {
+                sfx.playBomb();
+                lives--;
+                updateLivesHUD();
+
+                if (lives <= 0) {
+                    gameState = 'GAMEOVER';
+                    showModal(
+                        'EL SOL DEVORÓ LAS ESFERAS',
+                        `Puntaje final: ${score.toLocaleString('es-ES')} puntos en el Nivel ${level}. ¿Deseas intentarlo de nuevo?`,
+                        'JUGAR DE NUEVO',
+                        false
+                    );
+                } else {
+                    gameState = 'LOST_LIFE';
+                    showModal(
+                        '¡CUIDADO CON EL CRÁNEO SOLAR!',
+                        `Las esferas llegaron al altar dorado. Te quedan ${lives} ${lives === 1 ? 'vida' : 'vidas'}.`,
+                        'REINTENTAR NIVEL',
+                        false
+                    );
+                }
+            }
+        }
+
+        /********************************************************************
+         * 7. RENDERIZADO DE ELEMENTOS DEL JUEGO (ESFERAS, RANA, LÁSER, EFECTOS)
+         ********************************************************************/
+        function drawMarble(x, y, colorIdx, angle = 0, rollPhase = 0, power = 'NONE') {
+            const pal = MARBLE_PALETTE[colorIdx] || MARBLE_PALETTE[0];
+
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Sombra proyectada sobre el canal de piedra
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+            ctx.beginPath();
+            ctx.arc(2, 3, BALL_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Gradiente esférico 3D brillante
+            const grad = ctx.createRadialGradient(-5, -5, 2, 0, 0, BALL_RADIUS);
+            grad.addColorStop(0, pal.light);
+            grad.addColorStop(0.55, pal.main);
+            grad.addColorStop(1, pal.dark);
+
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(0, 0, BALL_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Grabado maya giratorio sobre la esfera
+            ctx.save();
+            ctx.rotate(angle + Math.sin(rollPhase) * 0.35);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.arc(0, 0, BALL_RADIUS * 0.58, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(pal.symbol, 0, 0.5);
+            ctx.restore();
+
+            // Si la esfera tiene un Poder Especial (Bomba, Láser, Retroceso, Lentitud)
+            if (power !== 'NONE') {
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2.2;
+                ctx.beginPath();
+                ctx.arc(0, 0, BALL_RADIUS - 1.5, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+                ctx.beginPath();
+                ctx.arc(0, 0, 9.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.font = 'bold 11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffff';
+                const icon = power === 'BOMB' ? '💣' : power === 'LASER' ? '⚡' : power === 'REVERSE' ? '⏪' : '❄️';
+                ctx.fillText(icon, 0, 1);
+            }
+
+            // Brillo especular superior
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+            ctx.beginPath();
+            ctx.ellipse(-5, -6, 5, 2.6, -Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        /**
+         * Dibuja el Ídolo de la Rana de Piedra en el centro (con el rayo láser cian igual a la foto)
+         */
+        function drawStoneFrog() {
+            ctx.save();
+            ctx.translate(frog.x, frog.y);
+            ctx.rotate(frog.angle);
+
+            // 1. Rayo guía / Mira Láser Cian (Idéntico al haz turquesa de la captura de Zuma Deluxe)
+            if (activeTimers.laser > 0) {
+                const beamGrad = ctx.createLinearGradient(28, 0, 320, 0);
+                beamGrad.addColorStop(0, 'rgba(34, 211, 238, 0.92)');
+                beamGrad.addColorStop(0.5, 'rgba(56, 189, 248, 0.55)');
+                beamGrad.addColorStop(1, 'rgba(34, 211, 238, 0)');
+
+                ctx.fillStyle = beamGrad;
+                ctx.beginPath();
+                ctx.moveTo(28, -9);
+                ctx.lineTo(310, -2);
+                ctx.lineTo(310, 2);
+                ctx.lineTo(28, 9);
+                ctx.closePath();
+                ctx.fill();
+            } else {
+                // Guía punteada sutil por defecto
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.28)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 7]);
+                ctx.beginPath();
+                ctx.moveTo(36, 0);
+                ctx.lineTo(155, 0);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Aplicar retroceso al disparar
+            ctx.translate(-frog.recoil, 0);
+
+            // 2. Esfera actual sostenida en la boca de la rana
+            drawMarble(26, 0, frog.currentColor, 0, 0, 'NONE');
+
+            // 3. Patas traseras y delanteras de piedra tallada
+            ctx.fillStyle = '#6c756b';
+            ctx.strokeStyle = '#1f241f';
+            ctx.lineWidth = 2.5;
+
+            // Patas laterales
+            [-1, 1].forEach(dir => {
+                ctx.beginPath();
+                ctx.ellipse(-8, dir * 36, 18, 10, dir * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.ellipse(14, dir * 31, 13, 8, -dir * 0.35, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            });
+
+            // 4. Cuerpo circular de piedra maya con adornos dorados y negros
+            const bodyGrad = ctx.createRadialGradient(-4, -6, 6, 0, 0, 42);
+            bodyGrad.addColorStop(0, '#9ba396');
+            bodyGrad.addColorStop(0.65, '#646b60');
+            bodyGrad.addColorStop(1, '#31362f');
+
+            ctx.fillStyle = bodyGrad;
+            ctx.beginPath();
+            ctx.ellipse(-4, 0, 40, 36, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#1b1f1b';
+            ctx.stroke();
+
+            // Grabados tribales oscuros y dorados sobre el lomo de la rana
+            ctx.strokeStyle = '#222620';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(-6, 0, 26, -Math.PI * 0.7, Math.PI * 0.7);
+            ctx.stroke();
+
+            // Ojos saltones de piedra con pupilas doradas
+            [-1, 1].forEach(dir => {
+                ctx.fillStyle = '#8b9484';
+                ctx.beginPath();
+                ctx.arc(8, dir * 18, 9.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#141714';
+                ctx.beginPath();
+                ctx.arc(10, dir * 18, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(11, dir * 17, 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // 5. Gema de color en la parte trasera de la cabeza (Muestra el SIGUIENTE color, como en la foto)
+            const nextPal = MARBLE_PALETTE[frog.nextColor] || MARBLE_PALETTE[0];
+            ctx.fillStyle = '#d4af37';
+            ctx.beginPath();
+            ctx.arc(-22, 0, 11.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            const gemGrad = ctx.createRadialGradient(-24, -2, 1, -22, 0, 9);
+            gemGrad.addColorStop(0, nextPal.light);
+            gemGrad.addColorStop(0.7, nextPal.main);
+            gemGrad.addColorStop(1, nextPal.dark);
+            ctx.fillStyle = gemGrad;
+            ctx.beginPath();
+            ctx.arc(-22, 0, 8.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawBonusCoin() {
+            if (!bonusCoin) return;
+            ctx.save();
+            ctx.translate(bonusCoin.x, bonusCoin.y);
+            const scaleX = Math.cos(bonusCoin.phase);
+            ctx.scale(scaleX, 1);
+
+            const grad = ctx.createRadialGradient(-4, -4, 2, 0, 0, 18);
+            grad.addColorStop(0, '#fff7ae');
+            grad.addColorStop(0.6, '#eab308');
+            grad.addColorStop(1, '#713f12');
+
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(0, 0, 17, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#fef08a';
+            ctx.stroke();
+
+            ctx.fillStyle = '#713f12';
+            ctx.font = 'bold 14px Cinzel, serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('☀', 0, 1);
+            ctx.restore();
+        }
+
+        function renderGame() {
+            // 1. Dibujar el tablero de piedra pre-renderizado
+            ctx.drawImage(bgCanvas, 0, 0);
+
+            // 2. Dibujar el Cráneo Solar Dorado final con apertura dinámica según peligro
+            const endPt = track.lut.samples[track.lut.totalLength];
+            let dangerRatio = 0;
+            if (marbles.length > 0) {
+                const frontDist = marbles[marbles.length - 1].dist;
+                const thresh = track.lut.totalLength * 0.7;
+                if (frontDist > thresh) {
+                    dangerRatio = Math.min(1, (frontDist - thresh) / (track.lut.totalLength - thresh));
+                }
+            }
+            drawSunSkull(ctx, endPt.x, endPt.y, dangerRatio, false);
+
+            // 3. Dibujar la moneda dorada giratoria si está activa
+            drawBonusCoin();
+
+            // 4. Dibujar todas las esferas de la cadena
+            for (let i = 0; i < marbles.length; i++) {
+                const m = marbles[i];
+                const pt = getTrackPoint(m.dist);
+                drawMarble(pt.x, pt.y, m.color, pt.angle, m.rollPhase, m.power);
+            }
+
+            // 5. Dibujar proyectiles en vuelo
+            for (const b of bullets) {
+                drawMarble(b.x, b.y, b.color, 0, 0, 'NONE');
+            }
+
+            // 6. Dibujar el Ídolo de la Rana en el centro
+            drawStoneFrog();
+
+            // 7. Dibujar chispas resplandecientes (Efecto aditivo luminoso igual a la captura)
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (const p of particles) {
+                ctx.globalAlpha = Math.max(0, p.alpha);
+                const radGrad = ctx.createRadialGradient(p.x, p.y, 1, p.x, p.y, p.radius * 2.2);
+                radGrad.addColorStop(0, '#ffffff');
+                radGrad.addColorStop(0.4, p.color);
+                radGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = radGrad;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius * 2.2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // 8. Dibujar textos de puntuación flotante ("+230")
+            for (const ft of floatingTexts) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, ft.alpha);
+                ctx.font = '900 22px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#090d16';
+                ctx.strokeText(ft.text, ft.x, ft.y);
+                ctx.fillStyle = ft.color;
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.restore();
+            }
+        }
+
+        /********************************************************************
+         * 8. CONTROLES DE USUARIO (RATÓN, TECLADO Y PANTALLA TÁCTIL)
+         ********************************************************************/
+        function updateAimFromClientPos(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = W / rect.width;
+            const scaleY = H / rect.height;
+            const mx = (clientX - rect.left) * scaleX;
+            const my = (clientY - rect.top) * scaleY;
+            frog.angle = Math.atan2(my - frog.y, mx - frog.x);
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            updateAimFromClientPos(e.clientX, e.clientY);
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (gameState !== 'PLAYING') return;
+            updateAimFromClientPos(e.clientX, e.clientY);
+
+            if (e.button === 2) {
+                swapFrogMarbles();
+                return;
+            }
+
+            // Si hace click justo encima del cuerpo de la rana, intercambia color; si no, dispara
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.clientX - rect.left) * (W / rect.width);
+            const my = (e.clientY - rect.top) * (H / rect.height);
+            if (Math.hypot(mx - frog.x, my - frog.y) < 34) {
+                swapFrogMarbles();
+            } else {
+                shootMarble();
+            }
+        });
+
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
+        // Soporte Táctil Fluido
+        canvas.addEventListener('touchstart', (e) => {
+            if (gameState !== 'PLAYING') return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            updateAimFromClientPos(touch.clientX, touch.clientY);
+
+            const rect = canvas.getBoundingClientRect();
+            const mx = (touch.clientX - rect.left) * (W / rect.width);
+            const my = (touch.clientY - rect.top) * (H / rect.height);
+            if (Math.hypot(mx - frog.x, my - frog.y) < 42) {
+                swapFrogMarbles();
+            } else {
+                shootMarble();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (gameState !== 'PLAYING') return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            updateAimFromClientPos(touch.clientX, touch.clientY);
+        }, { passive: false });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                swapFrogMarbles();
+            } else if (e.code === 'Escape' || e.code === 'KeyP') {
+                togglePauseMenu();
+            }
+        });
+
+        // Botones del HUD e interfaz
+        const overlayModal = document.getElementById('overlayModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalSubtitle = document.getElementById('modalSubtitle');
+        const startBtn = document.getElementById('startBtn');
+        const resumeBtn = document.getElementById('resumeBtn');
+
+        function showModal(title, subtitle, primaryText, showResume = false) {
+            modalTitle.textContent = title;
+            modalSubtitle.innerHTML = subtitle;
+            startBtn.textContent = primaryText;
+            if (showResume) {
+                resumeBtn.classList.remove('hidden');
+            } else {
+                resumeBtn.classList.add('hidden');
+            }
+            overlayModal.classList.remove('hidden');
+        }
+
+        function togglePauseMenu() {
+            if (gameState === 'PLAYING') {
+                gameState = 'PAUSED';
+                showModal(
+                    'JUEGO EN PAUSA',
+                    'Selecciona otro santuario o continúa tu partida actual en el templo.',
+                    'REINICIAR NIVEL',
+                    true
+                );
+            } else if (gameState === 'PAUSED') {
+                overlayModal.classList.add('hidden');
+                gameState = 'PLAYING';
+            }
+        }
+
+        document.getElementById('menuBtn').addEventListener('click', togglePauseMenu);
+        document.getElementById('swapBallBtn').addEventListener('click', swapFrogMarbles);
+
+        document.getElementById('soundToggleBtn').addEventListener('click', (e) => {
+            sfx.enabled = !sfx.enabled;
+            e.currentTarget.textContent = sfx.enabled ? '🔊 SONIDO: ON' : '🔇 SONIDO: OFF';
+        });
+
+        // Selector de Espiral / Santuario
+        document.querySelectorAll('.track-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentTrackIndex = parseInt(btn.getAttribute('data-track'), 10);
+                document.querySelectorAll('.track-btn').forEach(b => {
+                    b.className = 'track-btn py-2 px-2 rounded border border-stone-600 bg-stone-800/60 text-stone-300 text-xs font-bold transition';
+                });
+                btn.className = 'track-btn py-2 px-2 rounded border border-amber-400 bg-amber-900/50 text-amber-200 text-xs font-bold transition';
+
+                track = createTrackGeometry(currentTrackIndex);
+                renderStoneBackground(track);
+                frog.x = track.frogPos.x;
+                frog.y = track.frogPos.y;
+                renderGame();
+            });
+        });
+
+        startBtn.addEventListener('click', () => {
+            sfx.init();
+            overlayModal.classList.add('hidden');
+
+            if (gameState === 'LEVEL_CLEAR') {
+                level++;
+                currentTrackIndex = (currentTrackIndex + 1) % 3;
+                initLevel(false);
+            } else if (gameState === 'LOST_LIFE') {
+                initLevel(false);
+            } else {
+                initLevel(true);
+            }
+            gameState = 'PLAYING';
+        });
+
+        resumeBtn.addEventListener('click', () => {
+            overlayModal.classList.add('hidden');
+            gameState = 'PLAYING';
+        });
+
+        /********************************************************************
+         * 9. CICLO DE ANIMACIÓN PRINCIPAL
+         ********************************************************************/
+        let lastTime = performance.now();
+
+        function gameLoop(now) {
+            const dt = Math.min(0.05, (now - lastTime) / 1000);
+            lastTime = now;
+
+            updateGame(dt);
+            renderGame();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.onload = function () {
+            initLevel(true);
+            renderGame();
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
