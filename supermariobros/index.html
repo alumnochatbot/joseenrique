@@ -421,11 +421,26 @@
 
         const PALETTES = {
             mario: { 'R': '#D82800', 'S': '#FC9838', 'B': '#887000', 'W': '#FFFFFF' },
-            goomba: { 'M': '#C84C0C', 'P': '#FCBCB0', 'K': '#000000', 'W': '#FFFFFF' },
-            koopa: { 'G': '#00A800', 'Y': '#FCBCB0', 'W': '#FFFFFF', 'K': '#000000', 'O': '#FC9838' },
+            // Paleta Goomba fiel a la imagen (cabeza marrón, ceño y boca negra, colmillos blancos, panza crema y pies oscuros)
+            goomba: {
+                'B': '#A84400', // Marrón seta
+                'K': '#000000', // Delineado, ceño fruncido y boca
+                'W': '#FFFFFF', // Ojos y colmillos blancos
+                'C': '#FCE4A0', // Panza crema / beige
+                'F': '#381400'  // Pies / zapatos oscuros
+            },
+            // Paleta Koopa Troopa fiel a la imagen (caparazón verde con rombos, cresta y vientre blanco, cuerpo y botas amarillas)
+            koopa: {
+                'G': '#00A800', // Verde caparazón
+                'D': '#005800', // Verde oscuro para el patrón de rombos/diamante
+                'Y': '#FCD818', // Amarillo cuerpo, pico y botas
+                'W': '#FFFFFF', // Blanco cresta, franja ventral y suelas
+                'K': '#000000', // Delineado negro y ojos
+                'O': '#E48800'  // Sombreado de botas
+            },
             mushroom: { 'R': '#D82800', 'O': '#FC9838', 'W': '#FFFFFF', 'K': '#000000' },
             toad: { 'R': '#D82800', 'W': '#FFFFFF', 'S': '#FC9838', 'B': '#0000BC', 'K': '#000000' },
-            bowser: { 'G': '#00A800', 'O': '#FC9838', 'R': '#D82800', 'W': '#FFFFFF', 'K': '#000000', 'Y': '#FCE4A0' }
+            bowser: { 'G': '#00A800', 'D': '#005800', 'O': '#FC7400', 'R': '#D82800', 'W': '#FFFFFF', 'K': '#000000', 'Y': '#FCE4A0' }
         };
 
         const SPRITES = {
@@ -519,41 +534,42 @@
                 "..SSSSRRRRSSSS..",
                 "..BBBB....BBBB.."
             ],
+            // Goomba clásico detallado: cejas anguladas, ojos con pupila, boca negra con colmillos blancos laterales y panza crema
             goomba1: [
-                "......MMMM......",
-                "....MMMMMMMM....",
-                "...MMMMMMMMMM...",
-                "..MMMMMMMMMMMM..",
-                ".MMKWMMMMMMWKMM.",
-                ".MMKWMMMMMMWKMM.",
-                "MMMKWKKKKKKWKMMM",
-                "MMMWWMMMMMMWWMMM",
-                "MMMMMMMMMMMMMMMM",
-                ".MMMMMMMMMMMMMM.",
-                "....PPPPPPPP....",
-                "...PPPPPPPPPP...",
-                "...PPPPPPPPPP...",
-                "....PPPPPPPP....",
-                "..KKKK....KKKK..",
-                ".KKKKK....KKKKK."
+                "......KKKK......",
+                "....KKBBBBKK....",
+                "...KBBBBBBBBK...",
+                "..KBBBKBBBKBBK..",
+                "..KBBKKKBKKKBBK.",
+                ".KBBKWWKKWWKBBK.",
+                ".KBBKWKKWKKWBBK.",
+                ".KBBKWKKWKKWBBK.",
+                "KBBBKWWKKWWKBBBK",
+                "KBBBBBBBBBBBBBBK",
+                "KKKKKKKKKKKKKKKK",
+                ".KWKKKKKKKKKKWK.",
+                "..KCCCCCCCCCK...",
+                "..KCCCCCCCCCK...",
+                ".FFFFK....FFFFK.",
+                "FFFFFFK..FFFFFFK"
             ],
             goomba2: [
-                "......MMMM......",
-                "....MMMMMMMM....",
-                "...MMMMMMMMMM...",
-                "..MMMMMMMMMMMM..",
-                ".MMKWMMMMMMWKMM.",
-                ".MMKWMMMMMMWKMM.",
-                "MMMKWKKKKKKWKMMM",
-                "MMMWWMMMMMMWWMMM",
-                "MMMMMMMMMMMMMMMM",
-                ".MMMMMMMMMMMMMM.",
-                "....PPPPPPPP....",
-                "...PPPPPPPPPP...",
-                "...PPPPPPPPPP...",
-                "....PPPPPPPP....",
-                "...KKKK..KKKK...",
-                "..KKKKK..KKKKK.."
+                "......KKKK......",
+                "....KKBBBBKK....",
+                "...KBBBBBBBBK...",
+                "..KBBBKBBBKBBK..",
+                "..KBBKKKBKKKBBK.",
+                ".KBBKWWKKWWKBBK.",
+                ".KBBKWKKWKKWBBK.",
+                ".KBBKWKKWKKWBBK.",
+                "KBBBKWWKKWWKBBBK",
+                "KBBBBBBBBBBBBBBK",
+                "KKKKKKKKKKKKKKKK",
+                ".KWKKKKKKKKKKWK.",
+                "..KCCCCCCCCCK...",
+                "..KCCCCCCCCCK...",
+                "..FFFFK..FFFFK..",
+                ".FFFFFFK.FFFFFFK"
             ],
             goombaSquish: [
                 "................",
@@ -562,69 +578,86 @@
                 "................",
                 "................",
                 "................",
-                "....MMMMMMMM....",
-                "..MMMMMMMMMMMM..",
-                ".MMKWKKKKKKWKMM.",
-                "MMMMMMMMMMMMMMMM",
-                ".MMMMMMMMMMMMMM.",
-                "...PPPPPPPPPP...",
-                "..PPPPPPPPPPPP..",
-                "..KKKK....KKKK..",
+                "....KKKKKKKK....",
+                "..KKBBBBBBBBKK..",
+                ".KBBKWWKKWWKBBK.",
+                "KKKKKWKKKWKKKKKK",
+                ".KWKKKKKKKKKKWK.",
+                "..KCCCCCCCCCK...",
+                ".FFFFFFFFFFK....",
+                "FFFFFFFFFFFFK...",
                 "................",
                 "................"
             ],
+            // Koopa Troopa clásico fiel: 16x24 con caparazón verde y rombos internos, vientre blanco, cresta y botas amarillas
             koopaWalk1: [
-                "......GGGG......",
-                ".....GGGGGG.....",
-                "....GYYWKGYY....",
-                "....GYYYYYYY....",
-                "....GYYYYYYY....",
-                ".....YYYYYY.....",
-                "....GGGGGGGG....",
-                "...GGGGGGGGGG...",
-                "..GGGGGGGGGGGG..",
-                "..GGGGGGGGGGGG..",
-                "..GGGGGGGGGGGG..",
-                "...GGGGGGGGGG...",
-                "....WW....WW....",
-                "...WWWW..WWWW...",
-                "...WWWW..WWWW...",
-                "................"
+                ".......KKWWK....",
+                "......KWWWWK....",
+                ".....KYYWWKK....",
+                "....KYYWWK......",
+                "....KYYYYK......",
+                "....KYYWKKYK....",
+                "....KYYWKKYYK...",
+                "....KYYYYYYYK...",
+                "...KKKYYYYKK....",
+                "..KGGDKYYYK.....",
+                ".KGGDGGKYYK.....",
+                ".KGDGGDKKKK.....",
+                "KDGGGDGWKKK.....",
+                "KGGDGGKWWK......",
+                "KGDGGDKWWK......",
+                "KDGGGDGWKK......",
+                "KGGDGGKWWK......",
+                ".KGDGGDKWWK.....",
+                ".KGGDGGKWWK.....",
+                "..KKKKKWWWWK....",
+                ".....KWWKKKK....",
+                "....KYYYYK.KYYK.",
+                "...KYYYYYYKYYYYK",
+                "...KKKKKKK.KKKK."
             ],
             koopaWalk2: [
-                "......GGGG......",
-                ".....GGGGGG.....",
-                "....GYYWKGYY....",
-                "....GYYYYYYY....",
-                "....GYYYYYYY....",
-                ".....YYYYYY.....",
-                "....GGGGGGGG....",
-                "...GGGGGGGGGG...",
-                "..GGGGGGGGGGGG..",
-                "..GGGGGGGGGGGG..",
-                "..GGGGGGGGGGGG..",
-                "...GGGGGGGGGG...",
-                ".....WW..WW.....",
-                "....WWWWWWWW....",
-                "....WWWWWWWW....",
-                "................"
+                ".......KKWWK....",
+                "......KWWWWK....",
+                ".....KYYWWKK....",
+                "....KYYWWK......",
+                "....KYYYYK......",
+                "....KYYWKKYK....",
+                "....KYYWKKYYK...",
+                "....KYYYYYYYK...",
+                "...KKKYYYYKK....",
+                "..KGGDKYYYK.....",
+                ".KGGDGGKYYK.....",
+                ".KGDGGDKKKK.....",
+                "KDGGGDGWKKK.....",
+                "KGGDGGKWWK......",
+                "KGDGGDKWWK......",
+                "KDGGGDGWKK......",
+                "KGGDGGKWWK......",
+                ".KGDGGDKWWK.....",
+                ".KGGDGGKWWK.....",
+                "..KKKKKWWWWK....",
+                ".....KWWKKKK....",
+                "....KYYYYK......",
+                "...KYYYYYYK.KYYK",
+                "...KKKKKKKK.KKKK"
             ],
             koopaShell: [
                 "................",
-                "................",
-                ".....GGGGGG.....",
-                "...GGGGGGGGGG...",
-                "..GGGGGGGGGGGG..",
-                ".GGGGWWGGWWGGGG.",
-                ".GGGGWWGGWWGGGG.",
-                "GGGGGGGGGGGGGGGG",
-                "GGGGGGGGGGGGGGGG",
-                ".GGGGWWGGWWGGGG.",
-                ".GGGGWWGGWWGGGG.",
-                "..GGGGGGGGGGGG..",
-                "...GGGGGGGGGG...",
-                ".....GGGGGG.....",
-                "................",
+                ".....KKKKKK.....",
+                "...KKGGGGGGKK...",
+                "..KGGGDGGGDGGK..",
+                ".KGGDGGGDGGGDGK.",
+                ".KGDGGGDGGGDGDK.",
+                "KDGGGDGGGDGGGDGK",
+                "KGGDGGGDGGGDGGDK",
+                "KGDGGGDGGGDGGGDG",
+                "KDGGGDGGGDGGGDGK",
+                "KGGDGGGDGGGDGGDK",
+                ".KWWWWWWWWWWWWK.",
+                "..KWWWWWWWWWWK..",
+                "...KKWWWWWWKK...",
+                ".....KKKKKK.....",
                 "................"
             ],
             mushroom: [
@@ -664,29 +697,29 @@
                 "..WWWW....WWWW.."
             ],
             bowser: [
-                "..........GGGGGG..........",
-                ".........GGGGGGGG.........",
-                "........GGYWWKGYGG........",
-                ".......GGYYYYYYYGGG.......",
-                "......GGYYYYYYYYYYGG......",
-                ".....GGYYYYYYYYYYYYGG.....",
-                "....GGYYYYYYYRRRRRYYY.....",
-                "...GGGYYYYYYRRRRRRRYY.....",
-                "...GGGOOOOORRRKRRKRYY.....",
-                "..GGGGOOOOOORRRRRRRYY.....",
-                "..GGGGGOOOOORRRRRRRYY.....",
-                ".GGGGGGGOOORRRRRRRRYY.....",
-                "GGGGGGGGGGORRRRRRRRYY.....",
-                "GGGGGGGGGGGOOOOOOOYYY.....",
-                ".GGGGGGGGGGOOOOOOYYYY.....",
-                "..GGGGGGGGGOOOOOYYYY......",
-                "...GGGGGGGGGOOOYYYY.......",
-                "....GGGGGGGGGGYYY.........",
-                ".....GGGGGGGGGG...........",
-                "......GGGGGGGG............",
-                ".......WW..WW.............",
-                "......WWWWWWWW............",
-                ".....WWWW..WWWW..........."
+                "...........KKKKKK.............",
+                "........KKKYYYYYYKK...........",
+                ".......KRRRYYYYYYYYK..........",
+                "......KRRRRYYYYYYYYKK.........",
+                ".....KKKKRRYYYYYYYYYK.........",
+                "....KGGGKRYYYWKYWKYKK.........",
+                "...KGGGGGKYYYWWKWWKYYK........",
+                "..KGGODGGKYWKKKKKKKYYK........",
+                ".KGGOOODGKYYWWWWWWKYYK........",
+                ".KGGODDGGKKKKKKKKKKYYK........",
+                "KGGOOODGGKYWWWWWWKKYYK........",
+                "KGGOOODGGKYYYYYYYYYYYK........",
+                "KGGOOODGGKKKKKKKKKKYYK........",
+                "KGGOOODGGKYWWWWWWKKYYK........",
+                ".KGGODDGGKYYYYYYYYYYK.........",
+                ".KGGOOODGKYWWWWWWKKYYK........",
+                "..KGGODGGKKKKKKKKKKYYK........",
+                "...KGGGGGKWWWWWWKKYYK.........",
+                "....KGGGKYYYYYYYYYYK..........",
+                ".....KKK.KWWKKWWKK............",
+                "........KYYYYKYYYYK...........",
+                "........KYYYYKYYYYK...........",
+                ".........KKKK.KKKK............"
             ]
         };
 
@@ -966,11 +999,11 @@
                 });
             };
 
-            const addKoopa = (col, row = GROUND_ROW - 1.2) => {
+            const addKoopa = (col, row = GROUND_ROW - 1.4) => {
                 game.enemies.push({
                     type: 'koopa',
                     x: col * TILE, y: row * TILE,
-                    vx: -1.2, vy: 0, w: 28, h: 38,
+                    vx: -1.2, vy: 0, w: 28, h: 44,
                     state: 'walk', timer: 0, active: false
                 });
             };
@@ -1103,52 +1136,70 @@
              * NIVEL 1-3: En las Alturas / Champiñones Gigantes
              * ---------------------------------------------------- */
             else if (levelId === '1-3') {
-                game.levelWidthTiles = 180;
-                // La mayor parte del nivel son abismos sobre los que se salta entre plataformas
-                game.pits = [[0, 8], [15, 23], [32, 42], [52, 60], [68, 80], [88, 102], [112, 126], [136, 142]];
-                game.castleX = 172 * TILE;
-                game.flagpole = { x: 166 * TILE + 12, y: 3 * TILE, height: 9 * TILE, flagY: 3.2 * TILE, reached: false };
+                game.levelWidthTiles = 175;
+                // El abismo comienza después de la plataforma de inicio segura (tiles 0 a 13)
+                game.pits = [[14, 117]];
+                game.castleX = 158 * TILE;
+                game.flagpole = { x: 152 * TILE + 12, y: 3 * TILE, height: 9 * TILE, flagY: 3.2 * TILE, reached: false };
 
-                // Suelo de inicio seguro
-                // Champiñones gigantes con plataformas
+                // Escalones de acceso seguro desde la plataforma inicial
+                addBlock(11, 12, 'hard');
+                addBlock(12, 11, 'hard');
+
+                // Champiñones gigantes con plataformas (calibrados con saltos de 1 a 2 tiles)
                 game.giantMushrooms.push(
-                    { x: 10 * TILE, topY: 8 * TILE, hTiles: 5, color: '#FC9838' },
-                    { x: 18 * TILE, topY: 5 * TILE, hTiles: 8, color: '#00A800' },
-                    { x: 28 * TILE, topY: 7 * TILE, hTiles: 6, color: '#FC9838' },
-                    { x: 44 * TILE, topY: 6 * TILE, hTiles: 7, color: '#FC9838' },
-                    { x: 62 * TILE, topY: 5 * TILE, hTiles: 8, color: '#00A800' },
-                    { x: 74 * TILE, topY: 7 * TILE, hTiles: 6, color: '#FC9838' },
-                    { x: 92 * TILE, topY: 4 * TILE, hTiles: 9, color: '#FC9838' },
-                    { x: 106 * TILE, topY: 6 * TILE, hTiles: 7, color: '#00A800' },
-                    { x: 120 * TILE, topY: 5 * TILE, hTiles: 8, color: '#FC9838' },
-                    { x: 130 * TILE, topY: 7 * TILE, hTiles: 6, color: '#FC9838' }
+                    { x: 16 * TILE, topY: 10 * TILE, hTiles: 3, color: '#FC9838' },
+                    { x: 27 * TILE, topY: 8 * TILE, hTiles: 5, color: '#00A800' },
+                    { x: 38 * TILE, topY: 7 * TILE, hTiles: 6, color: '#FC9838' },
+                    { x: 49 * TILE, topY: 6 * TILE, hTiles: 7, color: '#00A800' },
+                    { x: 61 * TILE, topY: 7 * TILE, hTiles: 6, color: '#FC9838' },
+                    { x: 73 * TILE, topY: 6 * TILE, hTiles: 7, color: '#00A800' },
+                    { x: 85 * TILE, topY: 7 * TILE, hTiles: 6, color: '#FC9838' },
+                    { x: 98 * TILE, topY: 8 * TILE, hTiles: 5, color: '#00A800' },
+                    { x: 111 * TILE, topY: 10 * TILE, hTiles: 3, color: '#FC9838' }
                 );
 
-                // Pasarelas aéreas de bloques
-                for (let c = 22; c <= 26; c++) addBlock(c, 4, 'brick', null);
-                addBlock(24, 4, 'question', 'mushroom');
+                // Pasarelas y puentes suspendidos de madera
+                for (let c = 20; c <= 24; c++) addBlock(c, 9, 'brick', null);
+                addBlock(22, 5, 'question', 'mushroom');
 
-                for (let c = 54; c <= 58; c++) addBlock(c, 4, 'brick', null);
-                addBlock(56, 4, 'question', 'coin');
+                for (let c = 31; c <= 35; c++) addBlock(c, 7, 'brick', null);
+                addBlock(33, 4, 'question', 'coin');
 
-                for (let c = 82; c <= 86; c++) addBlock(c, 6, 'brick', null);
-                addBlock(84, 6, 'question', 'mushroom');
+                for (let c = 42; c <= 46; c++) addBlock(c, 8, 'brick', null);
+
+                for (let c = 53; c <= 58; c++) addBlock(c, 6, 'brick', null);
+                addBlock(55, 3, 'question', 'coin');
+
+                for (let c = 65; c <= 70; c++) addBlock(c, 7, 'brick', null);
+
+                for (let c = 77; c <= 82; c++) addBlock(c, 6, 'brick', null);
+                addBlock(79, 3, 'question', 'coin');
+
+                for (let c = 89; c <= 95; c++) addBlock(c, 8, 'brick', null);
+                addBlock(92, 5, 'question', 'mushroom');
+
+                for (let c = 102; c <= 108; c++) addBlock(c, 9, 'brick', null);
+
+                // Escalones de descenso hacia la plataforma de meta
+                addBlock(115, 11, 'hard');
+                addBlock(116, 12, 'hard');
 
                 // Escalera final hacia el mástil
                 for (let i = 0; i < 7; i++) {
-                    for (let h = 0; h <= i; h++) addBlock(152 + i, GROUND_ROW - 1 - h, 'hard');
+                    for (let h = 0; h <= i; h++) addBlock(138 + i, GROUND_ROW - 1 - h, 'hard');
                 }
-                for (let h = 0; h < 7; h++) addBlock(159, GROUND_ROW - 1 - h, 'hard');
-                addBlock(166, GROUND_ROW - 1, 'hard');
+                for (let h = 0; h < 7; h++) addBlock(145, GROUND_ROW - 1 - h, 'hard');
+                addBlock(152, GROUND_ROW - 1, 'hard');
 
-                // Koopas patrullando las alturas
-                addKoopa(18.5, 3.8);
-                addKoopa(45, 4.8);
-                addKoopa(63, 3.8);
-                addGoomba(75, 5.8);
-                addKoopa(93, 2.8);
-                addKoopa(107, 4.8);
-                addGoomba(145);
+                // Enemigos calibrados sobre plataformas seguras
+                addKoopa(22, 7.8);
+                addKoopa(33, 5.8);
+                addKoopa(55, 4.8);
+                addKoopa(67, 5.8);
+                addKoopa(79, 4.8);
+                addKoopa(104, 7.8);
+                addGoomba(126);
             }
 
             /* ----------------------------------------------------
@@ -1243,7 +1294,7 @@
             }
 
             // Reposicionar a Mario al inicio del nivel
-            mario.x = 80;
+            mario.x = 48;
             mario.y = GROUND_Y - (mario.isSuper ? TILE * 2 : TILE);
             mario.vx = 0;
             mario.vy = 0;
@@ -1620,10 +1671,10 @@
 
             const solids = getSolidObstacles();
 
-            // Colisión Horizontal
+            // Colisión Horizontal y límites bidireccionales
             mario.x += mario.vx;
-            if (mario.x < game.cameraX) {
-                mario.x = game.cameraX;
+            if (mario.x < 0) {
+                mario.x = 0;
                 mario.vx = 0;
             }
 
@@ -1695,11 +1746,12 @@
                 mario.animFrame = 0;
             }
 
-            // Cámara lateral fluida
-            const targetCam = mario.x - VIRTUAL_W * 0.36;
-            if (targetCam > game.cameraX) {
-                game.cameraX = Math.min(targetCam, (game.levelWidthTiles - 25) * TILE);
-            }
+            // Cámara bidireccional suave: sigue a Mario hacia adelante y hacia atrás
+            const targetCam = mario.x - VIRTUAL_W * 0.38;
+            const maxCam = Math.max(0, (game.levelWidthTiles * TILE) - VIRTUAL_W);
+            const clampedTarget = Math.max(0, Math.min(targetCam, maxCam));
+            game.cameraX += (clampedTarget - game.cameraX) * 0.14;
+            if (mario.x < game.cameraX) game.cameraX = Math.max(0, mario.x);
         }
 
         function updateEntities() {
@@ -1896,16 +1948,18 @@
                             if (e.state === 'walk') {
                                 e.state = 'shell';
                                 e.vx = 0;
+                                e.h = 28;
+                                e.y += 16;
                                 sfx.stomp();
                             } else if (e.state === 'shell') {
-                                e.vx = (mario.x + mario.w / 2 < e.x + e.w / 2) ? 6.5 : -6.5;
+                                e.vx = (mario.x + mario.w / 2 < e.x + e.w / 2) ? 7.2 : -7.2;
                                 sfx.kickShell();
                             }
                         }
                         updateHUD();
                     } else if (e.type === 'koopa' && e.state === 'shell' && e.vx === 0) {
                         // Patear caparazón estático
-                        e.vx = (mario.x + mario.w / 2 < e.x + e.w / 2) ? 6.5 : -6.5;
+                        e.vx = (mario.x + mario.w / 2 < e.x + e.w / 2) ? 7.2 : -7.2;
                         sfx.kickShell();
                     } else {
                         hurtMario();
@@ -1945,6 +1999,22 @@
                     drawGiantMushroom(ctx, m.x, m.topY, m.hTiles, m.color);
                 }
             });
+
+            // Castillo de meta (1-1, 1-2, 1-3)
+            if (game.castleX > 0 && game.currentLevel !== '1-4') {
+                const cx = game.castleX;
+                const cy = GROUND_Y - TILE * 5;
+                ctx.fillStyle = theme.brick;
+                ctx.fillRect(cx, cy + TILE * 2, TILE * 5, TILE * 3);
+                ctx.fillRect(cx + TILE, cy, TILE * 3, TILE * 2);
+                ctx.fillRect(cx, cy + TILE * 1.5, TILE, TILE * 0.5);
+                ctx.fillRect(cx + TILE * 4, cy + TILE * 1.5, TILE, TILE * 0.5);
+                ctx.fillRect(cx + TILE, cy - TILE * 0.5, TILE * 0.7, TILE * 0.5);
+                ctx.fillRect(cx + TILE * 2.1, cy - TILE * 0.5, TILE * 0.8, TILE * 0.5);
+                ctx.fillRect(cx + TILE * 3.3, cy - TILE * 0.5, TILE * 0.7, TILE * 0.5);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(cx + TILE * 1.8, GROUND_Y - TILE * 2, TILE * 1.4, TILE * 2);
+            }
 
             // Fosas de Lava (1-4)
             game.lavaPits.forEach(lp => {
@@ -2049,7 +2119,7 @@
                 }
             });
 
-            // Enemigos
+            // Enemigos detallados (Goombas con colmillos y Koopas de 16x24 con patrón de rombos)
             game.enemies.forEach(e => {
                 if (e.x + e.w < game.cameraX || e.x > game.cameraX + VIRTUAL_W) return;
                 if (e.type === 'goomba') {
@@ -2058,10 +2128,13 @@
                     else if (Math.floor(game.frame / 10) % 2 === 1) mat = SPRITES.goomba2;
                     drawPixelMatrix(ctx, mat, PALETTES.goomba, Math.floor(e.x), Math.floor(e.y), 2);
                 } else if (e.type === 'koopa') {
-                    let mat = SPRITES.koopaWalk1;
-                    if (e.state === 'shell') mat = SPRITES.koopaShell;
-                    else if (Math.floor(game.frame / 10) % 2 === 1) mat = SPRITES.koopaWalk2;
-                    drawPixelMatrix(ctx, mat, PALETTES.koopa, Math.floor(e.x), Math.floor(e.y), 2, e.vx > 0);
+                    if (e.state === 'shell') {
+                        const flip = Math.abs(e.vx) > 0 && Math.floor(game.frame / 4) % 2 === 0;
+                        drawPixelMatrix(ctx, SPRITES.koopaShell, PALETTES.koopa, Math.floor(e.x), Math.floor(e.y), 2, flip);
+                    } else {
+                        let mat = (Math.floor(game.frame / 10) % 2 === 1) ? SPRITES.koopaWalk2 : SPRITES.koopaWalk1;
+                        drawPixelMatrix(ctx, mat, PALETTES.koopa, Math.floor(e.x), Math.floor(e.y), 2, e.vx > 0);
+                    }
                 }
             });
 
