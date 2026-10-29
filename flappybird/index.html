@@ -302,14 +302,14 @@
                     <button type="button" data-diff="DIFICIL" class="diff-card w-full p-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-left flex items-center justify-between cursor-pointer border-3 border-[#231b2e]">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-rose-500 border-2 border-[#231b2e] flex items-center justify-center text-white text-lg shadow-sm">
-                                <i class="fa-solid fa-skull"></i>
+                                <i class="fa-solid fa-dragon"></i>
                             </div>
                             <div>
                                 <div class="flex items-center gap-1.5">
                                     <span class="font-arcade text-[11px] text-rose-950 font-bold">DIFÍCIL</span>
-                                    <span class="text-[10px] bg-rose-200 text-rose-800 font-bold px-1.5 py-0.2 rounded border border-rose-400">Experto</span>
+                                    <span class="text-[10px] bg-rose-200 text-rose-800 font-bold px-1.5 py-0.2 rounded border border-rose-400">Koopa Paratroopa</span>
                                 </div>
-                                <span class="text-[11px] text-rose-800 block">Paso estrecho (96px) + tuberías móviles</span>
+                                <span class="text-[11px] text-rose-800 block">¡Koopa volador vigila el paso! (124px)</span>
                             </div>
                         </div>
                         <div class="text-right">
@@ -738,6 +738,86 @@
         }
 
         /**
+         * Renderizado Pixel-Art del Koopa Paratroopa (Mario Bros)
+         */
+        function drawPixelKoopa(c, x, y, wingPhase = 0, scale = 2.1) {
+            c.save();
+            c.translate(Math.round(x), Math.round(y));
+
+            const p = scale;
+            const border = '#231b2e';
+
+            const px = (gx, gy, gw, gh, col) => {
+                c.fillStyle = col;
+                c.fillRect(Math.round(gx * p), Math.round(gy * p), Math.ceil(gw * p), Math.ceil(gh * p));
+            };
+
+            // --- CUERPO / CAPARAZÓN ROJO (Estilo Mario Bros) ---
+            // Sombra/borde base del caparazón
+            px(-5, -3, 11, 10, border);
+            px(-6, -1, 13, 7, border);
+
+            // Caparazón rojo
+            px(-4, -2, 9, 8, '#ef4444');
+            px(-5, 0, 11, 5, '#ef4444');
+
+            // Borde inferior blanco del caparazón (rim)
+            px(-5, 5, 11, 2, border);
+            px(-4, 5, 9, 2, '#f8fafc');
+
+            // Placas / textura del caparazón
+            px(-2, -1, 4, 2, '#b91c1c');
+            px(-3, 2, 6, 2, '#b91c1c');
+
+            // Plastrón / vientre amarillo claro
+            px(-3, 7, 7, 2, '#facc15');
+
+            // Pies de Koopa
+            px(-5, 7, 3, 3, border);
+            px(-4, 7, 2, 2, '#f59e0b');
+            px(2, 7, 3, 3, border);
+            px(2, 7, 2, 2, '#f59e0b');
+
+            // --- CABEZA DE KOOPA (mirando al jugador hacia la izquierda) ---
+            px(-11, -8, 8, 7, border);
+            px(-12, -6, 4, 4, border);
+
+            // Piel amarilla
+            px(-10, -7, 6, 5, '#facc15');
+            px(-11, -5, 3, 3, '#facc15');
+
+            // Pico / Hocico
+            px(-13, -4, 3, 3, border);
+            px(-12, -3, 2, 2, '#fbbf24');
+
+            // Ojo de Koopa
+            px(-8, -8, 3, 4, border);
+            px(-7, -7, 2, 3, '#ffffff');
+            px(-8, -6, 1, 2, '#231b2e');
+
+            // --- ALAS BLANCAS BATIENTES DE PARATROOPA ---
+            const wingAngle = Math.sin(wingPhase) * 0.42;
+
+            c.save();
+            c.translate(2 * p, -2 * p);
+            c.rotate(wingAngle);
+
+            // Contorno y plumas blancas
+            px(0, -9, 7, 8, border);
+            px(2, -12, 5, 6, border);
+            px(-1, -6, 8, 5, border);
+
+            px(1, -8, 5, 6, '#ffffff');
+            px(3, -11, 3, 4, '#ffffff');
+            px(0, -5, 6, 3, '#e2e8f0');
+            px(2, -4, 4, 2, '#cbd5e1');
+
+            c.restore();
+
+            c.restore();
+        }
+
+        /**
          * ============================================================================
          * 3. CONFIGURACIÓN DE DIFICULTADES Y ALMACENAMIENTO DE RÉCORDS
          * ============================================================================
@@ -752,7 +832,7 @@
                 gravity: 0.38,
                 jumpStrength: -7.2,
                 spawnInterval: 105,
-                movingPipes: false,
+                hasKoopa: false,
                 colorTheme: '#10b981'
             },
             MEDIO: {
@@ -764,19 +844,19 @@
                 gravity: 0.44,
                 jumpStrength: -7.7,
                 spawnInterval: 90,
-                movingPipes: false,
+                hasKoopa: false,
                 colorTheme: '#f59e0b'
             },
             DIFICIL: {
                 name: 'Difícil',
                 badgeBg: 'bg-rose-500',
                 badgeText: 'text-white',
-                gap: 96,
-                speed: 3.4,
-                gravity: 0.48,
-                jumpStrength: -8.1,
-                spawnInterval: 76,
-                movingPipes: true,
+                gap: 124, // Espacio equilibrado para decidir esquivar por arriba o por abajo
+                speed: 2.9,
+                gravity: 0.44,
+                jumpStrength: -7.7,
+                spawnInterval: 92,
+                hasKoopa: true, // Koopa Paratroopa activo como obstáculo dinámico
                 colorTheme: '#ef4444'
             }
         };
@@ -950,14 +1030,28 @@
                     const maxTop = PLAYABLE_HEIGHT - diff.gap - 70;
                     const baseTop = Math.floor(Math.random() * (maxTop - minTop + 1)) + minTop;
 
+                    // En Modo Difícil, cada par de tuberías cuenta con un Koopa Paratroopa patrullando el hueco
+                    let koopaObj = null;
+                    if (diff.hasKoopa) {
+                        const midGap = baseTop + diff.gap / 2;
+                        koopaObj = {
+                            baseY: midGap,
+                            y: midGap,
+                            oscAmp: 22, // Amplitud suave para permitir esquivar por arriba o por abajo
+                            oscSpeed: 0.05, // Oscilación predecible y no frustrante
+                            phase: Math.random() * Math.PI * 2,
+                            wingTimer: Math.random() * 5,
+                            radius: 11 // Hitbox perdonable (menor al sprite visual)
+                        };
+                    }
+
                     this.list.push({
                         x: WIDTH + 10,
                         baseTop: baseTop,
                         topHeight: baseTop,
                         bottomY: baseTop + diff.gap,
                         passed: false,
-                        oscOffset: Math.random() * Math.PI * 2,
-                        oscAmp: diff.movingPipes ? 22 : 0
+                        koopa: koopaObj
                     });
                 }
 
@@ -965,17 +1059,29 @@
                     const p = this.list[i];
                     p.x -= diff.speed * dt;
 
-                    // Si la dificultad es DIFÍCIL, las tuberías tienen un suave balanceo vertical
-                    if (diff.movingPipes) {
-                        const shift = Math.sin(this.pipeTime * 0.04 + p.oscOffset) * p.oscAmp;
-                        p.topHeight = p.baseTop + shift;
-                        p.bottomY = p.topHeight + diff.gap;
-                    }
-
-                    // Colisión con hitbox ajustada
+                    // Colisión con tuberías (hitbox ajustada)
                     const hitRadius = bird.radius - 3;
                     if (bird.x + hitRadius > p.x && bird.x - hitRadius < p.x + this.width) {
                         if (bird.y - hitRadius < p.topHeight || bird.y + hitRadius > p.bottomY) {
+                            triggerCrash();
+                            return;
+                        }
+                    }
+
+                    // Actualizar y comprobar colisión con Koopa Paratroopa
+                    if (p.koopa) {
+                        p.koopa.phase += p.koopa.oscSpeed * dt;
+                        p.koopa.wingTimer += 0.22 * dt;
+                        p.koopa.y = p.koopa.baseY + Math.sin(p.koopa.phase) * p.koopa.oscAmp;
+
+                        const kx = p.x + this.width / 2;
+                        const ky = p.koopa.y;
+                        const dx = bird.x - kx;
+                        const dy = bird.y - ky;
+                        const distSq = dx * dx + dy * dy;
+                        const combinedR = (bird.radius - 3) + p.koopa.radius;
+
+                        if (distSq < combinedR * combinedR) {
                             triggerCrash();
                             return;
                         }
@@ -998,6 +1104,12 @@
                     this.drawPipeSegment(p.x, 0, this.width, p.topHeight, true);
                     const bH = PLAYABLE_HEIGHT - p.bottomY;
                     this.drawPipeSegment(p.x, p.bottomY, this.width, bH, false);
+
+                    // Dibujar Koopa Paratroopa volando en el centro del hueco
+                    if (p.koopa) {
+                        const kx = p.x + this.width / 2;
+                        drawPixelKoopa(ctx, kx, p.koopa.y, p.koopa.wingTimer, 2.1);
+                    }
                 });
             },
 
