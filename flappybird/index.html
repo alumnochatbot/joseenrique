@@ -1127,11 +1127,9 @@
                                 const isStomp = (bird.vy > -1.2 && dy < 4) || dy < -5;
 
                                 if (isStomp) {
-                                    // ¡La tortuga muere!
+                                    // ¡La tortuga muere sin dar impulso de salto al pájaro!
                                     p.koopa.alive = false;
-                                    p.koopa.vy = 4; // Caída hacia abajo
-                                    bird.vy = diff.jumpStrength * 0.95; // Rebote retro estilo Mario
-                                    bird.wingFrame = 1;
+                                    p.koopa.vy = 4; // Caída hacia abajo de la tortuga
                                     audio.playStomp();
                                     spawnStompParticles(kx, ky);
                                     incrementScore(kx, ky); // Punto extra por pisar al enemigo
