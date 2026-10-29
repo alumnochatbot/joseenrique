@@ -289,7 +289,7 @@
                                     <span class="font-arcade text-[11px] text-amber-950 font-bold">MEDIO</span>
                                     <span class="text-[10px] bg-amber-200 text-amber-800 font-bold px-1.5 py-0.2 rounded border border-amber-400">Clásico</span>
                                 </div>
-                                <span class="text-[11px] text-amber-800 block">La experiencia arcade original (122px)</span>
+                                <span class="text-[11px] text-amber-800 block">La experiencia arcade original (147px)</span>
                             </div>
                         </div>
                         <div class="text-right">
@@ -309,7 +309,7 @@
                                     <span class="font-arcade text-[11px] text-rose-950 font-bold">DIFÍCIL</span>
                                     <span class="text-[10px] bg-rose-200 text-rose-800 font-bold px-1.5 py-0.2 rounded border border-rose-400">Koopa Paratroopa</span>
                                 </div>
-                                <span class="text-[11px] text-rose-800 block">¡Koopa volador vigila el paso! (124px)</span>
+                                <span class="text-[11px] text-rose-800 block">¡Koopa volador vigila el paso! (140px)</span>
                             </div>
                         </div>
                         <div class="text-right">
@@ -550,6 +550,28 @@
                 osc.start(now);
                 osc.stop(now + 0.08);
             }
+
+            playStomp() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(420, now);
+                osc.frequency.exponentialRampToValueAtTime(95, now + 0.16);
+
+                gain.gain.setValueAtTime(0.24, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.16);
+            }
         }
 
         const audio = new SoundEngine();
@@ -740,9 +762,17 @@
         /**
          * Renderizado Pixel-Art del Koopa Paratroopa (Mario Bros)
          */
-        function drawPixelKoopa(c, x, y, wingPhase = 0, scale = 2.1) {
+        function drawPixelKoopa(c, x, y, wingPhase = 0, scale = 2.1, rotation = 0, isAlive = true) {
             c.save();
             c.translate(Math.round(x), Math.round(y));
+
+            if (rotation !== 0) {
+                c.rotate(rotation);
+            }
+
+            if (!isAlive) {
+                c.rotate(Math.PI); // Giro invertido al ser derrotado
+            }
 
             const p = scale;
             const border = '#231b2e';
@@ -795,24 +825,26 @@
             px(-7, -7, 2, 3, '#ffffff');
             px(-8, -6, 1, 2, '#231b2e');
 
-            // --- ALAS BLANCAS BATIENTES DE PARATROOPA ---
-            const wingAngle = Math.sin(wingPhase) * 0.42;
+            // --- ALAS BLANCAS BATIENTES DE PARATROOPA (solo si sigue vivo) ---
+            if (isAlive) {
+                const wingAngle = Math.sin(wingPhase) * 0.42;
 
-            c.save();
-            c.translate(2 * p, -2 * p);
-            c.rotate(wingAngle);
+                c.save();
+                c.translate(2 * p, -2 * p);
+                c.rotate(wingAngle);
 
-            // Contorno y plumas blancas
-            px(0, -9, 7, 8, border);
-            px(2, -12, 5, 6, border);
-            px(-1, -6, 8, 5, border);
+                // Contorno y plumas blancas
+                px(0, -9, 7, 8, border);
+                px(2, -12, 5, 6, border);
+                px(-1, -6, 8, 5, border);
 
-            px(1, -8, 5, 6, '#ffffff');
-            px(3, -11, 3, 4, '#ffffff');
-            px(0, -5, 6, 3, '#e2e8f0');
-            px(2, -4, 4, 2, '#cbd5e1');
+                px(1, -8, 5, 6, '#ffffff');
+                px(3, -11, 3, 4, '#ffffff');
+                px(0, -5, 6, 3, '#e2e8f0');
+                px(2, -4, 4, 2, '#cbd5e1');
 
-            c.restore();
+                c.restore();
+            }
 
             c.restore();
         }
@@ -839,7 +871,7 @@
                 name: 'Medio',
                 badgeBg: 'bg-amber-400',
                 badgeText: 'text-amber-950',
-                gap: 122,
+                gap: 147,
                 speed: 2.8,
                 gravity: 0.44,
                 jumpStrength: -7.7,
@@ -851,7 +883,7 @@
                 name: 'Difícil',
                 badgeBg: 'bg-rose-500',
                 badgeText: 'text-white',
-                gap: 124, // Espacio equilibrado para decidir esquivar por arriba o por abajo
+                gap: 140, // Espacio ampliado a 140px con Koopa Paratroopa
                 speed: 2.9,
                 gravity: 0.44,
                 jumpStrength: -7.7,
@@ -1041,7 +1073,10 @@
                             oscSpeed: 0.05, // Oscilación predecible y no frustrante
                             phase: Math.random() * Math.PI * 2,
                             wingTimer: Math.random() * 5,
-                            radius: 11 // Hitbox perdonable (menor al sprite visual)
+                            radius: 12, // Hitbox
+                            alive: true,
+                            vy: 0,
+                            rotation: 0
                         };
                     }
 
@@ -1068,22 +1103,43 @@
                         }
                     }
 
-                    // Actualizar y comprobar colisión con Koopa Paratroopa
+                    // Actualizar y comprobar colisión/pisotón con Koopa Paratroopa
                     if (p.koopa) {
-                        p.koopa.phase += p.koopa.oscSpeed * dt;
-                        p.koopa.wingTimer += 0.22 * dt;
-                        p.koopa.y = p.koopa.baseY + Math.sin(p.koopa.phase) * p.koopa.oscAmp;
+                        if (!p.koopa.alive) {
+                            // Koopa derrotado cae dando vueltas fuera de la pantalla
+                            p.koopa.y += p.koopa.vy * dt;
+                            p.koopa.vy += 0.45 * dt;
+                            p.koopa.rotation += 0.18 * dt;
+                        } else {
+                            p.koopa.phase += p.koopa.oscSpeed * dt;
+                            p.koopa.wingTimer += 0.22 * dt;
+                            p.koopa.y = p.koopa.baseY + Math.sin(p.koopa.phase) * p.koopa.oscAmp;
 
-                        const kx = p.x + this.width / 2;
-                        const ky = p.koopa.y;
-                        const dx = bird.x - kx;
-                        const dy = bird.y - ky;
-                        const distSq = dx * dx + dy * dy;
-                        const combinedR = (bird.radius - 3) + p.koopa.radius;
+                            const kx = p.x + this.width / 2;
+                            const ky = p.koopa.y;
+                            const dx = bird.x - kx;
+                            const dy = bird.y - ky;
+                            const distSq = dx * dx + dy * dy;
+                            const combinedR = hitRadius + p.koopa.radius;
 
-                        if (distSq < combinedR * combinedR) {
-                            triggerCrash();
-                            return;
+                            if (distSq < combinedR * combinedR) {
+                                // Pisotón al caparazón: el pájaro viene desde arriba o impacta en la parte superior del Koopa
+                                const isStomp = (bird.vy > -1.2 && dy < 4) || dy < -5;
+
+                                if (isStomp) {
+                                    // ¡La tortuga muere!
+                                    p.koopa.alive = false;
+                                    p.koopa.vy = 4; // Caída hacia abajo
+                                    bird.vy = diff.jumpStrength * 0.95; // Rebote retro estilo Mario
+                                    bird.wingFrame = 1;
+                                    audio.playStomp();
+                                    spawnStompParticles(kx, ky);
+                                    incrementScore(kx, ky); // Punto extra por pisar al enemigo
+                                } else {
+                                    triggerCrash();
+                                    return;
+                                }
+                            }
                         }
                     }
 
@@ -1105,10 +1161,10 @@
                     const bH = PLAYABLE_HEIGHT - p.bottomY;
                     this.drawPipeSegment(p.x, p.bottomY, this.width, bH, false);
 
-                    // Dibujar Koopa Paratroopa volando en el centro del hueco
+                    // Dibujar Koopa Paratroopa volando o cayendo derrotado
                     if (p.koopa) {
                         const kx = p.x + this.width / 2;
-                        drawPixelKoopa(ctx, kx, p.koopa.y, p.koopa.wingTimer, 2.1);
+                        drawPixelKoopa(ctx, kx, p.koopa.y, p.koopa.wingTimer, 2.1, p.koopa.rotation, p.koopa.alive);
                     }
                 });
             },
@@ -1203,6 +1259,23 @@
                     color: palette[i % palette.length],
                     alpha: 1,
                     decay: 0.032
+                });
+            }
+        }
+
+        function spawnStompParticles(x, y) {
+            const colors = ['#ef4444', '#facc15', '#ffffff', '#f97316'];
+            for (let i = 0; i < 15; i++) {
+                const angle = (Math.PI * 2 * i) / 15;
+                const speed = 2.2 + Math.random() * 3.2;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 1.2,
+                    size: 5,
+                    color: colors[i % colors.length],
+                    alpha: 1,
+                    decay: 0.035
                 });
             }
         }
