@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flappy Bird - Edición Pixel Art</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuentes Pixel Art y UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --font-arcade: 'Press Start 2P', monospace;
+            --font-ui: 'Fredoka', sans-serif;
+            --pixel-border: #231b2e;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+        }
+
+        .font-arcade {
+            font-family: var(--font-arcade);
+        }
+
+        /* Sombras pixeladas de alto contraste */
+        .pixel-shadow-text {
+            text-shadow:
+                3px 3px 0 var(--pixel-border),
+                -3px -3px 0 var(--pixel-border),
+                3px -3px 0 var(--pixel-border),
+                -3px 3px 0 var(--pixel-border),
+                0px 4px 0 var(--pixel-border),
+                0px -3px 0 var(--pixel-border),
+                3px 0px 0 var(--pixel-border),
+                -3px 0px 0 var(--pixel-border),
+                0 6px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .pixel-shadow-text-sm {
+            text-shadow:
+                2px 2px 0 var(--pixel-border),
+                -2px -2px 0 var(--pixel-border),
+                2px -2px 0 var(--pixel-border),
+                -2px 2px 0 var(--pixel-border),
+                0 3px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        /* Contenedor del lienzo con proporción optimizada para móvil y PC */
+        #game-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            aspect-ratio: 2 / 3;
+            max-height: 80vh;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 5px #231b2e, 0 0 0 9px #4ec0ca;
+            border-radius: 1.25rem;
+            overflow: hidden;
+            background-color: #4ec0ca;
+            image-rendering: pixelated;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* Botones estilo arcade retro con relieve 3D pixel */
+        .btn-pixel {
+            transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
+            border: 3px solid #231b2e;
+            box-shadow: 0 5px 0 #231b2e, inset 0 3px 0 rgba(255,255,255,0.4);
+        }
+
+        .btn-pixel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #231b2e, inset 0 4px 0 rgba(255,255,255,0.5);
+        }
+
+        .btn-pixel:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #231b2e, inset 0 2px 0 rgba(255,255,255,0.25);
+        }
+
+        /* Tarjeta de Personaje */
+        .char-card {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 3px solid #231b2e;
+            box-shadow: 0 4px 0 #231b2e;
+        }
+
+        .char-card.selected {
+            background-color: #fef08a !important;
+            border-color: #231b2e !important;
+            transform: translateY(-4px) scale(1.04);
+            box-shadow: 0 7px 0 #231b2e, 0 0 0 3px #facc15;
+        }
+
+        /* Tarjeta de Dificultad */
+        .diff-card {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 3px solid #231b2e;
+            box-shadow: 0 4px 0 #231b2e;
+        }
+
+        .diff-card.selected {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 7px 0 #231b2e, 0 0 0 3px #ffffff;
+        }
+
+        /* Animación flotante para el logo */
+        @keyframes floatLogo {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .animate-float-logo {
+            animation: floatLogo 2.5s ease-in-out infinite;
+        }
+
+        /* Destellos pixelados en el logo */
+        @keyframes twinkle {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+            50% { transform: scale(1.3) rotate(20deg); opacity: 0.7; }
+        }
+
+        .sparkle-anim {
+            animation: twinkle 1.5s ease-in-out infinite;
+        }
+
+        #flash-overlay {
+            pointer-events: none;
+            transition: opacity 0.2s ease-out;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col items-center justify-between py-2 px-3 text-white">
+
+    <!-- BARRA SUPERIOR DE INFORMACIÓN -->
+    <header class="w-full max-w-[420px] flex items-center justify-between bg-slate-900/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border-2 border-[#231b2e] shadow-xl z-20">
+        <div class="flex items-center gap-2.5">
+            <!-- Mini icono animado del pájaro activo -->
+            <button id="btn-top-char" title="Cambiar Personaje" class="w-10 h-10 rounded-xl bg-[#4ec0ca] border-2 border-[#231b2e] flex items-center justify-center shadow-inner overflow-hidden hover:scale-105 transition cursor-pointer">
+                <canvas id="header-bird-canvas" width="36" height="36"></canvas>
+            </button>
+            <div class="flex flex-col">
+                <div class="flex items-center gap-1.5">
+                    <span id="active-char-name" class="font-arcade text-[10px] text-yellow-300 leading-none">Fiesta</span>
+                    <span id="active-diff-badge" class="font-arcade text-[8px] px-1.5 py-0.5 rounded border border-[#231b2e] bg-amber-400 text-[#231b2e] leading-none">MEDIO</span>
+                </div>
+                <span class="text-[11px] text-cyan-300 font-medium">Flappy Pixel Arcade</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <!-- Récord actual del modo seleccionado -->
+            <div class="flex items-center gap-1.5 bg-slate-800 border-2 border-[#231b2e] px-2.5 py-1 rounded-xl text-xs" title="Mejor récord en este modo">
+                <i class="fa-solid fa-trophy text-yellow-400 text-xs"></i>
+                <span id="header-best-score" class="font-arcade text-[11px] text-white">0</span>
+            </div>
+
+            <!-- Botón Pausa -->
+            <button id="btn-pause" title="Pausar juego (P)" class="btn-pixel w-8 h-8 rounded-xl bg-amber-400 hover:bg-amber-300 flex items-center justify-center text-[#231b2e]">
+                <i id="icon-pause" class="fa-solid fa-pause text-xs"></i>
+            </button>
+
+            <!-- Botón Sonido -->
+            <button id="btn-sound" title="Sonido 8-bit (M)" class="btn-pixel w-8 h-8 rounded-xl bg-emerald-400 hover:bg-emerald-300 flex items-center justify-center text-[#231b2e]">
+                <i id="icon-sound" class="fa-solid fa-volume-high text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ÁREA DEL JUEGO / CANVAS -->
+    <main class="w-full flex-1 flex items-center justify-center my-1.5 min-h-0">
+        <div id="game-wrapper">
+            <!-- Lienzo Gráfico Pixel Art -->
+            <canvas id="game-canvas" width="400" height="600"></canvas>
+
+            <!-- Destello de impacto -->
+            <div id="flash-overlay" class="absolute inset-0 bg-white opacity-0 z-30"></div>
+
+            <!-- Contador en vivo durante la partida -->
+            <div id="hud-score-container" class="absolute top-4 inset-x-0 flex flex-col items-center pointer-events-none z-10 hidden">
+                <span id="hud-score" class="font-arcade text-4xl text-white pixel-shadow-text tracking-wider transition-transform duration-100">0</span>
+            </div>
+
+            <!-- ============================================================
+                 PASO 1: PANTALLA DE SELECCIÓN DE PÁJARO (LOS 6 DEL BANNER)
+                 ============================================================ -->
+            <div id="screen-character" class="absolute inset-0 flex flex-col items-center justify-between py-4 px-3.5 z-20">
+                <!-- Título Multicolor Flappy Bird -->
+                <div class="relative text-center animate-float-logo mt-1">
+                    <span class="sparkle-anim absolute -top-2.5 -left-3 font-arcade text-yellow-200 text-base pixel-shadow-text-sm">+</span>
+                    <span class="sparkle-anim absolute -bottom-1 -right-3 font-arcade text-yellow-200 text-base pixel-shadow-text-sm" style="animation-delay: 0.7s;">+</span>
+                    <div class="font-arcade text-2xl sm:text-3xl tracking-tight flex items-center justify-center gap-0.5 pixel-shadow-text">
+                        <span class="text-[#facc15]">F</span><span class="text-[#f43f5e]">L</span><span class="text-[#67e8f9]">A</span><span class="text-[#8b5cf6]">P</span><span class="text-[#4ade80]">P</span><span class="text-[#a855f7]">Y</span>
+                    </div>
+                    <div class="font-arcade text-2xl sm:text-3xl tracking-tight flex items-center justify-center gap-0.5 pixel-shadow-text">
+                        <span class="text-[#a855f7]">B</span><span class="text-[#facc15]">I</span><span class="text-[#f43f5e]">R</span><span class="text-[#67e8f9]">D</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta contenedora de la cuadrícula de personajes -->
+                <div class="w-full bg-white/95 border-4 border-[#231b2e] rounded-2xl p-2.5 shadow-2xl">
+                    <div class="flex items-center justify-between mb-2 px-1">
+                        <span class="font-arcade text-[9px] text-[#231b2e] flex items-center gap-1">
+                            <i class="fa-solid fa-feather-pointed text-purple-600"></i> PASO 1: ELIGE PÁJARO
+                        </span>
+                        <span id="char-name-indicator" class="text-xs font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md border border-purple-300">
+                            Clásico Fiesta
+                        </span>
+                    </div>
+
+                    <!-- Cuadrícula 2x3 con los 6 pájaros animados -->
+                    <div id="character-grid" class="grid grid-cols-3 gap-2">
+                        <!-- Generado por JavaScript con mini-canvases interactivos -->
+                    </div>
+                </div>
+
+                <!-- Botón Continuar a Selección de Dificultad -->
+                <button id="btn-next-to-difficulty" class="btn-pixel w-full max-w-[320px] py-3 bg-[#4ade80] hover:bg-[#22c55e] text-[#231b2e] font-arcade text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg">
+                    <span>ELEGIR DIFICULTAD</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- ============================================================
+                 PASO 2: PANTALLA DE SELECCIÓN DE DIFICULTAD (FÁCIL / MEDIO / DIFÍCIL)
+                 ============================================================ -->
+            <div id="screen-difficulty" class="absolute inset-0 bg-[#231b2e]/60 backdrop-blur-xs flex flex-col items-center justify-between py-4 px-3.5 z-20 hidden">
+                <!-- Encabezado con el pájaro seleccionado -->
+                <div class="w-full flex items-center justify-between bg-white/95 border-3 border-[#231b2e] rounded-xl px-3 py-2 shadow-md">
+                    <div class="flex items-center gap-2">
+                        <canvas id="diff-preview-bird" width="38" height="34"></canvas>
+                        <div>
+                            <span class="text-[10px] text-slate-500 font-bold block uppercase tracking-wide">Pájaro elegido:</span>
+                            <span id="diff-chosen-bird-name" class="font-arcade text-[10px] text-[#231b2e]">Clásico Fiesta</span>
+                        </div>
+                    </div>
+                    <button id="btn-back-to-character" class="text-xs font-bold text-purple-700 hover:text-purple-900 bg-purple-100 hover:bg-purple-200 border-2 border-[#231b2e] px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-left"></i> Cambiar
+                    </button>
+                </div>
+
+                <!-- Selector de Dificultad -->
+                <div class="w-full flex flex-col gap-2.5 my-auto">
+                    <h2 class="font-arcade text-xs text-center text-yellow-300 pixel-shadow-text-sm">PASO 2: ELIGE DIFICULTAD</h2>
+
+                    <!-- Tarjeta FÁCIL -->
+                    <button type="button" data-diff="FACIL" class="diff-card w-full p-2.5 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-left flex items-center justify-between cursor-pointer border-3 border-[#231b2e]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500 border-2 border-[#231b2e] flex items-center justify-center text-white text-lg shadow-sm">
+                                <i class="fa-solid fa-leaf"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-arcade text-[11px] text-emerald-950 font-bold">FÁCIL</span>
+                                    <span class="text-[10px] bg-emerald-200 text-emerald-800 font-bold px-1.5 py-0.2 rounded border border-emerald-400">Principiante</span>
+                                </div>
+                                <span class="text-[11px] text-emerald-800 block">Espacio amplio (155px) y vuelo suave</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[9px] font-bold text-emerald-800 block uppercase">Récord</span>
+                            <span id="diff-rec-facil" class="font-arcade text-xs text-emerald-950">0</span>
+                        </div>
+                    </button>
+
+                    <!-- Tarjeta MEDIO -->
+                    <button type="button" data-diff="MEDIO" class="diff-card selected w-full p-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-left flex items-center justify-between cursor-pointer border-3 border-[#231b2e]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500 border-2 border-[#231b2e] flex items-center justify-center text-white text-lg shadow-sm">
+                                <i class="fa-solid fa-medal"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-arcade text-[11px] text-amber-950 font-bold">MEDIO</span>
+                                    <span class="text-[10px] bg-amber-200 text-amber-800 font-bold px-1.5 py-0.2 rounded border border-amber-400">Clásico</span>
+                                </div>
+                                <span class="text-[11px] text-amber-800 block">La experiencia arcade original (122px)</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[9px] font-bold text-amber-800 block uppercase">Récord</span>
+                            <span id="diff-rec-medio" class="font-arcade text-xs text-amber-950">0</span>
+                        </div>
+                    </button>
+
+                    <!-- Tarjeta DIFÍCIL -->
+                    <button type="button" data-diff="DIFICIL" class="diff-card w-full p-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-left flex items-center justify-between cursor-pointer border-3 border-[#231b2e]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-rose-500 border-2 border-[#231b2e] flex items-center justify-center text-white text-lg shadow-sm">
+                                <i class="fa-solid fa-skull"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-arcade text-[11px] text-rose-950 font-bold">DIFÍCIL</span>
+                                    <span class="text-[10px] bg-rose-200 text-rose-800 font-bold px-1.5 py-0.2 rounded border border-rose-400">Experto</span>
+                                </div>
+                                <span class="text-[11px] text-rose-800 block">Paso estrecho (96px) + tuberías móviles</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[9px] font-bold text-rose-800 block uppercase">Récord</span>
+                            <span id="diff-rec-dificil" class="font-arcade text-xs text-rose-950">0</span>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Botón ¡A VOLAR! -->
+                <button id="btn-start-fly" class="btn-pixel w-full max-w-[320px] py-3.5 bg-[#facc15] hover:bg-[#eab308] text-[#231b2e] font-arcade text-sm rounded-xl flex items-center justify-center gap-2 shadow-xl">
+                    <i class="fa-solid fa-play"></i>
+                    <span>¡A VOLAR!</span>
+                </button>
+            </div>
+
+            <!-- MODAL DE PAUSA -->
+            <div id="screen-pause" class="absolute inset-0 bg-[#231b2e]/75 backdrop-blur-xs flex flex-col items-center justify-center z-20 hidden">
+                <div class="bg-[#f3fce2] border-4 border-[#231b2e] rounded-2xl p-5 text-center shadow-2xl max-w-[270px] w-full mx-4 text-[#231b2e]">
+                    <div class="w-12 h-12 mx-auto mb-2.5 rounded-xl bg-amber-400 border-3 border-[#231b2e] flex items-center justify-center text-xl shadow">
+                        <i class="fa-solid fa-pause"></i>
+                    </div>
+                    <h2 class="font-arcade text-sm mb-1.5">PAUSA</h2>
+                    <p class="text-slate-700 text-xs font-semibold mb-4">Presiona continuar para reanudar el vuelo.</p>
+                    <button id="btn-resume" class="btn-pixel w-full py-2.5 bg-[#4ade80] hover:bg-[#22c55e] text-[#231b2e] font-arcade text-xs rounded-xl">
+                        CONTINUAR
+                    </button>
+                </div>
+            </div>
+
+            <!-- ============================================================
+                 PANTALLA DE FIN DE JUEGO (GAME OVER CON MÉTRICAS POR DIFICULTAD)
+                 ============================================================ -->
+            <div id="screen-gameover" class="absolute inset-0 bg-[#231b2e]/70 backdrop-blur-xs flex flex-col items-center justify-center p-4 z-20 hidden">
+                <!-- Título Game Over Multicolor -->
+                <div class="font-arcade text-2xl sm:text-3xl pixel-shadow-text mb-3 text-center tracking-tight flex gap-1.5">
+                    <span class="text-[#f43f5e]">GAME</span>
+                    <span class="text-[#facc15]">OVER</span>
+                </div>
+
+                <!-- Tablero con Medalla y Puntuaciones -->
+                <div class="w-full max-w-[320px] bg-[#f3fce2] border-4 border-[#231b2e] rounded-2xl p-3.5 shadow-2xl text-[#231b2e] mb-3">
+                    <div class="flex items-center justify-between border-b-2 border-[#c5e0a8] pb-1.5 mb-2">
+                        <span id="go-diff-badge" class="font-arcade text-[9px] px-2 py-0.5 rounded border border-[#231b2e] bg-amber-400 text-[#231b2e]">MODO MEDIO</span>
+                        <span id="go-char-name" class="text-xs font-bold text-slate-700">Clásico Fiesta</span>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3">
+                        <!-- Ranura de Medalla -->
+                        <div class="flex flex-col items-center justify-center w-2/5">
+                            <span class="font-arcade text-[9px] text-[#5c7a45] mb-1">MEDALLA</span>
+                            <div id="medal-slot" class="w-14 h-14 rounded-full bg-[#d4e8b9] border-3 border-[#231b2e] flex items-center justify-center relative overflow-hidden shadow-inner">
+                                <span id="medal-none" class="font-arcade text-[10px] text-[#8aa670]">---</span>
+                                <div id="medal-content" class="hidden w-full h-full rounded-full flex flex-col items-center justify-center">
+                                    <i id="medal-icon" class="fa-solid fa-medal text-2xl drop-shadow"></i>
+                                </div>
+                            </div>
+                            <span id="medal-title" class="text-[11px] font-bold mt-1 text-[#231b2e]">Sin medalla</span>
+                        </div>
+
+                        <!-- Puntos y Récord del Modo -->
+                        <div class="flex flex-col items-end justify-center w-3/5 border-l-2 border-[#c5e0a8] pl-3">
+                            <span class="font-arcade text-[9px] text-[#5c7a45]">PUNTOS</span>
+                            <span id="go-score" class="font-arcade text-2xl text-white pixel-shadow-text-sm my-0.5">0</span>
+
+                            <div class="flex items-center gap-1.5 mt-1.5">
+                                <span id="go-new-badge" class="hidden bg-[#f43f5e] text-white font-arcade text-[8px] px-1 py-0.5 rounded border border-[#231b2e] animate-bounce">
+                                    ¡NUEVO!
+                                </span>
+                                <span class="font-arcade text-[9px] text-[#5c7a45]">MEJOR</span>
+                            </div>
+                            <span id="go-best-score" class="font-arcade text-2xl text-[#facc15] pixel-shadow-text-sm mt-0.5">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción en Game Over -->
+                <div class="flex flex-col gap-2 w-full max-w-[320px]">
+                    <button id="btn-replay" class="btn-pixel w-full py-2.5 bg-[#4ade80] hover:bg-[#22c55e] text-[#231b2e] font-arcade text-xs rounded-xl flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> JUGAR DE NUEVO
+                    </button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btn-go-change-diff" class="btn-pixel py-2 bg-[#facc15] hover:bg-[#eab308] text-[#231b2e] font-bold text-xs rounded-xl flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-gauge-high"></i> Dificultad
+                        </button>
+                        <button id="btn-go-change-char" class="btn-pixel py-2 bg-[#67e8f9] hover:bg-[#22d3ee] text-[#231b2e] font-bold text-xs rounded-xl flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-feather-pointed"></i> Pájaro
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- BARRA INFERIOR / CONTROL TÁCTIL -->
+    <footer class="w-full max-w-[420px] flex items-center justify-between gap-2.5 z-20">
+        <button id="btn-touch-flap" class="btn-pixel flex-1 py-3 bg-[#facc15] hover:bg-[#fde047] text-[#231b2e] font-arcade text-xs rounded-xl flex items-center justify-center gap-2">
+            <i class="fa-solid fa-feather-pointed"></i> ALETEAR (ESPACIO / TOQUE)
+        </button>
+    </footer>
+
+    <script>
+        /**
+         * ============================================================================
+         * 1. SISTEMA DE AUDIO SINTETIZADO RETRO (WEB AUDIO API)
+         * ============================================================================
+         */
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContextClass) this.ctx = new AudioContextClass();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            toggleMute() {
+                this.muted = !this.muted;
+                return this.muted;
+            }
+
+            playFlap() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(260, now);
+                osc.frequency.exponentialRampToValueAtTime(580, now + 0.08);
+
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.09);
+            }
+
+            playScore() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(987.77, now); // B5
+                osc.frequency.setValueAtTime(1318.51, now + 0.07); // E6
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            }
+
+            playHit() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.22);
+
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.24);
+            }
+
+            playRecord() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((f, i) => {
+                    const now = this.ctx.currentTime + i * 0.07;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(f, now);
+
+                    gain.gain.setValueAtTime(0.16, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                });
+            }
+
+            playClick() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.setValueAtTime(660, now + 0.03);
+
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+        }
+
+        const audio = new SoundEngine();
+
+        /**
+         * ============================================================================
+         * 2. LOS 6 PERSONAJES PIXEL-ART INSPIRADOS EN EL BANNER
+         * ============================================================================
+         */
+        const CHARACTERS = [
+            {
+                id: 'fiesta',
+                name: 'Clásico Fiesta',
+                desc: 'Amarillo con bandana roja y pecho morado',
+                trailColor: '#facc15',
+                bodyColor: '#facc15',
+                bellyColor: '#a855f7',
+                bellyDots: '#f3e8ff',
+                wingColor: '#fde047',
+                beakColor: '#ec4899',
+                accessory: 'bandana'
+            },
+            {
+                id: 'pinguino',
+                name: 'Pingüino',
+                desc: 'Cuerpo negro y blanco con pico naranja',
+                trailColor: '#e2e8f0',
+                bodyColor: '#1e293b',
+                bellyColor: '#ffffff',
+                bellyDots: null,
+                wingColor: '#334155',
+                beakColor: '#f97316',
+                accessory: 'penguin'
+            },
+            {
+                id: 'realeza',
+                name: 'Realeza',
+                desc: 'Pájaro morado con corona rosa y gafas',
+                trailColor: '#f472b6',
+                bodyColor: '#9333ea',
+                bellyColor: '#f472b6',
+                bellyDots: '#fce7f3',
+                wingColor: '#c084fc',
+                beakColor: '#facc15',
+                accessory: 'crownGlasses'
+            },
+            {
+                id: 'unicornio',
+                name: 'Unicornio',
+                desc: 'Pájaro celeste con cuerno morado',
+                trailColor: '#67e8f9',
+                bodyColor: '#22d3ee',
+                bellyColor: '#06b6d4',
+                bellyDots: '#cffafe',
+                wingColor: '#a5f3fc',
+                beakColor: '#2dd4bf',
+                accessory: 'unicornHorn'
+            },
+            {
+                id: 'ciborg',
+                name: 'Cíborg Rojo',
+                desc: 'Rojo con visera oscura y alas metálicas',
+                trailColor: '#ef4444',
+                bodyColor: '#ef4444',
+                bellyColor: '#b91c1c',
+                bellyDots: null,
+                wingColor: '#bae6fd',
+                beakColor: '#facc15',
+                accessory: 'cyborgVisor'
+            },
+            {
+                id: 'explorador',
+                name: 'Explorador',
+                desc: 'Verde oliva con sombrero y gafas cuadradas',
+                trailColor: '#84cc16',
+                bodyColor: '#65a30d',
+                bellyColor: '#fdba74',
+                bellyDots: '#fed7aa',
+                wingColor: '#84cc16',
+                beakColor: '#f59e0b',
+                accessory: 'safariHat'
+            }
+        ];
+
+        let selectedCharIdx = 0;
+
+        /**
+         * Renderizado Pixel-Art vectorial de los personajes
+         */
+        function drawPixelBird(c, char, x, y, scale = 2.2, wingFrame = 0, rotation = 0) {
+            c.save();
+            c.translate(x, y);
+            c.rotate(rotation);
+
+            const p = scale;
+            const border = '#231b2e';
+
+            const pxRect = (gx, gy, gw, gh, col) => {
+                c.fillStyle = col;
+                c.fillRect(Math.round(gx * p), Math.round(gy * p), Math.ceil(gw * p), Math.ceil(gh * p));
+            };
+
+            // Contorno base exterior
+            pxRect(-7, -6, 13, 12, border);
+            pxRect(-8, -4, 15, 8, border);
+
+            // Relleno de cuerpo
+            pxRect(-6, -5, 11, 10, char.bodyColor);
+            pxRect(-7, -3, 13, 6, char.bodyColor);
+
+            // Barriga / Pecho característico
+            if (char.id === 'pinguino') {
+                pxRect(-5, 0, 10, 5, '#ffffff');
+                pxRect(-6, 1, 11, 3, '#ffffff');
+                pxRect(-4, 4, 8, 1, '#cbd5e1');
+            } else {
+                pxRect(-1, 0, 6, 5, char.bellyColor);
+                pxRect(-2, 1, 7, 3, char.bellyColor);
+                if (char.bellyDots) {
+                    pxRect(0, 1, 1, 1, char.bellyDots);
+                    pxRect(3, 2, 1, 1, char.bellyDots);
+                    pxRect(1, 3, 1, 1, char.bellyDots);
+                }
+            }
+
+            // Ojos o Gafas/Visor
+            if (char.accessory === 'cyborgVisor') {
+                pxRect(0, -5, 6, 5, border);
+                pxRect(1, -4, 5, 3, '#1e293b');
+                pxRect(2, -4, 2, 1, '#94a3b8');
+            } else if (char.accessory === 'crownGlasses' || char.accessory === 'safariHat') {
+                // Gafas cuadradas pixeladas (como en el banner oficial)
+                pxRect(0, -6, 6, 6, border);
+                pxRect(1, -5, 4, 4, '#ffffff');
+                pxRect(3, -4, 2, 2, border);
+                pxRect(-1, -4, 2, 1, border); // Puente de gafas
+            } else {
+                // Ojo normal grande expresivo
+                pxRect(0, -5, 6, 5, border);
+                pxRect(1, -4, 4, 3, '#ffffff');
+                pxRect(3, -3, 2, 2, border);
+            }
+
+            // Pico
+            pxRect(5, -1, 5, 4, border);
+            pxRect(5, 0, 4, 2, char.beakColor);
+
+            // Accesorios específicos del banner
+            if (char.accessory === 'bandana') {
+                // Bandana roja con lazo superior
+                pxRect(-5, -8, 7, 3, border);
+                pxRect(-4, -7, 5, 2, '#ef4444');
+                pxRect(-2, -10, 3, 2, border);
+                pxRect(-1, -9, 2, 2, '#ef4444');
+            } else if (char.accessory === 'crownGlasses') {
+                // Corona Rosa Real con 3 puntas
+                pxRect(-5, -10, 8, 5, border);
+                pxRect(-4, -8, 6, 3, '#f472b6');
+                pxRect(-4, -9, 1, 1, '#fbcfe8');
+                pxRect(-1, -9, 1, 1, '#fbcfe8');
+                pxRect(2, -9, 1, 1, '#fbcfe8');
+            } else if (char.accessory === 'unicornHorn') {
+                // Cuerno espiral morado
+                pxRect(1, -11, 4, 6, border);
+                pxRect(2, -10, 2, 4, '#d946ef');
+                pxRect(3, -11, 1, 2, '#f0abfc');
+            } else if (char.accessory === 'cyborgVisor') {
+                // Cresta metálica
+                pxRect(-4, -9, 6, 4, border);
+                pxRect(-3, -8, 4, 3, '#dc2626');
+            } else if (char.accessory === 'safariHat') {
+                // Sombrero safari verde con cinta
+                pxRect(-7, -8, 12, 3, border);
+                pxRect(-6, -7, 10, 2, '#65a30d');
+                pxRect(-4, -11, 6, 4, border);
+                pxRect(-3, -10, 4, 3, '#84cc16');
+                pxRect(6, 2, 3, 4, '#dc2626'); // Pañuelo rojo colgante
+            }
+
+            // Ala animada
+            const wingYOff = wingFrame === 0 ? 0 : (wingFrame === 1 ? -2 : 1.5);
+            pxRect(-9, -1 + wingYOff, 6, 5, border);
+            pxRect(-8, 0 + wingYOff, 4, 3, char.wingColor);
+
+            c.restore();
+        }
+
+        /**
+         * ============================================================================
+         * 3. CONFIGURACIÓN DE DIFICULTADES Y ALMACENAMIENTO DE RÉCORDS
+         * ============================================================================
+         */
+        const DIFFICULTIES = {
+            FACIL: {
+                name: 'Fácil',
+                badgeBg: 'bg-emerald-400',
+                badgeText: 'text-emerald-950',
+                gap: 155,
+                speed: 2.15,
+                gravity: 0.38,
+                jumpStrength: -7.2,
+                spawnInterval: 105,
+                movingPipes: false,
+                colorTheme: '#10b981'
+            },
+            MEDIO: {
+                name: 'Medio',
+                badgeBg: 'bg-amber-400',
+                badgeText: 'text-amber-950',
+                gap: 122,
+                speed: 2.8,
+                gravity: 0.44,
+                jumpStrength: -7.7,
+                spawnInterval: 90,
+                movingPipes: false,
+                colorTheme: '#f59e0b'
+            },
+            DIFICIL: {
+                name: 'Difícil',
+                badgeBg: 'bg-rose-500',
+                badgeText: 'text-white',
+                gap: 96,
+                speed: 3.4,
+                gravity: 0.48,
+                jumpStrength: -8.1,
+                spawnInterval: 76,
+                movingPipes: true,
+                colorTheme: '#ef4444'
+            }
+        };
+
+        let currentDiffKey = 'MEDIO';
+
+        // Gestión de Récords en localStorage independientes por nivel
+        const STORAGE_KEY_RECORDS = 'flappy_pixel_records_v3';
+        let highScores = {
+            FACIL: 0,
+            MEDIO: 0,
+            DIFICIL: 0
+        };
+
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY_RECORDS);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                highScores.FACIL = parseInt(parsed.FACIL, 10) || 0;
+                highScores.MEDIO = parseInt(parsed.MEDIO, 10) || 0;
+                highScores.DIFICIL = parseInt(parsed.DIFICIL, 10) || 0;
+            }
+        } catch (e) {
+            console.warn('LocalStorage inaccesible.');
+        }
+
+        function saveHighScores() {
+            try {
+                localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(highScores));
+            } catch (e) {}
+        }
+
+        /**
+         * ============================================================================
+         * 4. ESTADO GLOBAL DEL JUEGO Y LIENZO PRINCIPAL
+         * ============================================================================
+         */
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const WIDTH = 400;
+        const HEIGHT = 600;
+        const GROUND_HEIGHT = 86;
+        const PLAYABLE_HEIGHT = HEIGHT - GROUND_HEIGHT; // 514
+
+        const GAME_STATES = {
+            SELECT_CHAR: 'SELECT_CHAR',
+            SELECT_DIFF: 'SELECT_DIFF',
+            PLAYING: 'PLAYING',
+            PAUSED: 'PAUSED',
+            DYING: 'DYING',
+            GAMEOVER: 'GAMEOVER'
+        };
+
+        let currentState = GAME_STATES.SELECT_CHAR;
+        let score = 0;
+        let isNewRecordAchieved = false;
+
+        // Pájaro en juego
+        const bird = {
+            x: 105,
+            y: 250,
+            radius: 15,
+            vy: 0,
+            rotation: 0,
+            wingTimer: 0,
+            wingFrame: 0,
+            hoverTime: 0,
+
+            reset() {
+                this.x = 105;
+                this.y = 240;
+                this.vy = 0;
+                this.rotation = 0;
+                this.wingTimer = 0;
+                this.wingFrame = 0;
+            },
+
+            flap() {
+                const diff = DIFFICULTIES[currentDiffKey];
+                this.vy = diff.jumpStrength;
+                this.wingFrame = 1;
+                this.wingTimer = 0;
+                audio.playFlap();
+                spawnFlapParticles(this.x - 12, this.y + 4, CHARACTERS[selectedCharIdx].trailColor);
+            },
+
+            update(dt) {
+                const diff = DIFFICULTIES[currentDiffKey];
+
+                if (currentState === GAME_STATES.SELECT_CHAR || currentState === GAME_STATES.SELECT_DIFF) {
+                    this.hoverTime += 0.08 * dt;
+                    this.y = 150 + Math.sin(this.hoverTime) * 6;
+                    this.x = WIDTH / 2;
+                    this.rotation = 0;
+                    this.wingTimer += dt;
+                    if (this.wingTimer > 8) {
+                        this.wingFrame = (this.wingFrame + 1) % 3;
+                        this.wingTimer = 0;
+                    }
+                    return;
+                }
+
+                // Físicas con gravedad dependiente de dificultad
+                this.vy += diff.gravity * dt;
+                const maxFall = 10.5;
+                if (this.vy > maxFall) this.vy = maxFall;
+                this.y += this.vy * dt;
+
+                // Techo
+                if (this.y - this.radius < 0) {
+                    this.y = this.radius;
+                    this.vy = 0;
+                }
+
+                // Rotación
+                if (this.vy < 0) {
+                    this.rotation = Math.max(-0.45, this.rotation - 0.14 * dt);
+                } else {
+                    const targetRot = Math.min(Math.PI / 2, (this.vy / maxFall) * (Math.PI / 2));
+                    this.rotation += (targetRot - this.rotation) * 0.12 * dt;
+                }
+
+                // Animación de alas
+                if (currentState === GAME_STATES.PLAYING) {
+                    this.wingTimer += dt;
+                    const interval = this.vy < 0 ? 4 : 7;
+                    if (this.wingTimer >= interval) {
+                        this.wingFrame = (this.wingFrame + 1) % 3;
+                        this.wingTimer = 0;
+                    }
+                }
+
+                // Suelo
+                if (this.y + this.radius >= PLAYABLE_HEIGHT) {
+                    this.y = PLAYABLE_HEIGHT - this.radius;
+                    if (currentState === GAME_STATES.PLAYING || currentState === GAME_STATES.DYING) {
+                        triggerGameOver();
+                    }
+                }
+            },
+
+            draw() {
+                const char = CHARACTERS[selectedCharIdx];
+                drawPixelBird(ctx, char, this.x, this.y, 2.3, this.wingFrame, this.rotation);
+            }
+        };
+
+        // Gestor de Tuberías
+        const pipes = {
+            list: [],
+            width: 68,
+            spawnTimer: 0,
+            pipeTime: 0,
+
+            reset() {
+                this.list = [];
+                this.spawnTimer = 60;
+                this.pipeTime = 0;
+            },
+
+            update(dt) {
+                if (currentState !== GAME_STATES.PLAYING) return;
+                const diff = DIFFICULTIES[currentDiffKey];
+
+                this.pipeTime += dt;
+                this.spawnTimer += dt;
+
+                if (this.spawnTimer >= diff.spawnInterval) {
+                    this.spawnTimer = 0;
+                    const minTop = 50;
+                    const maxTop = PLAYABLE_HEIGHT - diff.gap - 70;
+                    const baseTop = Math.floor(Math.random() * (maxTop - minTop + 1)) + minTop;
+
+                    this.list.push({
+                        x: WIDTH + 10,
+                        baseTop: baseTop,
+                        topHeight: baseTop,
+                        bottomY: baseTop + diff.gap,
+                        passed: false,
+                        oscOffset: Math.random() * Math.PI * 2,
+                        oscAmp: diff.movingPipes ? 22 : 0
+                    });
+                }
+
+                for (let i = this.list.length - 1; i >= 0; i--) {
+                    const p = this.list[i];
+                    p.x -= diff.speed * dt;
+
+                    // Si la dificultad es DIFÍCIL, las tuberías tienen un suave balanceo vertical
+                    if (diff.movingPipes) {
+                        const shift = Math.sin(this.pipeTime * 0.04 + p.oscOffset) * p.oscAmp;
+                        p.topHeight = p.baseTop + shift;
+                        p.bottomY = p.topHeight + diff.gap;
+                    }
+
+                    // Colisión con hitbox ajustada
+                    const hitRadius = bird.radius - 3;
+                    if (bird.x + hitRadius > p.x && bird.x - hitRadius < p.x + this.width) {
+                        if (bird.y - hitRadius < p.topHeight || bird.y + hitRadius > p.bottomY) {
+                            triggerCrash();
+                            return;
+                        }
+                    }
+
+                    // Puntuación
+                    if (!p.passed && p.x + this.width / 2 < bird.x) {
+                        p.passed = true;
+                        incrementScore(p.x + this.width / 2, p.topHeight + diff.gap / 2);
+                    }
+
+                    if (p.x + this.width < -30) {
+                        this.list.splice(i, 1);
+                    }
+                }
+            },
+
+            draw() {
+                this.list.forEach(p => {
+                    this.drawPipeSegment(p.x, 0, this.width, p.topHeight, true);
+                    const bH = PLAYABLE_HEIGHT - p.bottomY;
+                    this.drawPipeSegment(p.x, p.bottomY, this.width, bH, false);
+                });
+            },
+
+            drawPipeSegment(x, y, w, h, isTop) {
+                const border = '#231b2e';
+                const bw = 4;
+                const capH = 26;
+                const capExp = 4;
+
+                const rx = Math.round(x);
+                const ry = Math.round(y);
+
+                // Tubería básica
+                ctx.fillStyle = border;
+                ctx.fillRect(rx, ry, w, h);
+
+                const inX = rx + bw;
+                const inW = w - bw * 2;
+                const inY = isTop ? ry : ry + capH;
+                const inH = Math.max(0, h - capH);
+
+                if (inH > 0) {
+                    ctx.fillStyle = '#53b827';
+                    ctx.fillRect(inX, inY, inW, inH);
+
+                    ctx.fillStyle = '#8be046';
+                    ctx.fillRect(inX + 4, inY, 10, inH);
+
+                    ctx.fillStyle = '#b9f57c';
+                    ctx.fillRect(inX + 2, inY, 3, inH);
+
+                    ctx.fillStyle = '#3c961b';
+                    ctx.fillRect(inX + inW - 14, inY, 14, inH);
+                }
+
+                // Boca / Capuchón
+                const capY = isTop ? (ry + h - capH) : ry;
+                const capX = rx - capExp;
+                const capW = w + capExp * 2;
+
+                ctx.fillStyle = border;
+                ctx.fillRect(capX, capY, capW, capH);
+
+                const cInX = capX + bw;
+                const cInY = capY + bw;
+                const cInW = capW - bw * 2;
+                const cInH = capH - bw * 2;
+
+                ctx.fillStyle = '#53b827';
+                ctx.fillRect(cInX, cInY, cInW, cInH);
+
+                ctx.fillStyle = '#8be046';
+                ctx.fillRect(cInX + 4, cInY, 12, cInH);
+
+                ctx.fillStyle = '#b9f57c';
+                ctx.fillRect(cInX + 2, cInY, 3, cInH);
+
+                ctx.fillStyle = '#3c961b';
+                ctx.fillRect(cInX + cInW - 16, cInY, 16, cInH);
+            }
+        };
+
+        // Partículas
+        let particles = [];
+
+        function spawnFlapParticles(x, y, color) {
+            for (let i = 0; i < 5; i++) {
+                particles.push({
+                    x: x + (Math.random() * 6 - 3),
+                    y: y + (Math.random() * 6 - 3),
+                    vx: -Math.random() * 2 - 0.7,
+                    vy: (Math.random() - 0.5) * 2,
+                    size: 4,
+                    color: i % 2 === 0 ? color : '#ffffff',
+                    alpha: 1,
+                    decay: 0.05
+                });
+            }
+        }
+
+        function spawnScoreParticles(x, y) {
+            const palette = ['#facc15', '#f43f5e', '#67e8f9', '#a855f7', '#4ade80'];
+            for (let i = 0; i < 16; i++) {
+                const angle = (Math.PI * 2 * i) / 16;
+                const speed = 1.6 + Math.random() * 2.5;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: 5,
+                    color: palette[i % palette.length],
+                    alpha: 1,
+                    decay: 0.032
+                });
+            }
+        }
+
+        function updateAndDrawParticles(dt) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const pt = particles[i];
+                pt.x += pt.vx * dt;
+                pt.y += pt.vy * dt;
+                pt.alpha -= pt.decay * dt;
+
+                if (pt.alpha <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, pt.alpha);
+                ctx.fillStyle = '#231b2e';
+                ctx.fillRect(Math.round(pt.x - 1), Math.round(pt.y - 1), pt.size + 2, pt.size + 2);
+                ctx.fillStyle = pt.color;
+                ctx.fillRect(Math.round(pt.x), Math.round(pt.y), pt.size, pt.size);
+                ctx.restore();
+            }
+        }
+
+        // Fondo Parallax Pixel Art
+        let groundScroll = 0;
+        let cityScroll = 0;
+        let cloudScroll = 0;
+
+        function drawBackground(dt) {
+            const isMoving = currentState !== GAME_STATES.PAUSED && currentState !== GAME_STATES.GAMEOVER;
+            const diffSpeed = DIFFICULTIES[currentDiffKey].speed;
+
+            if (isMoving) {
+                groundScroll = (groundScroll + diffSpeed * dt) % 32;
+                cityScroll = (cityScroll + 0.35 * dt) % 200;
+                cloudScroll = (cloudScroll + 0.18 * dt) % 200;
+            }
+
+            // Cielo Turquesa
+            ctx.fillStyle = '#4ec0ca';
+            ctx.fillRect(0, 0, WIDTH, PLAYABLE_HEIGHT);
+
+            // Nubes Crema
+            ctx.fillStyle = '#f3fce2';
+            const cloudY = PLAYABLE_HEIGHT - 165;
+            ctx.fillRect(0, cloudY + 35, WIDTH, 130);
+
+            const puffs = [
+                { x: 10, w: 54, h: 32 },
+                { x: 55, w: 68, h: 46 },
+                { x: 115, w: 48, h: 26 },
+                { x: 155, w: 64, h: 40 }
+            ];
+
+            for (let r = -1; r <= 2; r++) {
+                const ox = r * 200 - Math.floor(cloudScroll);
+                puffs.forEach(p => {
+                    ctx.fillStyle = '#e5f5cc';
+                    ctx.fillRect(ox + p.x - 4, cloudY + 40 - p.h - 4, p.w + 8, p.h + 4);
+                    ctx.fillStyle = '#f3fce2';
+                    ctx.fillRect(ox + p.x, cloudY + 40 - p.h, p.w, p.h + 10);
+                });
+            }
+
+            // Edificios en tonos pastel
+            const buildings = [
+                { x: 0, w: 38, h: 78, win: true },
+                { x: 42, w: 28, h: 52, win: false },
+                { x: 74, w: 46, h: 92, win: true },
+                { x: 124, w: 34, h: 64, win: true },
+                { x: 162, w: 34, h: 80, win: false }
+            ];
+
+            for (let r = -1; r <= 2; r++) {
+                const ox = r * 200 - Math.floor(cityScroll);
+                buildings.forEach((b, i) => {
+                    const bx = ox + b.x;
+                    const by = PLAYABLE_HEIGHT - b.h;
+                    ctx.fillStyle = i % 2 === 0 ? '#bfe6ad' : '#addb98';
+                    ctx.fillRect(bx, by, b.w, b.h);
+
+                    ctx.fillStyle = '#9bcf84';
+                    ctx.fillRect(bx + 4, by - 6, b.w - 8, 6);
+
+                    if (b.win) {
+                        ctx.fillStyle = '#e4f7d7';
+                        for (let wy = by + 10; wy < PLAYABLE_HEIGHT - 18; wy += 14) {
+                            ctx.fillRect(bx + 6, wy, 8, 8);
+                            if (b.w > 36) ctx.fillRect(bx + 20, wy, 8, 8);
+                        }
+                    }
+                });
+            }
+
+            // Arbustos
+            ctx.fillStyle = '#88d169';
+            ctx.fillRect(0, PLAYABLE_HEIGHT - 18, WIDTH, 18);
+        }
+
+        function drawGround() {
+            const y = PLAYABLE_HEIGHT;
+            ctx.fillStyle = '#231b2e';
+            ctx.fillRect(0, y, WIDTH, 4);
+
+            ctx.fillStyle = '#73bf2e';
+            ctx.fillRect(0, y + 4, WIDTH, 18);
+
+            ctx.fillStyle = '#9ce659';
+            ctx.fillRect(0, y + 4, WIDTH, 4);
+
+            ctx.fillStyle = '#55961b';
+            for (let gx = -32; gx < WIDTH + 32; gx += 32) {
+                const drawX = Math.floor(gx - groundScroll);
+                ctx.fillRect(drawX, y + 8, 14, 10);
+                ctx.fillRect(drawX + 4, y + 18, 14, 4);
+            }
+
+            ctx.fillStyle = '#231b2e';
+            ctx.fillRect(0, y + 22, WIDTH, 4);
+
+            // Tierra retro
+            ctx.fillStyle = '#ded895';
+            ctx.fillRect(0, y + 26, WIDTH, GROUND_HEIGHT - 26);
+
+            ctx.fillStyle = '#cbb968';
+            for (let tx = -32; tx < WIDTH + 32; tx += 32) {
+                const drawX = Math.floor(tx - groundScroll);
+                ctx.fillRect(drawX + 6, y + 36, 8, 4);
+                ctx.fillRect(drawX + 20, y + 52, 6, 6);
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 5. GESTIÓN DE INTERFAZ, PANTALLAS Y FLUJO DEL JUEGO
+         * ============================================================================
+         */
+        const screenChar = document.getElementById('screen-character');
+        const screenDiff = document.getElementById('screen-difficulty');
+        const screenPause = document.getElementById('screen-pause');
+        const screenGameOver = document.getElementById('screen-gameover');
+        const hudScoreContainer = document.getElementById('hud-score-container');
+        const hudScore = document.getElementById('hud-score');
+        const flashOverlay = document.getElementById('flash-overlay');
+
+        const headerBirdCanvas = document.getElementById('header-bird-canvas');
+        const headerBirdCtx = headerBirdCanvas.getContext('2d');
+        const diffPreviewBird = document.getElementById('diff-preview-bird');
+        const diffPreviewCtx = diffPreviewBird.getContext('2d');
+
+        // Mini canvas animado de la cuadrícula de personajes
+        let miniCanvases = [];
+        let previewAnimTimer = 0;
+        let previewWingFrame = 0;
+
+        function initCharacterGrid() {
+            const grid = document.getElementById('character-grid');
+            grid.innerHTML = '';
+            miniCanvases = [];
+
+            CHARACTERS.forEach((char, idx) => {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = `char-card rounded-xl p-1.5 flex flex-col items-center justify-center bg-slate-50 cursor-pointer ${idx === selectedCharIdx ? 'selected' : ''}`;
+                card.title = `${char.name}: ${char.desc}`;
+
+                const miniC = document.createElement('canvas');
+                miniC.width = 46;
+                miniC.height = 40;
+                const mCtx = miniC.getContext('2d');
+
+                const nameLbl = document.createElement('span');
+                nameLbl.className = 'text-[10px] font-bold text-[#231b2e] leading-tight mt-1 truncate w-full text-center';
+                nameLbl.textContent = char.name;
+
+                card.appendChild(miniC);
+                card.appendChild(nameLbl);
+
+                miniCanvases.push({ ctx: mCtx, char: char });
+
+                card.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectedCharIdx = idx;
+                    audio.playClick();
+                    document.querySelectorAll('.char-card').forEach((c, i) => {
+                        c.classList.toggle('selected', i === selectedCharIdx);
+                    });
+                    document.getElementById('char-name-indicator').textContent = char.name;
+                    updateHeader();
+                });
+
+                grid.appendChild(card);
+            });
+        }
+
+        function updateMiniCanvases() {
+            previewAnimTimer++;
+            if (previewAnimTimer > 10) {
+                previewWingFrame = (previewWingFrame + 1) % 3;
+                previewAnimTimer = 0;
+            }
+
+            miniCanvases.forEach(item => {
+                item.ctx.clearRect(0, 0, 46, 40);
+                drawPixelBird(item.ctx, item.char, 22, 22, 1.8, previewWingFrame, 0);
+            });
+
+            // Mini icono en Step 2
+            diffPreviewCtx.clearRect(0, 0, 38, 34);
+            drawPixelBird(diffPreviewCtx, CHARACTERS[selectedCharIdx], 19, 18, 1.6, previewWingFrame, 0);
+
+            // Mini icono en Header
+            headerBirdCtx.clearRect(0, 0, 36, 36);
+            drawPixelBird(headerBirdCtx, CHARACTERS[selectedCharIdx], 18, 19, 1.5, previewWingFrame, 0);
+        }
+
+        function updateHeader() {
+            const char = CHARACTERS[selectedCharIdx];
+            const diff = DIFFICULTIES[currentDiffKey];
+
+            document.getElementById('active-char-name').textContent = char.name.split(' ')[0];
+            const badge = document.getElementById('active-diff-badge');
+            badge.textContent = diff.name.toUpperCase();
+            badge.className = `font-arcade text-[8px] px-1.5 py-0.5 rounded border border-[#231b2e] ${diff.badgeBg} ${diff.badgeText} leading-none`;
+
+            document.getElementById('header-best-score').textContent = highScores[currentDiffKey];
+        }
+
+        function updateDifficultyScreenUI() {
+            document.getElementById('diff-chosen-bird-name').textContent = CHARACTERS[selectedCharIdx].name;
+            document.getElementById('diff-rec-facil').textContent = highScores.FACIL;
+            document.getElementById('diff-rec-medio').textContent = highScores.MEDIO;
+            document.getElementById('diff-rec-dificil').textContent = highScores.DIFICIL;
+
+            document.querySelectorAll('.diff-card').forEach(btn => {
+                const k = btn.getAttribute('data-diff');
+                btn.classList.toggle('selected', k === currentDiffKey);
+            });
+        }
+
+        // Navegación entre Pantallas
+        function goToDifficultyScreen() {
+            currentState = GAME_STATES.SELECT_DIFF;
+            audio.playClick();
+            screenChar.classList.add('hidden');
+            screenGameOver.classList.add('hidden');
+            screenPause.classList.add('hidden');
+            hudScoreContainer.classList.add('hidden');
+            screenDiff.classList.remove('hidden');
+            updateDifficultyScreenUI();
+            updateHeader();
+        }
+
+        function goToCharacterScreen() {
+            currentState = GAME_STATES.SELECT_CHAR;
+            audio.playClick();
+            screenDiff.classList.add('hidden');
+            screenGameOver.classList.add('hidden');
+            screenPause.classList.add('hidden');
+            hudScoreContainer.classList.add('hidden');
+            screenChar.classList.remove('hidden');
+            document.querySelectorAll('.char-card').forEach((c, i) => {
+                c.classList.toggle('selected', i === selectedCharIdx);
+            });
+            document.getElementById('char-name-indicator').textContent = CHARACTERS[selectedCharIdx].name;
+            updateHeader();
+        }
+
+        function startFlight() {
+            score = 0;
+            isNewRecordAchieved = false;
+            hudScore.textContent = '0';
+            particles = [];
+            bird.reset();
+            pipes.reset();
+
+            currentState = GAME_STATES.PLAYING;
+            screenChar.classList.add('hidden');
+            screenDiff.classList.add('hidden');
+            screenGameOver.classList.add('hidden');
+            screenPause.classList.add('hidden');
+            hudScoreContainer.classList.remove('hidden');
+
+            bird.flap();
+        }
+
+        function incrementScore(px, py) {
+            score++;
+            hudScore.textContent = score;
+            hudScore.classList.add('scale-125');
+            setTimeout(() => hudScore.classList.remove('scale-125'), 110);
+
+            audio.playScore();
+            spawnScoreParticles(px, py);
+
+            if (score > highScores[currentDiffKey]) {
+                highScores[currentDiffKey] = score;
+                isNewRecordAchieved = true;
+                saveHighScores();
+                updateHeader();
+            }
+        }
+
+        function triggerFlash() {
+            flashOverlay.style.opacity = '0.85';
+            setTimeout(() => { flashOverlay.style.opacity = '0'; }, 130);
+        }
+
+        function triggerCrash() {
+            if (currentState !== GAME_STATES.PLAYING) return;
+            currentState = GAME_STATES.DYING;
+            audio.playHit();
+            triggerFlash();
+        }
+
+        function triggerGameOver() {
+            if (currentState === GAME_STATES.GAMEOVER) return;
+            if (currentState === GAME_STATES.PLAYING) {
+                audio.playHit();
+                triggerFlash();
+            }
+
+            currentState = GAME_STATES.GAMEOVER;
+            hudScoreContainer.classList.add('hidden');
+
+            // Métricas en el cuadro de Game Over
+            const diff = DIFFICULTIES[currentDiffKey];
+            const char = CHARACTERS[selectedCharIdx];
+
+            const diffBadge = document.getElementById('go-diff-badge');
+            diffBadge.textContent = `MODO ${diff.name.toUpperCase()}`;
+            diffBadge.className = `font-arcade text-[9px] px-2 py-0.5 rounded border border-[#231b2e] ${diff.badgeBg} ${diff.badgeText}`;
+
+            document.getElementById('go-char-name').textContent = char.name;
+            document.getElementById('go-score').textContent = score;
+            document.getElementById('go-best-score').textContent = highScores[currentDiffKey];
+
+            const newBadge = document.getElementById('go-new-badge');
+            if (isNewRecordAchieved && score > 0) {
+                newBadge.classList.remove('hidden');
+                setTimeout(() => audio.playRecord(), 250);
+            } else {
+                newBadge.classList.add('hidden');
+            }
+
+            // Medallas por desempeño
+            const medalNone = document.getElementById('medal-none');
+            const medalContent = document.getElementById('medal-content');
+            const medalIcon = document.getElementById('medal-icon');
+            const medalTitle = document.getElementById('medal-title');
+
+            if (score >= 10) {
+                medalNone.classList.add('hidden');
+                medalContent.classList.remove('hidden');
+
+                if (score >= 60) {
+                    medalContent.className = 'w-full h-full rounded-full flex flex-col items-center justify-center bg-gradient-to-br from-cyan-200 via-white to-indigo-300';
+                    medalIcon.className = 'fa-solid fa-gem text-2xl text-cyan-600 drop-shadow';
+                    medalTitle.textContent = 'Platino';
+                } else if (score >= 40) {
+                    medalContent.className = 'w-full h-full rounded-full flex flex-col items-center justify-center bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-600';
+                    medalIcon.className = 'fa-solid fa-crown text-2xl text-yellow-950 drop-shadow';
+                    medalTitle.textContent = 'Oro';
+                } else if (score >= 20) {
+                    medalContent.className = 'w-full h-full rounded-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-200 via-slate-300 to-slate-500';
+                    medalIcon.className = 'fa-solid fa-medal text-2xl text-slate-800 drop-shadow';
+                    medalTitle.textContent = 'Plata';
+                } else {
+                    medalContent.className = 'w-full h-full rounded-full flex flex-col items-center justify-center bg-gradient-to-br from-amber-600 via-orange-700 to-amber-900';
+                    medalIcon.className = 'fa-solid fa-award text-2xl text-amber-200 drop-shadow';
+                    medalTitle.textContent = 'Bronce';
+                }
+            } else {
+                medalNone.classList.remove('hidden');
+                medalContent.classList.add('hidden');
+                medalTitle.textContent = 'Sin medalla (10+)';
+            }
+
+            screenGameOver.classList.remove('hidden');
+        }
+
+        function togglePause() {
+            const icon = document.getElementById('icon-pause');
+            if (currentState === GAME_STATES.PLAYING) {
+                currentState = GAME_STATES.PAUSED;
+                screenPause.classList.remove('hidden');
+                icon.className = 'fa-solid fa-play text-xs';
+            } else if (currentState === GAME_STATES.PAUSED) {
+                currentState = GAME_STATES.PLAYING;
+                screenPause.classList.add('hidden');
+                icon.className = 'fa-solid fa-pause text-xs';
+                lastTime = performance.now();
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 6. LISTENERS DE ENTRADA Y EVENTOS
+         * ============================================================================
+         */
+        function handleFlapInput(e) {
+            if (e) e.preventDefault();
+            if (currentState === GAME_STATES.PLAYING) {
+                bird.flap();
+            }
+        }
+
+        // Tap/clic en el lienzo durante la partida
+        canvas.addEventListener('pointerdown', (e) => {
+            if (currentState === GAME_STATES.PLAYING) {
+                handleFlapInput(e);
+            }
+        });
+
+        // Botón inferior para móvil
+        document.getElementById('btn-touch-flap').addEventListener('pointerdown', (e) => {
+            if (currentState === GAME_STATES.PLAYING) {
+                handleFlapInput(e);
+            }
+        });
+
+        // Paso 1 -> Paso 2
+        document.getElementById('btn-next-to-difficulty').addEventListener('click', () => {
+            goToDifficultyScreen();
+        });
+
+        // Paso 2 -> Volver a Paso 1
+        document.getElementById('btn-back-to-character').addEventListener('click', () => {
+            goToCharacterScreen();
+        });
+
+        // Selección directa de Dificultad
+        document.querySelectorAll('.diff-card').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const diffKey = btn.getAttribute('data-diff');
+                currentDiffKey = diffKey;
+                audio.playClick();
+                updateDifficultyScreenUI();
+                updateHeader();
+            });
+        });
+
+        // Paso 2 -> Iniciar Vuelo
+        document.getElementById('btn-start-fly').addEventListener('click', () => {
+            audio.playClick();
+            startFlight();
+        });
+
+        // Botón superior para cambiar pájaro
+        document.getElementById('btn-top-char').addEventListener('click', () => {
+            goToCharacterScreen();
+        });
+
+        // Pausa y Reanudar
+        document.getElementById('btn-pause').addEventListener('click', () => togglePause());
+        document.getElementById('btn-resume').addEventListener('click', () => togglePause());
+
+        // Botones de Game Over
+        document.getElementById('btn-replay').addEventListener('click', () => {
+            audio.playClick();
+            startFlight();
+        });
+        document.getElementById('btn-go-change-diff').addEventListener('click', () => {
+            goToDifficultyScreen();
+        });
+        document.getElementById('btn-go-change-char').addEventListener('click', () => {
+            goToCharacterScreen();
+        });
+
+        // Mute / Unmute
+        document.getElementById('btn-sound').addEventListener('click', () => {
+            const muted = audio.toggleMute();
+            const btn = document.getElementById('btn-sound');
+            const icon = document.getElementById('icon-sound');
+            if (muted) {
+                icon.className = 'fa-solid fa-volume-xmark text-xs';
+                btn.classList.replace('bg-emerald-400', 'bg-rose-400');
+                btn.classList.replace('hover:bg-emerald-300', 'hover:bg-rose-300');
+            } else {
+                icon.className = 'fa-solid fa-volume-high text-xs';
+                btn.classList.replace('bg-rose-400', 'bg-emerald-400');
+                btn.classList.replace('hover:bg-rose-300', 'hover:bg-emerald-300');
+                audio.playClick();
+            }
+        });
+
+        // Atajos de teclado
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                e.preventDefault();
+                if (currentState === GAME_STATES.PLAYING) {
+                    handleFlapInput();
+                } else if (currentState === GAME_STATES.SELECT_DIFF) {
+                    startFlight();
+                } else if (currentState === GAME_STATES.GAMEOVER) {
+                    startFlight();
+                }
+            } else if (e.code === 'KeyP' || e.code === 'Escape') {
+                togglePause();
+            } else if (e.code === 'KeyM') {
+                document.getElementById('btn-sound').click();
+            }
+        });
+
+        /**
+         * ============================================================================
+         * 7. BUCLE PRINCIPAL (DELTA TIME)
+         * ============================================================================
+         */
+        let lastTime = performance.now();
+
+        function gameLoop(timestamp) {
+            const elapsed = timestamp - lastTime;
+            lastTime = timestamp;
+
+            const dt = Math.min(elapsed / (1000 / 60), 3.0);
+
+            if (currentState !== GAME_STATES.PAUSED) {
+                ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+                // Fondo Parallax
+                drawBackground(dt);
+
+                // Tuberías
+                pipes.update(dt);
+                pipes.draw();
+
+                // Suelo
+                drawGround();
+
+                // Partículas
+                updateAndDrawParticles(dt);
+
+                // Pájaro activo
+                bird.update(dt);
+                bird.draw();
+            }
+
+            // Animar mini previews en menús
+            updateMiniCanvases();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Arranque en carga de página
+        window.onload = function () {
+            initCharacterGrid();
+            updateHeader();
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
