@@ -32,7 +32,7 @@
             transform-origin: top left;
             display: none;
             overflow: hidden;
-            border: 4px solid #3b82f6;
+            border: 4px solid #10b981;
             border-radius: 12px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.6);
             background-color: #020617;
@@ -50,11 +50,11 @@
     <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 py-6">
         <div class="max-w-6xl mx-auto px-6 flex justify-between items-center">
             <div class="flex items-center gap-2">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center font-bold text-xl shadow-lg shadow-blue-500/20">JE</div>
+                <div class="w-10 h-10 bg-gradient-to-br from-emerald-600 to-teal-500 rounded-lg flex items-center justify-center font-bold text-xl shadow-lg shadow-emerald-500/20">JE</div>
                 <span class="hidden sm:block font-semibold tracking-tight">Jose Enrique</span>
             </div>
             <div class="flex gap-4 md:gap-8 text-xs md:text-sm font-medium">
-                <button onclick="switchTab('inicio')" class="nav-link text-blue-400 capitalize hover:text-white transition-colors" data-tab="inicio">Inicio</button>
+                <button onclick="switchTab('inicio')" class="nav-link text-emerald-400 capitalize hover:text-white transition-colors" data-tab="inicio">Inicio</button>
                 <button onclick="switchTab('proyectos')" class="nav-link text-slate-400 capitalize hover:text-white transition-colors" data-tab="proyectos">Proyectos</button>
                 <button onclick="switchTab('hobbies')" class="nav-link text-slate-400 capitalize hover:text-white transition-colors" data-tab="hobbies">Hobbies</button>
                 <button onclick="switchTab('ayuda')" class="nav-link text-slate-400 capitalize hover:text-white transition-colors" data-tab="ayuda">Ayuda</button>
@@ -85,7 +85,7 @@
                 <div class="absolute bottom-4 right-4 sm:bottom-6 sm:right-8 z-30">
                     <button id="audioToggleBtn" onclick="toggleHeroAudio()" class="flex items-center gap-2.5 px-4 py-2 sm:py-2.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700/70 shadow-xl backdrop-blur-md transition-all duration-300 group hover:scale-105 active:scale-95 cursor-pointer" aria-label="Alternar audio del video de portada">
                         <span class="relative flex h-2.5 w-2.5">
-                            <span id="audioPing" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                            <span id="audioPing" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span id="audioDot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-500 transition-colors"></span>
                         </span>
                         <i id="audioIcon" class="fa-solid fa-volume-xmark text-slate-400 group-hover:text-white transition-colors"></i>
@@ -93,20 +93,20 @@
                     </button>
                 </div>
 
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_10%,#1e40af33,transparent_50%)] pointer-events-none z-10"></div>
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_10%,#04785733,transparent_50%)] pointer-events-none z-10"></div>
                 <div class="max-w-4xl mx-auto text-center relative z-20">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold mb-6 backdrop-blur-sm">
-                        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold mb-6 backdrop-blur-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                         DISPONIBLE PARA PROYECTOS
                     </div>
                     <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">
-                        Desarrollo de <br>Aplicaciones <span class="text-blue-500">Web y Mobile</span>
+                        Desarrollo de <br>Aplicaciones <span class="text-emerald-500">Web y Mobile</span>
                     </h1>
                     <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
                         Hola, soy <span class="text-white font-medium">Jose Enrique</span> de la Unidad Educativa Cambridge. Estudiante apasionado por el desarrollo de software y la creación de soluciones interactivas, responsivas y de alto rendimiento para web y dispositivos móviles.
                     </p>
                     <div class="flex flex-wrap justify-center gap-4">
-        <button onclick="document.getElementById('inicio-proyectos').scrollIntoView({ behavior: 'smooth' })" class="px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold transition-all transform hover:scale-105 flex items-center gap-2">
+                        <button onclick="document.getElementById('inicio-proyectos').scrollIntoView({ behavior: 'smooth' })" class="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 rounded-xl font-bold transition-all transform hover:scale-105 flex items-center gap-2 shadow-lg shadow-emerald-600/25">
                             Ver Proyectos <i class="fa-solid fa-chevron-down text-xs"></i>
                         </button>
                         <button onclick="switchTab('ayuda')" class="px-8 py-4 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl font-bold transition-all flex items-center gap-2">
@@ -125,30 +125,30 @@
                     </div>
                     <div class="grid md:grid-cols-3 gap-6">
                         <!-- Card 1 -->
-                        <div class="p-8 rounded-2xl bg-slate-950 border border-slate-800 hover:border-blue-500/50 transition-all group">
-                            <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-6 group-hover:bg-blue-500 group-hover:text-white transition-all">
+                        <div class="p-8 rounded-2xl bg-slate-950 border border-slate-800 hover:border-emerald-500/50 transition-all group">
+                            <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 mb-6 group-hover:bg-emerald-500 group-hover:text-white transition-all">
                                 <i class="fa-solid fa-mobile-screen-button text-xl"></i>
                             </div>
                             <h3 class="text-xl font-bold mb-2">Desarrollo Frontend y Mobile</h3>
-                            <p class="text-blue-400 text-sm mb-4 font-medium uppercase tracking-wider">Avanzado</p>
+                            <p class="text-emerald-400 text-sm mb-4 font-medium uppercase tracking-wider">Avanzado</p>
                             <p class="text-slate-400 text-sm leading-relaxed">Creación de interfaces web y móviles modernas, responsivas y optimizadas, empleando estándares actuales y diseños fluidos.</p>
                         </div>
                         <!-- Card 2 -->
-                        <div class="p-8 rounded-2xl bg-slate-950 border border-slate-800 hover:border-blue-500/50 transition-all group">
-                            <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-6 group-hover:bg-blue-500 group-hover:text-white transition-all">
+                        <div class="p-8 rounded-2xl bg-slate-950 border border-slate-800 hover:border-emerald-500/50 transition-all group">
+                            <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 mb-6 group-hover:bg-emerald-500 group-hover:text-white transition-all">
                                 <i class="fa-solid fa-cube text-xl"></i>
                             </div>
                             <h3 class="text-xl font-bold mb-2">Integración de IA & APIs</h3>
-                            <p class="text-blue-400 text-sm mb-4 font-medium uppercase tracking-wider">En formación</p>
+                            <p class="text-emerald-400 text-sm mb-4 font-medium uppercase tracking-wider">En formación</p>
                             <p class="text-slate-400 text-sm leading-relaxed">Consumo de APIs rest, sincronización de bases de datos en tiempo real y características inteligentes como asistentes y chatbots interactivos.</p>
                         </div>
                         <!-- Card 3 -->
-                        <div class="p-8 rounded-2xl bg-slate-950 border border-slate-800 hover:border-blue-500/50 transition-all group">
-                            <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-6 group-hover:bg-blue-500 group-hover:text-white transition-all">
+                        <div class="p-8 rounded-2xl bg-slate-950 border border-slate-800 hover:border-emerald-500/50 transition-all group">
+                            <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 mb-6 group-hover:bg-emerald-500 group-hover:text-white transition-all">
                                 <i class="fa-solid fa-palette text-xl"></i>
                             </div>
                             <h3 class="text-xl font-bold mb-2">Diseño UX/UI & Prototipado</h3>
-                            <p class="text-blue-400 text-sm mb-4 font-medium uppercase tracking-wider">Especialista</p>
+                            <p class="text-emerald-400 text-sm mb-4 font-medium uppercase tracking-wider">Especialista</p>
                             <p class="text-slate-400 text-sm leading-relaxed">Diseño de la experiencia y del flujo de usuario, wireframing detallado y prototipado rápido con Tailwind CSS para máxima interactividad.</p>
                         </div>
                     </div>
@@ -158,115 +158,139 @@
             <!-- Sección de proyectos integrada en inicio -->
             <section id="inicio-proyectos" class="py-10 px-6">
                 <div class="max-w-6xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-12 text-center">Mis Proyectos y Juegos</h2>
+                    <h2 class="text-3xl font-bold mb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-green-400">Mis Proyectos y Juegos</h2>
                     <div class="grid md:grid-cols-3 gap-6">
-                        <!-- Minecraft -->
-                        <a href="minecraft.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 1. Minecraft (Patrón 1: Esmeralda) -->
+                        <a href="minecraft.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/70 hover:border-emerald-400 hover:bg-emerald-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧱</div>
-                            <h3 class="font-bold text-lg mb-2">Minecraft</h3>
-                            <p class="text-slate-400 text-xs">Juego sandbox creativo</p>
+                            <h3 class="font-bold text-lg mb-2 text-emerald-300">Minecraft</h3>
+                            <p class="text-emerald-200/70 text-xs">Juego sandbox creativo</p>
                         </a>
-                        <!-- Ajedrez 3d -->
-                        <a href="ajedrez3d.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 2. Ajedrez 3D (Patrón 2: Teal / Menta) -->
+                        <a href="ajedrez3d.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-teal-950/70 border border-teal-800/70 hover:border-teal-400 hover:bg-teal-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">♟️</div>
-                            <h3 class="font-bold text-lg mb-2">Ajedrez 3D</h3>
-                            <p class="text-slate-400 text-xs">Desafío estratégico</p>
+                            <h3 class="font-bold text-lg mb-2 text-teal-300">Ajedrez 3D</h3>
+                            <p class="text-teal-200/70 text-xs">Desafío estratégico</p>
                         </a>
-                        <!-- Angry bird -->
-                        <a href="angrybird.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 3. Angry Bird (Patrón 3: Bosque / Trébol) -->
+                        <a href="angrybird.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-green-950/70 border border-green-800/70 hover:border-green-400 hover:bg-green-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐦</div>
-                            <h3 class="font-bold text-lg mb-2">Angry Bird</h3>
-                            <p class="text-slate-400 text-xs">Juego de física</p>
+                            <h3 class="font-bold text-lg mb-2 text-green-300">Angry Bird</h3>
+                            <p class="text-green-200/70 text-xs">Juego de física</p>
                         </a>
-                        <!-- Blooket -->
-                        <a href="blooket.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 4. Blooket (Patrón 4: Lima / Citrus) -->
+                        <a href="blooket.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-lime-950/70 border border-lime-800/70 hover:border-lime-400 hover:bg-lime-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🎮</div>
-                            <h3 class="font-bold text-lg mb-2">Blooket</h3>
-                            <p class="text-slate-400 text-xs">Aprendizaje interactivo</p>
+                            <h3 class="font-bold text-lg mb-2 text-lime-300">Blooket</h3>
+                            <p class="text-lime-200/70 text-xs">Aprendizaje interactivo</p>
                         </a>
-                        <!-- Roblox -->
-                        <a href="roblox.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 5. Roblox (Patrón 1: Esmeralda) -->
+                        <a href="roblox.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/70 hover:border-emerald-400 hover:bg-emerald-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🚀</div>
-                            <h3 class="font-bold text-lg mb-2">Roblox</h3>
-                            <p class="text-slate-400 text-xs">Mundos compartidos</p>
+                            <h3 class="font-bold text-lg mb-2 text-emerald-300">Roblox</h3>
+                            <p class="text-emerald-200/70 text-xs">Mundos compartidos</p>
                         </a>
-                        <!-- Quiero queque -->
-                        <a href="quieroqueque.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 6. Quiero Queque (Patrón 2: Teal / Menta) -->
+                        <a href="quieroqueque.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-teal-950/70 border border-teal-800/70 hover:border-teal-400 hover:bg-teal-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🍰</div>
-                            <h3 class="font-bold text-lg mb-2">Quiero Queque</h3>
-                            <p class="text-slate-400 text-xs">Juego de cocina</p>
+                            <h3 class="font-bold text-lg mb-2 text-teal-300">Quiero Queque</h3>
+                            <p class="text-teal-200/70 text-xs">Juego de cocina</p>
                         </a>
-                        <!-- Serpiente -->
-                        <a href="serpiente.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 7. Serpiente (Patrón 3: Bosque / Trébol) -->
+                        <a href="serpiente.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-green-950/70 border border-green-800/70 hover:border-green-400 hover:bg-green-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐍</div>
-                            <h3 class="font-bold text-lg mb-2">Serpiente</h3>
-                            <p class="text-slate-400 text-xs">Juego de agilidad mental</p>
+                            <h3 class="font-bold text-lg mb-2 text-green-300">Serpiente</h3>
+                            <p class="text-green-200/70 text-xs">Juego de agilidad mental</p>
                         </a>
-                        <!-- Laberinto -->
-                        <a href="laberinto.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 8. Laberinto (Patrón 4: Lima / Citrus) -->
+                        <a href="laberinto.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-lime-950/70 border border-lime-800/70 hover:border-lime-400 hover:bg-lime-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧩</div>
-                            <h3 class="font-bold text-lg mb-2">Laberinto</h3>
-                            <p class="text-slate-400 text-xs">Dungeon crawler hardcore</p>
+                            <h3 class="font-bold text-lg mb-2 text-lime-300">Laberinto</h3>
+                            <p class="text-lime-200/70 text-xs">Dungeon crawler hardcore</p>
                         </a>
-                        <!-- Juego del Calamar -->
-                        <a href="juegodelcalamar.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 9. Juego del Calamar (Patrón 1: Esmeralda) -->
+                        <a href="juegodelcalamar.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/70 hover:border-emerald-400 hover:bg-emerald-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🦑</div>
-                            <h3 class="font-bold text-lg mb-2">Juego del Calamar</h3>
-                            <p class="text-slate-400 text-xs">Juego de supervivencia</p>
+                            <h3 class="font-bold text-lg mb-2 text-emerald-300">Juego del Calamar</h3>
+                            <p class="text-emerald-200/70 text-xs">Juego de supervivencia</p>
                         </a>
-                        <!-- Sopa de Letras -->
-                        <a href="sopadeletras/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 10. Sopa de Letras (Patrón 2: Teal / Menta) -->
+                        <a href="sopadeletras/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-teal-950/70 border border-teal-800/70 hover:border-teal-400 hover:bg-teal-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🔤</div>
-                            <h3 class="font-bold text-lg mb-2">Sopa de Letras</h3>
-                            <p class="text-slate-400 text-xs">Juego clásico de buscar palabras</p>
+                            <h3 class="font-bold text-lg mb-2 text-teal-300">Sopa de Letras</h3>
+                            <p class="text-teal-200/70 text-xs">Juego clásico de buscar palabras</p>
                         </a>
-                        <!-- Rompecabezas -->
-                        <a href="rompecabezas/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 11. Rompecabezas (Patrón 3: Bosque / Trébol) -->
+                        <a href="rompecabezas/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-green-950/70 border border-green-800/70 hover:border-green-400 hover:bg-green-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🦁</div>
-                            <h3 class="font-bold text-lg mb-2">Rompecabezas</h3>
-                            <p class="text-slate-400 text-xs">Rompecabezas Maestro: El León Majestuoso</p>
+                            <h3 class="font-bold text-lg mb-2 text-green-300">Rompecabezas</h3>
+                            <p class="text-green-200/70 text-xs">Rompecabezas Maestro: El León Majestuoso</p>
                         </a>
-                        <!-- Trivia -->
-                        <a href="https://joseenriqueflores.com/trivia/" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 12. Trivia (Patrón 4: Lima / Citrus) -->
+                        <a href="https://joseenriqueflores.com/trivia/" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-lime-950/70 border border-lime-800/70 hover:border-lime-400 hover:bg-lime-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧠</div>
-                            <h3 class="font-bold text-lg mb-2">Trivia</h3>
-                            <p class="text-slate-400 text-xs">Desafío interactivo de preguntas y respuestas</p>
+                            <h3 class="font-bold text-lg mb-2 text-lime-300">Trivia</h3>
+                            <p class="text-lime-200/70 text-xs">Desafío interactivo de preguntas y respuestas</p>
                         </a>
-                        <!-- Tamagotchi -->
-                        <a href="tamagotchi/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 13. Tetris (Patrón 1: Esmeralda) -->
+                        <a href="tetris/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/70 hover:border-emerald-400 hover:bg-emerald-900/60 transition-all group block text-center shadow-lg">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🕹️</div>
+                            <h3 class="font-bold text-lg mb-2 text-emerald-300">Tetris</h3>
+                            <p class="text-emerald-200/70 text-xs">Edición Arcade Pantalla Completa</p>
+                        </a>
+                        <!-- 14. Tamagotchi (Patrón 2: Teal / Menta) -->
+                        <a href="tamagotchi/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-teal-950/70 border border-teal-800/70 hover:border-teal-400 hover:bg-teal-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐣</div>
-                            <h3 class="font-bold text-lg mb-2">Tamagotchi</h3>
-                            <p class="text-slate-400 text-xs">Mascota Virtual Bandai 1996</p>
+                            <h3 class="font-bold text-lg mb-2 text-teal-300">Tamagotchi</h3>
+                            <p class="text-teal-200/70 text-xs">Mascota Virtual Bandai 1996</p>
                         </a>
-                        <!-- Duck Hunt -->
-                        <a href="duckhunt/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 15. Juego de Memoria (Patrón 3: Bosque / Trébol) -->
+                        <a href="index (4).html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-green-950/70 border border-green-800/70 hover:border-green-400 hover:bg-green-900/60 transition-all group block text-center shadow-lg">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧩</div>
+                            <h3 class="font-bold text-lg mb-2 text-green-300">Juego de Memoria</h3>
+                            <p class="text-green-200/70 text-xs">Memorama Profesional 4x4</p>
+                        </a>
+                        <!-- 16. Crossy Road (Patrón 4: Lima / Citrus) -->
+                        <a href="crossyroad/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-lime-950/70 border border-lime-800/70 hover:border-lime-400 hover:bg-lime-900/60 transition-all group block text-center shadow-lg">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐔</div>
+                            <h3 class="font-bold text-lg mb-2 text-lime-300">Crossy Road</h3>
+                            <p class="text-lime-200/70 text-xs">Crossy Road Arcade 3D</p>
+                        </a>
+                        <!-- 17. Duck Hunt (Patrón 1: Esmeralda) -->
+                        <a href="duckhunt/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/70 hover:border-emerald-400 hover:bg-emerald-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🦆</div>
-                            <h3 class="font-bold text-lg mb-2">Duck Hunt</h3>
-                            <p class="text-slate-400 text-xs">Clásico Arcade NES Zapper 1984</p>
+                            <h3 class="font-bold text-lg mb-2 text-emerald-300">Duck Hunt</h3>
+                            <p class="text-emerald-200/70 text-xs">Clásico Arcade NES Zapper 1984</p>
                         </a>
-                        <!-- Bomberman -->
-                        <a href="bomberman/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 18. Bomberman (Patrón 2: Teal / Menta) -->
+                        <a href="bomberman/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-teal-950/70 border border-teal-800/70 hover:border-teal-400 hover:bg-teal-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">💣</div>
-                            <h3 class="font-bold text-lg mb-2">Bomberman</h3>
-                            <p class="text-slate-400 text-xs">Clásico Arcade Multijugador & IA</p>
+                            <h3 class="font-bold text-lg mb-2 text-teal-300">Bomberman</h3>
+                            <p class="text-teal-200/70 text-xs">Clásico Arcade Multijugador & IA</p>
                         </a>
-                        <!-- Dig Dug -->
-                        <a href="digdug/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 19. Dig Dug (Patrón 3: Bosque / Trébol) -->
+                        <a href="digdug/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-green-950/70 border border-green-800/70 hover:border-green-400 hover:bg-green-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">⛏️</div>
-                            <h3 class="font-bold text-lg mb-2">Dig Dug</h3>
-                            <p class="text-slate-400 text-xs">Clásico Arcade Namco 1982</p>
+                            <h3 class="font-bold text-lg mb-2 text-green-300">Dig Dug</h3>
+                            <p class="text-green-200/70 text-xs">Clásico Arcade Namco 1982</p>
                         </a>
-                        <!-- Zuma Deluxe -->
-                        <a href="zumadeluxe/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 20. Zuma Deluxe (Patrón 4: Lima / Citrus) -->
+                        <a href="zumadeluxe/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-lime-950/70 border border-lime-800/70 hover:border-lime-400 hover:bg-lime-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐸</div>
-                            <h3 class="font-bold text-lg mb-2">Zuma Deluxe</h3>
-                            <p class="text-slate-400 text-xs">Edición Templo Azteca</p>
+                            <h3 class="font-bold text-lg mb-2 text-lime-300">Zuma Deluxe</h3>
+                            <p class="text-lime-200/70 text-xs">Edición Templo Azteca</p>
                         </a>
-                        <!-- Super Mario Bros -->
-                        <a href="https://joseenriqueflores.com/supermariobros/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 21. Super Mario Bros (Patrón 1: Esmeralda) -->
+                        <a href="https://joseenriqueflores.com/supermariobros/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/70 hover:border-emerald-400 hover:bg-emerald-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🍄</div>
-                            <h3 class="font-bold text-lg mb-2">Super Mario Bros</h3>
-                            <p class="text-slate-400 text-xs">Mundo 1-1 Clásico NES 1985</p>
+                            <h3 class="font-bold text-lg mb-2 text-emerald-300">Super Mario Bros</h3>
+                            <p class="text-emerald-200/70 text-xs">Mundo 1-1 Clásico NES 1985</p>
+                        </a>
+                        <!-- 22. Flappy Bird (Patrón 2: Teal / Menta) -->
+                        <a href="flappybird/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-teal-950/70 border border-teal-800/70 hover:border-teal-400 hover:bg-teal-900/60 transition-all group block text-center shadow-lg">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐤</div>
+                            <h3 class="font-bold text-lg mb-2 text-teal-300">Flappy Bird</h3>
+                            <p class="text-teal-200/70 text-xs">Edición Pixel Art Arcade</p>
                         </a>
                     </div>
                 </div>
@@ -277,115 +301,139 @@
         <div id="proyectos" class="tab-content pt-32">
             <section class="py-10 px-6">
                 <div class="max-w-6xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-12 text-center">Mis Proyectos y Juegos</h2>
+                    <h2 class="text-3xl font-bold mb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-green-400">Mis Proyectos y Juegos</h2>
                     <div class="grid md:grid-cols-3 gap-6">
-                        <!-- Minecraft -->
-                        <a href="minecraft.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 1. Minecraft (Patrón 1: Esmeralda) -->
+                        <a href="minecraft.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/70 hover:border-emerald-400 hover:bg-emerald-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧱</div>
-                            <h3 class="font-bold text-lg mb-2">Minecraft</h3>
-                            <p class="text-slate-400 text-xs">Juego sandbox creativo</p>
+                            <h3 class="font-bold text-lg mb-2 text-emerald-300">Minecraft</h3>
+                            <p class="text-emerald-200/70 text-xs">Juego sandbox creativo</p>
                         </a>
-                        <!-- Ajedrez 3d -->
-                        <a href="ajedrez3d.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 2. Ajedrez 3D (Patrón 2: Teal / Menta) -->
+                        <a href="ajedrez3d.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-teal-950/70 border border-teal-800/70 hover:border-teal-400 hover:bg-teal-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">♟️</div>
-                            <h3 class="font-bold text-lg mb-2">Ajedrez 3D</h3>
-                            <p class="text-slate-400 text-xs">Desafío estratégico</p>
+                            <h3 class="font-bold text-lg mb-2 text-teal-300">Ajedrez 3D</h3>
+                            <p class="text-teal-200/70 text-xs">Desafío estratégico</p>
                         </a>
-                        <!-- Angry bird -->
-                        <a href="angrybird.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 3. Angry Bird (Patrón 3: Bosque / Trébol) -->
+                        <a href="angrybird.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-green-950/70 border border-green-800/70 hover:border-green-400 hover:bg-green-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐦</div>
-                            <h3 class="font-bold text-lg mb-2">Angry Bird</h3>
-                            <p class="text-slate-400 text-xs">Juego de física</p>
+                            <h3 class="font-bold text-lg mb-2 text-green-300">Angry Bird</h3>
+                            <p class="text-green-200/70 text-xs">Juego de física</p>
                         </a>
-                        <!-- Blooket -->
-                        <a href="blooket.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 4. Blooket (Patrón 4: Lima / Citrus) -->
+                        <a href="blooket.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-lime-950/70 border border-lime-800/70 hover:border-lime-400 hover:bg-lime-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🎮</div>
-                            <h3 class="font-bold text-lg mb-2">Blooket</h3>
-                            <p class="text-slate-400 text-xs">Aprendizaje interactivo</p>
+                            <h3 class="font-bold text-lg mb-2 text-lime-300">Blooket</h3>
+                            <p class="text-lime-200/70 text-xs">Aprendizaje interactivo</p>
                         </a>
-                        <!-- Roblox -->
-                        <a href="roblox.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 5. Roblox (Patrón 1: Esmeralda) -->
+                        <a href="roblox.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/70 hover:border-emerald-400 hover:bg-emerald-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🚀</div>
-                            <h3 class="font-bold text-lg mb-2">Roblox</h3>
-                            <p class="text-slate-400 text-xs">Mundos compartidos</p>
+                            <h3 class="font-bold text-lg mb-2 text-emerald-300">Roblox</h3>
+                            <p class="text-emerald-200/70 text-xs">Mundos compartidos</p>
                         </a>
-                        <!-- Quiero queque -->
-                        <a href="quieroqueque.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 6. Quiero Queque (Patrón 2: Teal / Menta) -->
+                        <a href="quieroqueque.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-teal-950/70 border border-teal-800/70 hover:border-teal-400 hover:bg-teal-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🍰</div>
-                            <h3 class="font-bold text-lg mb-2">Quiero Queque</h3>
-                            <p class="text-slate-400 text-xs">Juego de cocina</p>
+                            <h3 class="font-bold text-lg mb-2 text-teal-300">Quiero Queque</h3>
+                            <p class="text-teal-200/70 text-xs">Juego de cocina</p>
                         </a>
-                        <!-- Serpiente -->
-                        <a href="serpiente.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 7. Serpiente (Patrón 3: Bosque / Trébol) -->
+                        <a href="serpiente.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-green-950/70 border border-green-800/70 hover:border-green-400 hover:bg-green-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐍</div>
-                            <h3 class="font-bold text-lg mb-2">Serpiente</h3>
-                            <p class="text-slate-400 text-xs">Juego de agilidad mental</p>
+                            <h3 class="font-bold text-lg mb-2 text-green-300">Serpiente</h3>
+                            <p class="text-green-200/70 text-xs">Juego de agilidad mental</p>
                         </a>
-                        <!-- Laberinto -->
-                        <a href="laberinto.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 8. Laberinto (Patrón 4: Lima / Citrus) -->
+                        <a href="laberinto.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-lime-950/70 border border-lime-800/70 hover:border-lime-400 hover:bg-lime-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧩</div>
-                            <h3 class="font-bold text-lg mb-2">Laberinto</h3>
-                            <p class="text-slate-400 text-xs">Dungeon crawler hardcore</p>
+                            <h3 class="font-bold text-lg mb-2 text-lime-300">Laberinto</h3>
+                            <p class="text-lime-200/70 text-xs">Dungeon crawler hardcore</p>
                         </a>
-                        <!-- Juego del Calamar -->
-                        <a href="juegodelcalamar.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 9. Juego del Calamar (Patrón 1: Esmeralda) -->
+                        <a href="juegodelcalamar.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/70 hover:border-emerald-400 hover:bg-emerald-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🦑</div>
-                            <h3 class="font-bold text-lg mb-2">Juego del Calamar</h3>
-                            <p class="text-slate-400 text-xs">Juego de supervivencia</p>
+                            <h3 class="font-bold text-lg mb-2 text-emerald-300">Juego del Calamar</h3>
+                            <p class="text-emerald-200/70 text-xs">Juego de supervivencia</p>
                         </a>
-                        <!-- Sopa de Letras -->
-                        <a href="sopadeletras/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 10. Sopa de Letras (Patrón 2: Teal / Menta) -->
+                        <a href="sopadeletras/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-teal-950/70 border border-teal-800/70 hover:border-teal-400 hover:bg-teal-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🔤</div>
-                            <h3 class="font-bold text-lg mb-2">Sopa de Letras</h3>
-                            <p class="text-slate-400 text-xs">Juego clásico de buscar palabras</p>
+                            <h3 class="font-bold text-lg mb-2 text-teal-300">Sopa de Letras</h3>
+                            <p class="text-teal-200/70 text-xs">Juego clásico de buscar palabras</p>
                         </a>
-                        <!-- Rompecabezas -->
-                        <a href="rompecabezas/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 11. Rompecabezas (Patrón 3: Bosque / Trébol) -->
+                        <a href="rompecabezas/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-green-950/70 border border-green-800/70 hover:border-green-400 hover:bg-green-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🦁</div>
-                            <h3 class="font-bold text-lg mb-2">Rompecabezas</h3>
-                            <p class="text-slate-400 text-xs">Rompecabezas Maestro: El León Majestuoso</p>
+                            <h3 class="font-bold text-lg mb-2 text-green-300">Rompecabezas</h3>
+                            <p class="text-green-200/70 text-xs">Rompecabezas Maestro: El León Majestuoso</p>
                         </a>
-                        <!-- Trivia -->
-                        <a href="https://joseenriqueflores.com/trivia/" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 12. Trivia (Patrón 4: Lima / Citrus) -->
+                        <a href="https://joseenriqueflores.com/trivia/" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-lime-950/70 border border-lime-800/70 hover:border-lime-400 hover:bg-lime-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧠</div>
-                            <h3 class="font-bold text-lg mb-2">Trivia</h3>
-                            <p class="text-slate-400 text-xs">Desafío interactivo de preguntas y respuestas</p>
+                            <h3 class="font-bold text-lg mb-2 text-lime-300">Trivia</h3>
+                            <p class="text-lime-200/70 text-xs">Desafío interactivo de preguntas y respuestas</p>
                         </a>
-                        <!-- Tamagotchi -->
-                        <a href="tamagotchi/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 13. Tetris (Patrón 1: Esmeralda) -->
+                        <a href="tetris/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/70 hover:border-emerald-400 hover:bg-emerald-900/60 transition-all group block text-center shadow-lg">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🕹️</div>
+                            <h3 class="font-bold text-lg mb-2 text-emerald-300">Tetris</h3>
+                            <p class="text-emerald-200/70 text-xs">Edición Arcade Pantalla Completa</p>
+                        </a>
+                        <!-- 14. Tamagotchi (Patrón 2: Teal / Menta) -->
+                        <a href="tamagotchi/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-teal-950/70 border border-teal-800/70 hover:border-teal-400 hover:bg-teal-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐣</div>
-                            <h3 class="font-bold text-lg mb-2">Tamagotchi</h3>
-                            <p class="text-slate-400 text-xs">Mascota Virtual Bandai 1996</p>
+                            <h3 class="font-bold text-lg mb-2 text-teal-300">Tamagotchi</h3>
+                            <p class="text-teal-200/70 text-xs">Mascota Virtual Bandai 1996</p>
                         </a>
-                        <!-- Duck Hunt -->
-                        <a href="duckhunt/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 15. Juego de Memoria (Patrón 3: Bosque / Trébol) -->
+                        <a href="index (4).html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-green-950/70 border border-green-800/70 hover:border-green-400 hover:bg-green-900/60 transition-all group block text-center shadow-lg">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🧩</div>
+                            <h3 class="font-bold text-lg mb-2 text-green-300">Juego de Memoria</h3>
+                            <p class="text-green-200/70 text-xs">Memorama Profesional 4x4</p>
+                        </a>
+                        <!-- 16. Crossy Road (Patrón 4: Lima / Citrus) -->
+                        <a href="crossyroad/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-lime-950/70 border border-lime-800/70 hover:border-lime-400 hover:bg-lime-900/60 transition-all group block text-center shadow-lg">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐔</div>
+                            <h3 class="font-bold text-lg mb-2 text-lime-300">Crossy Road</h3>
+                            <p class="text-lime-200/70 text-xs">Crossy Road Arcade 3D</p>
+                        </a>
+                        <!-- 17. Duck Hunt (Patrón 1: Esmeralda) -->
+                        <a href="duckhunt/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/70 hover:border-emerald-400 hover:bg-emerald-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🦆</div>
-                            <h3 class="font-bold text-lg mb-2">Duck Hunt</h3>
-                            <p class="text-slate-400 text-xs">Clásico Arcade NES Zapper 1984</p>
+                            <h3 class="font-bold text-lg mb-2 text-emerald-300">Duck Hunt</h3>
+                            <p class="text-emerald-200/70 text-xs">Clásico Arcade NES Zapper 1984</p>
                         </a>
-                        <!-- Bomberman -->
-                        <a href="bomberman/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 18. Bomberman (Patrón 2: Teal / Menta) -->
+                        <a href="bomberman/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-teal-950/70 border border-teal-800/70 hover:border-teal-400 hover:bg-teal-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">💣</div>
-                            <h3 class="font-bold text-lg mb-2">Bomberman</h3>
-                            <p class="text-slate-400 text-xs">Clásico Arcade Multijugador & IA</p>
+                            <h3 class="font-bold text-lg mb-2 text-teal-300">Bomberman</h3>
+                            <p class="text-teal-200/70 text-xs">Clásico Arcade Multijugador & IA</p>
                         </a>
-                        <!-- Dig Dug -->
-                        <a href="digdug/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 19. Dig Dug (Patrón 3: Bosque / Trébol) -->
+                        <a href="digdug/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-green-950/70 border border-green-800/70 hover:border-green-400 hover:bg-green-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">⛏️</div>
-                            <h3 class="font-bold text-lg mb-2">Dig Dug</h3>
-                            <p class="text-slate-400 text-xs">Clásico Arcade Namco 1982</p>
+                            <h3 class="font-bold text-lg mb-2 text-green-300">Dig Dug</h3>
+                            <p class="text-green-200/70 text-xs">Clásico Arcade Namco 1982</p>
                         </a>
-                        <!-- Zuma Deluxe -->
-                        <a href="zumadeluxe/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 20. Zuma Deluxe (Patrón 4: Lima / Citrus) -->
+                        <a href="zumadeluxe/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-lime-950/70 border border-lime-800/70 hover:border-lime-400 hover:bg-lime-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐸</div>
-                            <h3 class="font-bold text-lg mb-2">Zuma Deluxe</h3>
-                            <p class="text-slate-400 text-xs">Edición Templo Azteca</p>
+                            <h3 class="font-bold text-lg mb-2 text-lime-300">Zuma Deluxe</h3>
+                            <p class="text-lime-200/70 text-xs">Edición Templo Azteca</p>
                         </a>
-                        <!-- Super Mario Bros -->
-                        <a href="https://joseenriqueflores.com/supermariobros/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all group block text-center">
+                        <!-- 21. Super Mario Bros (Patrón 1: Esmeralda) -->
+                        <a href="https://joseenriqueflores.com/supermariobros/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/70 hover:border-emerald-400 hover:bg-emerald-900/60 transition-all group block text-center shadow-lg">
                             <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🍄</div>
-                            <h3 class="font-bold text-lg mb-2">Super Mario Bros</h3>
-                            <p class="text-slate-400 text-xs">Mundo 1-1 Clásico NES 1985</p>
+                            <h3 class="font-bold text-lg mb-2 text-emerald-300">Super Mario Bros</h3>
+                            <p class="text-emerald-200/70 text-xs">Mundo 1-1 Clásico NES 1985</p>
+                        </a>
+                        <!-- 22. Flappy Bird (Patrón 2: Teal / Menta) -->
+                        <a href="flappybird/index.html" target="_blank" rel="noopener noreferrer" class="p-6 rounded-2xl bg-teal-950/70 border border-teal-800/70 hover:border-teal-400 hover:bg-teal-900/60 transition-all group block text-center shadow-lg">
+                            <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🐤</div>
+                            <h3 class="font-bold text-lg mb-2 text-teal-300">Flappy Bird</h3>
+                            <p class="text-teal-200/70 text-xs">Edición Pixel Art Arcade</p>
                         </a>
                     </div>
                 </div>
@@ -396,24 +444,24 @@
         <div id="hobbies" class="tab-content pt-32">
             <section class="py-10 px-6">
                 <div class="max-w-4xl mx-auto text-center">
-                    <h2 class="text-4xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300 italic">"Mente activa, cuerpo sano"</h2>
+                    <h2 class="text-4xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-teal-300 italic">"Mente activa, cuerpo sano"</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
-                        <div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 group hover:bg-blue-600/5 transition-all">
-                            <div class="w-16 h-16 bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner text-blue-400 text-3xl group-hover:scale-110 transition-transform">
+                        <div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 group hover:bg-emerald-600/5 hover:border-emerald-500/40 transition-all">
+                            <div class="w-16 h-16 bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner text-emerald-400 text-3xl group-hover:scale-110 transition-transform">
                                 <i class="fa-solid fa-chess"></i>
                             </div>
                             <h3 class="font-bold text-xl mb-2">Ajedrez</h3>
                             <p class="text-slate-500 text-sm">Estrategia, paciencia y visión a futuro.</p>
                         </div>
-                        <div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 group hover:bg-purple-600/5 transition-all">
-                            <div class="w-16 h-16 bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner text-purple-400 text-3xl group-hover:scale-110 transition-transform">
+                        <div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 group hover:bg-teal-600/5 hover:border-teal-500/40 transition-all">
+                            <div class="w-16 h-16 bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner text-teal-400 text-3xl group-hover:scale-110 transition-transform">
                                 <i class="fa-solid fa-gamepad"></i>
                             </div>
                             <h3 class="font-bold text-xl mb-2">Videojuegos</h3>
                             <p class="text-slate-500 text-sm">Exploración de mundos y narrativa digital.</p>
                         </div>
-                        <div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 group hover:bg-cyan-600/5 transition-all">
-                            <div class="w-16 h-16 bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner text-cyan-400 text-3xl group-hover:scale-110 transition-transform">
+                        <div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 group hover:bg-emerald-600/5 hover:border-emerald-500/40 transition-all">
+                            <div class="w-16 h-16 bg-slate-950 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner text-emerald-400 text-3xl group-hover:scale-110 transition-transform">
                                 <i class="fa-solid fa-person-swimming"></i>
                             </div>
                             <h3 class="font-bold text-xl mb-2">Natación</h3>
@@ -437,7 +485,7 @@
                         <!-- FAQ -->
                         <div>
                             <h3 class="text-2xl font-bold mb-8 flex items-center gap-3">
-                                <i class="fa-solid fa-circle-question text-blue-500"></i> Preguntas Frecuentes
+                                <i class="fa-solid fa-circle-question text-emerald-500"></i> Preguntas Frecuentes
                             </h3>
                             <div class="space-y-4">
                                 <div class="faq-item bg-slate-900 border border-slate-800 rounded-xl px-5">
@@ -473,22 +521,22 @@
                         <!-- Formulario -->
                         <div class="bg-slate-900 p-8 rounded-3xl border border-slate-800 shadow-xl">
                             <h3 class="text-2xl font-bold mb-6 flex items-center gap-3">
-                                <i class="fa-solid fa-paper-plane text-blue-500 text-xl"></i> Mensaje Directo
+                                <i class="fa-solid fa-paper-plane text-emerald-500 text-xl"></i> Mensaje Directo
                             </h3>
                             <form id="contactForm" onsubmit="handleContact(event)" class="space-y-4">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Nombre Completo</label>
-                                    <input required type="text" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm focus:border-blue-500 outline-none transition-all placeholder:text-slate-700" placeholder="Escribe tu nombre...">
+                                    <input required type="text" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm focus:border-emerald-500 outline-none transition-all placeholder:text-slate-700" placeholder="Escribe tu nombre...">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Tu Correo</label>
-                                    <input required type="email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm focus:border-blue-500 outline-none transition-all placeholder:text-slate-700" placeholder="ejemplo@correo.com">
+                                    <input required type="email" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm focus:border-emerald-500 outline-none transition-all placeholder:text-slate-700" placeholder="ejemplo@correo.com">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Asunto</label>
-                                    <textarea required rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm focus:border-blue-500 outline-none transition-all placeholder:text-slate-700" placeholder="¿En qué puedo ayudarte?"></textarea>
+                                    <textarea required rows="4" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm focus:border-emerald-500 outline-none transition-all placeholder:text-slate-700" placeholder="¿En qué puedo ayudarte?"></textarea>
                                 </div>
-                                <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-600/20 active:scale-95">
+                                <button type="submit" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 rounded-xl font-bold text-sm transition-all shadow-lg shadow-emerald-600/20 active:scale-95">
                                     Enviar Petición de Ayuda
                                 </button>
                             </form>
@@ -507,20 +555,20 @@
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
             <div>
                 <div class="flex items-center gap-2 mb-4 justify-center md:justify-start">
-                    <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-500/20">JE</div>
+                    <div class="w-8 h-8 bg-emerald-600 rounded flex items-center justify-center font-bold text-sm shadow-lg shadow-emerald-500/20">JE</div>
                     <span class="font-semibold text-lg tracking-tight">Jose Enrique</span>
                 </div>
                 <p class="text-slate-500 text-sm italic">Unidad Educativa Cambridge - 2024</p>
                 <p class="text-slate-600 text-xs mt-2 font-mono tracking-widest uppercase">Building the AI Future</p>
             </div>
             <div class="flex gap-4">
-                <a href="#" class="w-12 h-12 bg-slate-900 hover:bg-blue-600 transition-all rounded-full flex items-center justify-center text-slate-400 hover:text-white border border-slate-800 hover:border-transparent">
+                <a href="#" class="w-12 h-12 bg-slate-900 hover:bg-emerald-600 transition-all rounded-full flex items-center justify-center text-slate-400 hover:text-white border border-slate-800 hover:border-transparent">
                     <i class="fa-brands fa-github text-xl"></i>
                 </a>
-                <a href="#" class="w-12 h-12 bg-slate-900 hover:bg-blue-600 transition-all rounded-full flex items-center justify-center text-slate-400 hover:text-white border border-slate-800 hover:border-transparent">
+                <a href="#" class="w-12 h-12 bg-slate-900 hover:bg-emerald-600 transition-all rounded-full flex items-center justify-center text-slate-400 hover:text-white border border-slate-800 hover:border-transparent">
                     <i class="fa-brands fa-linkedin text-xl"></i>
                 </a>
-                <a href="#" class="w-12 h-12 bg-slate-900 hover:bg-blue-600 transition-all rounded-full flex items-center justify-center text-slate-400 hover:text-white border border-slate-800 hover:border-transparent">
+                <a href="#" class="w-12 h-12 bg-slate-900 hover:bg-emerald-600 transition-all rounded-full flex items-center justify-center text-slate-400 hover:text-white border border-slate-800 hover:border-transparent">
                     <i class="fa-solid fa-envelope text-xl"></i>
                 </a>
             </div>
@@ -588,7 +636,7 @@
             });
             // Quitar estilos activos de la nav
             document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('text-blue-400');
+                link.classList.remove('text-emerald-400');
                 link.classList.add('text-slate-400');
             });
 
@@ -599,7 +647,7 @@
             // Marcar link activo
             const activeLink = document.querySelector(`[data-tab="${tabId}"]`);
             activeLink.classList.remove('text-slate-400');
-            activeLink.classList.add('text-blue-400');
+            activeLink.classList.add('text-emerald-400');
 
             // Scroll al inicio suave
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -714,16 +762,16 @@
                 // Actualizar interfaz a estado ON
                 if (audioText) audioText.textContent = 'Audio: ON';
                 if (audioIcon) {
-                    audioIcon.className = 'fa-solid fa-volume-high text-cyan-400 transition-colors';
+                    audioIcon.className = 'fa-solid fa-volume-high text-emerald-400 transition-colors';
                 }
                 if (audioDot) {
-                    audioDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-400 shadow-sm';
+                    audioDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400 shadow-sm';
                 }
                 if (audioPing) {
                     audioPing.classList.remove('hidden');
                 }
                 if (audioBtn) {
-                    audioBtn.classList.add('border-cyan-500/60', 'shadow-cyan-500/20', 'text-white');
+                    audioBtn.classList.add('border-emerald-500/60', 'shadow-emerald-500/20', 'text-white');
                     audioBtn.classList.remove('border-slate-700/70', 'text-slate-200');
                 }
             } else {
@@ -752,7 +800,7 @@
                     audioPing.classList.add('hidden');
                 }
                 if (audioBtn) {
-                    audioBtn.classList.remove('border-cyan-500/60', 'shadow-cyan-500/20', 'text-white');
+                    audioBtn.classList.remove('border-emerald-500/60', 'shadow-emerald-500/20', 'text-white');
                     audioBtn.classList.add('border-slate-700/70', 'text-slate-200');
                 }
             }
