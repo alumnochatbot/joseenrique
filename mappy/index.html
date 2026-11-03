@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mappy Arcade 1983 - Edición Mejorada</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #06060c;
+      font-family: 'Press Start 2P', monospace, sans-serif;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .arcade-frame {
+      box-shadow: 0 0 35px rgba(220, 38, 38, 0.4), 0 0 120px rgba(0, 0, 0, 0.95) inset;
+      border: 4px solid #b91c1c;
+    }
+    .crt-scanlines {
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.3) 50%
+      ), linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.03),
+        rgba(0, 255, 0, 0.015),
+        rgba(0, 0, 255, 0.03)
+      );
+      background-size: 100% 4px, 6px 100%;
+      pointer-events: none;
+    }
+    .diff-btn {
+      transition: all 0.15s ease-in-out;
+    }
+    .diff-btn.active {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px currentColor;
+    }
+    .ctrl-btn {
+      touch-action: none;
+      transition: transform 0.08s ease, filter 0.08s ease;
+    }
+    .ctrl-btn:active {
+      transform: scale(0.92);
+      filter: brightness(1.25);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-2 sm:p-4 text-white overflow-x-hidden">
+
+  <!-- Encabezado / Marquesina Arcade -->
+  <header class="w-full max-w-[420px] flex items-center justify-between py-1.5 px-3 bg-red-950/80 border-2 border-red-700 rounded-lg mb-2 shadow-lg">
+    <div class="flex items-center space-x-2">
+      <span class="inline-block w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></span>
+      <h1 class="text-xs sm:text-sm tracking-wider text-yellow-300 font-bold drop-shadow">MAPPY 1983</h1>
+    </div>
+    <div class="flex items-center space-x-2">
+      <button id="audio-toggle-btn" class="px-2 py-1 text-[9px] bg-red-700 hover:bg-red-600 rounded text-yellow-200 border border-yellow-400">
+        🔊 AUDIO: ON
+      </button>
+      <button id="pause-btn" class="px-2 py-1 text-[9px] bg-gray-800 hover:bg-gray-700 rounded text-gray-200 border border-gray-600">
+        PAUSA
+      </button>
+    </div>
+  </header>
+
+  <!-- Contenedor Arcade Screen -->
+  <main class="relative w-full max-w-[420px] aspect-[3/4] flex items-center justify-center">
+    <div class="relative w-full h-full arcade-frame rounded-xl overflow-hidden bg-black flex flex-col">
+      <!-- Lienzo principal Canvas -->
+      <canvas id="gameCanvas" width="360" height="480" class="w-full h-full block image-rendering-pixelated"></canvas>
+      
+      <!-- Efecto CRT Scanlines -->
+      <div class="absolute inset-0 crt-scanlines rounded-lg"></div>
+
+      <!-- Pantalla de Inicio / Menú de Dificultad / Game Over -->
+      <div id="overlay" class="absolute inset-0 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-between p-4 text-center z-20">
+        
+        <div class="w-full flex flex-col items-center mt-2">
+          <h2 id="overlay-title" class="text-2xl sm:text-3xl text-red-500 font-extrabold tracking-widest drop-shadow-[0_4px_12px_rgba(239,68,68,0.9)] mb-1">
+            MAPPY
+          </h2>
+          <p id="overlay-sub" class="text-[9px] sm:text-[10px] text-yellow-300 tracking-wider mb-2">
+            NAMCO 1983 • CLON RETRO ARCADE
+          </p>
+        </div>
+
+        <!-- Selector de Dificultad -->
+        <div id="difficulty-selector-container" class="w-full max-w-xs flex flex-col items-center space-y-2 bg-neutral-900/90 p-3 rounded-lg border border-red-900 shadow-inner">
+          <div class="text-[10px] text-yellow-400 font-bold mb-1">SELECCIONA DIFICULTAD:</div>
+          
+          <div class="grid grid-cols-3 gap-2 w-full">
+            <button id="diff-easy" class="diff-btn py-2 px-1 rounded text-[9px] font-bold border-2 border-green-500 text-green-400 bg-green-950/40 hover:bg-green-900/60">
+              FÁCIL
+            </button>
+            <button id="diff-medium" class="diff-btn active py-2 px-1 rounded text-[9px] font-bold border-2 border-yellow-400 text-yellow-300 bg-yellow-950/60 hover:bg-yellow-900/80">
+              MEDIO
+            </button>
+            <button id="diff-hard" class="diff-btn py-2 px-1 rounded text-[9px] font-bold border-2 border-red-500 text-red-400 bg-red-950/40 hover:bg-red-900/60">
+              DIFÍCIL
+            </button>
+          </div>
+
+          <!-- Resumen de la dificultad elegida -->
+          <div id="diff-desc" class="text-[8px] text-gray-300 leading-relaxed text-left w-full mt-2 min-h-[46px] p-2 bg-black/60 rounded border border-gray-800">
+            • Arcade clásico: 1 Goro + 4 Mewkies.<br>
+            • Velocidad estándar (1.0x).<br>
+            • Trampolines estándar (4 rebotes). 3 Vidas.
+          </div>
+        </div>
+
+        <!-- Reglas Clave -->
+        <div class="text-[8px] text-gray-400 bg-neutral-900/80 p-2 rounded-lg border border-gray-800 w-full max-w-xs text-left space-y-1">
+          <p class="text-cyan-400 font-bold">✨ REGLAS CLÁSICAS:</p>
+          <p>• Los gatos <span class="text-green-400">NO</span> te dañan mientras rebotas en el trampolín.</p>
+          <p>• ¡Goro se oculta tras los tesoros! Recógelos para <span class="text-yellow-400">puntos x2</span>.</p>
+          <p>• ¡Recoge pares seguidos del mismo botín para bonificación!</p>
+          <p>• Las puertas de microondas barren a todos los gatos.</p>
+        </div>
+
+        <!-- Botón de Inicio -->
+        <button id="start-btn" class="w-full max-w-xs py-3 bg-gradient-to-r from-red-600 via-yellow-500 to-red-600 hover:from-red-500 hover:to-yellow-400 text-black font-extrabold text-xs sm:text-sm rounded shadow-[0_0_20px_rgba(234,179,8,0.7)] transform active:scale-95 transition-all mb-1">
+          INSERT COIN / JUGAR
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Controles Táctiles en Pantalla para Móvil / Tablet -->
+  <footer class="w-full max-w-[420px] mt-2 flex flex-col items-center select-none">
+    <div class="w-full flex items-center justify-between px-4 py-2 bg-neutral-900/90 rounded-2xl border border-neutral-800 shadow-inner">
+      <!-- Botones Izquierda y Derecha -->
+      <div class="flex space-x-3">
+        <button id="btn-left" class="ctrl-btn w-16 h-14 bg-gradient-to-b from-gray-700 to-gray-800 border-2 border-gray-500 rounded-xl flex items-center justify-center text-xl text-yellow-300 shadow-md">
+          ◀
+        </button>
+        <button id="btn-right" class="ctrl-btn w-16 h-14 bg-gradient-to-b from-gray-700 to-gray-800 border-2 border-gray-500 rounded-xl flex items-center justify-center text-xl text-yellow-300 shadow-md">
+          ▶
+        </button>
+      </div>
+
+      <!-- Botón de Acción / Puerta -->
+      <div class="flex flex-col items-center">
+        <button id="btn-door" class="ctrl-btn w-28 h-14 bg-gradient-to-b from-blue-600 to-blue-800 border-2 border-cyan-300 rounded-xl flex items-center justify-center text-xs text-white font-bold tracking-wider shadow-lg">
+          PUERTA
+        </button>
+        <span class="text-[8px] text-gray-400 mt-1 uppercase tracking-wider">ESPACIO / F</span>
+      </div>
+    </div>
+    <div class="text-[8px] text-gray-500 mt-1 text-center">
+      Teclado: Flechas o A/D para moverte | Barra Espaciadora o F para abrir puertas
+    </div>
+  </footer>
+
+  <script>
+    /* ==========================================================================
+       1. SINTETIZADOR DE AUDIO RETRO 8-BITS (Web Audio API)
+       ========================================================================== */
+    class RetroSoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playBounce(pitchMultiplier = 1.0) {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const now = this.ctx.currentTime;
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(140 * pitchMultiplier, now);
+          osc.frequency.exponentialRampToValueAtTime(460 * pitchMultiplier, now + 0.13);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.14);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.14);
+        } catch (e) {}
+      }
+
+      playDoorOpen() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          // Ruido de golpe seco
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(260, now);
+          osc.frequency.exponentialRampToValueAtTime(70, now + 0.12);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        } catch (e) {}
+      }
+
+      playMicrowaveWave() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          for (let i = 0; i < 14; i++) {
+            const t = now + i * 0.035;
+            osc.frequency.setValueAtTime((i % 2 === 0) ? 980 : 490, t);
+          }
+          gain.gain.setValueAtTime(0.22, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.52);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.52);
+        } catch (e) {}
+      }
+
+      playItem() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const freqs = [523.25, 659.25, 783.99, 1046.50];
+          freqs.forEach((f, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const t = now + idx * 0.045;
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(f, t);
+            gain.gain.setValueAtTime(0.15, t);
+            gain.gain.linearRampToValueAtTime(0.001, t + 0.05);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.05);
+          });
+        } catch (e) {}
+      }
+
+      playPairBonus() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const freqs = [587.3, 739.9, 880.0, 1174.6, 1479.9];
+          freqs.forEach((f, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const t = now + idx * 0.05;
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, t);
+            gain.gain.setValueAtTime(0.2, t);
+            gain.gain.linearRampToValueAtTime(0.001, t + 0.06);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.06);
+          });
+        } catch (e) {}
+      }
+
+      playTrampolineBreak() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(200, now);
+          osc.frequency.linearRampToValueAtTime(35, now + 0.35);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } catch (e) {}
+      }
+
+      playDie() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const notes = [440, 415, 392, 349, 311, 261, 196, 130];
+          notes.forEach((f, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const t = now + i * 0.07;
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(f, t);
+            gain.gain.setValueAtTime(0.25, t);
+            gain.gain.linearRampToValueAtTime(0.001, t + 0.08);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.08);
+          });
+        } catch (e) {}
+      }
+
+      playRoundClear() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const notes = [261.6, 329.6, 392.0, 523.2, 659.2, 783.9, 1046.5];
+          notes.forEach((f, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const t = now + i * 0.07;
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(f, t);
+            gain.gain.setValueAtTime(0.18, t);
+            gain.gain.linearRampToValueAtTime(0.001, t + 0.075);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.075);
+          });
+        } catch (e) {}
+      }
+    }
+
+    const sound = new RetroSoundEngine();
+
+    /* ==========================================================================
+       2. CONFIGURACIÓN, DIFICULTADES Y ESTRUCTURA DE LA MANSIÓN
+       ========================================================================== */
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const GAME_WIDTH = 360;
+    const GAME_HEIGHT = 480;
+
+    // Configuración de Dificultades
+    const DIFFICULTIES = {
+      EASY: {
+        id: 'EASY',
+        name: 'FÁCIL',
+        color: '#22c55e',
+        lives: 5,
+        speedMult: 0.75,
+        mewkyCount: 2,
+        goroCount: 1,
+        maxBounces: 6,
+        startBounces: 0,
+        microwaveSpeed: 4.8,
+        aggressive: false,
+        desc: '• Modo Casual: 1 Goro + 2 Mewkies.<br>• Velocidad reducida (0.75x).<br>• Trampolines reforzados (6 rebotes). 5 Vidas.'
+      },
+      MEDIUM: {
+        id: 'MEDIUM',
+        name: 'MEDIO',
+        color: '#eab308',
+        lives: 3,
+        speedMult: 1.0,
+        mewkyCount: 4,
+        goroCount: 1,
+        maxBounces: 4,
+        startBounces: 0,
+        microwaveSpeed: 3.8,
+        aggressive: false,
+        desc: '• Arcade clásico: 1 Goro + 4 Mewkies.<br>• Velocidad estándar (1.0x).<br>• Trampolines clásicos (4 rebotes). 3 Vidas.'
+      },
+      HARD: {
+        id: 'HARD',
+        name: 'DIFÍCIL',
+        color: '#ef4444',
+        lives: 2,
+        speedMult: 1.25,
+        mewkyCount: 5,
+        goroCount: 1,
+        maxBounces: 3,
+        startBounces: 1, // Comienza con tensión azul
+        microwaveSpeed: 3.3,
+        aggressive: true,
+        desc: '• Desafío Maestro: 1 Goro + 5 Mewkies agresivos.<br>• Velocidad alta (1.25x).<br>• Trampolines frágiles (3 rebotes). 2 Vidas.'
+      }
+    };
+
+    let selectedDifficulty = DIFFICULTIES.MEDIUM;
+
+    // Mansión de 6 Pisos (Piso 0 Ático -> Piso 5 Planta Baja)
+    const FLOORS_Y = [100, 148, 196, 244, 292, 340];
+    const BASE_GROUND_Y = 398;
+    const TOP_ROOF_Y = 52;
+
+    // Columnas de trampolines (3 columnas verticales)
+    const TRAMPOLINE_X = [70, 180, 290];
+
+    // Colores de tensión de trampolín
+    const TRAMP_COLORS = ['#22c55e', '#00bfff', '#facc15', '#f97316', '#ef4444'];
+
+    // Tipos de tesoros (aparecen en pares para bonificación continua)
+    const ITEM_TYPES = {
+      RADIO: { id: 'RADIO', name: 'Radio', points: 100 },
+      TV: { id: 'TV', name: 'TV', points: 200 },
+      PAINTING: { id: 'PAINTING', name: 'Cuadro', points: 300 },
+      SAFE: { id: 'SAFE', name: 'Caja Fuerte', points: 400 },
+      MONA_LISA: { id: 'MONA_LISA', name: 'Mona Lisa', points: 500 }
+    };
+
+    /* ==========================================================================
+       3. ESTADO GLOBAL
+       ========================================================================== */
+    let gameState = 'START'; // 'START', 'PLAYING', 'PAUSED', 'ROUND_CLEAR', 'DYING', 'GAMEOVER'
+    let score = 0;
+    let highScore = 20000;
+    let lives = 3;
+    let round = 1;
+    let deathTimer = 0;
+    let clearTimer = 0;
+    let lastCollectedType = null;
+    let pairMultiplier = 1;
+
+    // Entradas
+    const keys = {
+      left: false,
+      right: false,
+      door: false
+    };
+
+    /* ==========================================================================
+       4. CLASES DE ENTIDADES Y OBJETOS
+       ========================================================================== */
+
+    class Trampoline {
+      constructor(x) {
+        this.x = x;
+        this.y = BASE_GROUND_Y;
+        this.bounces = selectedDifficulty.startBounces;
+        this.broken = false;
+        this.breakTimer = 0;
+      }
+
+      reset() {
+        this.bounces = selectedDifficulty.startBounces;
+        this.broken = false;
+        this.breakTimer = 0;
+      }
+
+      onBounce() {
+        this.bounces++;
+        if (this.bounces >= selectedDifficulty.maxBounces) {
+          this.broken = true;
+          this.breakTimer = 240;
+          sound.playTrampolineBreak();
+        } else {
+          // Sonido progresivamente más agudo según la tensión
+          sound.playBounce(1.0 + (this.bounces * 0.15));
+        }
+      }
+
+      update() {
+        if (this.broken) {
+          this.breakTimer--;
+          if (this.breakTimer <= 0) {
+            this.broken = false;
+            this.bounces = selectedDifficulty.startBounces;
+          }
+        }
+      }
+
+      draw() {
+        if (this.broken) {
+          // Roto
+          ctx.strokeStyle = '#666';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(this.x - 14, this.y);
+          ctx.lineTo(this.x - 4, this.y + 7);
+          ctx.moveTo(this.x + 14, this.y);
+          ctx.lineTo(this.x + 4, this.y + 7);
+          ctx.stroke();
+          return;
+        }
+
+        // Color de elasticidad según el desgaste relativo
+        const progress = Math.min(this.bounces / (selectedDifficulty.maxBounces - 1), 1);
+        const colorIdx = Math.min(Math.floor(progress * (TRAMP_COLORS.length - 1)), TRAMP_COLORS.length - 1);
+        const color = TRAMP_COLORS[colorIdx];
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(this.x - 14, this.y);
+        ctx.quadraticCurveTo(this.x, this.y + 4, this.x + 14, this.y);
+        ctx.stroke();
+
+        // Soportes de anclaje
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillRect(this.x - 16, this.y - 2, 4, 5);
+        ctx.fillRect(this.x + 12, this.y - 2, 4, 5);
+      }
+    }
+
+    class Door {
+      constructor(floorIdx, x, isMicrowave = false, opensLeft = false) {
+        this.floorIdx = floorIdx;
+        this.x = x;
+        this.y = FLOORS_Y[floorIdx];
+        this.isMicrowave = isMicrowave;
+        this.opensLeft = opensLeft;
+        this.isOpen = false;
+        this.openTimer = 0;
+        this.height = 30;
+      }
+
+      trigger() {
+        if (this.isOpen) return;
+        this.isOpen = true;
+        this.openTimer = 35;
+        sound.playDoorOpen();
+
+        // Si es puerta normal: empuja fuertemente a gatos cercanos y los aturde
+        if (!this.isMicrowave) {
+          const pushDir = this.opensLeft ? -1 : 1;
+          cats.forEach(cat => {
+            if (!cat.inAir && cat.floorIdx === this.floorIdx) {
+              const dist = cat.x - this.x;
+              // Si el gato está en la zona hacia la que se abre la puerta
+              if ((pushDir === 1 && dist >= -4 && dist < 28) || (pushDir === -1 && dist <= 4 && dist > -28)) {
+                cat.stunned = true;
+                cat.stunTimer = 110;
+                cat.x += pushDir * 20;
+                floatingScores.push(new FloatingScore(cat.x, cat.y - 10, 'STUN!'));
+              }
+            }
+          });
+        } else {
+          // Si es de microondas: genera la onda ultrasónica arcoíris
+          sound.playMicrowaveWave();
+          const waveDir = this.opensLeft ? -1 : 1;
+          waves.push(new MicrowaveWave(this.x, this.y - 14, waveDir, selectedDifficulty.microwaveSpeed));
+          this.isMicrowave = false; // Se vuelve puerta normal tras el disparo
+        }
+      }
+
+      update() {
+        if (this.isOpen) {
+          this.openTimer--;
+          if (this.openTimer <= 0) {
+            this.isOpen = false;
+          }
+        }
+      }
+
+      draw() {
+        const topY = this.y - this.height;
+        ctx.save();
+        if (!this.isOpen) {
+          // Marco de puerta
+          ctx.fillStyle = this.isMicrowave ? '#06b6d4' : '#0d9488';
+          ctx.fillRect(this.x - 7, topY, 14, this.height);
+
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(this.x - 7, topY, 14, this.height);
+
+          // Pomo dorado
+          ctx.fillStyle = '#facc15';
+          const kx = this.opensLeft ? this.x - 5 : this.x + 2;
+          ctx.fillRect(kx, topY + 13, 3, 4);
+
+          // Si es microondas: perilla parpadeante
+          if (this.isMicrowave) {
+            ctx.fillStyle = (Math.floor(Date.now() / 120) % 2 === 0) ? '#ffffff' : '#f43f5e';
+            ctx.fillRect(this.x - 3, topY + 4, 6, 6);
+          }
+        } else {
+          // Puerta abierta en perspectiva
+          ctx.strokeStyle = this.isMicrowave ? '#06b6d4' : '#0d9488';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          const targetX = this.opensLeft ? this.x - 18 : this.x + 18;
+          ctx.moveTo(this.x, topY);
+          ctx.lineTo(targetX, topY + 4);
+          ctx.lineTo(targetX, this.y);
+          ctx.lineTo(this.x, this.y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
+    class MicrowaveWave {
+      constructor(x, y, dir, speed) {
+        this.x = x;
+        this.y = y;
+        this.dir = dir;
+        this.speed = speed;
+        this.radius = 10;
+        this.life = 90;
+      }
+
+      update() {
+        this.x += this.dir * this.speed;
+        this.radius = Math.min(26, this.radius + 0.2);
+        this.life--;
+      }
+
+      draw() {
+        ctx.save();
+        const rainbow = ['#ff0033', '#ff7700', '#facc15', '#22c55e', '#00bfff', '#a855f7'];
+        for (let i = 0; i < 4; i++) {
+          ctx.strokeStyle = rainbow[(Math.floor(Date.now() / 40) + i) % rainbow.length];
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          const arcX = this.x - this.dir * (i * 6);
+          const startAngle = this.dir === 1 ? -Math.PI / 2 : Math.PI / 2;
+          const endAngle = this.dir === 1 ? Math.PI / 2 : 3 * Math.PI / 2;
+          ctx.arc(arcX, this.y, this.radius + i * 2, startAngle, endAngle);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
+    class Item {
+      constructor(floorIdx, x, type) {
+        this.floorIdx = floorIdx;
+        this.x = x;
+        this.y = FLOORS_Y[floorIdx];
+        this.type = type;
+        this.collected = false;
+        this.goroHiding = null; // Referencia si Goro se esconde detrás
+      }
+
+      draw() {
+        if (this.collected) return;
+        const baseY = this.y;
+        ctx.save();
+
+        // Si Goro está escondido aquí, dibuja sus orejas asomándose por detrás
+        if (this.goroHiding) {
+          ctx.fillStyle = '#b91c1c';
+          ctx.beginPath();
+          ctx.moveTo(this.x - 7, baseY - 22);
+          ctx.lineTo(this.x - 4, baseY - 30);
+          ctx.lineTo(this.x - 1, baseY - 22);
+          ctx.moveTo(this.x + 1, baseY - 22);
+          ctx.lineTo(this.x + 4, baseY - 30);
+          ctx.lineTo(this.x + 7, baseY - 22);
+          ctx.fill();
+
+          // Ojos pícaros asomándose
+          ctx.fillStyle = '#fde047';
+          ctx.fillRect(this.x - 4, baseY - 23, 2, 2);
+          ctx.fillRect(this.x + 2, baseY - 23, 2, 2);
+        }
+
+        // Renderizado de cada tipo de botín
+        if (this.type.id === 'RADIO') {
+          ctx.fillStyle = '#2563eb';
+          ctx.fillRect(this.x - 9, baseY - 15, 18, 14);
+          ctx.fillStyle = '#e2e8f0';
+          ctx.fillRect(this.x - 7, baseY - 13, 14, 4);
+          ctx.fillStyle = '#0f172a';
+          ctx.beginPath();
+          ctx.arc(this.x - 4, baseY - 5, 3, 0, Math.PI * 2);
+          ctx.arc(this.x + 4, baseY - 5, 3, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (this.type.id === 'TV') {
+          ctx.fillStyle = '#ea580c';
+          ctx.fillRect(this.x - 9, baseY - 18, 18, 17);
+          ctx.fillStyle = '#38bdf8';
+          ctx.fillRect(this.x - 7, baseY - 16, 11, 12);
+          ctx.strokeStyle = '#94a3b8';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(this.x, baseY - 18);
+          ctx.lineTo(this.x - 5, baseY - 24);
+          ctx.moveTo(this.x, baseY - 18);
+          ctx.lineTo(this.x + 5, baseY - 24);
+          ctx.stroke();
+        } else if (this.type.id === 'PAINTING') {
+          ctx.fillStyle = '#ca8a04';
+          ctx.fillRect(this.x - 8, baseY - 20, 16, 19);
+          ctx.fillStyle = '#16a34a';
+          ctx.fillRect(this.x - 6, baseY - 18, 12, 15);
+          ctx.fillStyle = '#fef08a';
+          ctx.beginPath();
+          ctx.arc(this.x, baseY - 12, 4, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (this.type.id === 'SAFE') {
+          ctx.fillStyle = '#64748b';
+          ctx.fillRect(this.x - 9, baseY - 19, 18, 18);
+          ctx.fillStyle = '#334155';
+          ctx.fillRect(this.x - 7, baseY - 17, 14, 14);
+          ctx.fillStyle = '#eab308';
+          ctx.beginPath();
+          ctx.arc(this.x, baseY - 10, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (this.type.id === 'MONA_LISA') {
+          ctx.fillStyle = '#eab308';
+          ctx.fillRect(this.x - 8, baseY - 22, 16, 21);
+          ctx.fillStyle = '#b91c1c';
+          ctx.fillRect(this.x - 6, baseY - 20, 12, 17);
+          ctx.fillStyle = '#fed7aa';
+          ctx.fillRect(this.x - 3, baseY - 17, 6, 7);
+          ctx.fillStyle = '#78350f';
+          ctx.fillRect(this.x - 4, baseY - 19, 8, 3);
+        }
+        ctx.restore();
+      }
+    }
+
+    class FloatingScore {
+      constructor(x, y, text, color = '#ffffff') {
+        this.x = x;
+        this.y = y;
+        this.text = text;
+        this.color = color;
+        this.life = 45;
+      }
+      update() {
+        this.y -= 0.65;
+        this.life--;
+      }
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.font = '7px "Press Start 2P"';
+        ctx.fillText(this.text, this.x - 12, this.y);
+      }
+    }
+
+    /* ==========================================================================
+       5. JUGADOR (MAPPY)
+       ========================================================================== */
+    class Player {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = 180;
+        this.y = FLOORS_Y[5];
+        this.vy = 0;
+        this.vx = 0;
+        this.dir = 1;
+        this.speed = 2.0;
+        this.inAir = false;
+        this.currentFloor = 5;
+        this.currentTrampoline = null;
+        this.gravity = 0.28;
+        this.bounceStrength = -9.2;
+        this.walkFrame = 0;
+      }
+
+      update() {
+        if (this.inAir) {
+          this.y += this.vy;
+          this.vy += this.gravity;
+
+          const tramp = this.currentTrampoline;
+          if (tramp) {
+            // Intentar desembarcar a un piso al presionar izquierda/derecha
+            for (let i = 0; i < FLOORS_Y.length; i++) {
+              const fy = FLOORS_Y[i];
+              if (Math.abs(this.y - fy) < 9) {
+                if (keys.left && tramp.x - 4 <= this.x) {
+                  this.inAir = false;
+                  this.y = fy;
+                  this.vy = 0;
+                  this.currentFloor = i;
+                  this.x = tramp.x - 16;
+                  tramp.bounces = selectedDifficulty.startBounces; // Tocar piso resetea tensión
+                  this.currentTrampoline = null;
+                  break;
+                } else if (keys.right && this.x <= tramp.x + 4) {
+                  this.inAir = false;
+                  this.y = fy;
+                  this.vy = 0;
+                  this.currentFloor = i;
+                  this.x = tramp.x + 16;
+                  tramp.bounces = selectedDifficulty.startBounces;
+                  this.currentTrampoline = null;
+                  break;
+                }
+              }
+            }
+          }
+
+          // Contacto con el trampolín inferior
+          if (this.y >= BASE_GROUND_Y) {
+            this.y = BASE_GROUND_Y;
+            if (this.currentTrampoline && !this.currentTrampoline.broken) {
+              this.currentTrampoline.onBounce();
+              if (this.currentTrampoline.broken) {
+                triggerDeath();
+                return;
+              }
+              this.vy = this.bounceStrength;
+            } else {
+              triggerDeath();
+              return;
+            }
+          }
+
+          // Límite de techo
+          if (this.y < TOP_ROOF_Y + 12) {
+            this.y = TOP_ROOF_Y + 12;
+            this.vy = Math.abs(this.vy) * 0.4;
+          }
+
+        } else {
+          // Caminata sobre piso
+          this.vx = 0;
+          if (keys.left) {
+            this.vx = -this.speed;
+            this.dir = -1;
+            this.walkFrame += 0.22;
+          } else if (keys.right) {
+            this.vx = this.speed;
+            this.dir = 1;
+            this.walkFrame += 0.22;
+          }
+
+          this.x += this.vx;
+
+          // Bordes de la mansión
+          const minX = 22;
+          const maxX = GAME_WIDTH - 22;
+          if (this.x < minX) this.x = minX;
+          if (this.x > maxX) this.x = maxX;
+
+          // Entrada al hueco del trampolín
+          for (let tramp of trampolines) {
+            if (Math.abs(this.x - tramp.x) < 8) {
+              this.inAir = true;
+              this.x = tramp.x;
+              this.currentTrampoline = tramp;
+              this.vy = 0.8;
+              break;
+            }
+          }
+
+          // Activación de puertas
+          if (keys.door) {
+            keys.door = false;
+            for (let door of doors) {
+              if (door.floorIdx === this.currentFloor && Math.abs(this.x - door.x) < 20) {
+                door.trigger();
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      draw() {
+        drawMappySprite(this.x, this.y, this.dir, this.inAir, this.vy, Math.floor(this.walkFrame) % 2);
+      }
+    }
+
+    /* ==========================================================================
+       6. ENEMIGOS: GORO (NYAMCO) Y MEWKIES CON COMPORTAMIENTOS AVANZADOS
+       ========================================================================== */
+    class Cat {
+      constructor(type = 'mewky') {
+        this.type = type; // 'mewky' o 'goro'
+        this.reset();
+      }
+
+      reset() {
+        this.floorIdx = Math.floor(Math.random() * 5);
+        this.x = Math.random() > 0.5 ? 40 : 310;
+        this.y = FLOORS_Y[this.floorIdx];
+        this.vx = 0;
+        this.vy = 0;
+        this.dir = Math.random() > 0.5 ? 1 : -1;
+        const baseSpd = this.type === 'goro' ? 1.35 : 1.25;
+        this.speed = (baseSpd + (round * 0.08)) * selectedDifficulty.speedMult;
+        this.inAir = false;
+        this.currentTrampoline = null;
+        this.blownAway = false;
+        this.blownVx = 0;
+        this.blownVy = 0;
+        this.stunned = false;
+        this.stunTimer = 0;
+        this.walkFrame = 0;
+
+        // Mecánica exclusiva de Goro: Esconderse tras tesoros
+        this.hidingItem = null;
+        this.hideTimer = 0;
+      }
+
+      update(player) {
+        // Barrido por la microonda
+        if (this.blownAway) {
+          this.x += this.blownVx;
+          this.y += this.blownVy;
+          this.blownVy += 0.26;
+          if (this.x < -40 || this.x > GAME_WIDTH + 40 || this.y > GAME_HEIGHT + 40) {
+            this.blownAway = false;
+            this.reset();
+            this.floorIdx = 0;
+            this.y = FLOORS_Y[0];
+            this.x = 180;
+          }
+          return;
+        }
+
+        // Aturdido por impacto de puerta
+        if (this.stunned) {
+          this.stunTimer--;
+          if (this.stunTimer <= 0) {
+            this.stunned = false;
+          }
+          return;
+        }
+
+        // Comportamiento de esconderse de Goro
+        if (this.type === 'goro' && this.hidingItem) {
+          this.hideTimer--;
+          if (this.hideTimer <= 0 || this.hidingItem.collected) {
+            if (this.hidingItem) this.hidingItem.goroHiding = null;
+            this.hidingItem = null;
+          }
+          return;
+        }
+
+        // Movimiento en trampolín
+        if (this.inAir) {
+          this.y += this.vy;
+          this.vy += 0.28;
+
+          if (this.y >= BASE_GROUND_Y) {
+            this.y = BASE_GROUND_Y;
+            if (this.currentTrampoline && !this.currentTrampoline.broken) {
+              this.currentTrampoline.onBounce();
+              this.vy = -9.0;
+            } else {
+              this.reset();
+              return;
+            }
+          }
+
+          // Decisión de desembarcar en un piso
+          if (this.currentTrampoline) {
+            for (let i = 0; i < FLOORS_Y.length; i++) {
+              if (Math.abs(this.y - FLOORS_Y[i]) < 8) {
+                const sameFloor = !player.inAir && player.currentFloor === i;
+                const chance = selectedDifficulty.aggressive ? 0.45 : 0.25;
+                if (sameFloor || Math.random() < chance) {
+                  this.inAir = false;
+                  this.floorIdx = i;
+                  this.y = FLOORS_Y[i];
+                  this.vy = 0;
+                  this.dir = (sameFloor && player.x > this.x) ? 1 : (Math.random() > 0.5 ? 1 : -1);
+                  this.x += this.dir * 14;
+                  this.currentTrampoline = null;
+                  break;
+                }
+              }
+            }
+          }
+
+        } else {
+          // Caminando por el piso
+          this.walkFrame += 0.18;
+
+          // IA de persecución o patrulla
+          if (!player.inAir && player.currentFloor === this.floorIdx) {
+            this.dir = player.x > this.x ? 1 : -1;
+          } else if (selectedDifficulty.aggressive) {
+            // En modo difícil, busca activamente el trampolín más cercano a la altura de Mappy
+            const targetTramp = trampolines[1];
+            if (Math.abs(this.x - targetTramp.x) > 20) {
+              this.dir = targetTramp.x > this.x ? 1 : -1;
+            }
+          }
+
+          // Habilidad de Goro: intentar esconderse tras un tesoro si está cerca
+          if (this.type === 'goro' && !this.hidingItem && Math.random() < 0.015) {
+            const nearbyItem = items.find(it => !it.collected && it.floorIdx === this.floorIdx && Math.abs(it.x - this.x) < 14);
+            if (nearbyItem && !nearbyItem.goroHiding) {
+              this.hidingItem = nearbyItem;
+              nearbyItem.goroHiding = this;
+              this.hideTimer = 180; // 3 segundos escondido
+              this.x = nearbyItem.x;
+              return;
+            }
+          }
+
+          this.x += this.dir * this.speed;
+
+          // Rebotar en puertas cerradas
+          for (let door of doors) {
+            if (door.floorIdx === this.floorIdx && !door.isOpen) {
+              if (Math.abs(this.x - door.x) < 9) {
+                this.dir *= -1;
+                this.x += this.dir * 4;
+              }
+            }
+          }
+
+          // Rebotar en paredes
+          if (this.x < 24) {
+            this.x = 24;
+            this.dir = 1;
+          } else if (this.x > GAME_WIDTH - 24) {
+            this.x = GAME_WIDTH - 24;
+            this.dir = -1;
+          }
+
+          // Entrada en trampolín
+          for (let tramp of trampolines) {
+            if (Math.abs(this.x - tramp.x) < 6) {
+              this.inAir = true;
+              this.x = tramp.x;
+              this.currentTrampoline = tramp;
+              this.vy = 0.6;
+              break;
+            }
+          }
+        }
+      }
+
+      draw() {
+        if (this.type === 'goro') {
+          // Si está escondido tras un tesoro, no se dibuja en el suelo (el tesoro dibuja sus orejas)
+          if (this.hidingItem) return;
+          drawGoroSprite(this.x, this.y, this.dir, this.inAir, this.vy, Math.floor(this.walkFrame) % 2, this.blownAway, this.stunned);
+        } else {
+          drawMewkySprite(this.x, this.y, this.dir, this.inAir, this.vy, Math.floor(this.walkFrame) % 2, this.blownAway, this.stunned);
+        }
+      }
+    }
+
+    /* ==========================================================================
+       7. SPRITES VECTORIALES DETALLADOS (PIXEL-PERFECT RETRO STYLE)
+       ========================================================================== */
+
+    // MAPPY: Ratón policía con uniforme azul, placa dorada y porra
+    function drawMappySprite(x, y, dir, inAir, vy, step) {
+      ctx.save();
+      ctx.translate(x, y);
+      if (dir === -1) ctx.scale(-1, 1);
+
+      // Efecto Squash & Stretch al saltar
+      let scaleY = 1.0;
+      let scaleX = 1.0;
+      if (inAir) {
+        if (Math.abs(vy) > 3) {
+          scaleY = 1.15;
+          scaleX = 0.88;
+        } else {
+          scaleY = 0.92;
+          scaleX = 1.08;
+        }
+      }
+      ctx.scale(scaleX, scaleY);
+
+      // Cola de ratón fina y curvada
+      ctx.strokeStyle = '#fbcfe8';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-6, -6);
+      ctx.quadraticCurveTo(-12, -8, -10, -14);
+      ctx.stroke();
+
+      // Orejas grandes de ratón (exterior gris/crema, interior rosado)
+      ctx.fillStyle = '#e2e8f0';
+      ctx.beginPath();
+      ctx.arc(-7, -20, 5, 0, Math.PI * 2);
+      ctx.arc(3, -20, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f472b6';
+      ctx.beginPath();
+      ctx.arc(-7, -20, 3, 0, Math.PI * 2);
+      ctx.arc(3, -20, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cabeza y hocico
+      ctx.fillStyle = '#f8fafc';
+      ctx.beginPath();
+      ctx.arc(-2, -14, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Ojo negro y brillo
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(1, -16, 2.5, 3.5);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(1, -16, 1, 1);
+
+      // Hocico y nariz rosada
+      ctx.fillStyle = '#f43f5e';
+      ctx.fillRect(4, -13, 3, 2);
+
+      // Gorra de policía azul
+      ctx.fillStyle = '#1d4ed8';
+      ctx.fillRect(-8, -23, 13, 5);
+      ctx.fillRect(-4, -25, 8, 3);
+      // Visera negra brillante
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, -20, 6, 2);
+      // Insignia policial dorada
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(-1, -24, 2.5, 3);
+
+      // Chaqueta de policía azul con botones dorados
+      ctx.fillStyle = '#1e40af';
+      ctx.fillRect(-6, -9, 11, 8);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(-1, -8, 2, 4);
+
+      // Porra de policía amarilla/madera
+      ctx.fillStyle = '#ca8a04';
+      ctx.fillRect(4, -10, 2.5, 7);
+
+      // Patas
+      ctx.fillStyle = '#0f172a';
+      if (inAir) {
+        ctx.fillRect(-5, -1, 3, 3);
+        ctx.fillRect(1, -1, 3, 3);
+      } else {
+        const legOff = step === 0 ? 0 : 2;
+        ctx.fillRect(-6 + legOff, -1, 4, 3);
+        ctx.fillRect(1 - legOff, -1, 4, 3);
+      }
+
+      ctx.restore();
+    }
+
+    // GORO (Nyamco): Jefe felino rojo/carmín, robusto, hocico crema, ojos pícaros
+    function drawGoroSprite(x, y, dir, inAir, vy, step, blown, stunned) {
+      ctx.save();
+      ctx.translate(x, y);
+      if (dir === -1) ctx.scale(-1, 1);
+      if (blown) ctx.rotate(Date.now() * 0.025);
+
+      // Estrellitas si está aturdido
+      if (stunned) {
+        ctx.fillStyle = '#facc15';
+        const starAngle = (Date.now() / 150) % (Math.PI * 2);
+        ctx.fillText('★', Math.cos(starAngle) * 10 - 2, -26);
+        ctx.fillText('★', Math.cos(starAngle + Math.PI) * 10 - 2, -26);
+      }
+
+      // Squash & Stretch
+      let scaleY = 1.0;
+      let scaleX = 1.0;
+      if (inAir) {
+        scaleY = Math.abs(vy) > 3 ? 1.18 : 0.88;
+        scaleX = Math.abs(vy) > 3 ? 0.88 : 1.12;
+      }
+      ctx.scale(scaleX, scaleY);
+
+      // Cola gruesa que se menea
+      ctx.strokeStyle = '#b91c1c';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-6, -7);
+      const wag = Math.sin(Date.now() / 120) * 4;
+      ctx.quadraticCurveTo(-14, -10 + wag, -10, -18 + wag);
+      ctx.stroke();
+
+      // Orejas puntiagudas rojas con interior rosa suave
+      ctx.fillStyle = '#b91c1c';
+      ctx.beginPath();
+      ctx.moveTo(-7, -19);
+      ctx.lineTo(-5, -28);
+      ctx.lineTo(-1, -19);
+      ctx.moveTo(2, -19);
+      ctx.lineTo(6, -28);
+      ctx.lineTo(8, -19);
+      ctx.fill();
+      ctx.fillStyle = '#fca5a5';
+      ctx.beginPath();
+      ctx.moveTo(-5, -20);
+      ctx.lineTo(-4, -25);
+      ctx.lineTo(-2, -20);
+      ctx.moveTo(3, -20);
+      ctx.lineTo(5, -25);
+      ctx.lineTo(6, -20);
+      ctx.fill();
+
+      // Cabeza grande y ancha
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath();
+      ctx.arc(0, -15, 9.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Hocico crema / amarillo suave
+      ctx.fillStyle = '#fef08a';
+      ctx.beginPath();
+      ctx.ellipse(2, -12, 5, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Nariz roja y bigotes
+      ctx.fillStyle = '#991b1b';
+      ctx.fillRect(4, -13, 2.5, 2);
+      ctx.strokeStyle = '#450a0a';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(5, -12);
+      ctx.lineTo(10, -14);
+      ctx.moveTo(5, -11);
+      ctx.lineTo(10, -10);
+      ctx.stroke();
+
+      // Ojos pícaros amarillos con pupila
+      ctx.fillStyle = '#fef08a';
+      ctx.fillRect(0, -18, 3.5, 3.5);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(1.5, -17.5, 2, 2.5);
+
+      // Cuerpo robusto rojo oscuro
+      ctx.fillStyle = '#991b1b';
+      ctx.fillRect(-7, -9, 14, 10);
+
+      // Pantalón / Patas
+      ctx.fillStyle = '#fde047';
+      const legOff = step === 0 ? 0 : 2;
+      ctx.fillRect(-6 + legOff, 0, 4, 3);
+      ctx.fillRect(2 - legOff, 0, 4, 3);
+
+      ctx.restore();
+    }
+
+    // MEWKIES: Gatitos esbirros de color fucsia/rosa brillante con pechera amarilla
+    function drawMewkySprite(x, y, dir, inAir, vy, step, blown, stunned) {
+      ctx.save();
+      ctx.translate(x, y);
+      if (dir === -1) ctx.scale(-1, 1);
+      if (blown) ctx.rotate(Date.now() * 0.03);
+
+      if (stunned) {
+        ctx.fillStyle = '#facc15';
+        ctx.fillText('★', -2, -22);
+      }
+
+      // Squash & Stretch
+      let scaleY = 1.0;
+      let scaleX = 1.0;
+      if (inAir) {
+        scaleY = Math.abs(vy) > 3 ? 1.15 : 0.9;
+        scaleX = Math.abs(vy) > 3 ? 0.9 : 1.1;
+      }
+      ctx.scale(scaleX, scaleY);
+
+      // Orejas puntiagudas rosadas
+      ctx.fillStyle = '#ec4899';
+      ctx.beginPath();
+      ctx.moveTo(-6, -16);
+      ctx.lineTo(-4, -23);
+      ctx.lineTo(-1, -16);
+      ctx.moveTo(1, -16);
+      ctx.lineTo(4, -23);
+      ctx.lineTo(6, -16);
+      ctx.fill();
+
+      // Cabeza redondita
+      ctx.fillStyle = '#f472b6';
+      ctx.beginPath();
+      ctx.arc(0, -13, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Ojos grandes curiosos
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(1, -15, 2.5, 3);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(1, -15, 1, 1);
+
+      // Nariz roja
+      ctx.fillStyle = '#e11d48';
+      ctx.fillRect(4, -12, 2, 2);
+
+      // Pechera / Collar amarillo brillante
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(-4, -7, 8, 4);
+
+      // Cuerpo fucsia
+      ctx.fillStyle = '#db2777';
+      ctx.fillRect(-5, -6, 10, 6);
+
+      // Patitas rápidas
+      ctx.fillStyle = '#f472b6';
+      const legOff = step === 0 ? 0 : 2;
+      ctx.fillRect(-5 + legOff, 0, 3, 3);
+      ctx.fillRect(1 - legOff, 0, 3, 3);
+
+      // Cola saltarina
+      ctx.strokeStyle = '#f472b6';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(-5, -5);
+      ctx.quadraticCurveTo(-9, -8, -8, -13);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    /* ==========================================================================
+       8. CREACIÓN DEL ESCENARIO Y NIVELES
+       ========================================================================== */
+    let player = new Player();
+    let trampolines = [];
+    let doors = [];
+    let items = [];
+    let cats = [];
+    let waves = [];
+    let floatingScores = [];
+
+    function setupLevel() {
+      // 3 Trampolines
+      trampolines = TRAMPOLINE_X.map(x => new Trampoline(x));
+
+      // Puertas en los 6 pisos (distribución arcade balanceada)
+      doors = [
+        new Door(0, 125, true, false), // Microondas en el ático
+        new Door(1, 235, false, true),
+        new Door(2, 125, false, false),
+        new Door(2, 235, true, true),  // Microondas en piso central
+        new Door(3, 125, false, false),
+        new Door(4, 235, false, false),
+        new Door(5, 125, false, true)
+      ];
+
+      // Tesoros en PARES (para activar la mecánica de bonificación por pares)
+      items = [
+        // Par 1: Radios (Pisos 5 y 4)
+        new Item(5, 330, ITEM_TYPES.RADIO),
+        new Item(4, 30, ITEM_TYPES.RADIO),
+
+        // Par 2: Televisiones (Pisos 4 y 3)
+        new Item(4, 250, ITEM_TYPES.TV),
+        new Item(3, 110, ITEM_TYPES.TV),
+
+        // Par 3: Cuadros (Pisos 3 y 2)
+        new Item(3, 330, ITEM_TYPES.PAINTING),
+        new Item(2, 250, ITEM_TYPES.PAINTING),
+
+        // Par 4: Cajas Fuertes (Pisos 2 y 1)
+        new Item(2, 30, ITEM_TYPES.SAFE),
+        new Item(1, 110, ITEM_TYPES.SAFE),
+
+        // Par 5: Mona Lisas (Pisos 1 y 0)
+        new Item(1, 330, ITEM_TYPES.MONA_LISA),
+        new Item(0, 30, ITEM_TYPES.MONA_LISA)
+      ];
+
+      // Generación de Enemigos según la Dificultad
+      cats = [];
+      // Jefe Goro
+      for (let i = 0; i < selectedDifficulty.goroCount; i++) {
+        cats.push(new Cat('goro'));
+      }
+      // Mewkies
+      for (let i = 0; i < selectedDifficulty.mewkyCount; i++) {
+        cats.push(new Cat('mewky'));
+      }
+
+      waves = [];
+      floatingScores = [];
+      lastCollectedType = null;
+      pairMultiplier = 1;
+      player.reset();
+    }
+
+    function checkLevelCompletion() {
+      const remainingItems = items.filter(it => !it.collected);
+      if (remainingItems.length === 0 && gameState === 'PLAYING') {
+        gameState = 'ROUND_CLEAR';
+        clearTimer = 110;
+        sound.playRoundClear();
+      }
+    }
+
+    function triggerDeath() {
+      if (gameState !== 'PLAYING') return;
+      gameState = 'DYING';
+      deathTimer = 85;
+      sound.playDie();
+    }
+
+    /* ==========================================================================
+       9. DIBUJO DEL ESCENARIO DE LA MANSIÓN Y HUD
+       ========================================================================== */
+    function drawMansion() {
+      // Techo clásico a dos aguas
+      ctx.fillStyle = '#b91c1c';
+      ctx.beginPath();
+      ctx.moveTo(14, TOP_ROOF_Y + 28);
+      ctx.lineTo(GAME_WIDTH / 2, 8);
+      ctx.lineTo(GAME_WIDTH - 14, TOP_ROOF_Y + 28);
+      ctx.fill();
+
+      // Buhardillas / Ventanas en arco en el ático
+      const dormers = [GAME_WIDTH * 0.28, GAME_WIDTH * 0.5, GAME_WIDTH * 0.72];
+      dormers.forEach(dx => {
+        ctx.fillStyle = '#ffedd5';
+        ctx.fillRect(dx - 13, TOP_ROOF_Y - 4, 26, 32);
+        ctx.beginPath();
+        ctx.arc(dx, TOP_ROOF_Y - 4, 13, Math.PI, 0);
+        ctx.fill();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(dx - 9, TOP_ROOF_Y, 18, 26);
+        ctx.beginPath();
+        ctx.arc(dx, TOP_ROOF_Y, 9, Math.PI, 0);
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffedd5';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(dx, TOP_ROOF_Y - 8);
+        ctx.lineTo(dx, TOP_ROOF_Y + 26);
+        ctx.moveTo(dx - 9, TOP_ROOF_Y + 12);
+        ctx.lineTo(dx + 9, TOP_ROOF_Y + 12);
+        ctx.stroke();
+      });
+
+      // Cornisa decorativa
+      ctx.fillStyle = '#fed7aa';
+      ctx.fillRect(16, TOP_ROOF_Y + 26, GAME_WIDTH - 32, 6);
+
+      // Paredes laterales
+      ctx.fillStyle = '#fed7aa';
+      ctx.fillRect(16, TOP_ROOF_Y + 32, 4, BASE_GROUND_Y - TOP_ROOF_Y - 26);
+      ctx.fillRect(GAME_WIDTH - 20, TOP_ROOF_Y + 32, 4, BASE_GROUND_Y - TOP_ROOF_Y - 26);
+
+      // 6 Pisos con aberturas precisas para los 3 trampolines
+      FLOORS_Y.forEach(fy => {
+        const sections = [
+          { start: 20, end: TRAMPOLINE_X[0] - 16 },
+          { start: TRAMPOLINE_X[0] + 16, end: TRAMPOLINE_X[1] - 16 },
+          { start: TRAMPOLINE_X[1] + 16, end: TRAMPOLINE_X[2] - 16 },
+          { start: TRAMPOLINE_X[2] + 16, end: GAME_WIDTH - 20 }
+        ];
+
+        sections.forEach(sec => {
+          ctx.fillStyle = '#fed7aa';
+          ctx.fillRect(sec.start, fy, sec.end - sec.start, 5);
+          ctx.fillStyle = '#ea580c';
+          ctx.fillRect(sec.start, fy + 5, sec.end - sec.start, 2);
+        });
+      });
+
+      // Zócalo de celosía del sótano
+      ctx.fillStyle = '#c2410c';
+      ctx.fillRect(20, BASE_GROUND_Y + 6, GAME_WIDTH - 40, 26);
+      ctx.fillStyle = '#0a0a0f';
+      for (let rx = 24; rx < GAME_WIDTH - 24; rx += 8) {
+        ctx.fillRect(rx, BASE_GROUND_Y + 10, 4, 18);
+      }
+    }
+
+    function drawHUD() {
+      // Marcador Superior
+      ctx.fillStyle = '#ef4444';
+      ctx.font = '9px "Press Start 2P"';
+      ctx.fillText('1UP', 32, 18);
+      ctx.fillText('HIGH', 130, 18);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(score.toString().padStart(6, '0'), 22, 32);
+      ctx.fillText(highScore.toString().padStart(6, '0'), 120, 32);
+
+      // Indicador de Ronda y Dificultad
+      ctx.fillStyle = selectedDifficulty.color;
+      ctx.font = '7px "Press Start 2P"';
+      ctx.fillText(`[${selectedDifficulty.name}]`, 245, 18);
+      ctx.fillStyle = '#fde047';
+      ctx.fillText(`RND ${round}`, 255, 32);
+
+      // Insignias policiales de Vidas restantes
+      for (let i = 0; i < lives; i++) {
+        const lx = 24 + i * 18;
+        const ly = GAME_HEIGHT - 16;
+        ctx.fillStyle = '#1d4ed8';
+        ctx.beginPath();
+        ctx.moveTo(lx - 5, ly - 7);
+        ctx.lineTo(lx + 5, ly - 7);
+        ctx.lineTo(lx + 5, ly + 2);
+        ctx.lineTo(lx, ly + 7);
+        ctx.lineTo(lx - 5, ly + 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '5px "Press Start 2P"';
+        ctx.fillText('M', lx - 3.5, ly + 2);
+      }
+    }
+
+    /* ==========================================================================
+       10. BUCLE DE ACTUALIZACIÓN Y FÍSICAS
+       ========================================================================== */
+    function update() {
+      if (gameState === 'PLAYING') {
+        player.update();
+
+        trampolines.forEach(t => t.update());
+        doors.forEach(d => d.update());
+
+        // Actualizar ondas ultrasónicas
+        for (let i = waves.length - 1; i >= 0; i--) {
+          const w = waves[i];
+          w.update();
+          if (w.life <= 0) {
+            waves.splice(i, 1);
+            continue;
+          }
+
+          // Golpear gatos con la onda de microondas
+          cats.forEach(cat => {
+            if (!cat.blownAway && Math.abs(cat.x - w.x) < 24 && Math.abs(cat.y - w.y) < 28) {
+              cat.blownAway = true;
+              cat.blownVx = w.dir * 4.8;
+              cat.blownVy = -3.8;
+              score += 400;
+              if (score > highScore) highScore = score;
+              floatingScores.push(new FloatingScore(cat.x, cat.y, '400', '#facc15'));
+            }
+          });
+        }
+
+        // Recolección de Tesoros con Mecánica de Pares y Goro Oculto
+        items.forEach(item => {
+          if (!item.collected && !player.inAir && player.currentFloor === item.floorIdx) {
+            if (Math.abs(player.x - item.x) < 14) {
+              item.collected = true;
+
+              let gainedPoints = item.type.points;
+              let isPair = false;
+
+              // Comprobar bono de pares consecutivos
+              if (lastCollectedType === item.type.id) {
+                pairMultiplier++;
+                gainedPoints *= pairMultiplier;
+                isPair = true;
+                sound.playPairBonus();
+              } else {
+                pairMultiplier = 1;
+                sound.playItem();
+              }
+              lastCollectedType = item.type.id;
+
+              // Si Goro estaba escondido tras este botín: ¡Puntos Dobles y Goro Aturdido!
+              if (item.goroHiding) {
+                gainedPoints *= 2;
+                const goro = item.goroHiding;
+                goro.stunned = true;
+                goro.stunTimer = 140;
+                goro.hidingItem = null;
+                item.goroHiding = null;
+                floatingScores.push(new FloatingScore(goro.x, goro.y - 20, 'GORO x2!', '#ef4444'));
+              }
+
+              score += gainedPoints;
+              if (score > highScore) highScore = score;
+
+              const label = isPair ? `PAR x${pairMultiplier} +${gainedPoints}` : `+${gainedPoints}`;
+              floatingScores.push(new FloatingScore(item.x, item.y - 12, label, isPair ? '#22c55e' : '#ffffff'));
+
+              checkLevelCompletion();
+            }
+          }
+        });
+
+        // Actualizar Enemigos y Colisión con Mappy
+        cats.forEach(cat => {
+          cat.update(player);
+
+          // REGLA FUNDAMENTAL DE MAPPY:
+          // Si Mappy está rebotando en el aire sobre el trampolín, los gatos NO pueden dañarlo al cruzarse.
+          // Solo pueden atraparlo si Mappy se encuentra en una plataforma sólida o cuando aterriza.
+          if (!cat.blownAway && !cat.stunned) {
+            const dx = Math.abs(player.x - cat.x);
+            const dy = Math.abs(player.y - cat.y);
+
+            if (!player.inAir && !cat.inAir && player.currentFloor === cat.floorIdx) {
+              if (dx < 12 && dy < 14) {
+                triggerDeath();
+              }
+            }
+          }
+        });
+
+        // Textos de puntuación flotante
+        for (let i = floatingScores.length - 1; i >= 0; i--) {
+          const fs = floatingScores[i];
+          fs.update();
+          if (fs.life <= 0) floatingScores.splice(i, 1);
+        }
+
+      } else if (gameState === 'DYING') {
+        deathTimer--;
+        if (deathTimer <= 0) {
+          lives--;
+          if (lives < 0) {
+            gameState = 'GAMEOVER';
+            showOverlay('GAME OVER', 'PUNTUACIÓN FINAL: ' + score, 'INSERT COIN / REINTENTAR');
+          } else {
+            player.reset();
+            trampolines.forEach(t => t.reset());
+            cats.forEach(c => c.reset());
+            gameState = 'PLAYING';
+          }
+        }
+      } else if (gameState === 'ROUND_CLEAR') {
+        clearTimer--;
+        if (clearTimer <= 0) {
+          round++;
+          setupLevel();
+          gameState = 'PLAYING';
+        }
+      }
+    }
+
+    function render() {
+      // Limpiar fondo
+      ctx.fillStyle = '#080811';
+      ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+      // Mansión y arquitectura
+      drawMansion();
+
+      // Trampolines
+      trampolines.forEach(t => t.draw());
+
+      // Puertas
+      doors.forEach(d => d.draw());
+
+      // Botines y tesoros
+      items.forEach(it => it.draw());
+
+      // Ondas ultrasónicas
+      waves.forEach(w => w.draw());
+
+      // Enemigos
+      cats.forEach(c => c.draw());
+
+      // Protagonista Mappy
+      if (gameState !== 'DYING' || (deathTimer % 6 < 3)) {
+        player.draw();
+      }
+
+      // Textos flotantes
+      floatingScores.forEach(fs => fs.draw());
+
+      // Marcador HUD
+      drawHUD();
+
+      // Cartel de fin de ronda
+      if (gameState === 'ROUND_CLEAR') {
+        ctx.fillStyle = '#22c55e';
+        ctx.font = '12px "Press Start 2P"';
+        ctx.textAlign = 'center';
+        ctx.fillText('ROUND CLEAR!', GAME_WIDTH / 2, GAME_HEIGHT / 2);
+        ctx.textAlign = 'start';
+      }
+    }
+
+    function gameLoop() {
+      update();
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    /* ==========================================================================
+       11. GESTIÓN DE UI, SELECTOR DE DIFICULTAD Y ENTRADAS
+       ========================================================================== */
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlaySub = document.getElementById('overlay-sub');
+    const startBtn = document.getElementById('start-btn');
+    const audioToggleBtn = document.getElementById('audio-toggle-btn');
+    const pauseBtn = document.getElementById('pause-btn');
+
+    const diffEasyBtn = document.getElementById('diff-easy');
+    const diffMediumBtn = document.getElementById('diff-medium');
+    const diffHardBtn = document.getElementById('diff-hard');
+    const diffDesc = document.getElementById('diff-desc');
+
+    function setDifficulty(diff) {
+      selectedDifficulty = diff;
+      diffEasyBtn.classList.toggle('active', diff.id === 'EASY');
+      diffMediumBtn.classList.toggle('active', diff.id === 'MEDIUM');
+      diffHardBtn.classList.toggle('active', diff.id === 'HARD');
+      diffDesc.innerHTML = diff.desc;
+    }
+
+    diffEasyBtn.addEventListener('click', () => setDifficulty(DIFFICULTIES.EASY));
+    diffMediumBtn.addEventListener('click', () => setDifficulty(DIFFICULTIES.MEDIUM));
+    diffHardBtn.addEventListener('click', () => setDifficulty(DIFFICULTIES.HARD));
+
+    function showOverlay(title, subtitle, btnText) {
+      overlayTitle.textContent = title;
+      overlaySub.textContent = subtitle;
+      startBtn.textContent = btnText;
+      overlay.classList.remove('hidden');
+    }
+
+    function hideOverlay() {
+      overlay.classList.add('hidden');
+    }
+
+    function startGame() {
+      sound.init();
+      score = 0;
+      lives = selectedDifficulty.lives;
+      round = 1;
+      setupLevel();
+      hideOverlay();
+      gameState = 'PLAYING';
+    }
+
+    startBtn.addEventListener('click', () => {
+      startGame();
+    });
+
+    audioToggleBtn.addEventListener('click', () => {
+      sound.init();
+      sound.enabled = !sound.enabled;
+      audioToggleBtn.textContent = sound.enabled ? '🔊 AUDIO: ON' : '🔇 AUDIO: OFF';
+      audioToggleBtn.classList.toggle('bg-red-700', sound.enabled);
+      audioToggleBtn.classList.toggle('bg-gray-700', !sound.enabled);
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      if (gameState === 'PLAYING') {
+        gameState = 'PAUSED';
+        pauseBtn.textContent = 'REANUDAR';
+      } else if (gameState === 'PAUSED') {
+        gameState = 'PLAYING';
+        pauseBtn.textContent = 'PAUSA';
+      }
+    });
+
+    // Teclado
+    window.addEventListener('keydown', (e) => {
+      sound.init();
+      if (e.code === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        keys.left = true;
+      }
+      if (e.code === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        keys.right = true;
+      }
+      if (e.code === 'Space' || e.code === 'KeyF' || e.code === 'KeyZ') {
+        keys.door = true;
+      }
+
+      // Atajos de dificultad en pantalla de inicio (teclas 1, 2, 3)
+      if (gameState === 'START' || gameState === 'GAMEOVER') {
+        if (e.key === '1') setDifficulty(DIFFICULTIES.EASY);
+        if (e.key === '2') setDifficulty(DIFFICULTIES.MEDIUM);
+        if (e.key === '3') setDifficulty(DIFFICULTIES.HARD);
+        if (e.key === 'Enter') startGame();
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        keys.left = false;
+      }
+      if (e.code === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        keys.right = false;
+      }
+      if (e.code === 'Space' || e.code === 'KeyF' || e.code === 'KeyZ') {
+        keys.door = false;
+      }
+    });
+
+    // Asignación de botones táctiles
+    const btnLeft = document.getElementById('btn-left');
+    const btnRight = document.getElementById('btn-right');
+    const btnDoor = document.getElementById('btn-door');
+
+    const bindTouch = (elem, pressAction, releaseAction) => {
+      const onStart = (ev) => {
+        ev.preventDefault();
+        sound.init();
+        pressAction();
+      };
+      const onEnd = (ev) => {
+        ev.preventDefault();
+        releaseAction();
+      };
+
+      elem.addEventListener('mousedown', onStart);
+      elem.addEventListener('mouseup', onEnd);
+      elem.addEventListener('mouseleave', onEnd);
+
+      elem.addEventListener('touchstart', onStart, { passive: false });
+      elem.addEventListener('touchend', onEnd, { passive: false });
+      elem.addEventListener('touchcancel', onEnd, { passive: false });
+    };
+
+    bindTouch(btnLeft, () => { keys.left = true; }, () => { keys.left = false; });
+    bindTouch(btnRight, () => { keys.right = true; }, () => { keys.right = false; });
+    bindTouch(btnDoor, () => { keys.door = true; }, () => { keys.door = false; });
+
+    // Inicio inicial del ciclo
+    window.onload = function() {
+      setupLevel();
+      requestAnimationFrame(gameLoop);
+    };
+  </script>
+</body>
+</html>
