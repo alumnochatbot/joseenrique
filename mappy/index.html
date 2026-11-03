@@ -10,20 +10,20 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      background-color: #06060c;
+      background-color: #05050a;
       font-family: 'Press Start 2P', monospace, sans-serif;
       touch-action: manipulation;
       user-select: none;
       -webkit-user-select: none;
     }
     .arcade-frame {
-      box-shadow: 0 0 35px rgba(220, 38, 38, 0.4), 0 0 120px rgba(0, 0, 0, 0.95) inset;
+      box-shadow: 0 0 35px rgba(220, 38, 38, 0.45), 0 0 100px rgba(0, 0, 0, 0.95) inset;
       border: 4px solid #b91c1c;
     }
     .crt-scanlines {
       background: linear-gradient(
         rgba(18, 16, 16, 0) 50%, 
-        rgba(0, 0, 0, 0.3) 50%
+        rgba(0, 0, 0, 0.28) 50%
       ), linear-gradient(
         90deg,
         rgba(255, 0, 0, 0.03),
@@ -38,132 +38,205 @@
     }
     .diff-btn.active {
       transform: scale(1.05);
-      box-shadow: 0 0 15px currentColor;
+      box-shadow: 0 0 14px currentColor;
     }
     .ctrl-btn {
       touch-action: none;
-      transition: transform 0.08s ease, filter 0.08s ease;
+      transition: transform 0.07s ease, filter 0.07s ease;
     }
     .ctrl-btn:active {
       transform: scale(0.92);
-      filter: brightness(1.25);
+      filter: brightness(1.3);
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-between p-2 sm:p-4 text-white overflow-x-hidden">
+<body class="min-h-screen flex flex-col items-center justify-between p-2 sm:p-3 text-white overflow-x-hidden">
 
-  <!-- Encabezado / Marquesina Arcade -->
-  <header class="w-full max-w-[420px] flex items-center justify-between py-1.5 px-3 bg-red-950/80 border-2 border-red-700 rounded-lg mb-2 shadow-lg">
+  <!-- Marquesina Superior Arcade -->
+  <header class="w-full max-w-[440px] flex items-center justify-between py-1.5 px-3 bg-red-950/80 border-2 border-red-700 rounded-lg mb-1.5 shadow-lg">
     <div class="flex items-center space-x-2">
       <span class="inline-block w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></span>
       <h1 class="text-xs sm:text-sm tracking-wider text-yellow-300 font-bold drop-shadow">MAPPY 1983</h1>
     </div>
     <div class="flex items-center space-x-2">
-      <button id="audio-toggle-btn" class="px-2 py-1 text-[9px] bg-red-700 hover:bg-red-600 rounded text-yellow-200 border border-yellow-400">
-        🔊 AUDIO: ON
+      <button id="bgm-toggle-btn" class="px-2 py-1 text-[8px] sm:text-[9px] bg-indigo-700 hover:bg-indigo-600 rounded text-yellow-200 border border-yellow-400">
+        🎵 BGM: ON
       </button>
-      <button id="pause-btn" class="px-2 py-1 text-[9px] bg-gray-800 hover:bg-gray-700 rounded text-gray-200 border border-gray-600">
+      <button id="audio-toggle-btn" class="px-2 py-1 text-[8px] sm:text-[9px] bg-red-700 hover:bg-red-600 rounded text-yellow-200 border border-yellow-400">
+        🔊 SFX: ON
+      </button>
+      <button id="pause-btn" class="px-2 py-1 text-[8px] sm:text-[9px] bg-gray-800 hover:bg-gray-700 rounded text-gray-200 border border-gray-600">
         PAUSA
       </button>
     </div>
   </header>
 
-  <!-- Contenedor Arcade Screen -->
-  <main class="relative w-full max-w-[420px] aspect-[3/4] flex items-center justify-center">
+  <!-- Contenedor Pantalla Arcade (Canvas) -->
+  <main class="relative w-full max-w-[440px] aspect-[3/4] flex items-center justify-center">
     <div class="relative w-full h-full arcade-frame rounded-xl overflow-hidden bg-black flex flex-col">
-      <!-- Lienzo principal Canvas -->
       <canvas id="gameCanvas" width="360" height="480" class="w-full h-full block image-rendering-pixelated"></canvas>
       
-      <!-- Efecto CRT Scanlines -->
+      <!-- Efecto Scanlines CRT -->
       <div class="absolute inset-0 crt-scanlines rounded-lg"></div>
 
-      <!-- Pantalla de Inicio / Menú de Dificultad / Game Over -->
+      <!-- Menú Inicial / Selector Dificultad / Game Over -->
       <div id="overlay" class="absolute inset-0 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-between p-4 text-center z-20">
         
-        <div class="w-full flex flex-col items-center mt-2">
+        <div class="w-full flex flex-col items-center mt-1">
           <h2 id="overlay-title" class="text-2xl sm:text-3xl text-red-500 font-extrabold tracking-widest drop-shadow-[0_4px_12px_rgba(239,68,68,0.9)] mb-1">
             MAPPY
           </h2>
-          <p id="overlay-sub" class="text-[9px] sm:text-[10px] text-yellow-300 tracking-wider mb-2">
-            NAMCO 1983 • CLON RETRO ARCADE
+          <p id="overlay-sub" class="text-[9px] sm:text-[10px] text-yellow-300 tracking-wider">
+            NAMCO 1983 • EDICIÓN CUERDAS & CHIPTUNE
           </p>
         </div>
 
         <!-- Selector de Dificultad -->
-        <div id="difficulty-selector-container" class="w-full max-w-xs flex flex-col items-center space-y-2 bg-neutral-900/90 p-3 rounded-lg border border-red-900 shadow-inner">
-          <div class="text-[10px] text-yellow-400 font-bold mb-1">SELECCIONA DIFICULTAD:</div>
+        <div id="difficulty-selector-container" class="w-full max-w-xs flex flex-col items-center space-y-2 bg-neutral-900/90 p-2.5 rounded-lg border border-red-900 shadow-inner">
+          <div class="text-[9px] sm:text-[10px] text-yellow-400 font-bold">SELECCIONA DIFICULTAD:</div>
           
           <div class="grid grid-cols-3 gap-2 w-full">
-            <button id="diff-easy" class="diff-btn py-2 px-1 rounded text-[9px] font-bold border-2 border-green-500 text-green-400 bg-green-950/40 hover:bg-green-900/60">
+            <button id="diff-easy" class="diff-btn py-1.5 px-1 rounded text-[8px] sm:text-[9px] font-bold border-2 border-green-500 text-green-400 bg-green-950/40 hover:bg-green-900/60">
               FÁCIL
             </button>
-            <button id="diff-medium" class="diff-btn active py-2 px-1 rounded text-[9px] font-bold border-2 border-yellow-400 text-yellow-300 bg-yellow-950/60 hover:bg-yellow-900/80">
+            <button id="diff-medium" class="diff-btn active py-1.5 px-1 rounded text-[8px] sm:text-[9px] font-bold border-2 border-yellow-400 text-yellow-300 bg-yellow-950/60 hover:bg-yellow-900/80">
               MEDIO
             </button>
-            <button id="diff-hard" class="diff-btn py-2 px-1 rounded text-[9px] font-bold border-2 border-red-500 text-red-400 bg-red-950/40 hover:bg-red-900/60">
+            <button id="diff-hard" class="diff-btn py-1.5 px-1 rounded text-[8px] sm:text-[9px] font-bold border-2 border-red-500 text-red-400 bg-red-950/40 hover:bg-red-900/60">
               DIFÍCIL
             </button>
           </div>
 
-          <!-- Resumen de la dificultad elegida -->
-          <div id="diff-desc" class="text-[8px] text-gray-300 leading-relaxed text-left w-full mt-2 min-h-[46px] p-2 bg-black/60 rounded border border-gray-800">
+          <!-- Descripción de Dificultad -->
+          <div id="diff-desc" class="text-[8px] text-gray-300 leading-relaxed text-left w-full p-2 bg-black/60 rounded border border-gray-800 min-h-[46px]">
             • Arcade clásico: 1 Goro + 4 Mewkies.<br>
             • Velocidad estándar (1.0x).<br>
-            • Trampolines estándar (4 rebotes). 3 Vidas.
+            • Trampolines clásicos (4 rebotes). 3 Vidas.
           </div>
         </div>
 
-        <!-- Reglas Clave -->
-        <div class="text-[8px] text-gray-400 bg-neutral-900/80 p-2 rounded-lg border border-gray-800 w-full max-w-xs text-left space-y-1">
-          <p class="text-cyan-400 font-bold">✨ REGLAS CLÁSICAS:</p>
-          <p>• Los gatos <span class="text-green-400">NO</span> te dañan mientras rebotas en el trampolín.</p>
-          <p>• ¡Goro se oculta tras los tesoros! Recógelos para <span class="text-yellow-400">puntos x2</span>.</p>
-          <p>• ¡Recoge pares seguidos del mismo botín para bonificación!</p>
-          <p>• Las puertas de microondas barren a todos los gatos.</p>
+        <!-- Instrucciones Clave -->
+        <div class="text-[8px] text-gray-400 bg-neutral-900/80 p-2.5 rounded-lg border border-gray-800 w-full max-w-xs text-left space-y-1">
+          <p class="text-yellow-400 font-bold">🪢 MECÁNICAS DE JUEGO:</p>
+          <p>• <span class="text-cyan-300">ESPACIO:</span> Salto en suelo / <span class="text-green-400">AGARRAR CUERDA</span> en los pozos.</p>
+          <p>• En la cuerda: <span class="text-yellow-300">▲</span> sube trepando | <span class="text-yellow-300">▼</span> desliza veloz.</p>
+          <p>• Salir de la cuerda: <span class="text-yellow-300">◄/►</span> hacia un piso o <span class="text-yellow-300">ESPACIO</span> para soltarte.</p>
+          <p>• ¡Inmunidad total a los gatos mientras rebotas en el trampolín!</p>
         </div>
 
         <!-- Botón de Inicio -->
-        <button id="start-btn" class="w-full max-w-xs py-3 bg-gradient-to-r from-red-600 via-yellow-500 to-red-600 hover:from-red-500 hover:to-yellow-400 text-black font-extrabold text-xs sm:text-sm rounded shadow-[0_0_20px_rgba(234,179,8,0.7)] transform active:scale-95 transition-all mb-1">
+        <button id="start-btn" class="w-full max-w-xs py-2.5 sm:py-3 bg-gradient-to-r from-red-600 via-yellow-500 to-red-600 hover:from-red-500 hover:to-yellow-400 text-black font-extrabold text-xs sm:text-sm rounded shadow-[0_0_20px_rgba(234,179,8,0.7)] transform active:scale-95 transition-all">
           INSERT COIN / JUGAR
         </button>
       </div>
     </div>
   </main>
 
-  <!-- Controles Táctiles en Pantalla para Móvil / Tablet -->
-  <footer class="w-full max-w-[420px] mt-2 flex flex-col items-center select-none">
-    <div class="w-full flex items-center justify-between px-4 py-2 bg-neutral-900/90 rounded-2xl border border-neutral-800 shadow-inner">
-      <!-- Botones Izquierda y Derecha -->
-      <div class="flex space-x-3">
-        <button id="btn-left" class="ctrl-btn w-16 h-14 bg-gradient-to-b from-gray-700 to-gray-800 border-2 border-gray-500 rounded-xl flex items-center justify-center text-xl text-yellow-300 shadow-md">
+  <!-- Panel de Mandos Táctil (Móvil / Tablet) -->
+  <footer class="w-full max-w-[440px] mt-1.5 flex flex-col items-center select-none">
+    <div class="w-full flex items-center justify-between px-3 py-2 bg-neutral-900/90 rounded-2xl border border-neutral-800 shadow-inner">
+      
+      <!-- D-Pad Direccional 4 Rumbos -->
+      <div class="grid grid-cols-3 grid-rows-3 gap-1 w-32 h-28 items-center justify-items-center">
+        <div></div>
+        <button id="btn-up" class="ctrl-btn w-10 h-9 bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded-lg flex items-center justify-center text-xs text-yellow-300 shadow">
+          ▲
+        </button>
+        <div></div>
+
+        <button id="btn-left" class="ctrl-btn w-10 h-9 bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded-lg flex items-center justify-center text-xs text-yellow-300 shadow">
           ◀
         </button>
-        <button id="btn-right" class="ctrl-btn w-16 h-14 bg-gradient-to-b from-gray-700 to-gray-800 border-2 border-gray-500 rounded-xl flex items-center justify-center text-xl text-yellow-300 shadow-md">
+        <div class="w-4 h-4 rounded-full bg-neutral-800 border border-gray-700"></div>
+        <button id="btn-right" class="ctrl-btn w-10 h-9 bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded-lg flex items-center justify-center text-xs text-yellow-300 shadow">
           ▶
         </button>
+
+        <div></div>
+        <button id="btn-down" class="ctrl-btn w-10 h-9 bg-gray-700 hover:bg-gray-600 border border-gray-500 rounded-lg flex items-center justify-center text-xs text-yellow-300 shadow">
+          ▼
+        </button>
+        <div></div>
       </div>
 
-      <!-- Botón de Acción / Puerta -->
-      <div class="flex flex-col items-center">
-        <button id="btn-door" class="ctrl-btn w-28 h-14 bg-gradient-to-b from-blue-600 to-blue-800 border-2 border-cyan-300 rounded-xl flex items-center justify-center text-xs text-white font-bold tracking-wider shadow-lg">
-          PUERTA
-        </button>
-        <span class="text-[8px] text-gray-400 mt-1 uppercase tracking-wider">ESPACIO / F</span>
+      <!-- Botones de Acción (Salto/Cuerda y Puerta) -->
+      <div class="flex space-x-2 sm:space-x-3 items-center">
+        <!-- Botón Salto / Agarre Cuerda -->
+        <div class="flex flex-col items-center">
+          <button id="btn-jump" class="ctrl-btn w-16 sm:w-18 h-14 bg-gradient-to-b from-green-600 to-green-800 border-2 border-emerald-400 rounded-2xl flex flex-col items-center justify-center shadow-lg">
+            <span class="text-[10px] text-white font-bold">SALTO</span>
+            <span class="text-[7px] text-emerald-200">CUERDA</span>
+          </button>
+          <span class="text-[7px] text-gray-400 mt-0.5">ESPACIO</span>
+        </div>
+
+        <!-- Botón Puerta -->
+        <div class="flex flex-col items-center">
+          <button id="btn-door" class="ctrl-btn w-16 sm:w-18 h-14 bg-gradient-to-b from-blue-600 to-blue-800 border-2 border-cyan-300 rounded-2xl flex items-center justify-center shadow-lg">
+            <span class="text-[10px] text-white font-bold">PUERTA</span>
+          </button>
+          <span class="text-[7px] text-gray-400 mt-0.5">E / F</span>
+        </div>
       </div>
+
     </div>
-    <div class="text-[8px] text-gray-500 mt-1 text-center">
-      Teclado: Flechas o A/D para moverte | Barra Espaciadora o F para abrir puertas
+    <div class="text-[7.5px] text-gray-500 mt-1 text-center">
+      Teclado: Flechas o W/A/S/D para moverte | ESPACIO para saltar o sujetar soga | E o F para puertas
     </div>
   </footer>
 
   <script>
     /* ==========================================================================
-       1. SINTETIZADOR DE AUDIO RETRO 8-BITS (Web Audio API)
+       1. SINTETIZADOR DE AUDIO RETRO 8-BITS & BGM RAGTIME (Web Audio API)
        ========================================================================== */
     class RetroSoundEngine {
       constructor() {
         this.ctx = null;
-        this.enabled = true;
+        this.sfxEnabled = true;
+        this.bgmEnabled = true;
+        this.bgmGain = null;
+        this.isPlayingBgm = false;
+        this.bgmStep = 0;
+        this.bgmTimer = null;
+        this.lastClimbSound = 0;
+        this.lastSlideSound = 0;
+
+        // Secuencia melódica Chiptune inspirada en Mappy (C Mayor alegre / Ragtime)
+        // [Frecuencia Melodía, Frecuencia Bajo, Ruido Percusión]
+        this.bgmPattern = [
+          [523.25, 130.81, 1], // C5, C3, hat
+          [0,      0,      0],
+          [659.25, 164.81, 0], // E5, E3
+          [783.99, 196.00, 2], // G5, G3, snare
+          [880.00, 130.81, 1], // A5, C3, hat
+          [783.99, 164.81, 0], // G5, E3
+          [659.25, 196.00, 2], // E5, G3, snare
+          [523.25, 220.00, 0], // C5, A3
+          [587.33, 146.83, 1], // D5, D3, hat
+          [659.25, 174.61, 0], // E5, F3
+          [587.33, 220.00, 2], // D5, A3, snare
+          [392.00, 196.00, 0], // G4, G3
+          [523.25, 130.81, 1], // C5, C3, hat
+          [659.25, 164.81, 0], // E5, E3
+          [783.99, 196.00, 2], // G5, G3, snare
+          [1046.5, 130.81, 0], // C6, C3
+          [987.77, 123.47, 1], // B5, B2, hat
+          [880.00, 110.00, 0], // A5, A2
+          [783.99, 196.00, 2], // G5, G3, snare
+          [698.46, 174.61, 0], // F5, F3
+          [659.25, 164.81, 1], // E5, E3, hat
+          [587.33, 146.83, 0], // D5, D3
+          [523.25, 130.81, 2], // C5, C3, snare
+          [0,      196.00, 0], // silencio, G3
+          [659.25, 164.81, 1], // E5, E3, hat
+          [587.33, 146.83, 0], // D5, D3
+          [523.25, 130.81, 2], // C5, C3, snare
+          [587.33, 146.83, 0], // D5, D3
+          [523.25, 130.81, 1], // C5, C3, hat
+          [0,      0,      0],
+          [0,      196.00, 2], // G3, snare
+          [0,      0,      0]
+        ];
       }
 
       init() {
@@ -171,23 +244,186 @@
           const AudioContext = window.AudioContext || window.webkitAudioContext;
           if (AudioContext) {
             this.ctx = new AudioContext();
+            this.bgmGain = this.ctx.createGain();
+            this.bgmGain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+            this.bgmGain.connect(this.ctx.destination);
           }
         }
         if (this.ctx && this.ctx.state === 'suspended') {
           this.ctx.resume();
         }
+        if (this.bgmEnabled && !this.isPlayingBgm) {
+          this.startBgm();
+        }
       }
 
-      playBounce(pitchMultiplier = 1.0) {
-        if (!this.enabled || !this.ctx) return;
+      startBgm() {
+        if (!this.ctx || this.isPlayingBgm) return;
+        this.isPlayingBgm = true;
+        this.bgmStep = 0;
+        this.bgmTimer = setInterval(() => this.tickBgm(), 130);
+      }
+
+      stopBgm() {
+        if (this.bgmTimer) {
+          clearInterval(this.bgmTimer);
+          this.bgmTimer = null;
+        }
+        this.isPlayingBgm = false;
+      }
+
+      tickBgm() {
+        if (!this.ctx || !this.bgmEnabled || gameState !== 'PLAYING') return;
+        const noteData = this.bgmPattern[this.bgmStep];
+        this.bgmStep = (this.bgmStep + 1) % this.bgmPattern.length;
+
+        const melodyFreq = noteData[0];
+        const bassFreq = noteData[1];
+        const perc = noteData[2];
+        const now = this.ctx.currentTime;
+
+        // Canal Melodía (Onda Cuadrada retro)
+        if (melodyFreq > 0) {
+          const oscM = this.ctx.createOscillator();
+          const gainM = this.ctx.createGain();
+          oscM.type = 'square';
+          oscM.frequency.setValueAtTime(melodyFreq, now);
+          gainM.gain.setValueAtTime(0.08, now);
+          gainM.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+          oscM.connect(gainM);
+          gainM.connect(this.bgmGain);
+          oscM.start(now);
+          oscM.stop(now + 0.12);
+        }
+
+        // Canal Bajo Walking Bass (Onda Triangular suave)
+        if (bassFreq > 0) {
+          const oscB = this.ctx.createOscillator();
+          const gainB = this.ctx.createGain();
+          oscB.type = 'triangle';
+          oscB.frequency.setValueAtTime(bassFreq, now);
+          gainB.gain.setValueAtTime(0.12, now);
+          gainB.gain.exponentialRampToValueAtTime(0.005, now + 0.12);
+          oscB.connect(gainB);
+          gainB.connect(this.bgmGain);
+          oscB.start(now);
+          oscB.stop(now + 0.12);
+        }
+
+        // Canal Percusión Chiptune (Hi-hat / Snare con ruido sintetizado)
+        if (perc > 0) {
+          const bufferSize = this.ctx.sampleRate * 0.04;
+          const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            output[i] = Math.random() * 2 - 1;
+          }
+          const whiteNoise = this.ctx.createBufferSource();
+          whiteNoise.buffer = noiseBuffer;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = perc === 1 ? 'highpass' : 'bandpass';
+          filter.frequency.setValueAtTime(perc === 1 ? 7000 : 1200, now);
+
+          const gainP = this.ctx.createGain();
+          gainP.gain.setValueAtTime(perc === 1 ? 0.04 : 0.07, now);
+          gainP.gain.exponentialRampToValueAtTime(0.001, now + (perc === 1 ? 0.03 : 0.07));
+
+          whiteNoise.connect(filter);
+          filter.connect(gainP);
+          gainP.connect(this.bgmGain);
+          whiteNoise.start(now);
+        }
+      }
+
+      playJump() {
+        if (!this.sfxEnabled || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(260, now);
+          osc.frequency.exponentialRampToValueAtTime(620, now + 0.12);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        } catch (e) {}
+      }
+
+      playRopeGrab() {
+        if (!this.sfxEnabled || !this.ctx) return;
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(480, now);
+          osc.frequency.exponentialRampToValueAtTime(320, now + 0.08);
+          gain.gain.setValueAtTime(0.22, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.09);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.09);
+        } catch (e) {}
+      }
+
+      playClimbStep() {
+        if (!this.sfxEnabled || !this.ctx) return;
+        const now = Date.now();
+        if (now - this.lastClimbSound < 140) return;
+        this.lastClimbSound = now;
+        try {
+          const t = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(640, t);
+          osc.frequency.exponentialRampToValueAtTime(860, t + 0.05);
+          gain.gain.setValueAtTime(0.12, t);
+          gain.gain.linearRampToValueAtTime(0.01, t + 0.05);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.05);
+        } catch (e) {}
+      }
+
+      playSlideTick() {
+        if (!this.sfxEnabled || !this.ctx) return;
+        const now = Date.now();
+        if (now - this.lastSlideSound < 90) return;
+        this.lastSlideSound = now;
+        try {
+          const t = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(480, t);
+          osc.frequency.exponentialRampToValueAtTime(220, t + 0.06);
+          gain.gain.setValueAtTime(0.08, t);
+          gain.gain.linearRampToValueAtTime(0.005, t + 0.06);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.06);
+        } catch (e) {}
+      }
+
+      playBounce(pitchMult = 1.0) {
+        if (!this.sfxEnabled || !this.ctx) return;
         try {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           const now = this.ctx.currentTime;
           osc.type = 'triangle';
-          osc.frequency.setValueAtTime(140 * pitchMultiplier, now);
-          osc.frequency.exponentialRampToValueAtTime(460 * pitchMultiplier, now + 0.13);
-          gain.gain.setValueAtTime(0.25, now);
+          osc.frequency.setValueAtTime(140 * pitchMult, now);
+          osc.frequency.exponentialRampToValueAtTime(480 * pitchMult, now + 0.13);
+          gain.gain.setValueAtTime(0.24, now);
           gain.gain.linearRampToValueAtTime(0.01, now + 0.14);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
@@ -197,16 +433,15 @@
       }
 
       playDoorOpen() {
-        if (!this.enabled || !this.ctx) return;
+        if (!this.sfxEnabled || !this.ctx) return;
         try {
           const now = this.ctx.currentTime;
-          // Ruido de golpe seco
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'square';
-          osc.frequency.setValueAtTime(260, now);
-          osc.frequency.exponentialRampToValueAtTime(70, now + 0.12);
-          gain.gain.setValueAtTime(0.2, now);
+          osc.frequency.setValueAtTime(280, now);
+          osc.frequency.exponentialRampToValueAtTime(80, now + 0.12);
+          gain.gain.setValueAtTime(0.22, now);
           gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
@@ -216,7 +451,7 @@
       }
 
       playMicrowaveWave() {
-        if (!this.enabled || !this.ctx) return;
+        if (!this.sfxEnabled || !this.ctx) return;
         try {
           const now = this.ctx.currentTime;
           const osc = this.ctx.createOscillator();
@@ -236,7 +471,7 @@
       }
 
       playItem() {
-        if (!this.enabled || !this.ctx) return;
+        if (!this.sfxEnabled || !this.ctx) return;
         try {
           const now = this.ctx.currentTime;
           const freqs = [523.25, 659.25, 783.99, 1046.50];
@@ -257,7 +492,7 @@
       }
 
       playPairBonus() {
-        if (!this.enabled || !this.ctx) return;
+        if (!this.sfxEnabled || !this.ctx) return;
         try {
           const now = this.ctx.currentTime;
           const freqs = [587.3, 739.9, 880.0, 1174.6, 1479.9];
@@ -278,7 +513,7 @@
       }
 
       playTrampolineBreak() {
-        if (!this.enabled || !this.ctx) return;
+        if (!this.sfxEnabled || !this.ctx) return;
         try {
           const now = this.ctx.currentTime;
           const osc = this.ctx.createOscillator();
@@ -296,7 +531,7 @@
       }
 
       playDie() {
-        if (!this.enabled || !this.ctx) return;
+        if (!this.sfxEnabled || !this.ctx) return;
         try {
           const now = this.ctx.currentTime;
           const notes = [440, 415, 392, 349, 311, 261, 196, 130];
@@ -317,7 +552,7 @@
       }
 
       playRoundClear() {
-        if (!this.enabled || !this.ctx) return;
+        if (!this.sfxEnabled || !this.ctx) return;
         try {
           const now = this.ctx.currentTime;
           const notes = [261.6, 329.6, 392.0, 523.2, 659.2, 783.9, 1046.5];
@@ -341,7 +576,7 @@
     const sound = new RetroSoundEngine();
 
     /* ==========================================================================
-       2. CONFIGURACIÓN, DIFICULTADES Y ESTRUCTURA DE LA MANSIÓN
+       2. CONFIGURACIÓN, DIFICULTADES Y ARQUITECTURA DE LA MANSIÓN
        ========================================================================== */
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -349,7 +584,7 @@
     const GAME_WIDTH = 360;
     const GAME_HEIGHT = 480;
 
-    // Configuración de Dificultades
+    // Configuración de las 3 Dificultades
     const DIFFICULTIES = {
       EASY: {
         id: 'EASY',
@@ -363,7 +598,7 @@
         startBounces: 0,
         microwaveSpeed: 4.8,
         aggressive: false,
-        desc: '• Modo Casual: 1 Goro + 2 Mewkies.<br>• Velocidad reducida (0.75x).<br>• Trampolines reforzados (6 rebotes). 5 Vidas.'
+        desc: '• Modo Casual: 1 Goro + 2 Mewkies.<br>• Velocidad suave (0.75x).<br>• Trampolines reforzados (6 rebotes). 5 Vidas.'
       },
       MEDIUM: {
         id: 'MEDIUM',
@@ -388,7 +623,7 @@
         mewkyCount: 5,
         goroCount: 1,
         maxBounces: 3,
-        startBounces: 1, // Comienza con tensión azul
+        startBounces: 1,
         microwaveSpeed: 3.3,
         aggressive: true,
         desc: '• Desafío Maestro: 1 Goro + 5 Mewkies agresivos.<br>• Velocidad alta (1.25x).<br>• Trampolines frágiles (3 rebotes). 2 Vidas.'
@@ -397,18 +632,18 @@
 
     let selectedDifficulty = DIFFICULTIES.MEDIUM;
 
-    // Mansión de 6 Pisos (Piso 0 Ático -> Piso 5 Planta Baja)
+    // Mansión: 6 Pisos (Piso 0 Ático -> Piso 5 Planta Baja)
     const FLOORS_Y = [100, 148, 196, 244, 292, 340];
     const BASE_GROUND_Y = 398;
     const TOP_ROOF_Y = 52;
 
-    // Columnas de trampolines (3 columnas verticales)
-    const TRAMPOLINE_X = [70, 180, 290];
+    // Columnas de Pozos Verticales con Cuerdas y Trampolines
+    const SHAFTS_X = [70, 180, 290];
 
     // Colores de tensión de trampolín
     const TRAMP_COLORS = ['#22c55e', '#00bfff', '#facc15', '#f97316', '#ef4444'];
 
-    // Tipos de tesoros (aparecen en pares para bonificación continua)
+    // Tipos de tesoros
     const ITEM_TYPES = {
       RADIO: { id: 'RADIO', name: 'Radio', points: 100 },
       TV: { id: 'TV', name: 'TV', points: 200 },
@@ -418,9 +653,9 @@
     };
 
     /* ==========================================================================
-       3. ESTADO GLOBAL
+       3. ESTADO GLOBAL Y CONTROLES
        ========================================================================== */
-    let gameState = 'START'; // 'START', 'PLAYING', 'PAUSED', 'ROUND_CLEAR', 'DYING', 'GAMEOVER'
+    let gameState = 'START';
     let score = 0;
     let highScore = 20000;
     let lives = 3;
@@ -434,13 +669,92 @@
     const keys = {
       left: false,
       right: false,
+      up: false,
+      down: false,
+      jump: false,
       door: false
     };
 
     /* ==========================================================================
-       4. CLASES DE ENTIDADES Y OBJETOS
+       4. CUERDAS COLGANTES Y PARTÍCULAS DE FRICCIÓN
        ========================================================================== */
+    class Rope {
+      constructor(x) {
+        this.x = x;
+        this.topY = TOP_ROOF_Y + 30; // Cuelga desde la viga del ático
+        this.bottomY = BASE_GROUND_Y - 8; // Llega casi al trampolín
+      }
 
+      draw() {
+        ctx.save();
+        // Cuerda de cáñamo trenzada gruesa
+        ctx.strokeStyle = '#92400e';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.topY);
+        ctx.lineTo(this.x, this.bottomY);
+        ctx.stroke();
+
+        // Trama trenzada interior y nudos rítmicos
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([3, 4]);
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.topY);
+        ctx.lineTo(this.x, this.bottomY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Anclaje superior de metal/madera
+        ctx.fillStyle = '#b45309';
+        ctx.fillRect(this.x - 5, this.topY - 3, 10, 5);
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.arc(this.x, this.topY, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Nudo final inferior
+        ctx.fillStyle = '#78350f';
+        ctx.beginPath();
+        ctx.arc(this.x, this.bottomY, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+    }
+
+    class FrictionParticle {
+      constructor(x, y, vy, color = '#fef08a') {
+        this.x = x + (Math.random() * 8 - 4);
+        this.y = y;
+        this.vx = (Math.random() * 2 - 1) * 0.8;
+        this.vy = vy + (Math.random() * 1.5 - 0.75);
+        this.color = color;
+        this.size = Math.random() * 2.5 + 1.2;
+        this.life = 25;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.size = Math.max(0, this.size - 0.08);
+        this.life--;
+      }
+
+      draw() {
+        ctx.save();
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+        ctx.restore();
+      }
+    }
+
+    let ropes = [];
+    let frictionParticles = [];
+
+    /* ==========================================================================
+       5. TRAMPOLINES, PUERTAS Y ELEMENTOS
+       ========================================================================== */
     class Trampoline {
       constructor(x) {
         this.x = x;
@@ -463,7 +777,6 @@
           this.breakTimer = 240;
           sound.playTrampolineBreak();
         } else {
-          // Sonido progresivamente más agudo según la tensión
           sound.playBounce(1.0 + (this.bounces * 0.15));
         }
       }
@@ -480,7 +793,6 @@
 
       draw() {
         if (this.broken) {
-          // Roto
           ctx.strokeStyle = '#666';
           ctx.lineWidth = 2;
           ctx.beginPath();
@@ -492,7 +804,6 @@
           return;
         }
 
-        // Color de elasticidad según el desgaste relativo
         const progress = Math.min(this.bounces / (selectedDifficulty.maxBounces - 1), 1);
         const colorIdx = Math.min(Math.floor(progress * (TRAMP_COLORS.length - 1)), TRAMP_COLORS.length - 1);
         const color = TRAMP_COLORS[colorIdx];
@@ -504,7 +815,6 @@
         ctx.quadraticCurveTo(this.x, this.y + 4, this.x + 14, this.y);
         ctx.stroke();
 
-        // Soportes de anclaje
         ctx.fillStyle = '#ffaa00';
         ctx.fillRect(this.x - 16, this.y - 2, 4, 5);
         ctx.fillRect(this.x + 12, this.y - 2, 4, 5);
@@ -529,13 +839,11 @@
         this.openTimer = 35;
         sound.playDoorOpen();
 
-        // Si es puerta normal: empuja fuertemente a gatos cercanos y los aturde
         if (!this.isMicrowave) {
           const pushDir = this.opensLeft ? -1 : 1;
           cats.forEach(cat => {
             if (!cat.inAir && cat.floorIdx === this.floorIdx) {
               const dist = cat.x - this.x;
-              // Si el gato está en la zona hacia la que se abre la puerta
               if ((pushDir === 1 && dist >= -4 && dist < 28) || (pushDir === -1 && dist <= 4 && dist > -28)) {
                 cat.stunned = true;
                 cat.stunTimer = 110;
@@ -545,11 +853,10 @@
             }
           });
         } else {
-          // Si es de microondas: genera la onda ultrasónica arcoíris
           sound.playMicrowaveWave();
           const waveDir = this.opensLeft ? -1 : 1;
           waves.push(new MicrowaveWave(this.x, this.y - 14, waveDir, selectedDifficulty.microwaveSpeed));
-          this.isMicrowave = false; // Se vuelve puerta normal tras el disparo
+          this.isMicrowave = false;
         }
       }
 
@@ -566,7 +873,6 @@
         const topY = this.y - this.height;
         ctx.save();
         if (!this.isOpen) {
-          // Marco de puerta
           ctx.fillStyle = this.isMicrowave ? '#06b6d4' : '#0d9488';
           ctx.fillRect(this.x - 7, topY, 14, this.height);
 
@@ -574,18 +880,15 @@
           ctx.lineWidth = 1;
           ctx.strokeRect(this.x - 7, topY, 14, this.height);
 
-          // Pomo dorado
           ctx.fillStyle = '#facc15';
           const kx = this.opensLeft ? this.x - 5 : this.x + 2;
           ctx.fillRect(kx, topY + 13, 3, 4);
 
-          // Si es microondas: perilla parpadeante
           if (this.isMicrowave) {
             ctx.fillStyle = (Math.floor(Date.now() / 120) % 2 === 0) ? '#ffffff' : '#f43f5e';
             ctx.fillRect(this.x - 3, topY + 4, 6, 6);
           }
         } else {
-          // Puerta abierta en perspectiva
           ctx.strokeStyle = this.isMicrowave ? '#06b6d4' : '#0d9488';
           ctx.lineWidth = 3;
           ctx.beginPath();
@@ -640,7 +943,7 @@
         this.y = FLOORS_Y[floorIdx];
         this.type = type;
         this.collected = false;
-        this.goroHiding = null; // Referencia si Goro se esconde detrás
+        this.goroHiding = null;
       }
 
       draw() {
@@ -648,7 +951,6 @@
         const baseY = this.y;
         ctx.save();
 
-        // Si Goro está escondido aquí, dibuja sus orejas asomándose por detrás
         if (this.goroHiding) {
           ctx.fillStyle = '#b91c1c';
           ctx.beginPath();
@@ -660,13 +962,11 @@
           ctx.lineTo(this.x + 7, baseY - 22);
           ctx.fill();
 
-          // Ojos pícaros asomándose
           ctx.fillStyle = '#fde047';
           ctx.fillRect(this.x - 4, baseY - 23, 2, 2);
           ctx.fillRect(this.x + 2, baseY - 23, 2, 2);
         }
 
-        // Renderizado de cada tipo de botín
         if (this.type.id === 'RADIO') {
           ctx.fillStyle = '#2563eb';
           ctx.fillRect(this.x - 9, baseY - 15, 18, 14);
@@ -742,7 +1042,7 @@
     }
 
     /* ==========================================================================
-       5. JUGADOR (MAPPY)
+       6. JUGADOR (MAPPY) CON FÍSICAS DE CUERDA, SALTO Y ANIMACIONES COMPLETAS
        ========================================================================== */
     class Player {
       constructor() {
@@ -757,37 +1057,182 @@
         this.dir = 1;
         this.speed = 2.0;
         this.inAir = false;
+        this.isGroundJump = false;
         this.currentFloor = 5;
         this.currentTrampoline = null;
         this.gravity = 0.28;
         this.bounceStrength = -9.2;
         this.walkFrame = 0;
+
+        // Propiedades de Cuerda
+        this.onRope = false;
+        this.ropeX = 180;
+        this.climbFrame = 0;
+        this.slideFrame = 0;
+        this.ropeAction = 'IDLE'; // 'CLIMBING', 'SLIDING', 'IDLE'
       }
 
       update() {
+        // ACCIÓN CON ESPACIO: Agarrar soga si está en el hueco o soltarse si está en la soga
+        if (keys.jump) {
+          keys.jump = false;
+
+          if (this.onRope) {
+            // Soltarse / saltar de la cuerda
+            this.onRope = false;
+            this.inAir = true;
+            this.vy = -3.2; // Pequeño impulso de desprendimiento
+            this.vx = this.dir * 1.5;
+            sound.playJump();
+          } else {
+            // Verificar si Mappy está cerca del eje de una cuerda para sujetarse
+            let nearRope = false;
+            for (let rx of SHAFTS_X) {
+              if (Math.abs(this.x - rx) <= 16 && this.y >= TOP_ROOF_Y + 28 && this.y <= BASE_GROUND_Y) {
+                this.onRope = true;
+                this.ropeX = rx;
+                this.x = rx;
+                this.vy = 0;
+                this.vx = 0;
+                this.inAir = false;
+                this.isGroundJump = false;
+                this.currentTrampoline = null;
+                this.ropeAction = 'IDLE';
+                sound.playRopeGrab();
+                floatingScores.push(new FloatingScore(this.x, this.y - 12, 'GRAB!', '#22c55e'));
+                nearRope = true;
+                break;
+              }
+            }
+
+            // Si está en el piso firme y no se agarró de cuerda: Salto parabólico libre
+            if (!nearRope && !this.inAir) {
+              this.inAir = true;
+              this.isGroundJump = true;
+              this.vy = -5.4;
+              sound.playJump();
+            }
+          }
+        }
+
+        // ==========================================
+        // ESTADO 1: EN LA CUERDA
+        // ==========================================
+        if (this.onRope) {
+          this.x = this.ropeX;
+          this.ropeAction = 'IDLE';
+
+          // SUBIR POR LA CUERDA (W o Arriba)
+          if (keys.up) {
+            this.ropeAction = 'CLIMBING';
+            this.climbFrame += 0.28;
+            this.y -= 1.6;
+            sound.playClimbStep();
+
+            // Partículas de polvo de cuerda al subir
+            if (Math.random() < 0.2) {
+              frictionParticles.push(new FrictionParticle(this.x, this.y + 4, 1.2, '#fef08a'));
+            }
+
+            // Límite superior del ático
+            if (this.y < TOP_ROOF_Y + 34) {
+              this.y = TOP_ROOF_Y + 34;
+            }
+          }
+          // BAJAR / DESLIZARSE VELOZ (S o Abajo)
+          else if (keys.down) {
+            this.ropeAction = 'SLIDING';
+            this.slideFrame += 0.4;
+            this.y += 3.4;
+            sound.playSlideTick();
+
+            // Chispas / polvo de fricción volando hacia arriba
+            frictionParticles.push(new FrictionParticle(this.x, this.y - 8, -2.2, '#fdba74'));
+            frictionParticles.push(new FrictionParticle(this.x, this.y - 12, -2.6, '#fef08a'));
+
+            // Si llega al fondo de la cuerda: cae directamente al trampolín
+            if (this.y >= BASE_GROUND_Y - 6) {
+              this.onRope = false;
+              this.inAir = true;
+              this.y = BASE_GROUND_Y - 4;
+              this.vy = 2.0;
+              const tramp = trampolines.find(t => t.x === this.ropeX);
+              if (tramp) this.currentTrampoline = tramp;
+            }
+          }
+
+          // DESEMBARCAR DE LA CUERDA A UN PISO (Izquierda o Derecha)
+          if (keys.left || keys.right) {
+            for (let i = 0; i < FLOORS_Y.length; i++) {
+              const fy = FLOORS_Y[i];
+              if (Math.abs(this.y - fy) <= 10) {
+                const targetDir = keys.left ? -1 : 1;
+                this.onRope = false;
+                this.inAir = false;
+                this.y = fy;
+                this.currentFloor = i;
+                this.dir = targetDir;
+                this.x = this.ropeX + (targetDir * 16);
+                break;
+              }
+            }
+          }
+
+          return;
+        }
+
+        // ==========================================
+        // ESTADO 2: EN EL AIRE (Rebotando o Saltando)
+        // ==========================================
         if (this.inAir) {
           this.y += this.vy;
           this.vy += this.gravity;
+          this.x += this.vx;
+
+          // Arrastre horizontal tras salto
+          if (Math.abs(this.vx) > 0) {
+            this.vx *= 0.95;
+            if (Math.abs(this.vx) < 0.1) this.vx = 0;
+          }
+
+          // Auto-agarre magnético a cuerda si el jugador pulsa Arriba/Abajo mientras cae por el pozo
+          for (let rx of SHAFTS_X) {
+            if (Math.abs(this.x - rx) <= 6 && (keys.up || keys.down)) {
+              this.onRope = true;
+              this.ropeX = rx;
+              this.x = rx;
+              this.vy = 0;
+              this.vx = 0;
+              this.inAir = false;
+              this.isGroundJump = false;
+              sound.playRopeGrab();
+              return;
+            }
+          }
 
           const tramp = this.currentTrampoline;
           if (tramp) {
-            // Intentar desembarcar a un piso al presionar izquierda/derecha
+            // Desembarque en pisos al rebotar
             for (let i = 0; i < FLOORS_Y.length; i++) {
               const fy = FLOORS_Y[i];
               if (Math.abs(this.y - fy) < 9) {
                 if (keys.left && tramp.x - 4 <= this.x) {
                   this.inAir = false;
+                  this.isGroundJump = false;
                   this.y = fy;
                   this.vy = 0;
+                  this.vx = 0;
                   this.currentFloor = i;
                   this.x = tramp.x - 16;
-                  tramp.bounces = selectedDifficulty.startBounces; // Tocar piso resetea tensión
+                  tramp.bounces = selectedDifficulty.startBounces;
                   this.currentTrampoline = null;
                   break;
                 } else if (keys.right && this.x <= tramp.x + 4) {
                   this.inAir = false;
+                  this.isGroundJump = false;
                   this.y = fy;
                   this.vy = 0;
+                  this.vx = 0;
                   this.currentFloor = i;
                   this.x = tramp.x + 16;
                   tramp.bounces = selectedDifficulty.startBounces;
@@ -795,6 +1240,16 @@
                   break;
                 }
               }
+            }
+          } else if (this.isGroundJump) {
+            // Aterrizaje del salto libre en el piso
+            const fy = FLOORS_Y[this.currentFloor];
+            if (this.vy > 0 && Math.abs(this.y - fy) < 6) {
+              this.y = fy;
+              this.vy = 0;
+              this.vx = 0;
+              this.inAir = false;
+              this.isGroundJump = false;
             }
           }
 
@@ -808,6 +1263,7 @@
                 return;
               }
               this.vy = this.bounceStrength;
+              this.isGroundJump = false;
             } else {
               triggerDeath();
               return;
@@ -815,13 +1271,15 @@
           }
 
           // Límite de techo
-          if (this.y < TOP_ROOF_Y + 12) {
-            this.y = TOP_ROOF_Y + 12;
+          if (this.y < TOP_ROOF_Y + 14) {
+            this.y = TOP_ROOF_Y + 14;
             this.vy = Math.abs(this.vy) * 0.4;
           }
 
         } else {
-          // Caminata sobre piso
+          // ==========================================
+          // ESTADO 3: CAMINANDO SOBRE PISO
+          // ==========================================
           this.vx = 0;
           if (keys.left) {
             this.vx = -this.speed;
@@ -835,16 +1293,17 @@
 
           this.x += this.vx;
 
-          // Bordes de la mansión
+          // Límites de la casa
           const minX = 22;
           const maxX = GAME_WIDTH - 22;
           if (this.x < minX) this.x = minX;
           if (this.x > maxX) this.x = maxX;
 
-          // Entrada al hueco del trampolín
+          // Caída al pozo del trampolín
           for (let tramp of trampolines) {
             if (Math.abs(this.x - tramp.x) < 8) {
               this.inAir = true;
+              this.isGroundJump = false;
               this.x = tramp.x;
               this.currentTrampoline = tramp;
               this.vy = 0.8;
@@ -866,16 +1325,20 @@
       }
 
       draw() {
-        drawMappySprite(this.x, this.y, this.dir, this.inAir, this.vy, Math.floor(this.walkFrame) % 2);
+        if (this.onRope) {
+          drawMappyRopeSprite(this.x, this.y, this.dir, this.ropeAction, this.climbFrame, this.slideFrame);
+        } else {
+          drawMappySprite(this.x, this.y, this.dir, this.inAir, this.vy, Math.floor(this.walkFrame) % 2);
+        }
       }
     }
 
     /* ==========================================================================
-       6. ENEMIGOS: GORO (NYAMCO) Y MEWKIES CON COMPORTAMIENTOS AVANZADOS
+       7. ENEMIGOS: GORO (NYAMCO) Y MEWKIES CON COMPORTAMIENTOS ARCADE
        ========================================================================== */
     class Cat {
       constructor(type = 'mewky') {
-        this.type = type; // 'mewky' o 'goro'
+        this.type = type;
         this.reset();
       }
 
@@ -897,13 +1360,11 @@
         this.stunTimer = 0;
         this.walkFrame = 0;
 
-        // Mecánica exclusiva de Goro: Esconderse tras tesoros
         this.hidingItem = null;
         this.hideTimer = 0;
       }
 
       update(player) {
-        // Barrido por la microonda
         if (this.blownAway) {
           this.x += this.blownVx;
           this.y += this.blownVy;
@@ -918,16 +1379,12 @@
           return;
         }
 
-        // Aturdido por impacto de puerta
         if (this.stunned) {
           this.stunTimer--;
-          if (this.stunTimer <= 0) {
-            this.stunned = false;
-          }
+          if (this.stunTimer <= 0) this.stunned = false;
           return;
         }
 
-        // Comportamiento de esconderse de Goro
         if (this.type === 'goro' && this.hidingItem) {
           this.hideTimer--;
           if (this.hideTimer <= 0 || this.hidingItem.collected) {
@@ -937,7 +1394,6 @@
           return;
         }
 
-        // Movimiento en trampolín
         if (this.inAir) {
           this.y += this.vy;
           this.vy += 0.28;
@@ -953,11 +1409,10 @@
             }
           }
 
-          // Decisión de desembarcar en un piso
           if (this.currentTrampoline) {
             for (let i = 0; i < FLOORS_Y.length; i++) {
               if (Math.abs(this.y - FLOORS_Y[i]) < 8) {
-                const sameFloor = !player.inAir && player.currentFloor === i;
+                const sameFloor = !player.inAir && !player.onRope && player.currentFloor === i;
                 const chance = selectedDifficulty.aggressive ? 0.45 : 0.25;
                 if (sameFloor || Math.random() < chance) {
                   this.inAir = false;
@@ -974,27 +1429,25 @@
           }
 
         } else {
-          // Caminando por el piso
           this.walkFrame += 0.18;
 
-          // IA de persecución o patrulla
-          if (!player.inAir && player.currentFloor === this.floorIdx) {
+          // Persecución inteligente
+          if (!player.inAir && !player.onRope && player.currentFloor === this.floorIdx) {
             this.dir = player.x > this.x ? 1 : -1;
           } else if (selectedDifficulty.aggressive) {
-            // En modo difícil, busca activamente el trampolín más cercano a la altura de Mappy
-            const targetTramp = trampolines[1];
-            if (Math.abs(this.x - targetTramp.x) > 20) {
-              this.dir = targetTramp.x > this.x ? 1 : -1;
+            const targetShaft = SHAFTS_X[1];
+            if (Math.abs(this.x - targetShaft) > 20) {
+              this.dir = targetShaft > this.x ? 1 : -1;
             }
           }
 
-          // Habilidad de Goro: intentar esconderse tras un tesoro si está cerca
+          // Goro se oculta tras los tesoros
           if (this.type === 'goro' && !this.hidingItem && Math.random() < 0.015) {
             const nearbyItem = items.find(it => !it.collected && it.floorIdx === this.floorIdx && Math.abs(it.x - this.x) < 14);
             if (nearbyItem && !nearbyItem.goroHiding) {
               this.hidingItem = nearbyItem;
               nearbyItem.goroHiding = this;
-              this.hideTimer = 180; // 3 segundos escondido
+              this.hideTimer = 180;
               this.x = nearbyItem.x;
               return;
             }
@@ -1002,7 +1455,6 @@
 
           this.x += this.dir * this.speed;
 
-          // Rebotar en puertas cerradas
           for (let door of doors) {
             if (door.floorIdx === this.floorIdx && !door.isOpen) {
               if (Math.abs(this.x - door.x) < 9) {
@@ -1012,7 +1464,6 @@
             }
           }
 
-          // Rebotar en paredes
           if (this.x < 24) {
             this.x = 24;
             this.dir = 1;
@@ -1021,7 +1472,6 @@
             this.dir = -1;
           }
 
-          // Entrada en trampolín
           for (let tramp of trampolines) {
             if (Math.abs(this.x - tramp.x) < 6) {
               this.inAir = true;
@@ -1036,7 +1486,6 @@
 
       draw() {
         if (this.type === 'goro') {
-          // Si está escondido tras un tesoro, no se dibuja en el suelo (el tesoro dibuja sus orejas)
           if (this.hidingItem) return;
           drawGoroSprite(this.x, this.y, this.dir, this.inAir, this.vy, Math.floor(this.walkFrame) % 2, this.blownAway, this.stunned);
         } else {
@@ -1046,16 +1495,158 @@
     }
 
     /* ==========================================================================
-       7. SPRITES VECTORIALES DETALLADOS (PIXEL-PERFECT RETRO STYLE)
+       8. SPRITES VECTORIALES: ANIMACIÓN EN CUERDA, MAPPY, GORO Y MEWKIES
        ========================================================================== */
 
-    // MAPPY: Ratón policía con uniforme azul, placa dorada y porra
+    // ANIMACIÓN EXCLUSIVA DE MAPPY EN LA CUERDA: TREPANDO, DESLIZÁNDOSE O SUJETO
+    function drawMappyRopeSprite(x, y, dir, action, climbFrame, slideFrame) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      // Cuerda de fondo inmediata al cuerpo
+      ctx.strokeStyle = '#92400e';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(0, -28);
+      ctx.lineTo(0, 10);
+      ctx.stroke();
+
+      // Orejas grandes de ratón
+      ctx.fillStyle = '#e2e8f0';
+      ctx.beginPath();
+      ctx.arc(-7, -22, 5, 0, Math.PI * 2);
+      ctx.arc(7, -22, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f472b6';
+      ctx.beginPath();
+      ctx.arc(-7, -22, 3, 0, Math.PI * 2);
+      ctx.arc(7, -22, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cabeza
+      ctx.fillStyle = '#f8fafc';
+      ctx.beginPath();
+      ctx.arc(0, -15, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Gorra de policía
+      ctx.fillStyle = '#1d4ed8';
+      ctx.fillRect(-7, -24, 14, 5);
+      ctx.fillRect(-4, -26, 8, 3);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-5, -21, 10, 2);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(-1.5, -25, 3, 3);
+
+      // Ojos y Nariz
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-3, -17, 2, 3);
+      ctx.fillRect(1, -17, 2, 3);
+      ctx.fillStyle = '#f43f5e';
+      ctx.fillRect(-1.5, -13, 3, 2);
+
+      // Chaqueta de policía
+      ctx.fillStyle = '#1e40af';
+      ctx.fillRect(-5, -9, 10, 8);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(-1, -8, 2, 4);
+
+      if (action === 'CLIMBING') {
+        // --- ANIMACIÓN DE TREPAR: Mano sobre mano alternada ---
+        const step = Math.floor(climbFrame) % 2;
+        const leftHandY = step === 0 ? -20 : -13;
+        const rightHandY = step === 0 ? -13 : -20;
+
+        // Manos con guantes blancos aferradas a la soga
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 1;
+        // Mano izquierda
+        ctx.beginPath();
+        ctx.arc(-2, leftHandY, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        // Mano derecha
+        ctx.beginPath();
+        ctx.arc(2, rightHandY, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Patas pedaleando abrazadas a la cuerda
+        ctx.fillStyle = '#0f172a';
+        const legOff = step === 0 ? 3 : -3;
+        ctx.fillRect(-4, 0, 3, 3);
+        ctx.fillRect(1, 0, 3, 3);
+
+        // Cola meciéndose enérgica
+        ctx.strokeStyle = '#fbcfe8';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-4, -5);
+        ctx.quadraticCurveTo(-12 + legOff, -10, -8, -16);
+        ctx.stroke();
+
+      } else if (action === 'SLIDING') {
+        // --- ANIMACIÓN DE DESLIZAMIENTO RÁPIDO: Brazos flexionados y piernas enrolladas ---
+        // Brazos aferrados a la misma altura con fuerza
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(-2.5, -16, 3.2, 0, Math.PI * 2);
+        ctx.arc(2.5, -16, 3.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Piernas cruzadas rodeando la soga para frenar la caída
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-3, 0, 6, 4);
+
+        // Vientre / chaqueta ondeando hacia arriba por el viento
+        ctx.fillStyle = '#1e40af';
+        ctx.fillRect(-6, -4, 2, 4);
+        ctx.fillRect(4, -4, 2, 4);
+
+        // Cola ondeando vertical hacia arriba por la velocidad
+        ctx.strokeStyle = '#fbcfe8';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(0, -4);
+        ctx.quadraticCurveTo(8, -14, 5, -24);
+        ctx.stroke();
+
+      } else {
+        // --- POSTURA QUIETA / IDLE EN LA CUERDA ---
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(-2, -15, 3, 0, Math.PI * 2);
+        ctx.arc(2, -15, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-4, 0, 3, 3);
+        ctx.fillRect(1, 0, 3, 3);
+
+        ctx.strokeStyle = '#fbcfe8';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-4, -5);
+        ctx.quadraticCurveTo(-11, -8, -9, -14);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    // MAPPY: Normal sobre suelo o trampolín
     function drawMappySprite(x, y, dir, inAir, vy, step) {
       ctx.save();
       ctx.translate(x, y);
       if (dir === -1) ctx.scale(-1, 1);
 
-      // Efecto Squash & Stretch al saltar
       let scaleY = 1.0;
       let scaleX = 1.0;
       if (inAir) {
@@ -1069,7 +1660,6 @@
       }
       ctx.scale(scaleX, scaleY);
 
-      // Cola de ratón fina y curvada
       ctx.strokeStyle = '#fbcfe8';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
@@ -1077,7 +1667,6 @@
       ctx.quadraticCurveTo(-12, -8, -10, -14);
       ctx.stroke();
 
-      // Orejas grandes de ratón (exterior gris/crema, interior rosado)
       ctx.fillStyle = '#e2e8f0';
       ctx.beginPath();
       ctx.arc(-7, -20, 5, 0, Math.PI * 2);
@@ -1089,44 +1678,35 @@
       ctx.arc(3, -20, 3, 0, Math.PI * 2);
       ctx.fill();
 
-      // Cabeza y hocico
       ctx.fillStyle = '#f8fafc';
       ctx.beginPath();
       ctx.arc(-2, -14, 7, 0, Math.PI * 2);
       ctx.fill();
 
-      // Ojo negro y brillo
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(1, -16, 2.5, 3.5);
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(1, -16, 1, 1);
 
-      // Hocico y nariz rosada
       ctx.fillStyle = '#f43f5e';
       ctx.fillRect(4, -13, 3, 2);
 
-      // Gorra de policía azul
       ctx.fillStyle = '#1d4ed8';
       ctx.fillRect(-8, -23, 13, 5);
       ctx.fillRect(-4, -25, 8, 3);
-      // Visera negra brillante
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(0, -20, 6, 2);
-      // Insignia policial dorada
       ctx.fillStyle = '#facc15';
       ctx.fillRect(-1, -24, 2.5, 3);
 
-      // Chaqueta de policía azul con botones dorados
       ctx.fillStyle = '#1e40af';
       ctx.fillRect(-6, -9, 11, 8);
       ctx.fillStyle = '#facc15';
       ctx.fillRect(-1, -8, 2, 4);
 
-      // Porra de policía amarilla/madera
       ctx.fillStyle = '#ca8a04';
       ctx.fillRect(4, -10, 2.5, 7);
 
-      // Patas
       ctx.fillStyle = '#0f172a';
       if (inAir) {
         ctx.fillRect(-5, -1, 3, 3);
@@ -1140,14 +1720,13 @@
       ctx.restore();
     }
 
-    // GORO (Nyamco): Jefe felino rojo/carmín, robusto, hocico crema, ojos pícaros
+    // GORO (Nyamco)
     function drawGoroSprite(x, y, dir, inAir, vy, step, blown, stunned) {
       ctx.save();
       ctx.translate(x, y);
       if (dir === -1) ctx.scale(-1, 1);
       if (blown) ctx.rotate(Date.now() * 0.025);
 
-      // Estrellitas si está aturdido
       if (stunned) {
         ctx.fillStyle = '#facc15';
         const starAngle = (Date.now() / 150) % (Math.PI * 2);
@@ -1155,7 +1734,6 @@
         ctx.fillText('★', Math.cos(starAngle + Math.PI) * 10 - 2, -26);
       }
 
-      // Squash & Stretch
       let scaleY = 1.0;
       let scaleX = 1.0;
       if (inAir) {
@@ -1164,7 +1742,6 @@
       }
       ctx.scale(scaleX, scaleY);
 
-      // Cola gruesa que se menea
       ctx.strokeStyle = '#b91c1c';
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -1173,7 +1750,6 @@
       ctx.quadraticCurveTo(-14, -10 + wag, -10, -18 + wag);
       ctx.stroke();
 
-      // Orejas puntiagudas rojas con interior rosa suave
       ctx.fillStyle = '#b91c1c';
       ctx.beginPath();
       ctx.moveTo(-7, -19);
@@ -1193,19 +1769,16 @@
       ctx.lineTo(6, -20);
       ctx.fill();
 
-      // Cabeza grande y ancha
       ctx.fillStyle = '#dc2626';
       ctx.beginPath();
       ctx.arc(0, -15, 9.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // Hocico crema / amarillo suave
       ctx.fillStyle = '#fef08a';
       ctx.beginPath();
       ctx.ellipse(2, -12, 5, 4, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Nariz roja y bigotes
       ctx.fillStyle = '#991b1b';
       ctx.fillRect(4, -13, 2.5, 2);
       ctx.strokeStyle = '#450a0a';
@@ -1217,17 +1790,14 @@
       ctx.lineTo(10, -10);
       ctx.stroke();
 
-      // Ojos pícaros amarillos con pupila
       ctx.fillStyle = '#fef08a';
       ctx.fillRect(0, -18, 3.5, 3.5);
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(1.5, -17.5, 2, 2.5);
 
-      // Cuerpo robusto rojo oscuro
       ctx.fillStyle = '#991b1b';
       ctx.fillRect(-7, -9, 14, 10);
 
-      // Pantalón / Patas
       ctx.fillStyle = '#fde047';
       const legOff = step === 0 ? 0 : 2;
       ctx.fillRect(-6 + legOff, 0, 4, 3);
@@ -1236,7 +1806,7 @@
       ctx.restore();
     }
 
-    // MEWKIES: Gatitos esbirros de color fucsia/rosa brillante con pechera amarilla
+    // MEWKIES
     function drawMewkySprite(x, y, dir, inAir, vy, step, blown, stunned) {
       ctx.save();
       ctx.translate(x, y);
@@ -1248,7 +1818,6 @@
         ctx.fillText('★', -2, -22);
       }
 
-      // Squash & Stretch
       let scaleY = 1.0;
       let scaleX = 1.0;
       if (inAir) {
@@ -1257,7 +1826,6 @@
       }
       ctx.scale(scaleX, scaleY);
 
-      // Orejas puntiagudas rosadas
       ctx.fillStyle = '#ec4899';
       ctx.beginPath();
       ctx.moveTo(-6, -16);
@@ -1268,37 +1836,30 @@
       ctx.lineTo(6, -16);
       ctx.fill();
 
-      // Cabeza redondita
       ctx.fillStyle = '#f472b6';
       ctx.beginPath();
       ctx.arc(0, -13, 7, 0, Math.PI * 2);
       ctx.fill();
 
-      // Ojos grandes curiosos
       ctx.fillStyle = '#0f172a';
       ctx.fillRect(1, -15, 2.5, 3);
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(1, -15, 1, 1);
 
-      // Nariz roja
       ctx.fillStyle = '#e11d48';
       ctx.fillRect(4, -12, 2, 2);
 
-      // Pechera / Collar amarillo brillante
       ctx.fillStyle = '#facc15';
       ctx.fillRect(-4, -7, 8, 4);
 
-      // Cuerpo fucsia
       ctx.fillStyle = '#db2777';
       ctx.fillRect(-5, -6, 10, 6);
 
-      // Patitas rápidas
       ctx.fillStyle = '#f472b6';
       const legOff = step === 0 ? 0 : 2;
       ctx.fillRect(-5 + legOff, 0, 3, 3);
       ctx.fillRect(1 - legOff, 0, 3, 3);
 
-      // Cola saltarina
       ctx.strokeStyle = '#f472b6';
       ctx.lineWidth = 1.8;
       ctx.beginPath();
@@ -1310,7 +1871,7 @@
     }
 
     /* ==========================================================================
-       8. CREACIÓN DEL ESCENARIO Y NIVELES
+       9. CREACIÓN DEL ESCENARIO Y NIVELES
        ========================================================================== */
     let player = new Player();
     let trampolines = [];
@@ -1321,56 +1882,47 @@
     let floatingScores = [];
 
     function setupLevel() {
-      // 3 Trampolines
-      trampolines = TRAMPOLINE_X.map(x => new Trampoline(x));
+      // 3 Cuerdas y 3 Trampolines en los pozos verticales
+      ropes = SHAFTS_X.map(x => new Rope(x));
+      trampolines = SHAFTS_X.map(x => new Trampoline(x));
 
-      // Puertas en los 6 pisos (distribución arcade balanceada)
+      // Puertas en los 6 pisos
       doors = [
-        new Door(0, 125, true, false), // Microondas en el ático
+        new Door(0, 125, true, false), // Microondas ático
         new Door(1, 235, false, true),
         new Door(2, 125, false, false),
-        new Door(2, 235, true, true),  // Microondas en piso central
+        new Door(2, 235, true, true),  // Microondas piso central
         new Door(3, 125, false, false),
         new Door(4, 235, false, false),
         new Door(5, 125, false, true)
       ];
 
-      // Tesoros en PARES (para activar la mecánica de bonificación por pares)
+      // Tesoros en PARES (Radio, TV, Cuadro, Caja Fuerte, Mona Lisa)
       items = [
-        // Par 1: Radios (Pisos 5 y 4)
         new Item(5, 330, ITEM_TYPES.RADIO),
         new Item(4, 30, ITEM_TYPES.RADIO),
-
-        // Par 2: Televisiones (Pisos 4 y 3)
         new Item(4, 250, ITEM_TYPES.TV),
         new Item(3, 110, ITEM_TYPES.TV),
-
-        // Par 3: Cuadros (Pisos 3 y 2)
         new Item(3, 330, ITEM_TYPES.PAINTING),
         new Item(2, 250, ITEM_TYPES.PAINTING),
-
-        // Par 4: Cajas Fuertes (Pisos 2 y 1)
         new Item(2, 30, ITEM_TYPES.SAFE),
         new Item(1, 110, ITEM_TYPES.SAFE),
-
-        // Par 5: Mona Lisas (Pisos 1 y 0)
         new Item(1, 330, ITEM_TYPES.MONA_LISA),
         new Item(0, 30, ITEM_TYPES.MONA_LISA)
       ];
 
-      // Generación de Enemigos según la Dificultad
+      // Generación de Enemigos según la dificultad elegida
       cats = [];
-      // Jefe Goro
       for (let i = 0; i < selectedDifficulty.goroCount; i++) {
         cats.push(new Cat('goro'));
       }
-      // Mewkies
       for (let i = 0; i < selectedDifficulty.mewkyCount; i++) {
         cats.push(new Cat('mewky'));
       }
 
       waves = [];
       floatingScores = [];
+      frictionParticles = [];
       lastCollectedType = null;
       pairMultiplier = 1;
       player.reset();
@@ -1393,7 +1945,7 @@
     }
 
     /* ==========================================================================
-       9. DIBUJO DEL ESCENARIO DE LA MANSIÓN Y HUD
+       10. DIBUJO DEL ESCENARIO DE LA MANSIÓN Y HUD
        ========================================================================== */
     function drawMansion() {
       // Techo clásico a dos aguas
@@ -1404,7 +1956,7 @@
       ctx.lineTo(GAME_WIDTH - 14, TOP_ROOF_Y + 28);
       ctx.fill();
 
-      // Buhardillas / Ventanas en arco en el ático
+      // Buhardillas / Ventanas en arco
       const dormers = [GAME_WIDTH * 0.28, GAME_WIDTH * 0.5, GAME_WIDTH * 0.72];
       dormers.forEach(dx => {
         ctx.fillStyle = '#ffedd5';
@@ -1429,7 +1981,7 @@
         ctx.stroke();
       });
 
-      // Cornisa decorativa
+      // Cornisa
       ctx.fillStyle = '#fed7aa';
       ctx.fillRect(16, TOP_ROOF_Y + 26, GAME_WIDTH - 32, 6);
 
@@ -1438,13 +1990,13 @@
       ctx.fillRect(16, TOP_ROOF_Y + 32, 4, BASE_GROUND_Y - TOP_ROOF_Y - 26);
       ctx.fillRect(GAME_WIDTH - 20, TOP_ROOF_Y + 32, 4, BASE_GROUND_Y - TOP_ROOF_Y - 26);
 
-      // 6 Pisos con aberturas precisas para los 3 trampolines
+      // 6 Pisos con aberturas precisas para las cuerdas y trampolines
       FLOORS_Y.forEach(fy => {
         const sections = [
-          { start: 20, end: TRAMPOLINE_X[0] - 16 },
-          { start: TRAMPOLINE_X[0] + 16, end: TRAMPOLINE_X[1] - 16 },
-          { start: TRAMPOLINE_X[1] + 16, end: TRAMPOLINE_X[2] - 16 },
-          { start: TRAMPOLINE_X[2] + 16, end: GAME_WIDTH - 20 }
+          { start: 20, end: SHAFTS_X[0] - 16 },
+          { start: SHAFTS_X[0] + 16, end: SHAFTS_X[1] - 16 },
+          { start: SHAFTS_X[1] + 16, end: SHAFTS_X[2] - 16 },
+          { start: SHAFTS_X[2] + 16, end: GAME_WIDTH - 20 }
         ];
 
         sections.forEach(sec => {
@@ -1465,7 +2017,6 @@
     }
 
     function drawHUD() {
-      // Marcador Superior
       ctx.fillStyle = '#ef4444';
       ctx.font = '9px "Press Start 2P"';
       ctx.fillText('1UP', 32, 18);
@@ -1475,7 +2026,6 @@
       ctx.fillText(score.toString().padStart(6, '0'), 22, 32);
       ctx.fillText(highScore.toString().padStart(6, '0'), 120, 32);
 
-      // Indicador de Ronda y Dificultad
       ctx.fillStyle = selectedDifficulty.color;
       ctx.font = '7px "Press Start 2P"';
       ctx.fillText(`[${selectedDifficulty.name}]`, 245, 18);
@@ -1506,7 +2056,7 @@
     }
 
     /* ==========================================================================
-       10. BUCLE DE ACTUALIZACIÓN Y FÍSICAS
+       11. ACTUALIZACIÓN DEL JUEGO
        ========================================================================== */
     function update() {
       if (gameState === 'PLAYING') {
@@ -1515,7 +2065,14 @@
         trampolines.forEach(t => t.update());
         doors.forEach(d => d.update());
 
-        // Actualizar ondas ultrasónicas
+        // Partículas de fricción de la cuerda
+        for (let i = frictionParticles.length - 1; i >= 0; i--) {
+          const p = frictionParticles[i];
+          p.update();
+          if (p.life <= 0) frictionParticles.splice(i, 1);
+        }
+
+        // Ondas de microondas
         for (let i = waves.length - 1; i >= 0; i--) {
           const w = waves[i];
           w.update();
@@ -1524,7 +2081,6 @@
             continue;
           }
 
-          // Golpear gatos con la onda de microondas
           cats.forEach(cat => {
             if (!cat.blownAway && Math.abs(cat.x - w.x) < 24 && Math.abs(cat.y - w.y) < 28) {
               cat.blownAway = true;
@@ -1537,16 +2093,15 @@
           });
         }
 
-        // Recolección de Tesoros con Mecánica de Pares y Goro Oculto
+        // Tesoros
         items.forEach(item => {
-          if (!item.collected && !player.inAir && player.currentFloor === item.floorIdx) {
+          if (!item.collected && !player.inAir && !player.onRope && player.currentFloor === item.floorIdx) {
             if (Math.abs(player.x - item.x) < 14) {
               item.collected = true;
 
               let gainedPoints = item.type.points;
               let isPair = false;
 
-              // Comprobar bono de pares consecutivos
               if (lastCollectedType === item.type.id) {
                 pairMultiplier++;
                 gainedPoints *= pairMultiplier;
@@ -1558,7 +2113,6 @@
               }
               lastCollectedType = item.type.id;
 
-              // Si Goro estaba escondido tras este botín: ¡Puntos Dobles y Goro Aturdido!
               if (item.goroHiding) {
                 gainedPoints *= 2;
                 const goro = item.goroHiding;
@@ -1580,18 +2134,18 @@
           }
         });
 
-        // Actualizar Enemigos y Colisión con Mappy
+        // Enemigos y Colisión
         cats.forEach(cat => {
           cat.update(player);
 
-          // REGLA FUNDAMENTAL DE MAPPY:
-          // Si Mappy está rebotando en el aire sobre el trampolín, los gatos NO pueden dañarlo al cruzarse.
-          // Solo pueden atraparlo si Mappy se encuentra en una plataforma sólida o cuando aterriza.
+          // INMUNIDAD TOTAL EN TRAMPOLÍN:
+          // Si Mappy está rebotando en el aire sobre el trampolín, los gatos NO le hacen daño.
+          // Solo pueden atraparlo si está en una plataforma sólida o si choca directamente en el suelo.
           if (!cat.blownAway && !cat.stunned) {
             const dx = Math.abs(player.x - cat.x);
             const dy = Math.abs(player.y - cat.y);
 
-            if (!player.inAir && !cat.inAir && player.currentFloor === cat.floorIdx) {
+            if (!player.inAir && !player.onRope && !cat.inAir && player.currentFloor === cat.floorIdx) {
               if (dx < 12 && dy < 14) {
                 triggerDeath();
               }
@@ -1599,7 +2153,7 @@
           }
         });
 
-        // Textos de puntuación flotante
+        // Textos flotantes
         for (let i = floatingScores.length - 1; i >= 0; i--) {
           const fs = floatingScores[i];
           fs.update();
@@ -1631,40 +2185,36 @@
     }
 
     function render() {
-      // Limpiar fondo
       ctx.fillStyle = '#080811';
       ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-      // Mansión y arquitectura
       drawMansion();
 
-      // Trampolines
+      // Cuerdas y Trampolines
+      ropes.forEach(r => r.draw());
       trampolines.forEach(t => t.draw());
 
-      // Puertas
+      // Puertas y Tesoros
       doors.forEach(d => d.draw());
-
-      // Botines y tesoros
       items.forEach(it => it.draw());
 
-      // Ondas ultrasónicas
+      // Partículas de fricción
+      frictionParticles.forEach(fp => fp.draw());
+
+      // Ondas expansivas
       waves.forEach(w => w.draw());
 
       // Enemigos
       cats.forEach(c => c.draw());
 
-      // Protagonista Mappy
+      // Mappy
       if (gameState !== 'DYING' || (deathTimer % 6 < 3)) {
         player.draw();
       }
 
-      // Textos flotantes
       floatingScores.forEach(fs => fs.draw());
-
-      // Marcador HUD
       drawHUD();
 
-      // Cartel de fin de ronda
       if (gameState === 'ROUND_CLEAR') {
         ctx.fillStyle = '#22c55e';
         ctx.font = '12px "Press Start 2P"';
@@ -1681,13 +2231,14 @@
     }
 
     /* ==========================================================================
-       11. GESTIÓN DE UI, SELECTOR DE DIFICULTAD Y ENTRADAS
+       12. GESTIÓN DE UI, AUDIO Y CONTROLES
        ========================================================================== */
     const overlay = document.getElementById('overlay');
     const overlayTitle = document.getElementById('overlay-title');
     const overlaySub = document.getElementById('overlay-sub');
     const startBtn = document.getElementById('start-btn');
     const audioToggleBtn = document.getElementById('audio-toggle-btn');
+    const bgmToggleBtn = document.getElementById('bgm-toggle-btn');
     const pauseBtn = document.getElementById('pause-btn');
 
     const diffEasyBtn = document.getElementById('diff-easy');
@@ -1728,16 +2279,27 @@
       gameState = 'PLAYING';
     }
 
-    startBtn.addEventListener('click', () => {
-      startGame();
-    });
+    startBtn.addEventListener('click', startGame);
 
     audioToggleBtn.addEventListener('click', () => {
       sound.init();
-      sound.enabled = !sound.enabled;
-      audioToggleBtn.textContent = sound.enabled ? '🔊 AUDIO: ON' : '🔇 AUDIO: OFF';
-      audioToggleBtn.classList.toggle('bg-red-700', sound.enabled);
-      audioToggleBtn.classList.toggle('bg-gray-700', !sound.enabled);
+      sound.sfxEnabled = !sound.sfxEnabled;
+      audioToggleBtn.textContent = sound.sfxEnabled ? '🔊 SFX: ON' : '🔇 SFX: OFF';
+      audioToggleBtn.classList.toggle('bg-red-700', sound.sfxEnabled);
+      audioToggleBtn.classList.toggle('bg-gray-700', !sound.sfxEnabled);
+    });
+
+    bgmToggleBtn.addEventListener('click', () => {
+      sound.init();
+      sound.bgmEnabled = !sound.bgmEnabled;
+      bgmToggleBtn.textContent = sound.bgmEnabled ? '🎵 BGM: ON' : '🎵 BGM: OFF';
+      bgmToggleBtn.classList.toggle('bg-indigo-700', sound.bgmEnabled);
+      bgmToggleBtn.classList.toggle('bg-gray-700', !sound.bgmEnabled);
+      if (sound.bgmEnabled) {
+        sound.startBgm();
+      } else {
+        sound.stopBgm();
+      }
     });
 
     pauseBtn.addEventListener('click', () => {
@@ -1759,11 +2321,20 @@
       if (e.code === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
         keys.right = true;
       }
-      if (e.code === 'Space' || e.code === 'KeyF' || e.code === 'KeyZ') {
+      if (e.code === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+        keys.up = true;
+      }
+      if (e.code === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+        keys.down = true;
+      }
+      if (e.code === 'Space') {
+        e.preventDefault();
+        keys.jump = true;
+      }
+      if (e.code === 'KeyE' || e.code === 'KeyF' || e.code === 'KeyZ') {
         keys.door = true;
       }
 
-      // Atajos de dificultad en pantalla de inicio (teclas 1, 2, 3)
       if (gameState === 'START' || gameState === 'GAMEOVER') {
         if (e.key === '1') setDifficulty(DIFFICULTIES.EASY);
         if (e.key === '2') setDifficulty(DIFFICULTIES.MEDIUM);
@@ -1773,20 +2344,20 @@
     });
 
     window.addEventListener('keyup', (e) => {
-      if (e.code === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-        keys.left = false;
-      }
-      if (e.code === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-        keys.right = false;
-      }
-      if (e.code === 'Space' || e.code === 'KeyF' || e.code === 'KeyZ') {
-        keys.door = false;
-      }
+      if (e.code === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+      if (e.code === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+      if (e.code === 'ArrowUp' || e.key === 'w' || e.key === 'W') keys.up = false;
+      if (e.code === 'ArrowDown' || e.key === 's' || e.key === 'S') keys.down = false;
+      if (e.code === 'Space') keys.jump = false;
+      if (e.code === 'KeyE' || e.code === 'KeyF' || e.code === 'KeyZ') keys.door = false;
     });
 
-    // Asignación de botones táctiles
+    // Botones Táctiles
+    const btnUp = document.getElementById('btn-up');
+    const btnDown = document.getElementById('btn-down');
     const btnLeft = document.getElementById('btn-left');
     const btnRight = document.getElementById('btn-right');
+    const btnJump = document.getElementById('btn-jump');
     const btnDoor = document.getElementById('btn-door');
 
     const bindTouch = (elem, pressAction, releaseAction) => {
@@ -1809,11 +2380,13 @@
       elem.addEventListener('touchcancel', onEnd, { passive: false });
     };
 
+    bindTouch(btnUp, () => { keys.up = true; }, () => { keys.up = false; });
+    bindTouch(btnDown, () => { keys.down = true; }, () => { keys.down = false; });
     bindTouch(btnLeft, () => { keys.left = true; }, () => { keys.left = false; });
     bindTouch(btnRight, () => { keys.right = true; }, () => { keys.right = false; });
+    bindTouch(btnJump, () => { keys.jump = true; }, () => { keys.jump = false; });
     bindTouch(btnDoor, () => { keys.door = true; }, () => { keys.door = false; });
 
-    // Inicio inicial del ciclo
     window.onload = function() {
       setupLevel();
       requestAnimationFrame(gameLoop);
